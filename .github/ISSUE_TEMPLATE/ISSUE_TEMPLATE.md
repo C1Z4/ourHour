@@ -1,3 +1,11 @@
+---
+name: 새로운 기능 
+about: 새로운 기능
+title: ''
+labels: ''
+assignees: ''
+
+---
 ## 📌 제목
 feat(be): 작업 내용 (한 줄 요약) / fix(be): 작업 내용 (한 줄 요약)
 
