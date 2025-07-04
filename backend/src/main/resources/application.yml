@@ -5,10 +5,11 @@ spring:
 
   jpa:
     hibernate:
+      ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    show-sql: true
     properties:
       hibernate:
-        ddl-auto: validate
         format_sql: true
-    show-sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
