@@ -1,0 +1,14 @@
+# import external config
+spring:
+  config:
+    import: optional:application-secret.yml
+
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    properties:
+      hibernate:
+        ddl-auto: validate
+        format_sql: true
+    show-sql: true
