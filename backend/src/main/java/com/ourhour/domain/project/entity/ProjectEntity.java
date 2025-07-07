@@ -1,13 +1,16 @@
-package com.backend.domain.project.entity;
+package com.ourhour.domain.project.entity;
 
-import com.backend.domain.organization.entity.Org;
-import com.backend.domain.project.enums.ProjectStatus;
+import com.ourhour.domain.project.enums.ProjectStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "tbl_project")
@@ -17,19 +20,25 @@ public class ProjectEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int projectId;
+    private Long projectId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "org_id")
-    private Org org;
+    private OrgEntity orgEntity;
+
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MilestoneEntity> milestoneEntityList = new ArrayList<>();
 
     private String name;
     private String description;
     private Date startAt;
     private Date endAt;
+
+    @Enumerated(EnumType.STRING)
     private ProjectStatus status;
 
-    public int getOrgId() {
-        return org != null ? org.getOrgId() : 0;
+    public Long getOrgId() {
+        return orgEntity != null ? orgEntity.getOrgId() : 0;
     }
 }
