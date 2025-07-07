@@ -31,12 +31,12 @@ public class MilestoneEntity {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "milestone", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<IssueEntity> issues = new ArrayList<>();
+    @OneToMany(mappedBy = "milestone", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<IssueEntity> issueEntityList = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
-    private ProjectEntity project;
+    private ProjectEntity projectEntity;
 
     private String name;
     private Integer progress;

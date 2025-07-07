@@ -23,11 +23,11 @@ public class ProjectParticipantDepartmentEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     @MapsId("projectId")
-    private ProjectEntity project;
+    private ProjectEntity projectEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dept_id")
     @MapsId("deptId")
-    private DepartmentEntity department;
+    private DepartmentEntity departmentEntity;
 
 }

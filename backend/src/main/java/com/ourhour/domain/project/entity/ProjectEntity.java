@@ -29,7 +29,7 @@ public class ProjectEntity {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MilestoneEntity> milestones = new ArrayList<>();
+    private List<MilestoneEntity> milestoneEntityList = new ArrayList<>();
 
     private String name;
     private String description;

@@ -31,7 +31,7 @@ public class IssueEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
-    private MemberEntity assignee;
+    private MemberEntity assigneeEntity;
 
 
     private String name;
