@@ -4,12 +4,6 @@
         "https://checkstyle.org/dtds/configuration_1_3.dtd">
 
 <module name="Checker">
-    <!-- 클래스 파일명 접미사 검사 (Entity, Controller, Service, Repository, Dto) -->
-    <module name="RegexpSingleline">
-        <property name="format" value="(Entity|Controller|Service|Repository|DTO)\.java$"/>
-        <property name="message" value="❌ 클래스 파일명은 반드시 Entity, Controller, Service, Repository, DTO 접미사를 포함해야 합니다."/>
-    </module>
-
     <module name="TreeWalker">
         <!-- 패키지명 검사 (소문자만)-->
         <module name="PackageName">
