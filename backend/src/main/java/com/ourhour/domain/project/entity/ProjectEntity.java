@@ -20,11 +20,11 @@ public class ProjectEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int projectId;
+    private Long projectId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "org_id")
-    private Org org;
+    private OrgEntity orgEntity;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -37,7 +37,7 @@ public class ProjectEntity {
     private Date endAt;
     private ProjectStatus status;
 
-    public int getOrgId() {
-        return org != null ? org.getOrgId() : 0;
+    public Long getOrgId() {
+        return orgEntity != null ? orgEntity.getOrgId() : 0;
     }
 }
