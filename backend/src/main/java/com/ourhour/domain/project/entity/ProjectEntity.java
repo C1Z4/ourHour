@@ -13,7 +13,7 @@ import java.util.Date;
 @Table(name = "tbl_project")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Project {
+public class ProjectEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

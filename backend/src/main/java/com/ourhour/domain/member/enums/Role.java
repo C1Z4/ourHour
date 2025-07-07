@@ -1,7 +1,7 @@
 package com.backend.global.common.enums;
 
 public enum Role {
-    ROOT_ADMIN("최고관리자"),
+    ROOT_ADMIN("루트관리자"),
     ADMIN("관리자"),
     MEMBER("일반회원");
 
