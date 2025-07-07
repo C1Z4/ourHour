@@ -10,16 +10,18 @@ import lombok.NoArgsConstructor;
 @Table(name = "tbl_chat_participant")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@IdClass(ChatParticipantId.class)
 public class ChatParticipantEntity {
 
-    @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id")
-    private ChatRoomEntity chatRoom;
+    @EmbeddedId
+    private ChatParticipantId chatParticipantId;
 
-    @Id
     @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("roomId")
+    @JoinColumn(name = "room_id")
+    private ChatRoomEntity chatRoomEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("memberId")
     @JoinColumn(name = "member_id")
-    private MemberEntity member;
+    private MemberEntity memberEntity;
 }

@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "tbl_chat_room")
 @Getter
@@ -17,4 +19,5 @@ public class ChatRoomEntity {
 
     private String name;
     private String color;
+    private LocalDateTime createdAt;
 }
