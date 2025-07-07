@@ -16,7 +16,6 @@ public class ChatMessageEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "chat_message_id")
     private Long chatMessageId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -30,7 +29,6 @@ public class ChatMessageEntity {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "sent_at")
     private LocalDateTime sentAt;
 
 }
