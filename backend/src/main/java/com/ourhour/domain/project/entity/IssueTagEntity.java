@@ -17,5 +17,7 @@ public class IssueTagEntity {
     @Id
     private Long issueTagId;
     private String name;
+
+    @Enumerated(EnumType.STRING)
     private IssueTagColor color;
 }

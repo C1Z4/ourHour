@@ -34,6 +34,8 @@ public class ProjectEntity {
     private String description;
     private Date startAt;
     private Date endAt;
+
+    @Enumerated(EnumType.STRING)
     private ProjectStatus status;
 
     public Long getOrgId() {
