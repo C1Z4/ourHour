@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -18,7 +19,7 @@ public class DepartmentEntity {
     private Long deptId;
 
     @OneToMany(mappedBy = "departmentEntity")
-    private List<OrgParticipantMemberEntity> orgParticipantMemberEntityList;
+    private List<OrgParticipantMemberEntity> orgParticipantMemberEntityList = new ArrayList<>();
 
     private String name;
 
