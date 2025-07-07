@@ -15,6 +15,16 @@ public class OrgParticipantMemberEntity {
     @EmbeddedId
     private OrgParticipantMemberId orgParticipantMemberId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="org_id")
+    @MapsId("orgId")
+    private OrgEntity orgEntity;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="member_id")
+    @MapsId("memberId")
+    private MemberEntity memberEntity;
+
     @ManyToOne
     @JoinColumn(name = "dept_id")
     private DepartmentEntity departmentEntity;
