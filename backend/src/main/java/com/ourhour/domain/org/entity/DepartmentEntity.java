@@ -1,0 +1,25 @@
+package com.ourhour.domain.org.entity;
+
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Entity
+@Table(name = "tbl_department")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class DepartmentEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long deptId;
+
+    @OneToMany(mappedBy = "departmentEntity")
+    private List<OrgParticipantMemberEntity> orgParticipantMemberEntityList;
+
+    private String name;
+
+}

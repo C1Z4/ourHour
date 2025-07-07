@@ -1,0 +1,28 @@
+package com.ourhour.domain.org.entity;
+
+import com.ourhour.domain.org.enums.Role;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "tbl_org_participant_member")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class OrgParticipantMemberEntity {
+
+    @EmbeddedId
+    private OrgParticipantMemberId orgParticipantMemberId;
+
+    @ManyToOne
+    @JoinColumn(name = "dept_id")
+    private DepartmentEntity departmentEntity;
+
+    @ManyToOne
+    @JoinColumn(name="position_id")
+    private PositionEntity positionEntity;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+}
