@@ -1,0 +1,77 @@
+###########################
+# ✅ Backend (Spring Boot) #
+###########################
+
+# Gradle 관련
+.gradle/
+build/
+!backend/gradle/wrapper/gradle-wrapper.jar  # Gradle Wrapper는 포함
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+#.yml 관련
+**/src/main/resources/*secret*.yml
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# Eclipse / STS(Spring Tool Suite)
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+
+# 기타
+HELP.md
+
+
+###########################
+# ✅ Frontend (React / npm) #
+###########################
+
+# 의존성
+/frontend/node_modules/
+/frontend/.pnp/
+/frontend/.pnp.js
+
+# 테스트 커버리지
+/frontend/coverage/
+
+# 프로덕션 빌드
+/frontend/build/
+
+# 환경 변수
+/frontend/.env.local
+/frontend/.env.development.local
+/frontend/.env.test.local
+/frontend/.env.production.local
+
+# macOS
+/frontend/.DS_Store
+
+# 로그 파일
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
