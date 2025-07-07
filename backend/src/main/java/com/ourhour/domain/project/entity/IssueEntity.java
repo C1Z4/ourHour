@@ -23,11 +23,11 @@ public class IssueEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "milestone_id")
-    private MilestoneEntity milestone;
+    private MilestoneEntity milestoneEntity;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "issue_tag_id")
-    private IssueTagEntity issueTag;
+    private IssueTagEntity issueTagEntity;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
