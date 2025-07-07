@@ -1,7 +1,11 @@
 package com.ourhour.domain.project.entity;
 
 import jakarta.persistence.Embeddable;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
