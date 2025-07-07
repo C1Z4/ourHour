@@ -18,7 +18,7 @@ public class PositionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long positionId;
 
-    @OneToMany(mappedBy="positionEntity")
+    @OneToMany(mappedBy="positionEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrgParticipantMemberEntity> orgParticipantMemberEntityList = new ArrayList<>();
 
     private String name;
