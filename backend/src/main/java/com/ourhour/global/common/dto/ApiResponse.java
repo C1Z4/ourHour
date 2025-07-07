@@ -1,4 +1,4 @@
-package com.backend.global.common.dto;
+package com.ourhour.global.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

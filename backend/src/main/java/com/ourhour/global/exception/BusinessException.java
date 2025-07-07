@@ -1,4 +1,4 @@
-package com.backend.global.exception;
+package com.ourhour.global.exception;
 
 import lombok.Getter;
 
