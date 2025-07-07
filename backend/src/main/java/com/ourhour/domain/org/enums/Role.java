@@ -1,4 +1,4 @@
-package com.ourhour.domain.org.entity;
+package com.ourhour.domain.org.enums;
 
 public enum Role {
     ROOT_ADMIN("루트관리자"),
