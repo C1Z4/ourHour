@@ -26,7 +26,6 @@ public class ProjectEntity {
     @JoinColumn(name = "org_id")
     private OrgEntity orgEntity;
 
-    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MilestoneEntity> milestoneEntityList = new ArrayList<>();

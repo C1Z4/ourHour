@@ -29,7 +29,6 @@ public class MilestoneEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long milestoneId;
 
-    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "milestone", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<IssueEntity> issueEntityList = new ArrayList<>();
