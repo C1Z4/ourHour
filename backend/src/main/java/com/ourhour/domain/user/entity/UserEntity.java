@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,7 +20,7 @@ public class UserEntity {
     private Long userId;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "userEntity")
-    private List<UserEntity> userEntityList;
+    private List<UserEntity> userEntityList = new ArrayList<>();
 
     private String email;
     private String password;
