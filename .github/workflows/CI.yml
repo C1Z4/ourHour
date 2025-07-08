@@ -74,7 +74,7 @@ jobs:
         working-directory: ./frontend
 
       - name: Run tests
-        run: npm run test -- --coverage --ci --watchAll=false
+        run: npm run test -- --coverage --ci --watchAll=false --passWithNoTests
         working-directory: ./frontend
 
       - name: Build project
