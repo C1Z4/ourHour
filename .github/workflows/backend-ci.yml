@@ -36,7 +36,16 @@ jobs:
         run: chmod +x ./gradlew
         working-directory: ./backend
 
-      - name: Build with Gradle
-        run: ./gradlew clean build --no-daemon # Gradle 빌드 실행
-        working-directory: ./backend
+      - name: Create application-secret.yml
+        run: |
+          mkdir -p ./backend/src/main/resources
+          echo "spring:" > ./backend/src/main/resources/application-secret.yml
+          echo "  datasource:" >> ./backend/src/main/resources/application-secret.yml
+          echo "    url: '${{ secrets.DB_URL }}'" >> ./backend/src/main/resources/application-secret.yml
+          echo "    username: '${{ secrets.DB_USERNAME }}'" >> ./backend/src/main/resources/application-secret.yml
+          echo "    password: '${{ secrets.DB_PASSWORD }}'" >> ./backend/src/main/resources/application-secret.yml
+          echo "    driver-class-name: com.mysql.cj.jdbc.Driver" >> ./backend/src/main/resources/application-secret.yml
 
+      - name: Build with Gradle
+        run: ./gradlew clean build --no-daemon
+        working-directory: ./backend
