@@ -1,5 +1,6 @@
 package com.ourhour.domain.project.entity;
 
+import com.ourhour.domain.member.entity.MemberEntity;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class ProjectParticipantEntity {
 
     @EmbeddedId
-    private ProjectParticipantId ProjectParticipantId;
+    private ProjectParticipantId projectParticipantId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")

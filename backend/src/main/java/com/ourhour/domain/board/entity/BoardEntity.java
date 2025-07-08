@@ -1,5 +1,6 @@
 package com.ourhour.domain.board.entity;
 
+import com.ourhour.domain.org.entity.OrgEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

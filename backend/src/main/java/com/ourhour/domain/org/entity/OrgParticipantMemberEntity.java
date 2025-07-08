@@ -1,5 +1,6 @@
 package com.ourhour.domain.org.entity;
 
+import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.org.enums.Role;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
