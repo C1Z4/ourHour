@@ -28,7 +28,7 @@ public class ProjectEntity {
     private OrgEntity orgEntity;
 
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "projectEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MilestoneEntity> milestoneEntityList = new ArrayList<>();
 
     private String name;
