@@ -1,5 +1,6 @@
 package com.ourhour.domain.chat.entity;
 
+import com.ourhour.global.common.enums.TagColor;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -18,6 +19,9 @@ public class ChatRoomEntity {
     private Long roomId;
 
     private String name;
-    private String color;
+
+    @Enumerated(EnumType.STRING)
+    private TagColor color;
+
     private LocalDateTime createdAt;
 }
