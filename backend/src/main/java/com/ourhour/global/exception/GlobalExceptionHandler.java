@@ -1,6 +1,6 @@
-package com.backend.global.exception;
+package com.ourhour.global.exception;
 
-import com.backend.global.common.dto.ApiResponse;
+import com.ourhour.global.common.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
