@@ -1,4 +1,4 @@
-package com.backend.global.config;
+package com.ourhour.global.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
