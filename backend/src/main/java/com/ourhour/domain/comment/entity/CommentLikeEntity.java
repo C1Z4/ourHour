@@ -27,8 +27,8 @@ public class CommentLikeEntity {
     private CommentEntity commentEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    @MapsId("memberId")
+    @JoinColumn(name = "author_id")
+    @MapsId("authorId")
     private MemberEntity authorEntity;
 
 

@@ -14,7 +14,6 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,7 @@ public class MilestoneEntity {
     private Long milestoneId;
 
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "milestone", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "milestoneEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<IssueEntity> issueEntityList = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -38,5 +37,6 @@ public class MilestoneEntity {
     private ProjectEntity projectEntity;
 
     private String name;
-    private Integer progress;
+
+    private byte progress;
 }

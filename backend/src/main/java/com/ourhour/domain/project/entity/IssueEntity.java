@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class IssueEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long issueId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,7 +26,7 @@ public class IssueEntity {
     private IssueTagEntity issueTagEntity;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "assignee_id")
     private MemberEntity assigneeEntity;
 
 
