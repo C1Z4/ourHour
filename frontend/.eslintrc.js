@@ -41,7 +41,6 @@ module.exports = {
     eqeqeq: ['error', 'always'], // === 및 !== 사용 강제
     curly: 'error', // 모든 제어문에 중괄호 사용
     'consistent-return': 'error', // 함수에서 일관된 return 패턴 사용
-    'no-magic-numbers': ['warn', { ignore: [-1, 0, 1, 2] }], // 매직 넘버 사용 경고 (일부 예외)
     'max-len': ['warn', { code: 100, ignoreUrls: true }], // 한 줄 최대 길이 100자
     'max-depth': ['warn', 4], // 최대 중첩 깊이 4
     complexity: ['warn', 10], // 순환 복잡도 최대 10
