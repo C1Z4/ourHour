@@ -1,5 +1,6 @@
 package com.ourhour.domain.project.entity;
 
+import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.project.enums.ProjectStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

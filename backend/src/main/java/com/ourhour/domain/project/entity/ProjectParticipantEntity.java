@@ -1,5 +1,6 @@
 package com.ourhour.domain.project.entity;
 
+import com.ourhour.domain.member.entity.MemberEntity;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

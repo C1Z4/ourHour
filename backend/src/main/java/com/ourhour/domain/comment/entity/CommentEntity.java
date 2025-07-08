@@ -1,5 +1,7 @@
 package com.ourhour.domain.comment.entity;
 
+import com.ourhour.domain.board.entity.PostEntity;
+import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.project.entity.IssueEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
