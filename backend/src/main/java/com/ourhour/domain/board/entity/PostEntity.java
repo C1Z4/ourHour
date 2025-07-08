@@ -27,15 +27,12 @@ public class PostEntity {
     @JoinColumn(name = "author_id")
     private MemberEntity authorEntity;
 
-    @Column(nullable = false, length = 255)
     private String title;
 
     @Lob
-    @Column(columnDefinition = "LONGTEXT")
     private String content;
 
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
 }
