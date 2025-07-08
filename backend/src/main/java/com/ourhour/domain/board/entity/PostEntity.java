@@ -30,6 +30,7 @@ public class PostEntity {
     private String title;
 
     @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String content;
 
     @CreationTimestamp

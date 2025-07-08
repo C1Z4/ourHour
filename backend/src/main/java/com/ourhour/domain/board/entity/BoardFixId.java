@@ -14,6 +14,6 @@ public class BoardFixId implements Serializable {
     private Long boardId;
 
     // 구성원의 member_id
-    private String memberId;
+    private Long memberId;
 
     }
