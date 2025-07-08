@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class ProjectParticipantEntity {
 
     @EmbeddedId
-    private ProjectParticipantId ProjectParticipantId;
+    private ProjectParticipantId projectParticipantId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
