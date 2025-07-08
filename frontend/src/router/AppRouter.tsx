@@ -1,7 +1,9 @@
-import { PATH } from '@constants/path';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+
 import NotFoundPage from '@pages/common/NotFoundPage';
 import LandingPage from '@pages/landing/LandingPage';
+
+import { PATH } from '@constants/path';
 
 const AppRouter = () => {
   const router = createBrowserRouter([

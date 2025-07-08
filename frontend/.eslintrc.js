@@ -1,9 +1,9 @@
 module.exports = {
   extends: ['react-app', 'react-app/jest', 'prettier'],
-  plugins: ['prettier'],
+  plugins: ['prettier', 'import'],
 
   rules: {
-    'prettier/prettier': 'error', // prettier 연동동
+    'prettier/prettier': 'error', // prettier 연동
 
     'react/jsx-uses-react': 'off', // React 17+ 자동 JSX 변환으로 불필요
     'react/react-in-jsx-scope': 'off', // React 17+ 자동 JSX 변환으로 불필요
@@ -50,6 +50,62 @@ module.exports = {
 
     quotes: ['error', 'single', { avoidEscape: true }], // JavaScript에서 single quote 사용
     'jsx-quotes': ['error', 'prefer-double'], // JSX 속성에서 double quote 사용
+
+    // Import 순서 및 그룹화 규칙
+    'import/order': [
+      'error',
+      {
+        groups: [
+          'builtin', // Node.js 내장 모듈
+          'external', // 외부 라이브러리
+          'internal', // 내부 모듈 (절대 경로)
+          ['parent', 'sibling'], // 상대 경로
+          'index', // index 파일
+        ],
+        pathGroups: [
+          // React 생태계 우선 (external 그룹의 맨 앞)
+          { pattern: 'react', group: 'external', position: 'before' },
+          { pattern: 'react-dom', group: 'external', position: 'before' },
+          { pattern: 'react-router-dom', group: 'external', position: 'before' },
+          { pattern: 'react-router', group: 'external', position: 'before' },
+          { pattern: '@tanstack/react-query', group: 'external', position: 'before' },
+          { pattern: '@reduxjs/toolkit', group: 'external', position: 'before' },
+          { pattern: 'react-redux', group: 'external', position: 'before' },
+
+          // 내부 모듈 - API & 타입 (internal 그룹의 맨 앞)
+          { pattern: '@api/**', group: 'internal', position: 'before' },
+          { pattern: '@types/**', group: 'internal', position: 'before' },
+
+          // 내부 모듈 - 상태 관리 & 로직
+          { pattern: '@stores/**', group: 'internal', position: 'before' },
+          { pattern: '@hooks/**', group: 'internal', position: 'before' },
+
+          // 내부 모듈 - UI 컴포넌트
+          { pattern: '@components/**', group: 'internal', position: 'before' },
+          { pattern: '@pages/**', group: 'internal', position: 'before' },
+          { pattern: '@router/**', group: 'internal', position: 'before' },
+
+          // 내부 모듈 - 유틸리티 (internal 그룹의 뒤)
+          { pattern: '@lib/**', group: 'internal', position: 'after' },
+          { pattern: '@utils/**', group: 'internal', position: 'after' },
+          { pattern: '@constants/**', group: 'internal', position: 'after' },
+
+          // 내부 모듈 - 스타일 & 에셋 (internal 그룹의 맨 뒤)
+          { pattern: '@styles/**', group: 'internal', position: 'after' },
+          { pattern: '@assets/**', group: 'internal', position: 'after' },
+
+          { pattern: '@/**', group: 'internal', position: 'after' },
+        ],
+        pathGroupsExcludedImportTypes: ['react', 'builtin'],
+        'newlines-between': 'always', // 그룹 간 빈 줄 강제
+        alphabetize: {
+          order: 'asc', // 알파벳 순서로 정렬
+          caseInsensitive: true,
+        },
+      },
+    ],
+    'import/newline-after-import': 'error', // import 구문 후 빈 줄
+    'import/no-duplicates': 'error', // 중복 import 방지
   },
 
   settings: {
