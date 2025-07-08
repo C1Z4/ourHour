@@ -21,10 +21,8 @@ public class BoardEntity {
     @JoinColumn(name = "org_id", nullable = false)
     private OrgEntity orgEntity;
 
-    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false)
     private boolean isFixed;
 
 
