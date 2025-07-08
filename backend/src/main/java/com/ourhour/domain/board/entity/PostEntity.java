@@ -23,9 +23,9 @@ public class PostEntity {
     @JoinColumn(name = "board_id")
     private BoardEntity boardEntity;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id")
-    private MemberEntity authorEntity;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "author_id")
+//    private MemberEntity authorEntity;
 
     @Column(nullable = false, length = 255)
     private String title;

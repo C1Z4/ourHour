@@ -16,7 +16,7 @@ public class BoardFixEntity implements Serializable {
     @Column(name = "board_id")
     private Long boardId;
 
-    // 구성원에서 가져온 멤버 아이디
+    /*구성원에서 가져온 멤버 아이디*/
     @Column(name = "member_id")
     private Long memberId;
 

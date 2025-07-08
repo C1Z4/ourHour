@@ -17,9 +17,9 @@ public class BoardEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long boardId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "org_id", nullable = false)
-    private OrgEntity orgEntity;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "org_id", nullable = false)
+//    private OrgEntity orgEntity;
 
     @Column(nullable = false, length = 100)
     private String name;
