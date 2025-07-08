@@ -1,6 +1,6 @@
 package com.ourhour.domain.project.entity;
 
-import com.ourhour.domain.project.enums.IssueTagColor;
+import com.ourhour.global.common.enums.TagColor;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,5 +17,5 @@ public class IssueTagEntity {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    private IssueTagColor color;
+    private TagColor color;
 }
