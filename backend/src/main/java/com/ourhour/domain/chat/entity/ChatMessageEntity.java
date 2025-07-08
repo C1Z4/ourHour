@@ -1,6 +1,6 @@
-package com.backend.domain.chat.entity;
+package com.ourhour.domain.chat.entity;
 
-import com.backend.domain.member.entity.MemberEntity;
+import com.ourhour.domain.member.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

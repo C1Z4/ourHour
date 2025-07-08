@@ -1,4 +1,4 @@
-package com.backend.domain.chat.entity;
+package com.ourhour.domain.chat.entity;
 
 import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
