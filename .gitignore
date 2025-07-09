@@ -44,6 +44,7 @@ nbdist/
 .vscode/
 
 # 기타
+.cursor/
 HELP.md
 
 
@@ -63,6 +64,7 @@ HELP.md
 /frontend/build/
 
 # 환경 변수
+/frontend/.env
 /frontend/.env.local
 /frontend/.env.development.local
 /frontend/.env.test.local
@@ -75,3 +77,4 @@ HELP.md
 /frontend/npm-debug.log*
 /frontend/yarn-debug.log*
 /frontend/yarn-error.log*
+
