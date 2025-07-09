@@ -9,6 +9,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
     "@shadcn/ui": "^0.0.4",
+    "@stomp/stompjs": "^7.1.1",
     "@tanstack/react-query": "^5.81.5",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -22,6 +23,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.3",
     "react-scripts": "5.0.1",
+    "sockjs-client": "^1.6.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
@@ -56,6 +58,7 @@
   "devDependencies": {
     "@craco/craco": "^7.1.0",
     "@types/node": "^22.16.0",
+    "@types/sockjs-client": "^1.5.4",
     "autoprefixer": "^10.4.21",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-import": "^2.32.0",
