@@ -3,9 +3,6 @@ spring:
   config:
     import: optional:application-secret.yml
 
-  jackson:
-    property-naming-strategy: SNAKE_CASE
-
   jpa:
     hibernate:
       ddl-auto: validate
