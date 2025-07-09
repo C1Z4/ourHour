@@ -53,8 +53,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiResponse<Object>> handleConstraintViolationException(ConstraintViolationException e) {
         log.warn("Constraint Violation Exception: {}", e.getMessage());
+
+        // 실제 validation 메시지 추출
+        String errorMessage = e.getConstraintViolations()
+                .stream()
+                .findFirst()
+                .map(violation -> violation.getMessage())
+                .orElse("입력값이 유효하지 않습니다.");
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.fail(400, "입력값이 유효하지 않습니다."));
+                .body(ApiResponse.fail(400, errorMessage));
     }
 
     // 일반적인 예외 처리
