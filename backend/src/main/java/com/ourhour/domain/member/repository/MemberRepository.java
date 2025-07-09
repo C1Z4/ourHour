@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
 
@@ -26,6 +27,6 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
             + "LEFT JOIN FETCH opm.departmentEntity d "
             + "LEFT JOIN FETCH opm.positionEntity p "
             + "WHERE m.memberId = :memberId AND o.orgId = :orgId")
-    OrgParticipantMemberEntity findOrgDetailByMemberIdAndOrgId(Long memberId, Long orgId);
+    Optional<OrgParticipantMemberEntity> findOrgDetailByMemberIdAndOrgId(Long memberId, Long orgId);
 
 }
