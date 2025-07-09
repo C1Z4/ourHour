@@ -4,6 +4,7 @@ import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.org.enums.Role;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -36,4 +37,14 @@ public class OrgParticipantMemberEntity {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @Builder
+    public OrgParticipantMemberEntity(OrgParticipantMemberId orgParticipantMemberId, OrgEntity orgEntity, MemberEntity memberEntity, DepartmentEntity departmentEntity, PositionEntity positionEntity, Role role) {
+        this.orgParticipantMemberId = orgParticipantMemberId;
+        this.orgEntity = orgEntity;
+        this.memberEntity = memberEntity;
+        this.departmentEntity = departmentEntity;
+        this.positionEntity = positionEntity;
+        this.role = role;
+    }
 }

@@ -2,6 +2,7 @@ package com.ourhour.domain.org.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -28,5 +29,17 @@ public class OrgEntity {
     private String phone;
     private String businessNumber;
     private String logoImgUrl;
+
+    @Builder
+    public OrgEntity(String name, String address, String email, String representativeName, String phone, String businessNumber, String logoImgUrl) {
+        this.name = name;
+        this.address = address;
+        this.email = email;
+        this.representativeName = representativeName;
+        this.phone = phone;
+        this.businessNumber = businessNumber;
+        this.logoImgUrl = logoImgUrl;
+    }
+
 
 }
