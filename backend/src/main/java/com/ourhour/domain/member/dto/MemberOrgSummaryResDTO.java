@@ -6,7 +6,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class MemberOrgListResDTO {
+public class MemberOrgSummaryResDTO {
 
     private Long orgId;
     private String name;
