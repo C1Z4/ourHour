@@ -1,4 +1,4 @@
-package com.ourhour.domain.member.Exception;
+package com.ourhour.domain.member.exceptions;
 
 import com.ourhour.global.exception.BusinessException;
 

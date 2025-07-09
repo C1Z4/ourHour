@@ -1,6 +1,6 @@
 package com.ourhour.domain.member.sevice;
 
-import com.ourhour.domain.member.Exception.MemberOrgException;
+import com.ourhour.domain.member.exceptions.MemberOrgException;
 import com.ourhour.domain.member.dto.MemberOrgDetailResDTO;
 import com.ourhour.domain.member.dto.MemberOrgSummaryResDTO;
 import com.ourhour.domain.member.mapper.MemberOrgMapper;
@@ -35,7 +35,7 @@ public class MemberService {
         // memberId와 orgId를 통해 본인이 속한 회사 상세 정보 조회
         OrgParticipantMemberEntity orgDetailEntity = memberRepository
                 .findOrgDetailByMemberIdAndOrgId(memberId, orgId)
-                .orElseThrow(() -> MemberOrgException.orgNotFoundException());
+                .orElseThrow(MemberOrgException::orgNotFoundException);
 
         // OrgParticipantMemberEntity -> MemberOrgDetailResDTO 변환
         MemberOrgDetailResDTO memberOrgDetailResDTO = memberOrgMapper.toMemberOrgDetailResDTO(orgDetailEntity);
