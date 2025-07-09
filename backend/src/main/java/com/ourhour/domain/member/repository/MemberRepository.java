@@ -29,4 +29,5 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
             + "WHERE m.memberId = :memberId AND o.orgId = :orgId")
     Optional<OrgParticipantMemberEntity> findOrgDetailByMemberIdAndOrgId(Long memberId, Long orgId);
 
+
 }
