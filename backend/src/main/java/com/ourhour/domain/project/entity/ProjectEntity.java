@@ -7,11 +7,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tbl_project")
@@ -32,9 +31,12 @@ public class ProjectEntity {
     private List<MilestoneEntity> milestoneEntityList = new ArrayList<>();
 
     private String name;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
-    private Date startAt;
-    private Date endAt;
+    
+    private LocalDateTime startAt;
+    private LocalDateTime endAt;
 
     @Enumerated(EnumType.STRING)
     private ProjectStatus status;
