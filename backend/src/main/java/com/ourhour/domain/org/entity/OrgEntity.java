@@ -19,7 +19,7 @@ public class OrgEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orgId;
 
-    @OneToMany(mappedBy = "orgParticipantMemberId.orgEntity")
+    @OneToMany(mappedBy = "orgEntity")
     private List<OrgParticipantMemberEntity> orgParticipantMemberEntityList = new ArrayList<>();
 
     private String name;

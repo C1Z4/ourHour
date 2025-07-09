@@ -17,5 +17,5 @@ import java.io.Serializable;
 public class CommentLikeId implements Serializable {
 
     private Long commentId;
-    private Long memberId;
+    private Long authorId;
 }

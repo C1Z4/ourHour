@@ -24,7 +24,7 @@ public class CommentEntity {
     private PostEntity postEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "author_id")
     private MemberEntity authorEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)

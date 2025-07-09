@@ -23,5 +23,5 @@ public class MemberEntity {
     private String name;
     private String phone;
     private String email;
-    private String profileImg;
+    private String profileImgUrl;
 }
