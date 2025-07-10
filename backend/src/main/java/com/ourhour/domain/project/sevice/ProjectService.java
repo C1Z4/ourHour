@@ -1,6 +1,7 @@
 package com.ourhour.domain.project.sevice;
 
 import com.ourhour.domain.org.repository.OrgRepository;
+import com.ourhour.domain.project.dto.ProjecUpdateReqDTO;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryParticipantDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryResDTO;
@@ -13,6 +14,7 @@ import com.ourhour.domain.project.repository.ProjectRepository;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.exception.BusinessException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.ourhour.domain.org.entity.OrgEntity;
+import com.ourhour.domain.member.repository.MemberRepository;
+import com.ourhour.domain.project.entity.ProjectParticipantId;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -32,6 +37,7 @@ public class ProjectService {
     private final ProjectParticipantRepository projectParticipantRepository;
     private final OrgRepository orgRepository;
     private final ProjectMapper projectMapper;
+    private final MemberRepository memberRepository;
 
     // 프로젝트 요약 목록 조회 - 페이징 처리
     public ApiResponse<PageResponse<ProjectSummaryResDTO>> getProjectsSummaryList(Long orgId, int participantLimit,
@@ -98,11 +104,61 @@ public class ProjectService {
         OrgEntity orgEntity = orgRepository.findById(orgId)
                 .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 조직 ID입니다."));
 
-        ProjectEntity projectEntity = projectMapper.toProjectEntity(projectReqDTO, orgEntity);
+        if (orgEntity == null) {
+            throw BusinessException.badRequest("조직 정보를 찾을 수 없습니다.");
+        }
 
-        projectRepository.save(projectEntity);
+        ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
 
-        return ApiResponse.success(null, "프로젝트 등록에 성공했습니다.");
+        ProjectEntity savedProject = projectRepository.save(projectEntity);
+
+        ProjectInfoDTO projectInfo = projectMapper.toProjectInfoDTO(savedProject);
+
+        return ApiResponse.success(projectInfo, "프로젝트 등록이 완료되었습니다.");
+    }
+
+    // 프로젝트 수정(정보, 참가자)
+    @Transactional
+    public ApiResponse<ProjectInfoDTO> updateProject(Long projectId, ProjecUpdateReqDTO projectUpdateReqDTO) {
+        if (projectId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
+        }
+
+        ProjectEntity projectEntity = projectRepository.findById(projectId)
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다."));
+
+        projectMapper.updateProjectEntity(projectEntity, projectUpdateReqDTO);
+        ProjectEntity savedProject = projectRepository.save(projectEntity);
+
+        if (projectUpdateReqDTO.getParticipantIds() != null) {
+
+            // 기존 참여자 모두 삭제
+            projectParticipantRepository.deleteByProjectParticipantId_ProjectId(projectId);
+
+            if (!projectUpdateReqDTO.getParticipantIds().isEmpty()) {
+                List<ProjectParticipantEntity> newParticipants = projectUpdateReqDTO.getParticipantIds().stream()
+                        .map(memberId -> {
+                            if (!memberRepository.existsById(memberId)) {
+                                throw BusinessException.badRequest("존재하지 않는 멤버 ID입니다: " + memberId);
+                            }
+
+                            ProjectParticipantId participantId = new ProjectParticipantId(projectId, memberId);
+
+                            return ProjectParticipantEntity.builder()
+                                    .projectParticipantId(participantId)
+                                    .projectEntity(savedProject)
+                                    .memberEntity(memberRepository.getReferenceById(memberId))
+                                    .build();
+                        })
+                        .collect(Collectors.toList());
+
+                projectParticipantRepository.saveAll(newParticipants);
+            }
+        }
+
+        ProjectInfoDTO projectInfo = projectMapper.toProjectInfoDTO(savedProject);
+
+        return ApiResponse.success(projectInfo, "프로젝트 수정이 완료되었습니다.");
     }
 
 }

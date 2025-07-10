@@ -1,5 +1,6 @@
 package com.ourhour.domain.project.controller;
 
+import com.ourhour.domain.project.dto.ProjecUpdateReqDTO;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectParticipantDTO;
 import com.ourhour.domain.project.dto.ProjectReqDTO;
@@ -20,6 +21,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,6 +42,15 @@ public class ProjectController {
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @Valid @RequestBody ProjectReqDTO projectReqDTO) {
                 ApiResponse<ProjectInfoDTO> response = projectService.createProject(orgId, projectReqDTO);
+                return ResponseEntity.ok(response);
+        }
+
+        // 프로젝트 수정(정보, 참가자)
+        @PutMapping("/{projectId}")
+        public ResponseEntity<ApiResponse<ProjectInfoDTO>> updateProject(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @Valid @RequestBody ProjecUpdateReqDTO projectReqDTO) {
+                ApiResponse<ProjectInfoDTO> response = projectService.updateProject(projectId, projectReqDTO);
                 return ResponseEntity.ok(response);
         }
 

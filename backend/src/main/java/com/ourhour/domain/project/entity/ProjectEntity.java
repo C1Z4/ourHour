@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
@@ -31,14 +32,20 @@ public class ProjectEntity {
     @OneToMany(mappedBy = "projectEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MilestoneEntity> milestoneEntityList = new ArrayList<>();
 
+    @Setter
     private String name;
 
+    @Setter
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Setter
     private LocalDate startAt;
+    
+    @Setter
     private LocalDate endAt;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private ProjectStatus status = ProjectStatus.NOT_STARTED;
 
@@ -56,4 +63,5 @@ public class ProjectEntity {
     public Long getOrgId() {
         return orgEntity != null ? orgEntity.getOrgId() : 0;
     }
+
 }
