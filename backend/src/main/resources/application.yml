@@ -17,6 +17,10 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
+  # service.base-url (이메일 링크 생성 등에 사용)
+  service:
+    base-url: http://localhost:8080 # 개발 환경
+
 # 로그 설정
 logging:
   level:
@@ -26,3 +30,4 @@ logging:
     org.springframework.web: DEBUG        # 웹 요청 로그
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
