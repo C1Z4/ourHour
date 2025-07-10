@@ -1,4 +1,4 @@
-package com.ourhour.domain.member.sevice;
+package com.ourhour.domain.member.service;
 
 import com.ourhour.domain.member.exceptions.MemberOrgException;
 import com.ourhour.domain.member.dto.MemberOrgDetailResDTO;

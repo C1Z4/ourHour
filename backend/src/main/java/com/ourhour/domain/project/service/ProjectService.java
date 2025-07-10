@@ -1,4 +1,4 @@
-package com.ourhour.domain.project.sevice;
+package com.ourhour.domain.project.service;
 
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
