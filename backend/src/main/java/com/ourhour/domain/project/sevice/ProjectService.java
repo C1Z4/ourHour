@@ -4,6 +4,7 @@ import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryParticipantDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryResDTO;
+import com.ourhour.domain.project.dto.ProjectReqDTO;
 import com.ourhour.domain.project.entity.ProjectEntity;
 import com.ourhour.domain.project.entity.ProjectParticipantEntity;
 import com.ourhour.domain.project.mapper.ProjectMapper;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import com.ourhour.domain.org.entity.OrgEntity;
 
 @Slf4j
 @Service
@@ -85,6 +87,22 @@ public class ProjectService {
         ProjectInfoDTO projectInfo = projectMapper.toProjectInfoDTO(project);
 
         return ApiResponse.success(projectInfo, "프로젝트 정보 조회에 성공했습니다.");
+    }
+
+    // 프로젝트 등록
+    public ApiResponse<ProjectInfoDTO> createProject(Long orgId, ProjectReqDTO projectReqDTO) {
+        if (orgId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 조직 ID입니다.");
+        }
+
+        OrgEntity orgEntity = orgRepository.findById(orgId)
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 조직 ID입니다."));
+
+        ProjectEntity projectEntity = projectMapper.toProjectEntity(projectReqDTO, orgEntity);
+
+        projectRepository.save(projectEntity);
+
+        return ApiResponse.success(null, "프로젝트 등록에 성공했습니다.");
     }
 
 }
