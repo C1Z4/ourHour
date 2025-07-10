@@ -1,5 +1,6 @@
 package com.ourhour.domain.project.controller;
 
+import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectParticipantDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryResDTO;
 import com.ourhour.domain.project.sevice.ProjectParticipantService;
@@ -53,10 +54,19 @@ public class ProjectController {
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = " 페이지 크기는 100이하여야 합니다.") int size) {
 
                 Pageable pageable = PageRequest.of(currentPage, size,
-                                Sort.by(Sort.Direction.ASC, "ProjectParticipantId.orgParticipantMemberId.memberId"));
+                                Sort.by(Sort.Direction.ASC, "ProjectParticipantId.memberId"));
 
                 ApiResponse<PageResponse<ProjectParticipantDTO>> response = projectParticipantService
                                 .getProjectParticipants(projectId, pageable);
+
+                return ResponseEntity.ok(response);
+        }
+
+        // 프로젝트 정보 조회
+        @GetMapping("/{projectId}/info")
+        public ResponseEntity<ApiResponse<ProjectInfoDTO>> getProjectInfo(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId) {
+                ApiResponse<ProjectInfoDTO> response = projectService.getProjectInfo(projectId);
 
                 return ResponseEntity.ok(response);
         }

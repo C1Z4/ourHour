@@ -1,12 +1,10 @@
 package com.ourhour.domain.project.entity;
 
 import com.ourhour.domain.member.entity.MemberEntity;
-import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
@@ -29,14 +27,7 @@ public class ProjectParticipantEntity {
     private ProjectEntity projectEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-            @JoinColumn(name = "member_id", referencedColumnName = "member_id"),
-            @JoinColumn(name = "org_id", referencedColumnName = "org_id")
-    })
-    @MapsId("orgParticipantMemberId")
-    private OrgParticipantMemberEntity orgParticipantMemberEntity;
-
-    public MemberEntity getMemberEntity() {
-        return orgParticipantMemberEntity != null ? orgParticipantMemberEntity.getMemberEntity() : null;
-    }
+    @JoinColumn(name = "member_id")
+    @MapsId("memberId")
+    private MemberEntity memberEntity;
 }
