@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,24 +30,34 @@ public class ChatRestController {
     }
 
     @PostMapping
-    public void registerChatRoom(/*프론트에서 받아올 채팅 생성 정보*/) {
+    public void registerChatRoom(@RequestBody ChatRoomDTO newChatRoom) {
 
+        chatService.registerChatRoom(newChatRoom);
+    }
+
+    @PutMapping("/{roomId}")
+    public void modifyChatRoom(
+            @PathVariable Long roomId,
+            @RequestBody ChatRoomDTO chatRoomUpdateRequest) {
+
+        chatService.modifyChatRoom(roomId, chatRoomUpdateRequest);
     }
 
     @DeleteMapping("/{roomId}")
     public void deleteChatRoom(@PathVariable Long roomId) {
 
+        chatService.deleteChatRoom(roomId);
     }
 
     @GetMapping("/{roomId}/messages")
     public List<ChatMessageDTO> getMessages(@PathVariable Long roomId) {
 
-        return null;
+        return chatService.findAllMessages(roomId);
     }
 
     @GetMapping("/{roomId}/participants")
     public List<ChatParticipantDTO> getChatRoomParticipants(@PathVariable Long roomId) {
 
-        return null;
+        return chatService.findAllParticipants(roomId);
     }
 }

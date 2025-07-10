@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface ChatParticipantRepository extends JpaRepository<ChatParticipantEntity, ChatParticipantId> {
+public interface ChatParticipantRepository extends JpaRepository<ChatParticipantEntity, Long> {
 
     @Query(
             "SELECT p " +
@@ -16,4 +16,6 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
             "   JOIN FETCH p.chatRoomEntity " +
             "WHERE p.memberEntity.memberId = :memberId")
     List<ChatParticipantEntity> findAllByMemberIdWithChatRoom(@Param("memberId") Long memberId);
+
+    List<ChatParticipantEntity> findAllByChatRoomEntity_RoomId(Long roomId);
 }
