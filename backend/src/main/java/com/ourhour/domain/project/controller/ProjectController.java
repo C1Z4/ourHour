@@ -39,19 +39,19 @@ public class ProjectController {
 
         // 프로젝트 등록
         @PostMapping("/{orgId}")
-        public ResponseEntity<ApiResponse<ProjectInfoDTO>> createProject(
+        public ResponseEntity<ApiResponse<Void>> createProject(
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @Valid @RequestBody ProjectReqDTO projectReqDTO) {
-                ApiResponse<ProjectInfoDTO> response = projectService.createProject(orgId, projectReqDTO);
+                ApiResponse<Void> response = projectService.createProject(orgId, projectReqDTO);
                 return ResponseEntity.ok(response);
         }
 
         // 프로젝트 수정(정보, 참가자)
         @PutMapping("/{projectId}")
-        public ResponseEntity<ApiResponse<ProjectInfoDTO>> updateProject(
+        public ResponseEntity<ApiResponse<Void>> updateProject(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @Valid @RequestBody ProjecUpdateReqDTO projectReqDTO) {
-                ApiResponse<ProjectInfoDTO> response = projectService.updateProject(projectId, projectReqDTO);
+                ApiResponse<Void> response = projectService.updateProject(projectId, projectReqDTO);
                 return ResponseEntity.ok(response);
         }       
 

@@ -96,7 +96,7 @@ public class ProjectService {
     }
 
     // 프로젝트 등록
-    public ApiResponse<ProjectInfoDTO> createProject(Long orgId, ProjectReqDTO projectReqDTO) {
+    public ApiResponse<Void> createProject(Long orgId, ProjectReqDTO projectReqDTO) {
         if (orgId <= 0) {
             throw BusinessException.badRequest("유효하지 않은 조직 ID입니다.");
         }
@@ -112,14 +112,12 @@ public class ProjectService {
 
         ProjectEntity savedProject = projectRepository.save(projectEntity);
 
-        ProjectInfoDTO projectInfo = projectMapper.toProjectInfoDTO(savedProject);
-
-        return ApiResponse.success(projectInfo, "프로젝트 등록이 완료되었습니다.");
+        return ApiResponse.success(null, "프로젝트 등록이 완료되었습니다.");
     }
 
     // 프로젝트 수정(정보, 참가자)
     @Transactional
-    public ApiResponse<ProjectInfoDTO> updateProject(Long projectId, ProjecUpdateReqDTO projectUpdateReqDTO) {
+    public ApiResponse<Void> updateProject(Long projectId, ProjecUpdateReqDTO projectUpdateReqDTO) {
         if (projectId <= 0) {
             throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
         }
@@ -156,9 +154,7 @@ public class ProjectService {
             }
         }
 
-        ProjectInfoDTO projectInfo = projectMapper.toProjectInfoDTO(savedProject);
-
-        return ApiResponse.success(projectInfo, "프로젝트 수정이 완료되었습니다.");
+        return ApiResponse.success(null, "프로젝트 수정이 완료되었습니다.");
     }
 
     // 프로젝트 삭제    
