@@ -1,6 +1,7 @@
 package com.ourhour.domain.project.sevice;
 
 import com.ourhour.domain.org.repository.OrgRepository;
+import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryParticipantDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryResDTO;
 import com.ourhour.domain.project.entity.ProjectEntity;
@@ -61,7 +62,7 @@ public class ProjectService {
 
             List<ProjectSummaryParticipantDTO> participants = participantEntities.stream()
                     .map(participant -> new ProjectSummaryParticipantDTO(
-                            participant.getProjectParticipantId().getMemberId(),
+                            participant.getMemberEntity().getMemberId(),
                             participant.getMemberEntity().getName()))
                     .collect(Collectors.toList());
 
@@ -70,6 +71,20 @@ public class ProjectService {
         });
 
         return ApiResponse.success(PageResponse.of(projectSummaryPage), "프로젝트 요약 목록 조회에 성공했습니다.");
+    }
+
+    // 프로젝트 정보 조회
+    public ApiResponse<ProjectInfoDTO> getProjectInfo(Long projectId) {
+        if (projectId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
+        }
+
+        ProjectEntity project = projectRepository.findById(projectId)
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다."));
+
+        ProjectInfoDTO projectInfo = projectMapper.toProjectInfoDTO(project);
+
+        return ApiResponse.success(projectInfo, "프로젝트 정보 조회에 성공했습니다.");
     }
 
 }

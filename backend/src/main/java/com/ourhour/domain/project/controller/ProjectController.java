@@ -1,6 +1,8 @@
 package com.ourhour.domain.project.controller;
 
+import com.ourhour.domain.project.dto.ProjectParticipantDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryResDTO;
+import com.ourhour.domain.project.sevice.ProjectParticipantService;
 import com.ourhour.domain.project.sevice.ProjectService;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProjectController {
 
         private final ProjectService projectService;
+        private final ProjectParticipantService projectParticipantService;
 
         // 프로젝트 요약 목록 조회
         @GetMapping("/{orgId}")
@@ -38,6 +41,22 @@ public class ProjectController {
 
                 ApiResponse<PageResponse<ProjectSummaryResDTO>> response = projectService.getProjectsSummaryList(orgId,
                                 participantLimit, pageable);
+
+                return ResponseEntity.ok(response);
+        }
+
+        // 프로젝트 참여자 목록 조회
+        @GetMapping("/{projectId}/participants")
+        public ResponseEntity<ApiResponse<PageResponse<ProjectParticipantDTO>>> getProjectParticipants(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @RequestParam(defaultValue = "0") @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다 .") int currentPage,
+                        @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = " 페이지 크기는 100이하여야 합니다.") int size) {
+
+                Pageable pageable = PageRequest.of(currentPage, size,
+                                Sort.by(Sort.Direction.ASC, "ProjectParticipantId.orgParticipantMemberId.memberId"));
+
+                ApiResponse<PageResponse<ProjectParticipantDTO>> response = projectParticipantService
+                                .getProjectParticipants(projectId, pageable);
 
                 return ResponseEntity.ok(response);
         }
