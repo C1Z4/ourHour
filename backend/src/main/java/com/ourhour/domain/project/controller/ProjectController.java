@@ -1,5 +1,6 @@
 package com.ourhour.domain.project.controller;
 
+import com.ourhour.domain.project.dto.MileStoneInfoDTO;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectParticipantDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryResDTO;
@@ -70,5 +71,17 @@ public class ProjectController {
 
                 return ResponseEntity.ok(response);
         }
+
+        // 특정 프로젝트의 마일스톤 목록 조회
+        @GetMapping("/{projectId}/milestones")
+        public ResponseEntity<ApiResponse<PageResponse<MileStoneInfoDTO>>> getProjectMilestones(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @RequestParam(defaultValue = "0") @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다.") int currentPage,
+                        @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
+                Pageable pageable = PageRequest.of(currentPage, size, Sort.by(Sort.Direction.ASC, "milestoneId"));
+                ApiResponse<PageResponse<MileStoneInfoDTO>> response = projectService.getProjectMilestones(projectId, pageable);
+                return ResponseEntity.ok(response);
+        }
+
 
 }

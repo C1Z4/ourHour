@@ -1,12 +1,16 @@
 package com.ourhour.domain.project.service;
 
 import com.ourhour.domain.org.repository.OrgRepository;
+import com.ourhour.domain.project.dto.MileStoneInfoDTO;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryParticipantDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryResDTO;
+import com.ourhour.domain.project.entity.MilestoneEntity;
 import com.ourhour.domain.project.entity.ProjectEntity;
 import com.ourhour.domain.project.entity.ProjectParticipantEntity;
+import com.ourhour.domain.project.mapper.MilestoneMapper;
 import com.ourhour.domain.project.mapper.ProjectMapper;
+import com.ourhour.domain.project.repository.MilestoneRepository;
 import com.ourhour.domain.project.repository.ProjectParticipantRepository;
 import com.ourhour.domain.project.repository.ProjectRepository;
 import com.ourhour.global.common.dto.ApiResponse;
@@ -30,7 +34,8 @@ public class ProjectService {
     private final ProjectParticipantRepository projectParticipantRepository;
     private final OrgRepository orgRepository;
     private final ProjectMapper projectMapper;
-
+    private final MilestoneRepository milestoneRepository;
+    private final MilestoneMapper milestoneMapper;
     // 프로젝트 요약 목록 조회 - 페이징 처리
     public ApiResponse<PageResponse<ProjectSummaryResDTO>> getProjectsSummaryList(Long orgId, int participantLimit,
             Pageable pageable) {
@@ -85,6 +90,23 @@ public class ProjectService {
         ProjectInfoDTO projectInfo = projectMapper.toProjectInfoDTO(project);
 
         return ApiResponse.success(projectInfo, "프로젝트 정보 조회에 성공했습니다.");
+    }
+
+    // 특정 프로젝트의 마일스톤 목록 조회
+    public ApiResponse<PageResponse<MileStoneInfoDTO>> getProjectMilestones(Long projectId, Pageable pageable) {
+        if (projectId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
+        }
+
+        Page<MilestoneEntity> milestonePage = milestoneRepository.findByProjectEntity_ProjectId(projectId, pageable);
+
+        if (milestonePage.isEmpty()) {
+            return ApiResponse.success(PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize()));
+        }
+
+        Page<MileStoneInfoDTO> milestoneInfoPage = milestonePage.map(milestoneMapper::toMileStoneInfoDTO);
+
+        return ApiResponse.success(PageResponse.of(milestoneInfoPage), "특정 프로젝트의 마일스톤 목록 조회에 성공했습니다.");
     }
 
 }
