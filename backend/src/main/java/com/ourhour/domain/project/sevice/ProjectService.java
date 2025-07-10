@@ -161,4 +161,10 @@ public class ProjectService {
         return ApiResponse.success(projectInfo, "프로젝트 수정이 완료되었습니다.");
     }
 
+    // 프로젝트 삭제    
+    public ApiResponse<Void> deleteProject(Long projectId) {
+        projectRepository.deleteById(projectId);
+        return ApiResponse.success(null, "프로젝트 삭제가 완료되었습니다.");
+    }
+
 }
