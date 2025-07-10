@@ -1,99 +1,97 @@
 package com.ourhour.domain.chat.service;
 
-import com.ourhour.domain.chat.dto.ChatMessageDTO;
-import com.ourhour.domain.chat.dto.ChatParticipantDTO;
-import com.ourhour.domain.chat.dto.ChatRoomDTO;
+import com.ourhour.domain.chat.dto.*;
+import com.ourhour.domain.chat.entity.ChatMessageEntity;
 import com.ourhour.domain.chat.entity.ChatParticipantEntity;
 import com.ourhour.domain.chat.entity.ChatRoomEntity;
-import com.ourhour.domain.chat.mapper.ChatMapper;
 import com.ourhour.domain.chat.repository.ChatMessageRepository;
 import com.ourhour.domain.chat.repository.ChatParticipantRepository;
 import com.ourhour.domain.chat.repository.ChatRoomRepository;
+import com.ourhour.domain.member.entity.MemberEntity;
+import com.ourhour.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ChatService {
 
     private final ChatParticipantRepository chatParticipantRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final ChatMapper chatMapper;
+    private final MemberRepository memberRepository;
 
-    public List<ChatRoomDTO> findAllChatRooms(Long memberId) {
+    public List<ChatRoomListResDTO> findAllChatRooms(Long memberId) {
+        List<ChatParticipantEntity> participants = chatParticipantRepository.findByMember_MemberId(memberId);
 
-        List<ChatParticipantEntity> participants = chatParticipantRepository.findAllByMemberIdWithChatRoom(memberId);
-
-        List<ChatRoomDTO> chatRoomList = participants.stream()
+        return participants.stream()
                 .map(participant -> {
-                    return ChatRoomDTO.builder()
-                            .roomId(participant.getChatRoomEntity().getRoomId())
-                            .name(participant.getChatRoomEntity().getName())
-                            .color(participant.getChatRoomEntity().getColor())
-                            .createdAt(participant.getChatRoomEntity().getCreatedAt())
+                    ChatRoomEntity chatRoom = participant.getChatRoom();
+                    return ChatRoomListResDTO.builder()
+                            .roomId(chatRoom.getRoomId())
+                            .name(chatRoom.getName())
                             .build();
-                }).toList();
-
-        return chatRoomList;
+                }).collect(Collectors.toList());
     }
 
     @Transactional
-    public void registerChatRoom(ChatRoomDTO chatRoom) {
+    public void registerChatRoom(ChatRoomCreateReqDTO request) {
+        ChatRoomEntity newChatRoom = ChatRoomEntity.builder()
+                .name(request.getName())
+                .build();
+        chatRoomRepository.save(newChatRoom);
 
-        ChatRoomEntity chatRoomEntity = chatMapper.toChatRoomEntity(chatRoom);
-
-        chatRoomRepository.save(chatRoomEntity);
+        List<MemberEntity> membersToInvite = memberRepository.findAllById(request.getMemberIds());
+        membersToInvite.forEach(member -> {
+            ChatParticipantEntity participant = ChatParticipantEntity.createParticipant(newChatRoom, member);
+            chatParticipantRepository.save(participant);
+        });
     }
 
     @Transactional
-    public void modifyChatRoom(Long roomId, ChatRoomDTO chatRoom) {
-
+    public void modifyChatRoom(Long roomId, ChatRoomUpdateReqDTO request) {
         ChatRoomEntity targetChatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 채팅방을 찾을 수 없습니다. id=" + roomId));
 
-        targetChatRoom.update(chatRoom.getName(), chatRoom.getColor());
+        targetChatRoom.update(request.getName(), request.getColor());
     }
 
     @Transactional
     public void deleteChatRoom(Long roomId) {
-
         chatRoomRepository.deleteById(roomId);
     }
 
-    public List<ChatMessageDTO> findAllMessages(Long roomId) {
+    public List<ChatMessageResDTO> findAllMessages(Long roomId) {
+        List<ChatMessageEntity> messages = chatMessageRepository.findAllByRoomId_RoomId(roomId);
 
-        List<ChatMessageDTO> chatMessageList = chatMessageRepository.findAllByRoomId_RoomId(roomId).stream()
+        return messages.stream()
                 .map(chatMessage -> {
-                    return ChatMessageDTO.builder()
-                            .chatRoomId(chatMessage.getRoomId().getRoomId())
+                    return ChatMessageResDTO.builder()
                             .chatMessageId(chatMessage.getChatMessageId())
                             .senderId(chatMessage.getSenderId().getMemberId())
+                            .senderName(chatMessage.getSenderId().getName())
                             .message(chatMessage.getContent())
                             .timestamp(chatMessage.getSentAt())
                             .build();
-                }).toList();
-
-        System.out.println("chatMessageList = " + chatMessageList);
-
-        return chatMessageList;
+                }).collect(Collectors.toList());
     }
 
-    public List<ChatParticipantDTO> findAllParticipants(Long roomId) {
+    public List<ChatParticipantResDTO> findAllParticipants(Long roomId) {
+        List<ChatParticipantEntity> participants = chatParticipantRepository.findAllByChatRoom_RoomId(roomId);
 
-        List<ChatParticipantDTO> chatParticipantList = chatParticipantRepository.findAllByChatRoomEntity_RoomId(roomId).stream()
+        return participants.stream()
                 .map(chatParticipant -> {
-                    return ChatParticipantDTO.builder()
-                            .roomId(chatParticipant.getChatRoomEntity().getRoomId())
-                            .memberId(chatParticipant.getMemberEntity().getMemberId())
+                    MemberEntity member = chatParticipant.getMember();
+                    return ChatParticipantResDTO.builder()
+                            .memberId(member.getMemberId())
+                            .memberName(member.getName())
+                            .profileImageUrl(member.getProfileImgUrl())
                             .build();
-                }).toList();
-
-        System.out.println("chatParticipantList = " + chatParticipantList);
-
-        return chatParticipantList;
+                }).collect(Collectors.toList());
     }
 }
