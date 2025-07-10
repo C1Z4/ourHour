@@ -173,6 +173,11 @@ public class ProjectService {
             throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
         }
 
+        // 프로젝트 존재 여부 확인
+        if (!projectRepository.existsById(projectId)) {
+            throw BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다.");
+        }
+
         Page<MilestoneEntity> milestonePage = milestoneRepository.findByProjectEntity_ProjectId(projectId, pageable);
 
         if (milestonePage.isEmpty()) {

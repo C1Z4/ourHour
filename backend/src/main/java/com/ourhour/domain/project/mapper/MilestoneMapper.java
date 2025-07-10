@@ -11,6 +11,6 @@ import com.ourhour.domain.project.entity.MilestoneEntity;
 public interface MilestoneMapper {
 
     // MilestoneEntity -> MileStoneInfoDTO
-    MileStoneInfoDTO toMileStoneInfoDTO(MilestoneEntity entity);    
+    MileStoneInfoDTO toMileStoneInfoDTO(MilestoneEntity entity);
 
 }
