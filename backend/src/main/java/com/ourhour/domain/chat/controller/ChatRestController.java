@@ -3,7 +3,7 @@ package com.ourhour.domain.chat.controller;
 import com.ourhour.domain.chat.dto.ChatMessageDTO;
 import com.ourhour.domain.chat.dto.ChatParticipantDTO;
 import com.ourhour.domain.chat.dto.ChatRoomDTO;
-import com.ourhour.domain.chat.sevice.ChatService;
+import com.ourhour.domain.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,9 +22,9 @@ public class ChatRestController {
     private final ChatService chatService;
 
     @GetMapping
-    public List<ChatRoomDTO> getAllChatRooms(/*토큰 정보*/) {
+    public List<ChatRoomDTO> getAllChatRooms(Long id/*토큰 정보*/) {
 
-        return null;
+        return chatService.findAllChatRooms(id);
     }
 
     @PostMapping
