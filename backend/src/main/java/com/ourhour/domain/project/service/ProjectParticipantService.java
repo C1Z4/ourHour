@@ -1,4 +1,4 @@
-package com.ourhour.domain.project.sevice;
+package com.ourhour.domain.project.service;
 
 import com.ourhour.domain.project.entity.ProjectParticipantEntity;
 import com.ourhour.domain.project.mapper.ProjectParticipantMapper;

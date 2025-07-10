@@ -2,7 +2,7 @@ package com.ourhour.domain.org.controller;
 
 import com.ourhour.domain.org.dto.OrgReqDTO;
 import com.ourhour.domain.org.dto.OrgResDTO;
-import com.ourhour.domain.org.sevice.OrgService;
+import com.ourhour.domain.org.service.OrgService;
 import com.ourhour.global.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

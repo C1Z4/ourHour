@@ -1,13 +1,9 @@
-package com.ourhour.domain.org.sevice;
+package com.ourhour.domain.org.service;
 
-import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.dto.OrgReqDTO;
 import com.ourhour.domain.org.dto.OrgResDTO;
 import com.ourhour.domain.org.entity.OrgEntity;
-import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
-import com.ourhour.domain.org.entity.OrgParticipantMemberId;
-import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.mapper.OrgMapper;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
