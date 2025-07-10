@@ -8,11 +8,11 @@ public class AuthException extends BusinessException {
         super(message);
     }
 
-    public AuthException(int status, String message) {
-        super(status, message);
-    }
-
     public static AuthException duplicateRequestException() {
         return new AuthException("이미 존재하는 이메일입니다.");
+    }
+
+    public static AuthException emailVerificationException(String message) {
+        return new AuthException(message);
     }
 }
