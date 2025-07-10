@@ -1,31 +1,28 @@
 package com.ourhour.domain.project.dto;
 
 import com.ourhour.domain.project.enums.ProjectStatus;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+
+import java.time.LocalDate;
+
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
-
-@Getter
-@ToString
+@ToString(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @SuperBuilder
-public class ProjectInfoDTO {
+public class ProjectInfoDTO extends ProjectBaseDTO {
 
     private Long projectId;
-    private String name;
-    private String description;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDateTime startAt;
+    public ProjectInfoDTO(Long projectId, String name, String description,
+            LocalDate startAt, LocalDate endAt,
+            ProjectStatus status) {
+        super(name, description, startAt, endAt, status);
+        this.projectId = projectId;
+    }
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDateTime endAt;
-
-    private ProjectStatus status;
+    public Long getProjectId() {
+        return projectId;
+    }
 }

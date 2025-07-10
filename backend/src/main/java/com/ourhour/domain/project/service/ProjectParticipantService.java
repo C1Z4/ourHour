@@ -34,7 +34,7 @@ public class ProjectParticipantService {
             throw BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다.");
         }
 
-        Page<ProjectParticipantEntity> participantPage = projectParticipantRepository.findByProjectEntity_ProjectId(projectId,
+        Page<ProjectParticipantEntity> participantPage = projectParticipantRepository.findByProjectParticipantId_ProjectId(projectId,
                 pageable);
 
         if (participantPage.isEmpty()) {
