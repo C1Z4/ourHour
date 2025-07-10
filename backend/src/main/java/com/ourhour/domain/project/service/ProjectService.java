@@ -101,7 +101,7 @@ public class ProjectService {
 
         return ApiResponse.success(projectInfo, "프로젝트 정보 조회에 성공했습니다.");
     }
-    
+
     // 프로젝트 등록
     public ApiResponse<Void> createProject(Long orgId, ProjectReqDTO projectReqDTO) {
         if (orgId <= 0) {
@@ -114,10 +114,6 @@ public class ProjectService {
         if (orgEntity == null) {
             throw BusinessException.badRequest("조직 정보를 찾을 수 없습니다.");
         }
-
-        ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
-
-        ProjectEntity savedProject = projectRepository.save(projectEntity);
 
         return ApiResponse.success(null, "프로젝트 등록이 완료되었습니다.");
     }
