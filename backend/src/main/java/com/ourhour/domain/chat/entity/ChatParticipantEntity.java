@@ -13,15 +13,24 @@ import lombok.NoArgsConstructor;
 public class ChatParticipantEntity {
 
     @EmbeddedId
-    private ChatParticipantId chatParticipantId;
+    private ChatParticipantId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("roomId")
     @JoinColumn(name = "room_id")
-    private ChatRoomEntity chatRoomEntity;
+    private ChatRoomEntity chatRoom;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("memberId")
     @JoinColumn(name = "member_id")
-    private MemberEntity memberEntity;
+    private MemberEntity member;
+
+    // 정적 팩토리 메소드
+    public static ChatParticipantEntity createParticipant(ChatRoomEntity chatRoom, MemberEntity member) {
+        ChatParticipantEntity participant = new ChatParticipantEntity();
+        participant.chatRoom = chatRoom;
+        participant.member = member;
+        participant.id = new ChatParticipantId(chatRoom.getRoomId(), member.getMemberId());
+        return participant;
+    }
 }

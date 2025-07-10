@@ -3,19 +3,15 @@ package com.ourhour.domain.chat.repository;
 import com.ourhour.domain.chat.entity.ChatParticipantEntity;
 import com.ourhour.domain.chat.entity.ChatParticipantId;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface ChatParticipantRepository extends JpaRepository<ChatParticipantEntity, Long> {
+public interface ChatParticipantRepository extends JpaRepository<ChatParticipantEntity, ChatParticipantId> {
 
-    @Query(
-            "SELECT p " +
-            "FROM   ChatParticipantEntity p " +
-            "   JOIN FETCH p.chatRoomEntity " +
-            "WHERE p.memberEntity.memberId = :memberId")
-    List<ChatParticipantEntity> findAllByMemberIdWithChatRoom(@Param("memberId") Long memberId);
+    List<ChatParticipantEntity> findAllByChatRoom_RoomId(Long roomId);
 
-    List<ChatParticipantEntity> findAllByChatRoomEntity_RoomId(Long roomId);
+    Optional<ChatParticipantEntity> findByChatRoom_RoomIdAndMember_MemberId(Long roomId, Long memberId);
+
+    List<ChatParticipantEntity> findByMember_MemberId(Long memberMemberId);
 }
