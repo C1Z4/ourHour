@@ -61,7 +61,7 @@ public class ProjectService {
 
             List<ProjectSummaryParticipantDTO> participants = participantEntities.stream()
                     .map(participant -> new ProjectSummaryParticipantDTO(
-                            participant.getProjectParticipantId().getMemberId(),
+                            participant.getMemberEntity().getMemberId(),
                             participant.getMemberEntity().getName()))
                     .collect(Collectors.toList());
 

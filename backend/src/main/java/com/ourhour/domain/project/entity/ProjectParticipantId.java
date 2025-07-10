@@ -1,5 +1,6 @@
 package com.ourhour.domain.project.entity;
 
+import com.ourhour.domain.org.entity.OrgParticipantMemberId;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -17,5 +18,5 @@ import java.io.Serializable;
 public class ProjectParticipantId implements Serializable {
 
     private Long projectId;
-    private Long memberId;
+    private OrgParticipantMemberId orgParticipantMemberId;
 }
