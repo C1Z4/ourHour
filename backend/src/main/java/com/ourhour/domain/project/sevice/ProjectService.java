@@ -147,7 +147,7 @@ public class ProjectService {
                             return ProjectParticipantEntity.builder()
                                     .projectParticipantId(participantId)
                                     .projectEntity(savedProject)
-                                    .memberEntity(memberRepository.getReferenceById(memberId))
+                                    .memberEntity(memberRepository.getReferenceById(memberId)) // 실제 필드값이 필요하지 않아 reference(단순 참조, 지연로딩)
                                     .build();
                         })
                         .collect(Collectors.toList());
