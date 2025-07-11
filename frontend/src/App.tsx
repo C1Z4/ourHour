@@ -1,5 +1,6 @@
 import AppRouter from '@router/AppRouter';
+import {ChatRoomList} from "@components/chat/ChatRoomList";
 
-const App = () => <AppRouter />;
+const App = () => <ChatRoomList />;
 
 export default App;
