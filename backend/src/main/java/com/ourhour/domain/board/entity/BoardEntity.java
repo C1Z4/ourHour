@@ -25,6 +25,21 @@ public class BoardEntity {
 
     private boolean isFixed;
 
+    /* 엔티티 생성 로직을 한 곳에서 관리하기 위한 정적 팩토리 메소 */
+    public static BoardEntity createBoard(String name, boolean isFixed, OrgEntity orgEntity) {
+        BoardEntity board = new BoardEntity();
+        board.name = name;
+        board.isFixed = isFixed;
+        board.orgEntity = orgEntity;
+        return board;
+    }
+
+    /* 엔티티의 데이터를 수정하는 비즈니스 로직, 객체의 상태 변경을 이 메소드를 통해서만 하도록 하여 일관성을 유지*/
+    public void update(String name, boolean isFixed) {
+        this.name = name;
+        this.isFixed = isFixed;
+    }
+
 
 }
 
