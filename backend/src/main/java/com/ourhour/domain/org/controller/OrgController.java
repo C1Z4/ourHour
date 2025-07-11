@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,5 +34,12 @@ public class OrgController {
         OrgResDTO orgResDTO = orgService.getOrgInfo(orgId);
 
         return ResponseEntity.ok(ApiResponse.success(orgResDTO, "팀 조회에 성공하였습니다."));
+    }
+
+    @PutMapping("/{orgId}")
+    public ResponseEntity<ApiResponse<OrgResDTO>> updateOrg(@PathVariable Long orgId, @Valid @RequestBody OrgReqDTO orgReqDTO) {
+        OrgResDTO orgResDTO = orgService.updateOrg(orgId, orgReqDTO);
+
+        return ResponseEntity.ok(ApiResponse.success(orgResDTO, "팀 수정에 성공하였습니다."));
     }
 }

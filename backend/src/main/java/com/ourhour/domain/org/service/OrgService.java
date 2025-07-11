@@ -7,9 +7,11 @@ import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.mapper.OrgMapper;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
+import com.ourhour.global.exception.BusinessException;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Transactional;    
 
 @Service
 @RequiredArgsConstructor
@@ -67,5 +69,23 @@ public class OrgService {
         OrgResDTO orgResDTO = orgMapper.toOrgResDTO(orgEntity);
 
         return orgResDTO;
+    }
+
+    // 회사 정보 수정
+    @Transactional
+    public OrgResDTO updateOrg(Long orgId, OrgReqDTO orgReqDTO) {
+
+        if (orgId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 회사 ID입니다.");
+        }
+
+        OrgEntity orgEntity = orgRepository.findById(orgId)
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 회사 ID 입니다: " + orgId));
+
+        orgMapper.updateOrgEntity(orgEntity, orgReqDTO);
+
+        OrgEntity updatedOrgEntity = orgRepository.save(orgEntity);
+
+        return orgMapper.toOrgResDTO(updatedOrgEntity);
     }
 }
