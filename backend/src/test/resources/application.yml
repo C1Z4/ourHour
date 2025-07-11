@@ -12,3 +12,19 @@ spring:
 
   flyway:
     enabled: false
+
+  mail:
+    host: localhost
+    port: 1025
+    username: test
+    password: test
+    from: test@example.com
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  service:
+    base-url-email: localhost # 개발 환경
