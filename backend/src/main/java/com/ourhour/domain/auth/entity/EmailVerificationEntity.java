@@ -33,4 +33,6 @@ public class EmailVerificationEntity {
     @Setter
     private Boolean isUsed;
 
+    private String email;
+
 }

@@ -31,6 +31,11 @@ public class SignupService {
             throw duplicateRequestException();
         }
 
+        boolean isVerified = emailVerificationRepository.existsByEmailAndIsUsedTrue(signupReqDTO.getEmail());
+        if(!isVerified) {
+            throw emailVerificationException("이메일 인증 먼저 해주세요.");
+        }
+
         // UserEntity 저장
         String hashedPassword = passwordEncode.encode(signupReqDTO.getPassword());
         UserEntity userEntity = UserEntity.builder()

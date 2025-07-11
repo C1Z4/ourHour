@@ -39,6 +39,7 @@ public class EmailVerificationService {
                 .createdAt(now)
                 .expiredAt(now.plusHours(1))
                 .isUsed(false)
+                .email(email)
                 .build();
 
         emailVerificationRepository.save(emailVerificationEntity);
