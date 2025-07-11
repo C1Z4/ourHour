@@ -34,6 +34,6 @@ public class IssueEntity {
     private String content;
 
     @Enumerated(EnumType.STRING)
-    private IssueStatus status;
+    private IssueStatus status = IssueStatus.BACKLOG;
 
 }

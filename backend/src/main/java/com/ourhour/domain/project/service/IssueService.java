@@ -1,5 +1,6 @@
 package com.ourhour.domain.project.service;
 
+import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.domain.project.dto.IssueSummaryDTO;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
@@ -46,4 +47,17 @@ public class IssueService {
         return ApiResponse.success(PageResponse.of(issueDTOPage), "특정 마일스톤의 이슈 목록 조회에 성공했습니다.");
     }
 
+    // 이슈 상세 조회
+    public ApiResponse<IssueDetailDTO> getIssueDetail(Long issueId) {
+        if (issueId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 이슈 ID입니다.");
+        }
+
+        IssueEntity issueEntity = issueRepository.findById(issueId)
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 이슈 ID입니다."));
+
+        IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(issueEntity);
+
+        return ApiResponse.success(issueDetailDTO, "이슈 상세 조회에 성공했습니다.");
+    }
 }

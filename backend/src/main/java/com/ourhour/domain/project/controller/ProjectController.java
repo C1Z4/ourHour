@@ -1,5 +1,6 @@
 package com.ourhour.domain.project.controller;
 
+import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.domain.project.dto.IssueSummaryDTO;
 import com.ourhour.domain.project.dto.MilestoneReqDTO;
 import com.ourhour.domain.project.dto.ProjecUpdateReqDTO;
@@ -168,7 +169,17 @@ public class ProjectController {
                         @PathVariable @Min(value = 1, message = "마일스톤 ID는 1 이상이어야 합니다.") Long milestoneId) {
 
                 ApiResponse<Void> response = milestoneService.deleteMilestone(milestoneId);
-                
+
+                return ResponseEntity.ok(response);
+        }
+
+        // 이슈 상세 조회
+        @GetMapping("/issues/{issueId}")
+        public ResponseEntity<ApiResponse<IssueDetailDTO>> getIssueInfo(
+                        @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId) {
+
+                ApiResponse<IssueDetailDTO> response = issueService.getIssueDetail(issueId);
+
                 return ResponseEntity.ok(response);
         }
 
