@@ -217,4 +217,15 @@ public class ProjectController {
                 return ResponseEntity.ok(response);
         }
 
+        // 프로젝트 참여 여부 확인
+        @GetMapping("/{projectId}/{memberId}/participation")
+        public ResponseEntity<ApiResponse<Boolean>> checkProjectParticipant(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "멤버 ID는 1 이상이어야 합니다.") Long memberId) {
+
+                ApiResponse<Boolean> response = projectParticipantService.checkProjectParticipant(projectId, memberId);
+
+                return ResponseEntity.ok(response);
+        }       
+
 }

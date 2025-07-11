@@ -1,6 +1,7 @@
 package com.ourhour.domain.project.service;
 
 import com.ourhour.domain.project.entity.ProjectParticipantEntity;
+import com.ourhour.domain.project.entity.ProjectParticipantId;
 import com.ourhour.domain.project.mapper.ProjectParticipantMapper;
 import com.ourhour.domain.project.repository.ProjectParticipantRepository;
 import com.ourhour.domain.project.repository.ProjectRepository;
@@ -19,6 +20,7 @@ import com.ourhour.global.common.dto.ApiResponse;
 @Service
 @RequiredArgsConstructor
 public class ProjectParticipantService {
+
 
     private final ProjectParticipantRepository projectParticipantRepository;
     private final ProjectParticipantMapper projectParticipantMapper;
@@ -47,5 +49,19 @@ public class ProjectParticipantService {
 
         return ApiResponse.success(PageResponse.of(participantDTOPage));
     }
+    
+    // 프로젝트 참여 여부 확인
+    public ApiResponse<Boolean> checkProjectParticipant(Long projectId, Long memberId) {
+        if (projectId <= 0 || memberId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID 또는 멤버 ID입니다.");
+        }
+        
+        ProjectParticipantId projectParticipantId = new ProjectParticipantId(projectId, memberId);  
+        if (!projectParticipantRepository.existsById(projectParticipantId)) {
+            return ApiResponse.success(false, "프로젝트 참여 여부 확인에 성공했습니다.");
+        }
+
+        return ApiResponse.success(true, "프로젝트 참여 여부 확인에 성공했습니다.");
+    }   
 
 }
