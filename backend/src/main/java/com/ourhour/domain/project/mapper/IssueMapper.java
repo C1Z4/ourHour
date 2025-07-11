@@ -27,14 +27,17 @@ public interface IssueMapper {
     IssueDetailDTO toIssueDetailDTO(IssueEntity issueEntity);
 
     // IssueReqDTO -> IssueEntity
+    @Mapping(target = "issueId", ignore = true)
     @Mapping(target = "milestoneEntity", ignore = true)
     @Mapping(target = "assigneeEntity", ignore = true)
     @Mapping(target = "projectEntity", ignore = true)
+    @Mapping(target = "issueTagEntity", ignore = true)
     IssueEntity toIssueEntity(IssueReqDTO issueReqDTO);
 
     // IssueEntity -> IssueEntity
     @Mapping(target = "milestoneEntity", ignore = true)
     @Mapping(target = "assigneeEntity", ignore = true)
     @Mapping(target = "projectEntity", ignore = true)
+    @Mapping(target = "issueTagEntity", ignore = true)
     void updateIssueEntity(@MappingTarget IssueEntity issueEntity, IssueReqDTO issueReqDTO);
 }
