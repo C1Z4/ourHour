@@ -33,19 +33,21 @@ public class UserEntity {
 
     private String email;
 
-    @Setter
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Setter
     private Platform platform;
 
     private boolean isEmailVerified;
+
     private LocalDateTime emailVerifiedAt;
 
     @Builder
-    public UserEntity(String email, String password) {
+    public UserEntity(String email, String password, Platform platform, boolean isEmailVerified, LocalDateTime emailVerifiedAt) {
         this.email = email;
         this.password = password;
+        this.platform = platform;
+        this.isEmailVerified = isEmailVerified;
+        this.emailVerifiedAt = emailVerifiedAt;
     }
 }

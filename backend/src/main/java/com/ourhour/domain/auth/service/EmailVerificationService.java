@@ -1,8 +1,8 @@
 package com.ourhour.domain.auth.service;
 
-import com.ourhour.domain.auth.dto.EmailVerificationReqDTO;
 import com.ourhour.domain.auth.entity.EmailVerificationEntity;
 import com.ourhour.domain.auth.repository.EmailVerificationRepository;
+import com.ourhour.domain.user.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,12 +20,12 @@ public class EmailVerificationService {
     private final EmailVerificationRepository emailVerificationRepository;
     private final EmailSenderService emailSenderService;
 
-    @Value("${spring.service.base-url}")
+    @Value("${spring.service.base-url-email}")
     private String serviceBaseUrl;
 
     // 이메일 인증 링크 발송
     @Transactional
-    public void sendEmailVerificationLink(EmailVerificationReqDTO emailVerificationReqDTO) {
+    public void sendEmailVerificationLink(String email) {
 
         // 토큰 생성
         String token = UUID.randomUUID().toString();
@@ -53,13 +53,13 @@ public class EmailVerificationService {
                 + "<br/><p>감사합니다.<br/>OURHOUR 팀 드림</p>";
 
         // SMTP 서버에 메일 발송
-        emailSenderService.sendEmail(emailVerificationReqDTO.getEmail(),emailSubject, emailContent);
+        emailSenderService.sendEmail(email,emailSubject, emailContent);
 
     }
 
     // 이메일 인증하기
     @Transactional
-    public void verifyEmail(String token) {
+    public boolean verifyEmail(String token) {
 
         // 토큰 유효성 검사
         // 1. 토큰 조회
@@ -79,5 +79,6 @@ public class EmailVerificationService {
         // 4. 토큰 유효 처리(Dirty Checking)
         emailVerificationEntity.setIsUsed(true);
 
+        return emailVerificationEntity.getIsUsed();
     }
 }

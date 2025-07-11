@@ -17,9 +17,7 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
-  # service.base-url (이메일 링크 생성 등에 사용)
-  service:
-    base-url: http://localhost:8080 # 개발 환경
+
 
 # 로그 설정
 logging:

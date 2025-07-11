@@ -15,4 +15,5 @@ public class AuthException extends BusinessException {
     public static AuthException emailVerificationException(String message) {
         return new AuthException(message);
     }
+
 }

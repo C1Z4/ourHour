@@ -15,11 +15,11 @@ public class AuthTest {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    @DisplayName("비밀번호 암호화 테스트")
+    @DisplayName("비밀번호 해시화 테스트")
     @Test
     void encodePwd() {
         // given
-        String rawPassword = "sieun7430";
+        String rawPassword = "ourhour1234";
 
         // when
         String encodedPassword = passwordEncoder.encode(rawPassword);

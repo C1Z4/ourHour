@@ -1,8 +1,6 @@
 package com.ourhour.domain.auth.entity;
 
-import com.ourhour.domain.user.entity.UserEntity;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;

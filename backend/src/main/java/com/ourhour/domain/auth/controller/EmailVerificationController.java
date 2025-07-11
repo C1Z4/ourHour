@@ -1,6 +1,6 @@
 package com.ourhour.domain.auth.controller;
 
-import com.ourhour.domain.auth.dto.EmailVerificationReqDTO;
+import com.ourhour.domain.auth.dto.SignupReqDTO;
 import com.ourhour.domain.auth.service.EmailVerificationService;
 import com.ourhour.global.common.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -21,10 +21,11 @@ public class EmailVerificationController {
     private final EmailVerificationService emailVerificationService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<EmailVerificationReqDTO>> sendEmailVerificationLink(@Valid @RequestBody EmailVerificationReqDTO emailVerificationReqDTO) {
-       emailVerificationService.sendEmailVerificationLink(emailVerificationReqDTO);
+    public ResponseEntity<ApiResponse<SignupReqDTO>> sendEmailVerificationLink(@Valid @RequestBody SignupReqDTO signupReqDTO) {
 
-       ApiResponse response = ApiResponse.success(emailVerificationReqDTO, "이메일 인증 링크가 전송되었습니다.");
+        emailVerificationService.sendEmailVerificationLink(signupReqDTO.getEmail());
+
+       ApiResponse response = ApiResponse.success(signupReqDTO.getEmail(), "이메일 인증 링크가 전송되었습니다.");
 
        return ResponseEntity.ok(response);
 
