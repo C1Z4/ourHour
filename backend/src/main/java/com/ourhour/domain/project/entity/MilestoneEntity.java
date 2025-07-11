@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,5 +39,12 @@ public class MilestoneEntity {
 
     private String name;
 
-    private byte progress;
+    private byte progress = 0;
+
+    @Builder
+    public MilestoneEntity(ProjectEntity projectEntity, String name, byte progress) {
+        this.projectEntity = projectEntity;
+        this.name = name;
+        this.progress = progress;
+    }
 }
