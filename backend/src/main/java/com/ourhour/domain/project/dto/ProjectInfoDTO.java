@@ -4,13 +4,17 @@ import com.ourhour.domain.project.enums.ProjectStatus;
 
 import java.time.LocalDate;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.SuperBuilder;
 
+@Getter
+@Setter
 @ToString(callSuper = true)
 @NoArgsConstructor
-@SuperBuilder
+@AllArgsConstructor
 public class ProjectInfoDTO extends ProjectBaseDTO {
 
     private Long projectId;
@@ -20,9 +24,5 @@ public class ProjectInfoDTO extends ProjectBaseDTO {
             ProjectStatus status) {
         super(name, description, startAt, endAt, status);
         this.projectId = projectId;
-    }
-
-    public Long getProjectId() {
-        return projectId;
     }
 }

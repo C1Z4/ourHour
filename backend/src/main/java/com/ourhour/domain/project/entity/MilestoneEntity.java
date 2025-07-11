@@ -11,9 +11,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +38,15 @@ public class MilestoneEntity {
     @JoinColumn(name = "project_id")
     private ProjectEntity projectEntity;
 
+    @Setter
     private String name;
 
-    private byte progress;
+    private byte progress = 0;
+
+    @Builder
+    public MilestoneEntity(ProjectEntity projectEntity, String name, byte progress) {
+        this.projectEntity = projectEntity;
+        this.name = name;
+        this.progress = progress;
+    }
 }

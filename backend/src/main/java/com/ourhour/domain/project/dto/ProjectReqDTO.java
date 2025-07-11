@@ -4,13 +4,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.SuperBuilder;
 
 @Getter
+@Setter
 @ToString(callSuper = true)
 @NoArgsConstructor
-@SuperBuilder
 public class ProjectReqDTO extends ProjectBaseDTO {
 
     @Override
