@@ -37,7 +37,7 @@ public class EmailVerificationService {
         EmailVerificationEntity emailVerificationEntity = EmailVerificationEntity.builder()
                 .token(token)
                 .createdAt(now)
-                .expiredAt(now.plusHours(1))
+                .expiredAt(now.plusMinutes(15))
                 .isUsed(false)
                 .email(email)
                 .build();
