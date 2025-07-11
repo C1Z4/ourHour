@@ -13,5 +13,6 @@ import lombok.ToString;
 @AllArgsConstructor
 public class IssueDetailDTO extends IssueSummaryDTO {
 
-    private String description;
+    private String milestoneName;
+    private String content;
 }

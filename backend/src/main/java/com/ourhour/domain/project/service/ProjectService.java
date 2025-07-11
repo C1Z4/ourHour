@@ -118,7 +118,7 @@ public class ProjectService {
         ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
         
         projectRepository.save(projectEntity);
-      
+
         return ApiResponse.success(null, "프로젝트 등록이 완료되었습니다.");
     }
 

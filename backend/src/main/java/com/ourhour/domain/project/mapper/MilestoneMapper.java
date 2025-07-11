@@ -1,10 +1,6 @@
 package com.ourhour.domain.project.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.ReportingPolicy;
-import com.ourhour.domain.project.dto.MileStoneInfoDTO;
-import com.ourhour.domain.project.entity.MilestoneEntity;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;

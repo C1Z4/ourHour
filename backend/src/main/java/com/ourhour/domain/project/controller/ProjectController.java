@@ -2,6 +2,8 @@ package com.ourhour.domain.project.controller;
 
 import com.ourhour.domain.project.dto.IssueSummaryDTO;
 import com.ourhour.domain.project.dto.MilestoneReqDTO;
+import com.ourhour.domain.project.dto.IssueDetailDTO;
+import com.ourhour.domain.project.dto.IssueReqDTO;
 import com.ourhour.domain.project.dto.ProjecUpdateReqDTO;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
@@ -148,7 +150,7 @@ public class ProjectController {
                         @Valid @RequestBody MilestoneReqDTO milestoneReqDTO) {
 
                 ApiResponse<Void> response = milestoneService.createMilestone(projectId, milestoneReqDTO);
-                
+
                 return ResponseEntity.ok(response);
         }
 
@@ -159,7 +161,7 @@ public class ProjectController {
                         @Valid @RequestBody MilestoneReqDTO milestoneReqDTO) {
 
                 ApiResponse<Void> response = milestoneService.updateMilestone(milestoneId, milestoneReqDTO);
-                
+
                 return ResponseEntity.ok(response);
         }
 
@@ -169,6 +171,48 @@ public class ProjectController {
                         @PathVariable @Min(value = 1, message = "마일스톤 ID는 1 이상이어야 합니다.") Long milestoneId) {
 
                 ApiResponse<Void> response = milestoneService.deleteMilestone(milestoneId);
+
+                return ResponseEntity.ok(response);
+        }
+
+        // 이슈 상세 조회
+        @GetMapping("/issues/{issueId}")
+        public ResponseEntity<ApiResponse<IssueDetailDTO>> getIssueInfo(
+                        @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId) {
+
+                ApiResponse<IssueDetailDTO> response = issueService.getIssueDetail(issueId);
+
+                return ResponseEntity.ok(response);
+        }
+
+        // 이슈 등록
+        @PostMapping("/{projectId}/issues")
+        public ResponseEntity<ApiResponse<IssueDetailDTO>> createIssue(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @Valid @RequestBody IssueReqDTO issueReqDTO) {
+
+                ApiResponse<IssueDetailDTO> response = issueService.createIssue(projectId, issueReqDTO);
+                
+                return ResponseEntity.ok(response);
+        }
+
+        // 이슈 수정
+        @PutMapping("/issues/{issueId}")
+        public ResponseEntity<ApiResponse<IssueDetailDTO>> updateIssue(
+                        @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId,
+                        @Valid @RequestBody IssueReqDTO issueReqDTO) {
+
+                ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO);
+
+                return ResponseEntity.ok(response);
+        }       
+
+        // 이슈 삭제
+        @DeleteMapping("/issues/{issueId}")
+        public ResponseEntity<ApiResponse<Void>> deleteIssue(
+                        @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId) {
+
+                ApiResponse<Void> response = issueService.deleteIssue(issueId);
                 
                 return ResponseEntity.ok(response);
         }
