@@ -2,13 +2,17 @@ package com.ourhour.domain.project.service;
 
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.domain.project.dto.ProjecUpdateReqDTO;
+import com.ourhour.domain.project.dto.MileStoneInfoDTO;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryParticipantDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryResDTO;
+import com.ourhour.domain.project.entity.MilestoneEntity;
 import com.ourhour.domain.project.dto.ProjectReqDTO;
 import com.ourhour.domain.project.entity.ProjectEntity;
 import com.ourhour.domain.project.entity.ProjectParticipantEntity;
+import com.ourhour.domain.project.mapper.MilestoneMapper;
 import com.ourhour.domain.project.mapper.ProjectMapper;
+import com.ourhour.domain.project.repository.MilestoneRepository;
 import com.ourhour.domain.project.repository.ProjectParticipantRepository;
 import com.ourhour.domain.project.repository.ProjectRepository;
 import com.ourhour.global.common.dto.ApiResponse;
@@ -38,6 +42,9 @@ public class ProjectService {
     private final OrgRepository orgRepository;
     private final ProjectMapper projectMapper;
     private final MemberRepository memberRepository;
+
+    private final MilestoneRepository milestoneRepository;
+    private final MilestoneMapper milestoneMapper;
 
     // 프로젝트 요약 목록 조회 - 페이징 처리
     public ApiResponse<PageResponse<ProjectSummaryResDTO>> getProjectsSummaryList(Long orgId, int participantLimit,
@@ -109,8 +116,8 @@ public class ProjectService {
         }
 
         ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
-
-        ProjectEntity savedProject = projectRepository.save(projectEntity);
+        
+        projectRepository.save(projectEntity);
 
         return ApiResponse.success(null, "프로젝트 등록이 완료되었습니다.");
     }
@@ -145,7 +152,8 @@ public class ProjectService {
                             return ProjectParticipantEntity.builder()
                                     .projectParticipantId(participantId)
                                     .projectEntity(savedProject)
-                                    .memberEntity(memberRepository.getReferenceById(memberId)) // 실제 필드값이 필요하지 않아 reference(단순 참조, 지연로딩)
+                                    .memberEntity(memberRepository.getReferenceById(memberId)) // 실제 필드값이 필요하지 않아
+                                                                                               // reference(단순 참조, 지연로딩)
                                     .build();
                         })
                         .collect(Collectors.toList());
@@ -157,10 +165,32 @@ public class ProjectService {
         return ApiResponse.success(null, "프로젝트 수정이 완료되었습니다.");
     }
 
-    // 프로젝트 삭제    
+    // 프로젝트 삭제
     public ApiResponse<Void> deleteProject(Long projectId) {
         projectRepository.deleteById(projectId);
         return ApiResponse.success(null, "프로젝트 삭제가 완료되었습니다.");
+    }
+
+    // 특정 프로젝트의 마일스톤 목록 조회
+    public ApiResponse<PageResponse<MileStoneInfoDTO>> getProjectMilestones(Long projectId, Pageable pageable) {
+        if (projectId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
+        }
+
+        // 프로젝트 존재 여부 확인
+        if (!projectRepository.existsById(projectId)) {
+            throw BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다.");
+        }
+
+        Page<MilestoneEntity> milestonePage = milestoneRepository.findByProjectEntity_ProjectId(projectId, pageable);
+
+        if (milestonePage.isEmpty()) {
+            return ApiResponse.success(PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize()));
+        }
+
+        Page<MileStoneInfoDTO> milestoneInfoPage = milestonePage.map(milestoneMapper::toMileStoneInfoDTO);
+
+        return ApiResponse.success(PageResponse.of(milestoneInfoPage), "특정 프로젝트의 마일스톤 목록 조회에 성공했습니다.");
     }
 
 }

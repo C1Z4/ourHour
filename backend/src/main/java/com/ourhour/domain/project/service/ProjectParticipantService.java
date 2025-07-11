@@ -24,6 +24,7 @@ public class ProjectParticipantService {
     private final ProjectParticipantMapper projectParticipantMapper;
     private final ProjectRepository projectRepository;
 
+    // 특정 프로젝트의 참가자 목록 조회
     public ApiResponse<PageResponse<ProjectParticipantDTO>> getProjectParticipants(Long projectId, Pageable pageable) {
         if (projectId <= 0) {
             throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");

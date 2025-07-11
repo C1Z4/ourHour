@@ -1,7 +1,5 @@
 package com.ourhour.domain.project.dto;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,10 +8,13 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@ToString(callSuper = true)
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProjecUpdateReqDTO extends ProjectBaseDTO {
+public class MileStoneInfoDTO {
 
-    private List<Long> participantIds;
+    private Long milestoneId;
+    private String name;
+    private byte progress;
+
 }

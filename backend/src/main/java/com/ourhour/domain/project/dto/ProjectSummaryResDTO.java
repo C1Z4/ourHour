@@ -1,19 +1,19 @@
 package com.ourhour.domain.project.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
 @Getter
+@Setter
 @ToString(callSuper = true)
 @NoArgsConstructor
-@SuperBuilder
+@AllArgsConstructor
 public class ProjectSummaryResDTO extends ProjectInfoDTO {
 
-    @Setter
     private List<ProjectSummaryParticipantDTO> participants;
 }
