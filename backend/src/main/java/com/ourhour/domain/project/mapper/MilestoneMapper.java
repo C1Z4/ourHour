@@ -3,6 +3,7 @@ package com.ourhour.domain.project.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
@@ -19,5 +20,10 @@ public interface MilestoneMapper {
     // MilestoneReqDTO -> MilestoneEntity
     @Mapping(target = "name", source = "milestoneReqDTO.name")
     MilestoneEntity toMilestoneEntity(ProjectEntity projectEntity, MilestoneReqDTO milestoneReqDTO);
+
+    // MilestoneReqDTO -> MilestoneEntity
+    @Mapping(target = "milestoneId", ignore = true)
+    @Mapping(target = "projectEntity", ignore = true)
+    void updateMilestoneEntity(@MappingTarget MilestoneEntity milestoneEntity, MilestoneReqDTO milestoneReqDTO);
 
 }

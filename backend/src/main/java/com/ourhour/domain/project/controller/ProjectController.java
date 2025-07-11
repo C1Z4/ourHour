@@ -151,4 +151,15 @@ public class ProjectController {
                 return ResponseEntity.ok(response);
         }
 
+        // 마일스톤 수정(마일스톤 이름)
+        @PutMapping("/milestones/{milestoneId}")
+        public ResponseEntity<ApiResponse<Void>> updateMilestone(
+                        @PathVariable @Min(value = 1, message = "마일스톤 ID는 1 이상이어야 합니다.") Long milestoneId,
+                        @Valid @RequestBody MilestoneReqDTO milestoneReqDTO) {
+
+                ApiResponse<Void> response = milestoneService.updateMilestone(milestoneId, milestoneReqDTO);
+                
+                return ResponseEntity.ok(response);
+        }
+
 }

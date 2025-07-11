@@ -45,4 +45,17 @@ public class MilestoneService {
         return ApiResponse.success(null, "마일스톤 등록에 성공했습니다.");
     }
 
+    // 마일스톤 수정(마일스톤 이름)
+    @Transactional
+    public ApiResponse<Void> updateMilestone(Long milestoneId, MilestoneReqDTO milestoneReqDTO) {
+        MilestoneEntity milestoneEntity = milestoneRepository.findById(milestoneId)
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 마일스톤 ID입니다."));
+
+        milestoneMapper.updateMilestoneEntity(milestoneEntity, milestoneReqDTO);
+
+        milestoneRepository.save(milestoneEntity);
+
+        return ApiResponse.success(null, "마일스톤 수정에 성공했습니다.");
+    }
+
 }

@@ -15,6 +15,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ public class MilestoneEntity {
     @JoinColumn(name = "project_id")
     private ProjectEntity projectEntity;
 
+    @Setter
     private String name;
 
     private byte progress = 0;
