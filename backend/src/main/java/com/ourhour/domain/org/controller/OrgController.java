@@ -22,6 +22,7 @@ public class OrgController {
 
     private final OrgService orgService;
 
+    // 회사 등록
     @PostMapping
     public ResponseEntity<ApiResponse<OrgResDTO>> registerOrg(@Valid @RequestBody OrgReqDTO orgReqDTO) {
         OrgResDTO orgResDTO = orgService.registerOrg(orgReqDTO);
@@ -29,6 +30,7 @@ public class OrgController {
         return ResponseEntity.ok(ApiResponse.success(orgResDTO, "팀 등록에 성공하였습니다."));
     }
 
+    // 회사 정보 조회
     @GetMapping("/{orgId}")
     public ResponseEntity<ApiResponse<OrgResDTO>> getOrgInfo(@PathVariable Long orgId) {
         OrgResDTO orgResDTO = orgService.getOrgInfo(orgId);
@@ -36,6 +38,7 @@ public class OrgController {
         return ResponseEntity.ok(ApiResponse.success(orgResDTO, "팀 조회에 성공하였습니다."));
     }
 
+    // 회사 정보 수정
     @PutMapping("/{orgId}")
     public ResponseEntity<ApiResponse<OrgResDTO>> updateOrg(@PathVariable Long orgId, @Valid @RequestBody OrgReqDTO orgReqDTO) {
         OrgResDTO orgResDTO = orgService.updateOrg(orgId, orgReqDTO);

@@ -63,8 +63,13 @@ public class OrgService {
 
     // 회사 정보 조회
     public OrgResDTO getOrgInfo(Long orgId) {
+
+        if (orgId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 회사 ID입니다.");
+        }
+
         OrgEntity orgEntity = orgRepository.findById(orgId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회사 ID 입니다: " + orgId));
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 회사 ID 입니다: " + orgId));
 
         OrgResDTO orgResDTO = orgMapper.toOrgResDTO(orgEntity);
 
