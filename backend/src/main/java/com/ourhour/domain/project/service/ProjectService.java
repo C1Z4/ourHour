@@ -115,6 +115,10 @@ public class ProjectService {
             throw BusinessException.badRequest("조직 정보를 찾을 수 없습니다.");
         }
 
+        ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
+        
+        projectRepository.save(projectEntity);
+      
         return ApiResponse.success(null, "프로젝트 등록이 완료되었습니다.");
     }
 
