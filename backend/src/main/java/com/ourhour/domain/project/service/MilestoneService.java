@@ -58,4 +58,16 @@ public class MilestoneService {
         return ApiResponse.success(null, "마일스톤 수정에 성공했습니다.");
     }
 
+    // 마일스톤 삭제
+    @Transactional
+    public ApiResponse<Void> deleteMilestone(Long milestoneId) {
+
+        MilestoneEntity milestoneEntity = milestoneRepository.findById(milestoneId)
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 마일스톤 ID입니다."));
+
+        milestoneRepository.delete(milestoneEntity);
+
+        return ApiResponse.success(null, "마일스톤 삭제에 성공했습니다.");
+    }
+
 }

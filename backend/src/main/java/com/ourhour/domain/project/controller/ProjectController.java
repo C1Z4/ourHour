@@ -162,4 +162,14 @@ public class ProjectController {
                 return ResponseEntity.ok(response);
         }
 
+        // 마일스톤 삭제
+        @DeleteMapping("/milestones/{milestoneId}")
+        public ResponseEntity<ApiResponse<Void>> deleteMilestone(
+                        @PathVariable @Min(value = 1, message = "마일스톤 ID는 1 이상이어야 합니다.") Long milestoneId) {
+
+                ApiResponse<Void> response = milestoneService.deleteMilestone(milestoneId);
+                
+                return ResponseEntity.ok(response);
+        }
+
 }
