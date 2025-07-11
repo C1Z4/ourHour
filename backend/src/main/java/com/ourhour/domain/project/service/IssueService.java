@@ -105,4 +105,23 @@ public class IssueService {
         return ApiResponse.success(issueDetailDTO, "이슈 등록에 성공했습니다.");
     }
 
+    // 이슈 수정
+    @Transactional
+    public ApiResponse<IssueDetailDTO> updateIssue(Long issueId, IssueReqDTO issueReqDTO) {
+        if (issueId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 이슈 ID입니다.");
+        }
+
+        IssueEntity issueEntity = issueRepository.findById(issueId)
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 이슈 ID입니다."));
+
+        issueMapper.updateIssueEntity(issueEntity, issueReqDTO);
+
+        IssueEntity savedIssueEntity = issueRepository.save(issueEntity);
+
+        IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(savedIssueEntity);
+
+        return ApiResponse.success(issueDetailDTO, "이슈 수정에 성공했습니다.");
+    }
+
 }

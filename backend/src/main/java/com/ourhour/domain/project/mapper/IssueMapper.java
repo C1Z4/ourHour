@@ -5,6 +5,7 @@ import com.ourhour.domain.project.dto.IssueSummaryDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.MappingTarget;
 
 import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.dto.IssueReqDTO;
@@ -30,4 +31,10 @@ public interface IssueMapper {
     @Mapping(target = "assigneeEntity", ignore = true)
     @Mapping(target = "projectEntity", ignore = true)
     IssueEntity toIssueEntity(IssueReqDTO issueReqDTO);
+
+    // IssueEntity -> IssueEntity
+    @Mapping(target = "milestoneEntity", ignore = true)
+    @Mapping(target = "assigneeEntity", ignore = true)
+    @Mapping(target = "projectEntity", ignore = true)
+    void updateIssueEntity(@MappingTarget IssueEntity issueEntity, IssueReqDTO issueReqDTO);
 }

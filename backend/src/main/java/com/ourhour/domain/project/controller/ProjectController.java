@@ -196,4 +196,15 @@ public class ProjectController {
                 return ResponseEntity.ok(response);
         }
 
+        // 이슈 수정
+        @PutMapping("/issues/{issueId}")
+        public ResponseEntity<ApiResponse<IssueDetailDTO>> updateIssue(
+                        @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId,
+                        @Valid @RequestBody IssueReqDTO issueReqDTO) {
+
+                ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO);
+
+                return ResponseEntity.ok(response);
+        }       
+
 }
