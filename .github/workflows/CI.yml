@@ -44,6 +44,19 @@ jobs:
           echo "    username: '${{ secrets.DB_USERNAME }}'" >> ./backend/src/main/resources/application-secret.yml
           echo "    password: '${{ secrets.DB_PASSWORD }}'" >> ./backend/src/main/resources/application-secret.yml
           echo "    driver-class-name: com.mysql.cj.jdbc.Driver" >> ./backend/src/main/resources/application-secret.yml
+          echo "  mail:" >> ./backend/src/main/resources/application-secret.yml
+          echo "    host: '${{ secrets.MAIL_HOST }}'" >> ./backend/src/main/resources/application-secret.yml
+          echo "    port: '${{ secrets.MAIL_PORT }}'" >> ./backend/src/main/resources/application-secret.yml
+          echo "    username: '${{ secrets.MAIL_USERNAME }}'" >> ./backend/src/main/resources/application-secret.yml
+          echo "    password: '${{ secrets.MAIL_PASSWORD }}'" >> ./backend/src/main/resources/application-secret.yml
+          echo "    properties:" >> ./backend/src/main/resources/application-secret.yml
+          echo "      mail:" >> ./backend/src/main/resources/application-secret.yml
+          echo "        smtp:" >> ./backend/src/main/resources/application-secret.yml
+          echo "          auth: true" >> ./backend/src/main/resources/application-secret.yml
+          echo "          starttls:" >> ./backend/src/main/resources/application-secret.yml
+          echo "            enable: true" >> ./backend/src/main/resources/application-secret.yml
+          echo "service:" >> ./backend/src/main/resources/application-secret.yml
+          echo "  base-url-email: '${{ secrets.BASE_URL_EMAIL }}'" >> ./backend/src/main/resources/application-secret.yml
 
       - name: Build with Gradle
         run: ./gradlew clean build --no-daemon
