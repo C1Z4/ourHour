@@ -124,4 +124,15 @@ public class IssueService {
         return ApiResponse.success(issueDetailDTO, "이슈 수정에 성공했습니다.");
     }
 
+    // 이슈 삭제
+    @Transactional
+    public ApiResponse<Void> deleteIssue(Long issueId) {
+        if (issueId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 이슈 ID입니다.");
+        }
+
+        issueRepository.deleteById(issueId);
+
+        return ApiResponse.success(null, "이슈 삭제에 성공했습니다.");
+    }
 }

@@ -207,4 +207,14 @@ public class ProjectController {
                 return ResponseEntity.ok(response);
         }       
 
+        // 이슈 삭제
+        @DeleteMapping("/issues/{issueId}")
+        public ResponseEntity<ApiResponse<Void>> deleteIssue(
+                        @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId) {
+
+                ApiResponse<Void> response = issueService.deleteIssue(issueId);
+                
+                return ResponseEntity.ok(response);
+        }
+
 }
