@@ -1,6 +1,7 @@
 package com.ourhour.domain.project.controller;
 
 import com.ourhour.domain.project.dto.IssueDetailDTO;
+import com.ourhour.domain.project.dto.IssueReqDTO;
 import com.ourhour.domain.project.dto.IssueSummaryDTO;
 import com.ourhour.domain.project.dto.MilestoneReqDTO;
 import com.ourhour.domain.project.dto.ProjecUpdateReqDTO;
@@ -44,6 +45,7 @@ public class ProjectController {
         private final ProjectParticipantService projectParticipantService;
         private final IssueService issueService;
         private final MilestoneService milestoneService;
+
         // 프로젝트 등록
         @PostMapping("/{orgId}")
         public ResponseEntity<ApiResponse<Void>> createProject(
@@ -148,7 +150,7 @@ public class ProjectController {
                         @Valid @RequestBody MilestoneReqDTO milestoneReqDTO) {
 
                 ApiResponse<Void> response = milestoneService.createMilestone(projectId, milestoneReqDTO);
-                
+
                 return ResponseEntity.ok(response);
         }
 
@@ -159,7 +161,7 @@ public class ProjectController {
                         @Valid @RequestBody MilestoneReqDTO milestoneReqDTO) {
 
                 ApiResponse<Void> response = milestoneService.updateMilestone(milestoneId, milestoneReqDTO);
-                
+
                 return ResponseEntity.ok(response);
         }
 
@@ -180,6 +182,17 @@ public class ProjectController {
 
                 ApiResponse<IssueDetailDTO> response = issueService.getIssueDetail(issueId);
 
+                return ResponseEntity.ok(response);
+        }
+
+        // 이슈 등록
+        @PostMapping("/{projectId}/issues")
+        public ResponseEntity<ApiResponse<IssueDetailDTO>> createIssue(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @Valid @RequestBody IssueReqDTO issueReqDTO) {
+
+                ApiResponse<IssueDetailDTO> response = issueService.createIssue(projectId, issueReqDTO);
+                
                 return ResponseEntity.ok(response);
         }
 
