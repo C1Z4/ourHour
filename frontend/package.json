@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "coverage": "vitest run --coverage --passWithNoTests",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\""
   },
@@ -36,6 +37,7 @@
     "@types/react-dom": "^19.1.6",
     "@types/sockjs-client": "^1.5.4",
     "@vitejs/plugin-react": "^4.6.0",
+    "@vitest/coverage-v8": "^3.2.4",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.5",
