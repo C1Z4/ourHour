@@ -1,8 +1,7 @@
 import { useState } from 'react';
 
-import { useChat } from '@hooks/queries/chat/useChat';
-
-import { ChatMessage } from '@/types/chatTypes';
+import { useChat } from '../../hooks/queries/chat/useChat.ts';
+import type { ChatMessage } from '../../types/chatTypes.ts';
 
 export default function ChatTestPage() {
   const [roomId, setRoomId] = useState<number>(1);
