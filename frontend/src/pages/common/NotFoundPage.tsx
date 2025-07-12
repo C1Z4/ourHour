@@ -6,7 +6,7 @@ const NotFoundPage = () => (
       </h1>
       <p className="text-xl mb-8">페이지를 찾을 수 없습니다.</p>
       <a
-        href="/"
+        href="/frontend-old/public"
         className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
         tabIndex={0}
         aria-label="홈으로 돌아가기"
