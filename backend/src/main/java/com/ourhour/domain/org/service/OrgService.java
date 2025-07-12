@@ -1,5 +1,7 @@
 package com.ourhour.domain.org.service;
 
+import java.util.List;
+
 import com.ourhour.domain.member.dto.MemberInfoResDTO;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.dto.OrgReqDTO;
@@ -9,6 +11,8 @@ import com.ourhour.domain.org.entity.OrgParticipantMemberId;
 import com.ourhour.domain.org.mapper.OrgMapper;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
+import com.ourhour.domain.project.dto.ProjectNameResDTO;
+import com.ourhour.domain.project.repository.ProjectParticipantRepository;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.exception.BusinessException;
 
@@ -27,6 +31,7 @@ public class OrgService {
     private final OrgRepository orgRepository;
     private final MemberRepository memberRepository;
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
+    private final ProjectParticipantRepository projectParticipantRepository;
 
     @Transactional
     public OrgResDTO registerOrg(OrgReqDTO orgReqDTO) {
@@ -127,5 +132,24 @@ public class OrgService {
     @Transactional
     public void deleteOrg(Long orgId) {
         orgRepository.deleteById(orgId);
+    }
+
+    // 본인이 참여 중인 프로젝트 이름 목록 조회(좌측 사이드바)
+    public List<ProjectNameResDTO> getMyProjects(Long orgId, Long memberId) {
+
+        if (orgId == null || orgId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 조직 ID입니다.");
+        }
+
+        if (memberId == null || memberId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 멤버 ID입니다.");
+        }
+
+        OrgParticipantMemberId participantId = new OrgParticipantMemberId(orgId, memberId);
+        if (!orgParticipantMemberRepository.existsById(participantId)) {
+            throw BusinessException.forbidden("해당 조직의 구성원이 아닙니다.");
+        }
+
+        return projectParticipantRepository.findMemberProjectsByOrg(memberId, orgId);
     }
 }

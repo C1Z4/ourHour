@@ -1,11 +1,15 @@
 package com.ourhour.domain.org.controller;
 
+import java.util.List;
+
 import com.ourhour.domain.member.dto.MemberInfoResDTO;
 import com.ourhour.domain.org.dto.OrgReqDTO;
 import com.ourhour.domain.org.dto.OrgResDTO;
 import com.ourhour.domain.org.service.OrgService;
+import com.ourhour.domain.project.dto.ProjectNameResDTO;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
+import com.ourhour.global.exception.BusinessException;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -83,8 +87,25 @@ public class OrgController {
     @DeleteMapping("/{orgId}")
     public ResponseEntity<ApiResponse<Void>> deleteOrg(@PathVariable Long orgId) {
         orgService.deleteOrg(orgId);
-        
+
         return ResponseEntity.ok(ApiResponse.success(null, "팀 삭제에 성공하였습니다."));
+    }
+
+    // 본인이 참여 중인 프로젝트 이름 목록 조회(좌측 사이드바)
+    @GetMapping("/{orgId}/projects/my")
+    public ResponseEntity<ApiResponse<List<ProjectNameResDTO>>> getMyProjects(@PathVariable Long orgId) {
+
+        // JWT 토큰에서 실제 사용자 ID 추출 필요
+        // Long memberId = jwtTokenProvider.getMemberIdFromToken(request);
+
+        Long memberId = 2L;
+
+        if (memberId == null || memberId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 멤버 ID입니다.");
+        }
+
+        List<ProjectNameResDTO> response = orgService.getMyProjects(orgId, memberId);
+        return ResponseEntity.ok(ApiResponse.success(response, "본인이 참여 중인 프로젝트 이름 목록 조회에 성공하였습니다."));
     }
 
 }
