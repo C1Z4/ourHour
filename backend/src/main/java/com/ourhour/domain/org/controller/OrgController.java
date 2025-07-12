@@ -79,4 +79,12 @@ public class OrgController {
         return ResponseEntity.ok(ApiResponse.success(null, "팀 구성원 삭제에 성공하였습니다."));
     }
 
+    // 회사 삭제
+    @DeleteMapping("/{orgId}")
+    public ResponseEntity<ApiResponse<Void>> deleteOrg(@PathVariable Long orgId) {
+        orgService.deleteOrg(orgId);
+        
+        return ResponseEntity.ok(ApiResponse.success(null, "팀 삭제에 성공하였습니다."));
+    }
+
 }

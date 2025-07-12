@@ -122,4 +122,10 @@ public class OrgService {
     public void deleteOrgMember(Long orgId, Long memberId) {
         orgParticipantMemberRepository.deleteById(new OrgParticipantMemberId(orgId, memberId));
     }
+
+    // 회사 삭제
+    @Transactional
+    public void deleteOrg(Long orgId) {
+        orgRepository.deleteById(orgId);
+    }
 }
