@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -69,6 +70,13 @@ public class OrgController {
 
         return ResponseEntity.ok(ApiResponse.success(response, "팀 구성원 조회에 성공하였습니다."));
     }
-    
+
+    // 구성원 삭제
+    @DeleteMapping("/{orgId}/members/{memberId}")
+    public ResponseEntity<ApiResponse<Void>> deleteOrgMember(@PathVariable Long orgId, @PathVariable Long memberId) {
+        orgService.deleteOrgMember(orgId, memberId);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "팀 구성원 삭제에 성공하였습니다."));
+    }
 
 }

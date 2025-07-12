@@ -5,6 +5,7 @@ import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.dto.OrgReqDTO;
 import com.ourhour.domain.org.dto.OrgResDTO;
 import com.ourhour.domain.org.entity.OrgEntity;
+import com.ourhour.domain.org.entity.OrgParticipantMemberId;
 import com.ourhour.domain.org.mapper.OrgMapper;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
@@ -114,5 +115,11 @@ public class OrgService {
         Page<MemberInfoResDTO> memberInfoPage = orgParticipantMemberRepository.findByOrgId(orgId, pageable);
 
         return PageResponse.of(memberInfoPage);
+    }
+
+    // 구성원 삭제
+    @Transactional
+    public void deleteOrgMember(Long orgId, Long memberId) {
+        orgParticipantMemberRepository.deleteById(new OrgParticipantMemberId(orgId, memberId));
     }
 }
