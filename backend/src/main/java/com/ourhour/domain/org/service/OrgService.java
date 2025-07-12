@@ -1,5 +1,6 @@
 package com.ourhour.domain.org.service;
 
+import com.ourhour.domain.member.dto.MemberInfoResDTO;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.dto.OrgReqDTO;
 import com.ourhour.domain.org.dto.OrgResDTO;
@@ -7,11 +8,15 @@ import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.mapper.OrgMapper;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
+import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.exception.BusinessException;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;    
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -92,5 +97,22 @@ public class OrgService {
         OrgEntity updatedOrgEntity = orgRepository.save(orgEntity);
 
         return orgMapper.toOrgResDTO(updatedOrgEntity);
+    }
+
+    // 회사 구성원 목록 조회
+    public PageResponse<MemberInfoResDTO> getOrgMembers(Long orgId, Pageable pageable) {
+
+        if (orgId == null || orgId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 회사 ID입니다.");
+        }
+
+        // 회사 존재 여부 확인
+        if (!orgRepository.existsById(orgId)) {
+            throw BusinessException.badRequest("존재하지 않는 회사 ID 입니다: " + orgId);
+        }
+
+        Page<MemberInfoResDTO> memberInfoPage = orgParticipantMemberRepository.findByOrgId(orgId, pageable);
+
+        return PageResponse.of(memberInfoPage);
     }
 }

@@ -19,6 +19,7 @@ public interface OrgMapper {
 
     // Entity -> Entity 변환 (수정)
     @Mapping(target = "orgId", ignore = true)
+    @Mapping(target= "orgParticipantMemberEntityList", ignore = true)
     void updateOrgEntity(@MappingTarget OrgEntity orgEntity, OrgReqDTO orgReqDTO);
     
 }
