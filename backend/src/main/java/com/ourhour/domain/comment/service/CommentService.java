@@ -14,6 +14,7 @@ import com.ourhour.domain.comment.mapper.CommentMapper;
 import com.ourhour.domain.comment.dto.CommentCreateReqDTO;
 import com.ourhour.domain.comment.dto.CommentPageResDTO;
 import com.ourhour.domain.comment.dto.CommentResDTO;
+import com.ourhour.domain.comment.dto.CommentUpdateReqDTO;
 import com.ourhour.domain.comment.repository.CommentRepository;
 import com.ourhour.domain.board.entity.PostEntity;
 import com.ourhour.domain.member.entity.MemberEntity;
@@ -165,5 +166,32 @@ public class CommentService {
         if (request.getContent().length() > 1000) {
             throw BusinessException.badRequest("댓글 내용은 1000자를 초과할 수 없습니다.");
         }
+    }
+
+    // 댓글 수정
+    @Transactional
+    public void updateComment(Long commentId, CommentUpdateReqDTO commentUpdateReqDTO) {
+        validateUpdateCommentRequest(commentId, commentUpdateReqDTO);
+
+        CommentEntity commentEntity = commentRepository.findById(commentId)
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 댓글입니다."));
+
+        commentMapper.updateCommentEntity(commentEntity, commentUpdateReqDTO);
+
+        commentRepository.save(commentEntity);
+    }
+
+    // 댓글 수정 요청 검증      
+    private void validateUpdateCommentRequest(Long commentId, CommentUpdateReqDTO request) {
+
+        
+        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
+            throw BusinessException.badRequest("댓글 내용은 필수입니다.");
+        }
+
+        if (request.getAuthorId() == null) {
+            throw BusinessException.badRequest("작성자 ID는 필수입니다.");
+        }
+
     }
 }

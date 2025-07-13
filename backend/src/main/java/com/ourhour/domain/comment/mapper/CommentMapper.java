@@ -5,12 +5,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 
 import com.ourhour.domain.comment.dto.CommentDTO;
 import com.ourhour.domain.comment.dto.CommentResDTO;
 import com.ourhour.domain.comment.entity.CommentEntity;
+import com.ourhour.domain.comment.dto.CommentUpdateReqDTO;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface CommentMapper {
@@ -59,4 +62,10 @@ public interface CommentMapper {
             childComments
         );
     }
+
+    // CommentUpdateReqDTO -> CommentEntity
+    @Mapping(target = "postEntity", ignore = true)
+    @Mapping(target = "issueEntity", ignore = true)
+    @Mapping(target = "authorEntity", ignore = true)
+    void updateCommentEntity(@MappingTarget CommentEntity commentEntity, CommentUpdateReqDTO commentUpdateReqDTO);
 }

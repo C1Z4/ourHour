@@ -11,12 +11,6 @@ import org.springframework.data.repository.query.Param;
 import com.ourhour.domain.comment.entity.CommentEntity;
 
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
-
-    @Query("SELECT c FROM CommentEntity c WHERE c.postEntity.postId = :postId")
-    Page<CommentEntity> findByPostId(Long postId, Pageable pageable);
-
-    @Query("SELECT c FROM CommentEntity c WHERE c.issueEntity.issueId = :issueId")
-    Page<CommentEntity> findByIssueId(Long issueId, Pageable pageable);
     
     // 최상위 댓글만 페이징 (postId 기준) 
     @Query("SELECT c FROM CommentEntity c " +
@@ -25,9 +19,6 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
            "ORDER BY c.createdAt ASC")
     Page<CommentEntity> findByPostIdAndParentCommentIdIsNull(Long postId, Pageable pageable);
     
-    // 해당 게시글의 모든 댓글 조회 (대댓글 포함)
-    @Query("SELECT c FROM CommentEntity c WHERE c.postEntity.postId = :postId ORDER BY c.createdAt ASC")
-    List<CommentEntity> findByPostIdOrderByCreatedAtAsc(Long postId);
     
     // 최상위 댓글만 페이징 (issueId 기준)
     @Query("SELECT c FROM CommentEntity c " +
@@ -35,10 +26,6 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
            "WHERE c.issueEntity.issueId = :issueId AND c.parentCommentId IS NULL " +
            "ORDER BY c.createdAt ASC")
     Page<CommentEntity> findByIssueIdAndParentCommentIdIsNull(Long issueId, Pageable pageable);
-    
-    // 해당 이슈의 모든 댓글 조회 (대댓글 포함)
-    @Query("SELECT c FROM CommentEntity c WHERE c.issueEntity.issueId = :issueId ORDER BY c.createdAt ASC")
-    List<CommentEntity> findByIssueIdOrderByCreatedAtAsc(Long issueId);
     
     // 특정 최상위 댓글들과 해당 대댓글들만 조회 (postId 기준)
     @Query("""
