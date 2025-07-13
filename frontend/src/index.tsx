@@ -1,28 +1,29 @@
-import { StrictMode } from 'react';
+// src/index.tsx
+import React from 'react';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
+import { RouterProvider, createRouter } from '@tanstack/react-router';
 import ReactDOM from 'react-dom/client';
 
-import '@styles/index.css';
-import App from './App';
+// 자동 생성될 라우트 트리를 import
+import { routeTree } from './routeTree.gen.ts';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 2,
-      gcTime: 1000 * 60 * 5,
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+// 라우터 인스턴스 생성
+const router = createRouter({ routeTree });
 
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
-root.render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </StrictMode>,
-);
+// 타입스크립트를 위한 라우터 등록 (매우 중요!)
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+// React 앱 렌더링
+const rootElement = document.getElementById('root')!;
+if (!rootElement.innerHTML) {
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(
+    <React.StrictMode>
+      <RouterProvider router={router} />
+    </React.StrictMode>,
+  );
+}

@@ -83,7 +83,7 @@ jobs:
         working-directory: ./frontend
 
       - name: Run tests
-        run: npm run test -- --ci --watchAll=false --passWithNoTests
+        run: npm run coverage
         working-directory: ./frontend
 
       - name: Build project
@@ -94,4 +94,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-files
-          path: ./frontend/build/
+          path: ./frontend/dist/

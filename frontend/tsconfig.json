@@ -1,35 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
+    "composite": true,
     "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "baseUrl": "src",
-    "paths": {
-      "@/*": ["*"],
-      "@components/*": ["components/*"],
-      "@constants/*": ["constants/*"],
-      "@hooks/*": ["hooks/*"],
-      "@api/*": ["api/*"],
-      "@stores/*": ["stores/*"],
-      "@utils/*": ["utils/*"],
-      "@types/*": ["types/*"],
-      "@router/*": ["router/*"],
-      "@lib/*": ["lib/*"],
-      "@styles/*": ["styles/*"],
-      "@pages/*": ["pages/*"]
-    }
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+
+    // 라이브러리 타입 유연하게 적용
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["src"]
+  "include": ["vite.config.ts"]
 }
