@@ -1,29 +1,27 @@
-// src/index.tsx
-import React from 'react';
-
-import { RouterProvider, createRouter } from '@tanstack/react-router';
+import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
+import { RouterProvider, createRouter } from '@tanstack/react-router';
 
-// 자동 생성될 라우트 트리를 import
-import { routeTree } from './routeTree.gen.ts';
+// Import the generated route tree
+import { routeTree } from './routeTree.gen';
 
-// 라우터 인스턴스 생성
+// Create a new router instance
 const router = createRouter({ routeTree });
 
-// 타입스크립트를 위한 라우터 등록 (매우 중요!)
+// Register the router instance for type safety
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;
   }
 }
 
-// React 앱 렌더링
+// Render the app
 const rootElement = document.getElementById('root')!;
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
-    <React.StrictMode>
+    <StrictMode>
       <RouterProvider router={router} />
-    </React.StrictMode>,
+    </StrictMode>,
   );
 }

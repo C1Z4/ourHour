@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
   component: Index,
@@ -7,7 +7,9 @@ export const Route = createFileRoute('/')({
 function Index() {
   return (
     <div className="p-2">
-      <h3>Welcome Home!</h3>
+      <Link to="/$orgId" params={{ orgId: '1' }}>
+        1번 회사 test
+      </Link>
     </div>
   );
 }
