@@ -10,3 +10,7 @@ export interface UseChatReturn {
   sendMessage: (messageContent: string, senderId: number) => void;
   isConnected: boolean;
 }
+export interface ChatRoom {
+  roomId: number;
+  name: string;
+}

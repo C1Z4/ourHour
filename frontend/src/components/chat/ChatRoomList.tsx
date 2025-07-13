@@ -1,5 +1,6 @@
 import { useChatRoomListQuery } from '@/hooks/queries/chat/useChatRoomListQueries';
 import { ChatRoom } from '@/types/chatTypes.ts';
+import { Link } from '@tanstack/react-router';
 
 export const ChatRoomList = () => {
   const { data: chatRooms, isLoading, isError, error } = useChatRoomListQuery(1);
@@ -18,7 +19,12 @@ export const ChatRoomList = () => {
       <ul>
         {chatRooms?.map((chatRoom: ChatRoom) => (
           <li key={chatRoom.roomId}>
-            {chatRoom.name}
+            <Link
+              to="/$orgId/chat/$roomId"
+              params={{ orgId: '1', roomId: String(chatRoom.roomId) }}
+            >
+              {chatRoom.name}
+            </Link>
             <button>ℹ︎</button>
           </li>
         ))}
