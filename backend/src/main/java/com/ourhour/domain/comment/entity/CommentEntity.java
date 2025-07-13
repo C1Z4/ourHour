@@ -5,8 +5,11 @@ import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.project.entity.IssueEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -14,9 +17,12 @@ import java.time.LocalDateTime;
 @Table(name = "tbl_comment")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class CommentEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,6 +39,9 @@ public class CommentEntity {
 
     private Long parentCommentId;
     private String content;
+    
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
 }

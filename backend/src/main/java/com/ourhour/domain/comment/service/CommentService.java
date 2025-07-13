@@ -7,12 +7,20 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ourhour.domain.comment.entity.CommentEntity;
 import com.ourhour.domain.comment.mapper.CommentMapper;
+import com.ourhour.domain.comment.dto.CommentCreateReqDTO;
 import com.ourhour.domain.comment.dto.CommentPageResDTO;
 import com.ourhour.domain.comment.dto.CommentResDTO;
 import com.ourhour.domain.comment.repository.CommentRepository;
+import com.ourhour.domain.board.entity.PostEntity;
+import com.ourhour.domain.member.entity.MemberEntity;
+import com.ourhour.domain.member.repository.MemberRepository;
+import com.ourhour.domain.project.entity.IssueEntity;
+import com.ourhour.domain.project.repository.IssueRepository;
+import com.ourhour.domain.board.repository.PostRepository;
 import com.ourhour.global.exception.BusinessException;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +31,9 @@ public class CommentService {
     
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
+    private final MemberRepository memberRepository;
+    private final PostRepository postRepository;
+    private final IssueRepository issueRepository;
 
     @Cacheable(value = "comments", key = "#postId + '_' + #issueId + '_' + #currentPage + '_' + #size")
     public CommentPageResDTO getComments(Long postId, Long issueId, int currentPage, int size) {
@@ -93,6 +104,66 @@ public class CommentService {
             return commentRepository.findByPostIdAndParentCommentIds(postId, parentCommentIds);
         } else {
             return commentRepository.findByIssueIdAndParentCommentIds(issueId, parentCommentIds);
+        }
+    }
+
+    // 댓글 등록
+    @Transactional
+    public void createComment(CommentCreateReqDTO commentCreateReqDTO) {
+        validateCreateCommentRequest(commentCreateReqDTO);
+
+        // 현재는 authorId값을 클라이언트에서 받음 -> 추후 토큰에서 memberId 추출 가능할 시 로직 변경 필요!
+
+        // 작성자 조회
+        MemberEntity authorEntity = memberRepository.findById(commentCreateReqDTO.getAuthorId())
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 사용자입니다."));
+
+        PostEntity postEntity = null;
+        IssueEntity issueEntity = null;
+
+        // postId 또는 issueId 중 하나만 조회
+        if (commentCreateReqDTO.getPostId() != null) {
+            postEntity = postRepository.findById(commentCreateReqDTO.getPostId())
+                    .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 게시글입니다."));
+        }
+
+        if (commentCreateReqDTO.getIssueId() != null) {
+            issueEntity = issueRepository.findById(commentCreateReqDTO.getIssueId())
+                    .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 이슈입니다."));
+        }
+
+        CommentEntity commentEntity = CommentEntity.builder()
+                .postEntity(postEntity)
+                .issueEntity(issueEntity)
+                .authorEntity(authorEntity)
+                .parentCommentId(commentCreateReqDTO.getParentCommentId())
+                .content(commentCreateReqDTO.getContent())
+                .build();
+
+        commentRepository.save(commentEntity);
+        
+    }
+
+    // 댓글 생성 요청 검증
+    private void validateCreateCommentRequest(CommentCreateReqDTO request) {
+        if (request.getPostId() == null && request.getIssueId() == null) {
+            throw BusinessException.badRequest("postId 또는 issueId 중 하나는 필수입니다.");
+        }
+
+        if (request.getPostId() != null && request.getIssueId() != null) {
+            throw BusinessException.badRequest("postId 또는 issueId 중 하나만 입력해주세요.");
+        }
+
+        if (request.getAuthorId() == null) {
+            throw BusinessException.badRequest("작성자 ID는 필수입니다.");
+        }
+
+        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
+            throw BusinessException.badRequest("댓글 내용은 필수입니다.");
+        }
+
+        if (request.getContent().length() > 1000) {
+            throw BusinessException.badRequest("댓글 내용은 1000자를 초과할 수 없습니다.");
         }
     }
 }
