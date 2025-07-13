@@ -176,6 +176,7 @@ public class CommentService {
         CommentEntity commentEntity = commentRepository.findById(commentId)
                 .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 댓글입니다."));
 
+        // 현재는 authorId값을 클라이언트에서 받음 -> 추후 토큰에서 memberId 추출 가능할 시 로직 변경 필요!
         commentMapper.updateCommentEntity(commentEntity, commentUpdateReqDTO);
 
         commentRepository.save(commentEntity);
