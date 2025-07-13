@@ -195,4 +195,19 @@ public class CommentService {
         }
 
     }
+
+    // 댓글 삭제
+    @Transactional
+    public void deleteComment(Long commentId) {
+        CommentEntity commentEntity = commentRepository.findById(commentId)
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 댓글입니다."));
+
+        // 현재는 authorId값을 클라이언트에서 받음 -> 추후 토큰에서 memberId 추출 가능할 시 로직 변경 필요!
+
+        if (commentEntity.getAuthorEntity().getMemberId() != commentEntity.getAuthorEntity().getMemberId()) {
+            throw BusinessException.badRequest("작성자 ID가 일치하지 않습니다.");
+        }
+
+        commentRepository.delete(commentEntity);
+    }
 }

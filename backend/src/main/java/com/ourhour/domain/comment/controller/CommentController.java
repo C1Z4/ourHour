@@ -2,6 +2,7 @@ package com.ourhour.domain.comment.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,8 +56,19 @@ public class CommentController {
     public ResponseEntity<ApiResponse<Void>> updateComment(
             @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId,
             @Valid @RequestBody CommentUpdateReqDTO commentUpdateReqDTO) {
+
         commentService.updateComment(commentId, commentUpdateReqDTO);
 
         return ResponseEntity.ok(ApiResponse.success(null, "댓글 수정에 성공했습니다."));
+    }
+
+    // 댓글 삭제
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<ApiResponse<Void>> deleteComment(
+            @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
+
+        commentService.deleteComment(commentId);
+        
+        return ResponseEntity.ok(ApiResponse.success(null, "댓글 삭제에 성공했습니다."));
     }
 }
