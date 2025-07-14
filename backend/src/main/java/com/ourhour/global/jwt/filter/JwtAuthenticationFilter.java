@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = getToken(request);
 
             if (token != null && jwtTokenProvider.validateToken(token)) {
-                Claims claims = jwtTokenProvider.parseAcessToken(token);
+                Claims claims = jwtTokenProvider.parseAccessToken(token);
                 UserContextHolder.set(claims);
             } else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
