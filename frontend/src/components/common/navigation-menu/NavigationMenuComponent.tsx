@@ -8,6 +8,7 @@ import { Bell, Menu, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { ProfileSheet } from '../ProfileSheet';
 
 export function NavigationMenuComponent() {
   const [isActive, setIsActive] = useState('');
@@ -93,9 +94,11 @@ export function NavigationMenuComponent() {
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="icon">
-              <Menu className="w-4 h-4" />
-            </Button>
+            <ProfileSheet>
+              <Button variant="ghost" size="icon">
+                <Menu className="w-4 h-4" />
+              </Button>
+            </ProfileSheet>
           </div>
         </div>
       </div>
