@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -32,5 +33,13 @@ public class RefreshTokenEntity {
     private String token;
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
+
+    @Builder
+    public RefreshTokenEntity(UserEntity userEntity, String token, LocalDateTime createdAt, LocalDateTime expiresAt) {
+        this.userEntity = userEntity;
+        this.token = token;
+        this.createdAt = createdAt;
+        this.expiresAt = expiresAt;
+    }
 
 }

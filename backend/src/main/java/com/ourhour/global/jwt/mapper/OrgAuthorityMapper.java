@@ -1,5 +1,6 @@
 package com.ourhour.global.jwt.mapper;
 
+import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.global.jwt.dto.OrgAuthority;
 import org.springframework.stereotype.Component;
@@ -11,7 +12,7 @@ import java.util.stream.Collectors;
 @Component
 public class OrgAuthorityMapper {
 
-    // Map List -> List 변환 helper
+    // JWT 파싱 시 Map 리스트 → OrgAuthority 리스트로 변환
     public List<OrgAuthority> mapListToOrgAuthorityListHelper(List<Map<String, Object>> mapList) {
         if (mapList == null) return null;
 
@@ -25,4 +26,16 @@ public class OrgAuthorityMapper {
                 )
                 .collect(Collectors.toList());
     }
+
+    // JWT 발급 시 Entity → OrgAuthority 리스트로 변환
+    public List<OrgAuthority> toOrgAuthority (List<OrgParticipantMemberEntity> orgParticipantMemberEntityList) {
+        return orgParticipantMemberEntityList.stream()
+                .map(memberOrg -> OrgAuthority.builder()
+                        .orgId(memberOrg.getOrgEntity().getOrgId())
+                        .memberId(memberOrg.getMemberEntity().getMemberId())
+                        .role(memberOrg.getRole())
+                        .build()
+                ).collect(Collectors.toList());
+    }
+
 }

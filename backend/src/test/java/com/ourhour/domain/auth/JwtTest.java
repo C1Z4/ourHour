@@ -4,6 +4,7 @@ import com.ourhour.domain.org.enums.Role;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.jwt.JwtTokenProvider;
 import com.ourhour.global.jwt.dto.OrgAuthority;
+import com.ourhour.global.jwt.mapper.JwtClaimMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,9 @@ class JwtTest {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private JwtClaimMapper jwtClaimMapper;
 
     private Claims claims;
 

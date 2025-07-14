@@ -24,6 +24,10 @@ public class AuthException extends BusinessException {
         return new AuthException(401, "비밀번호가 일치하지 않습니다.");
     }
 
+    public static AuthException invalidTokenException() {
+        return new AuthException(401, "토큰이 유효하지 않습니다.");
+    }
+
     public static AuthException emailVerificationException(String message) {
         return new AuthException(message);
     }
