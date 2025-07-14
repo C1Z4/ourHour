@@ -16,6 +16,10 @@ import com.ourhour.domain.project.service.ProjectParticipantService;
 import com.ourhour.domain.project.service.ProjectService;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
+import com.ourhour.global.jwt.annotation.OrgAuth;
+import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.domain.org.enums.Role;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -47,27 +51,34 @@ public class ProjectController {
         private final MilestoneService milestoneService;
 
         // 프로젝트 등록
+        @OrgAuth(accessLevel = Role.ADMIN)
         @PostMapping("/{orgId}")
         public ResponseEntity<ApiResponse<Void>> createProject(
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @Valid @RequestBody ProjectReqDTO projectReqDTO) {
+
                 ApiResponse<Void> response = projectService.createProject(orgId, projectReqDTO);
+
                 return ResponseEntity.ok(response);
         }
 
         // 프로젝트 수정(정보, 참가자)
+        @OrgAuth(accessLevel = Role.ADMIN)
         @PutMapping("/{projectId}")
         public ResponseEntity<ApiResponse<Void>> updateProject(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @Valid @RequestBody ProjecUpdateReqDTO projectReqDTO) {
+
                 ApiResponse<Void> response = projectService.updateProject(projectId, projectReqDTO);
                 return ResponseEntity.ok(response);
         }
 
         // 프로젝트 삭제
+        @OrgAuth(accessLevel = Role.ADMIN)
         @DeleteMapping("/{projectId}")
         public ResponseEntity<ApiResponse<Void>> deleteProject(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId) {
+
                 ApiResponse<Void> response = projectService.deleteProject(projectId);
                 return ResponseEntity.ok(response);
         }
@@ -149,6 +160,10 @@ public class ProjectController {
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @Valid @RequestBody MilestoneReqDTO milestoneReqDTO) {
 
+                // // 마일스톤 등록 권한 체크(프로젝트 참여자만 가능)
+                // projectParticipantService.checkProjectParticipant(projectId,
+                // UserContextHolder.get().getUserId());
+
                 ApiResponse<Void> response = milestoneService.createMilestone(projectId, milestoneReqDTO);
 
                 return ResponseEntity.ok(response);
@@ -192,7 +207,7 @@ public class ProjectController {
                         @Valid @RequestBody IssueReqDTO issueReqDTO) {
 
                 ApiResponse<IssueDetailDTO> response = issueService.createIssue(projectId, issueReqDTO);
-                
+
                 return ResponseEntity.ok(response);
         }
 
@@ -205,7 +220,7 @@ public class ProjectController {
                 ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO);
 
                 return ResponseEntity.ok(response);
-        }       
+        }
 
         // 이슈 삭제
         @DeleteMapping("/issues/{issueId}")
@@ -213,19 +228,20 @@ public class ProjectController {
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId) {
 
                 ApiResponse<Void> response = issueService.deleteIssue(issueId);
-                
+
                 return ResponseEntity.ok(response);
         }
 
         // 프로젝트 참여 여부 확인
-        @GetMapping("/{projectId}/{memberId}/participation")
+        @GetMapping("/{projectId}/participation")
         public ResponseEntity<ApiResponse<Boolean>> checkProjectParticipant(
-                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
-                        @PathVariable @Min(value = 1, message = "멤버 ID는 1 이상이어야 합니다.") Long memberId) {
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId) {
+
+                Long memberId = UserContextHolder.get().getUserId();
 
                 ApiResponse<Boolean> response = projectParticipantService.checkProjectParticipant(projectId, memberId);
 
                 return ResponseEntity.ok(response);
-        }       
+        }
 
 }
