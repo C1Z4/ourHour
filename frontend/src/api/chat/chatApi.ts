@@ -14,4 +14,4 @@ export const getChatRoomList = async (memberId: number) => {
 export const getChatMessages = async (roomId: number) => {
   const response = await axios.get(`${API_BASE_URL}/${roomId}/messages`);
   return response.data;
-}
+};

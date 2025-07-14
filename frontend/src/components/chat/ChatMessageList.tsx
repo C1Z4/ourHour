@@ -37,17 +37,20 @@ export function ChatMessageList({ messages, currentMemberId }: ChatMessageListPr
 
         return (
           <div key={msg.chatMessageId} style={containerStyle}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMyMessage ? 'flex-end' : 'flex-start' }}>
-
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: isMyMessage ? 'flex-end' : 'flex-start',
+              }}
+            >
               {!isMyMessage && (
                 <span style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
                   {msg.senderName}
                 </span>
               )}
 
-              <div style={bubbleStyle}>
-                {msg.message}
-              </div>
+              <div style={bubbleStyle}>{msg.message}</div>
             </div>
           </div>
         );
