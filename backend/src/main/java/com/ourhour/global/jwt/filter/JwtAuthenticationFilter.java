@@ -25,7 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String requestURI = request.getRequestURI();
-        if (requestURI.startsWith("/api/auth/signup") || requestURI.startsWith("/api/auth/signin")) {
+        if (requestURI.startsWith("/api/auth/signup") || requestURI.startsWith("/api/auth/signin") || requestURI.startsWith("/api/auth/email-verification")) {
             filterChain.doFilter(request, response); // signup과 signin에 대해서는 인증 필터를 거칠 필요가 없음.
 
             return;
