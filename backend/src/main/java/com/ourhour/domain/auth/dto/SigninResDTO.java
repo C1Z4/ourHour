@@ -10,4 +10,6 @@ import lombok.NoArgsConstructor;
 public class SigninResDTO {
 
     private String accessToken;
+    private String refreshToken;
+
 }

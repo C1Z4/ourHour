@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -108,6 +110,24 @@ public class JwtTokenProvider {
         return Claims.builder()
                 .userId(Long.valueOf(jwtClaims.getSubject()))
                 .build();
+    }
+
+    // 토큰에서 생성 시간 추출
+    public LocalDateTime getIatFromToken(String token) {
+
+        io.jsonwebtoken.Claims jwtClaims = jwtClaimMapper.getJwtClaims(secretKey, token);
+        Date issuedAtDate = jwtClaims.getIssuedAt();
+
+        return issuedAtDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    // 토큰에서 만료 시간 추출
+    public LocalDateTime getExpFromToken(String token) {
+
+        io.jsonwebtoken.Claims jwtClaims = jwtClaimMapper.getJwtClaims(secretKey, token);
+        Date expiredAt = jwtClaims.getExpiration();
+
+        return expiredAt.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
     // 토큰 유효성 검사
