@@ -19,6 +19,10 @@ checkstyle {
     configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
 }
 
+ext {
+    JJWT_VERSION = "0.12.3"
+}
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
@@ -55,6 +59,9 @@ dependencies {
     testImplementation 'com.h2database:h2'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
 
+    implementation "io.jsonwebtoken:jjwt-api:${JJWT_VERSION}"
+    runtimeOnly "io.jsonwebtoken:jjwt-gson:${JJWT_VERSION}"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:${JJWT_VERSION}"
 
 }
 

@@ -50,4 +50,5 @@ public class UserEntity {
         this.isEmailVerified = isEmailVerified;
         this.emailVerifiedAt = emailVerifiedAt;
     }
+
 }
