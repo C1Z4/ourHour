@@ -3,6 +3,7 @@ import { ProjectDataTable } from '@/components/project/project-list';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Plus } from 'lucide-react';
 
+
 export const Route = createFileRoute('/$orgId/project/')({
   component: ProjectListPage,
 });
@@ -17,18 +18,19 @@ function ProjectListPage() {
             <p className="text-gray-600">생성된 모든 프로젝트를 확인하고 관리하세요</p>
           </div>
           <div className="flex gap-2">
-            <ButtonComponent variant="primary" size="small">
+            <ButtonComponent variant="primary" size="sm">
               전체보기
             </ButtonComponent>
-            <ButtonComponent variant="primary" size="small">
+            <ButtonComponent variant="primary" size="sm">
               참여 중인 프로젝트만 보기
             </ButtonComponent>
-            <ButtonComponent variant="danger" size="small">
-              <Plus size={16} className="mr-2" />
+            <ButtonComponent variant="danger" size="sm">
+              <Plus size={16} />
               프로젝트 등록
             </ButtonComponent>
           </div>
         </div>
+
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <ProjectDataTable />
         </div>
