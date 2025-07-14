@@ -4,6 +4,7 @@ import com.ourhour.domain.org.enums.Role;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.jwt.JwtTokenProvider;
 import com.ourhour.global.jwt.dto.OrgAuthority;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,20 +20,24 @@ class JwtTest {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
+    private Claims claims;
+
+    @BeforeEach
+    void setUp() {
+        claims = Claims.builder()
+                .email("test@example.com")
+                .userId(1L)
+                .activeOrgId(100L)
+                .orgAuthorityList(List.of(
+                        new OrgAuthority(100L, 1L, Role.ADMIN),
+                        new OrgAuthority(101L, 1L, Role.MEMBER)
+                ))
+                .build();
+    }
+
     @DisplayName("JWT 방식으로 AccessToken과 RefreshToken 생성 테스트")
     @Test
     void generateTokenTest() {
-
-        // given: 테스트용 claim
-        Claims claims = new Claims(
-                "test@example.com",  // email
-                1L,                        // userId
-                200L,                      // activeOrgId
-                List.of(                   // orgAuthorityList
-                        new OrgAuthority(200L, 100L, Role.ADMIN),
-                        new OrgAuthority(201L, 101L, Role.MEMBER)
-                )
-        );
 
         // when
         String accessToken = jwtTokenProvider.generateAccessToken(claims);
@@ -52,16 +57,7 @@ class JwtTest {
     @Test
     void parseTokenTest() {
 
-        // given: 테스트용 claim
-        Claims claims = new Claims(
-                "test@example.com",  // email
-                1L,                        // userId
-                200L,                      // activeOrgId
-                List.of(                   // orgAuthorityList
-                        new OrgAuthority(200L, 100L, Role.ADMIN),
-                        new OrgAuthority(201L, 101L, Role.MEMBER)
-                )
-        );
+        // given
         String accessToken = jwtTokenProvider.generateAccessToken(claims);
         String refreshToken = jwtTokenProvider.generateRefreshToken(claims);
 
@@ -86,16 +82,7 @@ class JwtTest {
     @Test
     void validateToken() {
 
-        // given: 테스트용 claim
-        Claims claims = new Claims(
-                "test@example.com",  // email
-                1L,                        // userId
-                200L,                      // activeOrgId
-                List.of(                   // orgAuthorityList
-                        new OrgAuthority(200L, 100L, Role.ADMIN),
-                        new OrgAuthority(201L, 101L, Role.MEMBER)
-                )
-        );
+        // given
         String accessToken = jwtTokenProvider.generateAccessToken(claims);
         String refreshToken = jwtTokenProvider.generateRefreshToken(claims);
 
