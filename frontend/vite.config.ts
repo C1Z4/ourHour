@@ -24,4 +24,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
   },
+  // sockjs-client를 위한 변수
+  define: {
+    global: 'window',
+  },
 });
