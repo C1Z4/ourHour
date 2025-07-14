@@ -86,7 +86,7 @@ public class JwtTokenProvider {
     }
 
     // JWT Claim(payload)에서 Access Token Custom Claims 추출
-    public Claims parseAcessToken(String token) {
+    public Claims parseAccessToken(String token) {
 
         io.jsonwebtoken.Claims jwtClaims = jwtClaimMapper.getJwtClaims(secretKey, token);
 

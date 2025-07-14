@@ -62,7 +62,7 @@ class JwtTest {
         String refreshToken = jwtTokenProvider.generateRefreshToken(claims);
 
         // when
-        Claims payloadFromAccessToken = jwtTokenProvider.parseAcessToken(accessToken);
+        Claims payloadFromAccessToken = jwtTokenProvider.parseAccessToken(accessToken);
         Claims payloadFromRefreshToken = jwtTokenProvider.parseRefreshToken(refreshToken);
 
 

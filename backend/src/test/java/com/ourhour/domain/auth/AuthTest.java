@@ -14,7 +14,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -74,8 +73,7 @@ public class AuthTest {
 
         String accessToken = jwtTokenProvider.generateAccessToken(claims);
 
-        mockMvc.perform(get("/api/test/access-check")
-                .param("orgId", "101")
+        mockMvc.perform(get("/api/test/access-check/{orgId}", 101)
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isForbidden());
 
@@ -86,8 +84,7 @@ public class AuthTest {
     void authorizationSuccessTest() throws Exception {
         String accessToken = jwtTokenProvider.generateAccessToken(claims);
 
-        mockMvc.perform(get("/api/test/access-check")
-                        .param("orgId", "100")
+        mockMvc.perform(get("/api/test/access-check/{orgId}", 100)
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk());
 
