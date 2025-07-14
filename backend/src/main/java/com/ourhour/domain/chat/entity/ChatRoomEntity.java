@@ -1,5 +1,6 @@
 package com.ourhour.domain.chat.entity;
 
+import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.global.common.enums.TagColor;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -28,6 +29,10 @@ public class ChatRoomEntity {
     private TagColor color;
 
     private LocalDateTime createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "org_id")
+    private OrgEntity orgEntity;
 
     public void update(String name, TagColor color) {
         this.name = name;
