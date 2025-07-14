@@ -9,11 +9,27 @@ import {
   FolderGit2,
   Mail,
   MessageCircle,
+  Plus,
+  Ellipsis,
+  CircleUserRound,
 } from 'lucide-react';
 
 import { NavMain } from '@/components/common/left-sidebar/NavMain';
 import { TeamSwitcher } from '@/components/common/left-sidebar/TeamSwitcher';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
+import { CHAT_COLORS } from '@/styles/colors';
+
+const ColoredCircle = ({ color }: { color: string }) => (
+  <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+);
+
+const RedCircle = () => <ColoredCircle color={CHAT_COLORS.PINK} />;
+const BlueCircle = () => <ColoredCircle color={CHAT_COLORS.BLUE} />;
+const GreenCircle = () => <ColoredCircle color={CHAT_COLORS.GREEN} />;
+
+const PlusIcon = () => <Plus className="h-4 w-4" />;
+const UserIcon = () => <CircleUserRound className="h-4 w-4" />;
+const EllipsisIcon = () => <Ellipsis className="h-4 w-4" />;
 
 const data = {
   teams: [
@@ -94,20 +110,41 @@ const data = {
       isActive: true,
       items: [
         {
-          title: '나와의 채팅방',
+          title: '새 채팅방 만들기',
+          leftIcon: PlusIcon,
           url: '#',
+        },
+        {
+          title: '나와의 채팅방',
+          leftIcon: UserIcon,
+          rightIcon: EllipsisIcon,
+          url: '#',
+          onEdit: () => console.log('나와의 채팅방 수정'),
+          onDelete: () => console.log('나와의 채팅방 삭제'),
         },
         {
           title: '단체 채팅방1',
+          leftIcon: RedCircle,
+          rightIcon: EllipsisIcon,
           url: '#',
+          onEdit: () => console.log('단체 채팅방1 수정'),
+          onDelete: () => console.log('단체 채팅방1 삭제'),
         },
         {
           title: '단체 채팅방2',
+          leftIcon: BlueCircle,
+          rightIcon: EllipsisIcon,
           url: '#',
+          onEdit: () => console.log('단체 채팅방2 수정'),
+          onDelete: () => console.log('단체 채팅방2 삭제'),
         },
         {
           title: '단체 채팅방3',
+          leftIcon: GreenCircle,
+          rightIcon: EllipsisIcon,
           url: '#',
+          onEdit: () => console.log('단체 채팅방3 수정'),
+          onDelete: () => console.log('단체 채팅방3 삭제'),
         },
       ],
     },

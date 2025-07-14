@@ -15,3 +15,14 @@ export const BUTTON_COLORS = {
     focus: '#F07171',
   },
 }; 
+
+
+export const CHAT_COLORS = {
+  PINK: '#FFCBCB',
+  BLUE: '#467599',
+  GREEN: '#BDD6B2',
+  YELLOW: '#F1E7A3',
+  PURPLE: '#DCBBD7',
+};
+
+
