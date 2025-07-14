@@ -15,20 +15,20 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
 
 
     @Query("SELECT DISTINCT cp FROM ChatParticipantEntity cp " +
-            "JOIN FETCH cp.chatRoom " +
-            "JOIN OrgParticipantMemberEntity opm ON cp.member.memberId = opm.memberEntity.memberId " +
-            "WHERE opm.orgEntity.orgId = :orgId AND cp.member.memberId = :memberId")
+            "JOIN FETCH cp.chatRoomEntity " +
+            "JOIN OrgParticipantMemberEntity opm ON cp.memberEntity.memberId = opm.memberEntity.memberId " +
+            "WHERE opm.orgEntity.orgId = :orgId AND cp.memberEntity.memberId = :memberId")
     List<ChatParticipantEntity> findChatRoomsByOrgAndMember(@Param("orgId") Long orgId, @Param("memberId") Long memberId);
 
     @Query("SELECT DISTINCT cp FROM ChatParticipantEntity cp " +
-            "JOIN FETCH cp.member " +
-            "WHERE cp.chatRoom.orgEntity.orgId = :orgId AND cp.chatRoom.roomId = :roomId")
+            "JOIN FETCH cp.memberEntity " +
+            "WHERE cp.chatRoomEntity.orgEntity.orgId = :orgId AND cp.chatRoomEntity.roomId = :roomId")
     List<ChatParticipantEntity> findParticipantsByOrgAndRoom(@Param("orgId") Long orgId, @Param("roomId") Long roomId);
 
     @Query("SELECT cp FROM ChatParticipantEntity cp " +
-            "WHERE cp.chatRoom.orgEntity.orgId = :orgId " +
-            "AND cp.chatRoom.roomId = :roomId " +
-            "AND cp.member.memberId = :memberId")
+            "WHERE cp.chatRoomEntity.orgEntity.orgId = :orgId " +
+            "AND cp.chatRoomEntity.roomId = :roomId " +
+            "AND cp.memberEntity.memberId = :memberId")
     Optional<ChatParticipantEntity> findParticipantToDelete(
                                                              @Param("orgId") Long orgId,
                                                              @Param("roomId") Long roomId,

@@ -1,7 +1,6 @@
 package com.ourhour.domain.chat.service;
 
 import com.ourhour.domain.chat.dto.*;
-import com.ourhour.domain.chat.entity.ChatMessageEntity;
 import com.ourhour.domain.chat.entity.ChatParticipantEntity;
 import com.ourhour.domain.chat.entity.ChatRoomEntity;
 import com.ourhour.domain.chat.repository.ChatMessageRepository;
@@ -37,7 +36,7 @@ public class ChatService {
 
         return participants.stream()
                 .map(participant -> {
-                    ChatRoomEntity chatRoom = participant.getChatRoom();
+                    ChatRoomEntity chatRoom = participant.getChatRoomEntity();
 
                     return ChatRoomListResDTO.builder()
                             .roomId(chatRoom.getRoomId())
@@ -91,7 +90,7 @@ public class ChatService {
 
         return participants.stream()
                 .map(chatParticipant -> {
-                    MemberEntity member = chatParticipant.getMember();
+                    MemberEntity member = chatParticipant.getMemberEntity();
 
                     return ChatParticipantResDTO.builder()
                             .memberId(member.getMemberId())

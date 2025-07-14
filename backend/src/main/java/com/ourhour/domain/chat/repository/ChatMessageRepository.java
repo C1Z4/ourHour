@@ -12,12 +12,12 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessageEntity, 
 
     @Query("SELECT  NEW com.ourhour.domain.chat.dto.ChatMessageResDTO(" +
             "       m.chatMessageId, " +
-            "       m.sender.memberId, " +
-            "       m.sender.name, " +
+            "       m.memberEntity.memberId, " +
+            "       m.memberEntity.name, " +
             "       m.content, " +
             "       m.sentAt) " +
             "FROM   ChatMessageEntity m " +
-            "WHERE  m.chatRoom.orgEntity.orgId = :orgId AND m.chatRoom.roomId = :roomId " +
+            "WHERE  m.chatRoomEntity.orgEntity.orgId = :orgId AND m.chatRoomEntity.roomId = :roomId " +
             "ORDER BY m.sentAt ASC")
     List<ChatMessageResDTO> findAllByOrgAndChatRoom(@Param("orgId") Long orgId, @Param("roomId") Long roomId);
 }
