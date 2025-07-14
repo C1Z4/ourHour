@@ -16,63 +16,76 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/chat-rooms")
+@RequestMapping("/api/orgs/{orgId}/chat-rooms")
 @RequiredArgsConstructor
 public class ChatRestController {
 
     private final ChatService chatService;
 
     @GetMapping
-    public List<ChatRoomListResDTO> getAllChatRooms(@RequestParam Long memberId /*나중엔 토큰 정보*/) {
+    public List<ChatRoomListResDTO> getAllChatRooms(
+            @PathVariable Long orgId,
+            @RequestParam Long memberId) {
 
-        return chatService.findAllChatRooms(memberId);
+        return chatService.findAllChatRooms(orgId, memberId);
     }
 
     @PostMapping
-    public void registerChatRoom(@RequestBody ChatRoomCreateReqDTO request) {
+    public void registChatRoom(
+            @PathVariable Long orgId,
+            @RequestBody ChatRoomCreateReqDTO request) {
 
-        chatService.registerChatRoom(request);
+        chatService.registerChatRoom(orgId, request);
     }
 
     @PutMapping("/{roomId}")
     public void modifyChatRoom(
+            @PathVariable Long orgId,
             @PathVariable Long roomId,
             @RequestBody ChatRoomUpdateReqDTO request) {
 
-        chatService.modifyChatRoom(roomId, request);
+        chatService.modifyChatRoom(orgId, roomId, request);
     }
 
     @DeleteMapping("/{roomId}")
-    public void deleteChatRoom(@PathVariable Long roomId) {
+    public void deleteChatRoom(
+            @PathVariable Long orgId,
+            @PathVariable Long roomId) {
 
-        chatService.deleteChatRoom(roomId);
+        chatService.deleteChatRoom(orgId, roomId);
     }
 
     @GetMapping("/{roomId}/messages")
-    public List<ChatMessageResDTO> getMessages(@PathVariable Long roomId) {
+    public List<ChatMessageResDTO> getMessages(
+            @PathVariable Long orgId,
+            @PathVariable Long roomId) {
 
-        return chatService.findAllMessages(roomId);
+        return chatService.findAllMessages(orgId, roomId);
     }
 
     @GetMapping("/{roomId}/participants")
-    public List<ChatParticipantResDTO> getChatRoomParticipants(@PathVariable Long roomId) {
+    public List<ChatParticipantResDTO> getChatRoomParticipants(
+            @PathVariable Long orgId,
+            @PathVariable Long roomId) {
 
-        return chatService.findAllParticipants(roomId);
+        return chatService.findAllParticipants(orgId, roomId);
     }
 
     @PostMapping("/{roomId}/participants")
     public void addChatRoomParticipant(
+            @PathVariable Long orgId,
             @PathVariable Long roomId,
             @RequestBody ParticipantAddReqDTO request) {
 
-        chatService.addChatRoomParticipant(roomId, request.getMemberId());
+        chatService.addChatRoomParticipant(orgId, roomId, request.getMemberId());
     }
 
     @DeleteMapping("/{roomId}/participants/{memberId}")
     public void deleteChatRoomParticipant(
+            @PathVariable Long orgId,
             @PathVariable Long roomId,
             @PathVariable Long memberId) {
 
-        chatService.deleteChatRoomParticipant(roomId, memberId);
+        chatService.deleteChatRoomParticipant(orgId, roomId, memberId);
     }
 }

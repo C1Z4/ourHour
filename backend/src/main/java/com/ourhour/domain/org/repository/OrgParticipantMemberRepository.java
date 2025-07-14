@@ -23,4 +23,6 @@ public interface OrgParticipantMemberRepository
             "WHERE opm.orgEntity.orgId = :orgId " +
             "ORDER BY m.memberId ASC")
     Page<MemberInfoResDTO> findByOrgId(@Param("orgId") Long orgId, Pageable pageable);
+
+    boolean existsByOrgEntity_OrgIdAndMemberEntity_MemberId(Long orgId, Long memberId);
 }
