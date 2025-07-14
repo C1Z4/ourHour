@@ -1,22 +1,22 @@
-ALTER TABLE 'tbl_chat_room'
-ADD COLUMN 'org_id' BIGINT NULL;
+ALTER TABLE `tbl_chat_room`
+ADD COLUMN `org_id` BIGINT NULL;
 
-UPDATE 'tbl_chat_room' cr
+UPDATE `tbl_chat_room` cr
 SET cr.org_id = (
     SELECT opm.org_id
-    FROM 'tbl_chat_participant' cp
-             JOIN 'tbl_org_participant_member' opm ON cp.member_id = opm.member_id
+    FROM `tbl_chat_participant` cp
+             JOIN `tbl_org_participant_member` opm ON cp.member_id = opm.member_id
     WHERE cp.room_id = cr.room_id
     LIMIT 1
 )
 WHERE cr.org_id IS NULL;
 
-ALTER TABLE 'tbl_chat_room'
+ALTER TABLE `tbl_chat_room`
 MODIFY COLUMN org_id BIGINT NOT NULL;
 
-ALTER TABLE 'tbl_chat_room'
+ALTER TABLE `tbl_chat_room`
     ADD CONSTRAINT FK_org_TO_chat_room
-        FOREIGN KEY ('org_id') REFERENCES 'tbl_org'('org_id') ON DELETE CASCADE;
+        FOREIGN KEY (`org_id`) REFERENCES `tbl_org`(`org_id`) ON DELETE CASCADE;
 
 INSERT INTO `tbl_chat_room` (`room_id`, `org_id`, `name`, `color`, `created_at`) VALUES
                                                                                      (4, 1, '나 자신과의 대화 📝', 'PURPLE', '2024-06-10 10:00:00.000000'),
