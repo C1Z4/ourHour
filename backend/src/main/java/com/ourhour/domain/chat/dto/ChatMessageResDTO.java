@@ -14,4 +14,12 @@ public class ChatMessageResDTO {
     private String senderName;
     private String message;
     private LocalDateTime timestamp;
+
+    public ChatMessageResDTO(Long chatMessageId, Long senderId, String senderName, String message, LocalDateTime timestamp) {
+        this.chatMessageId = chatMessageId;
+        this.senderId = senderId;
+        this.senderName = senderName;
+        this.message = message;
+        this.timestamp = timestamp;
+    }
 }

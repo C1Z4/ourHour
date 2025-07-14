@@ -1,7 +1,6 @@
 package com.ourhour.domain.chat.service;
 
 import com.ourhour.domain.chat.dto.*;
-import com.ourhour.domain.chat.entity.ChatMessageEntity;
 import com.ourhour.domain.chat.entity.ChatParticipantEntity;
 import com.ourhour.domain.chat.entity.ChatRoomEntity;
 import com.ourhour.domain.chat.repository.ChatMessageRepository;
@@ -9,6 +8,9 @@ import com.ourhour.domain.chat.repository.ChatParticipantRepository;
 import com.ourhour.domain.chat.repository.ChatRoomRepository;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
+import com.ourhour.domain.org.entity.OrgEntity;
+import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
+import com.ourhour.domain.org.repository.OrgRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,14 +27,16 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final MemberRepository memberRepository;
+    private final OrgRepository orgRepository;
+    private final OrgParticipantMemberRepository orgParticipantMemberRepository;
 
-    public List<ChatRoomListResDTO> findAllChatRooms(Long memberId) {
+    public List<ChatRoomListResDTO> findAllChatRooms(Long orgId, Long memberId) {
 
-        List<ChatParticipantEntity> participants = chatParticipantRepository.findByMember_MemberId(memberId);
+        List<ChatParticipantEntity> participants = chatParticipantRepository.findChatRoomsByOrgAndMember(orgId, memberId);
 
         return participants.stream()
                 .map(participant -> {
-                    ChatRoomEntity chatRoom = participant.getChatRoom();
+                    ChatRoomEntity chatRoom = participant.getChatRoomEntity();
 
                     return ChatRoomListResDTO.builder()
                             .roomId(chatRoom.getRoomId())
@@ -42,10 +46,14 @@ public class ChatService {
     }
 
     @Transactional
-    public void registerChatRoom(ChatRoomCreateReqDTO request) {
+    public void registerChatRoom(Long orgId, ChatRoomCreateReqDTO request) {
+
+        OrgEntity orgEntity = orgRepository.findById(orgId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회사입니다."));
 
         ChatRoomEntity newChatRoom = ChatRoomEntity.builder()
                 .name(request.getName())
+                .color(request.getColor())
+                .orgEntity(orgEntity)
                 .build();
         chatRoomRepository.save(newChatRoom);
 
@@ -58,44 +66,31 @@ public class ChatService {
     }
 
     @Transactional
-    public void modifyChatRoom(Long roomId, ChatRoomUpdateReqDTO request) {
+    public void modifyChatRoom(Long orgId, Long roomId, ChatRoomUpdateReqDTO request) {
 
-        ChatRoomEntity targetChatRoom = chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 채팅방을 찾을 수 없습니다. id=" + roomId));
-
+        ChatRoomEntity targetChatRoom = chatRoomRepository.findByOrgEntity_OrgIdAndRoomId(orgId, roomId).orElseThrow(
+                () -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
         targetChatRoom.update(request.getName(), request.getColor());
     }
 
     @Transactional
-    public void deleteChatRoom(Long roomId) {
+    public void deleteChatRoom(Long orgId, Long roomId) {
 
-        chatRoomRepository.deleteById(roomId);
+        chatRoomRepository.deleteByOrgEntity_OrgIdAndRoomId(orgId, roomId);
     }
 
-    public List<ChatMessageResDTO> findAllMessages(Long roomId) {
+    public List<ChatMessageResDTO> findAllMessages(Long orgId, Long roomId) {
 
-        List<ChatMessageEntity> messages = chatMessageRepository.findAllByChatRoom_RoomId(roomId);
-
-        return messages.stream()
-                .map(chatMessage -> {
-
-                    return ChatMessageResDTO.builder()
-                            .chatMessageId(chatMessage.getChatMessageId())
-                            .senderId(chatMessage.getSender().getMemberId())
-                            .senderName(chatMessage.getSender().getName())
-                            .message(chatMessage.getContent())
-                            .timestamp(chatMessage.getSentAt())
-                            .build();
-                }).collect(Collectors.toList());
+        return chatMessageRepository.findAllByOrgAndChatRoom(orgId, roomId);
     }
 
-    public List<ChatParticipantResDTO> findAllParticipants(Long roomId) {
+    public List<ChatParticipantResDTO> findAllParticipants(Long orgId, Long roomId) {
 
-        List<ChatParticipantEntity> participants = chatParticipantRepository.findAllByChatRoom_RoomId(roomId);
+        List<ChatParticipantEntity> participants = chatParticipantRepository.findParticipantsByOrgAndRoom(orgId, roomId);
 
         return participants.stream()
                 .map(chatParticipant -> {
-                    MemberEntity member = chatParticipant.getMember();
+                    MemberEntity member = chatParticipant.getMemberEntity();
 
                     return ChatParticipantResDTO.builder()
                             .memberId(member.getMemberId())
@@ -106,10 +101,16 @@ public class ChatService {
     }
 
     @Transactional
-    public void addChatRoomParticipant(Long roomId, Long memberId) {
+    public void addChatRoomParticipant(Long orgId, Long roomId, Long memberId) {
 
-        ChatRoomEntity chatRoom = chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 채팅방을 찾을 수 없습니다."));
+        ChatRoomEntity chatRoom = chatRoomRepository.findByOrgEntity_OrgIdAndRoomId(orgId, roomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없거나 해당 조직의 채팅방이 아닙니다."));
+
+        boolean isOrgMember = orgParticipantMemberRepository.existsByOrgEntity_OrgIdAndMemberEntity_MemberId(orgId, memberId);
+        if (!isOrgMember) {
+            throw new IllegalArgumentException("해당 조직에 속한 멤버가 아닙니다.");
+        }
+
         MemberEntity member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 멤버를 찾을 수 없습니다."));
 
@@ -118,10 +119,10 @@ public class ChatService {
     }
 
     @Transactional
-    public void deleteChatRoomParticipant(Long roomId, Long memberId) {
-        ChatParticipantEntity participantToDelete = chatParticipantRepository
-                .findByChatRoom_RoomIdAndMember_MemberId(roomId, memberId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 참여자 정보를 찾을 수 없습니다."));
+    public void deleteChatRoomParticipant(Long orgId, Long roomId, Long memberId) {
+
+        ChatParticipantEntity participantToDelete = chatParticipantRepository.findParticipantToDelete(orgId, roomId, memberId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 참여자를 찾을 수 없습니다."));
 
         chatParticipantRepository.delete(participantToDelete);
     }

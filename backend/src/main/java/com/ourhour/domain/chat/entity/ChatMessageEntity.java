@@ -20,11 +20,11 @@ public class ChatMessageEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id")
-    private MemberEntity sender;
+    private MemberEntity memberEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
-    private ChatRoomEntity chatRoom;
+    private ChatRoomEntity chatRoomEntity;
 
     @Column(columnDefinition = "TEXT")
     private String content;
