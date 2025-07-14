@@ -1,10 +1,13 @@
 package com.ourhour.domain.auth.service;
 
 import com.ourhour.domain.auth.dto.SignupReqDTO;
+import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.auth.repository.EmailVerificationRepository;
+import com.ourhour.domain.auth.repository.RefreshTokenRepository;
 import com.ourhour.domain.user.entity.UserEntity;
-import com.ourhour.domain.user.enums.Platform;
+import com.ourhour.domain.user.mapper.UserMapper;
 import com.ourhour.domain.user.repository.UserRepository;
+import com.ourhour.global.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,16 +15,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-import static com.ourhour.domain.auth.exception.AuthException.duplicateRequestException;
-import static com.ourhour.domain.auth.exception.AuthException.emailVerificationException;
+import static com.ourhour.domain.auth.exception.AuthException.*;
 
 @Service
 @RequiredArgsConstructor
-public class SignupService {
+public class AuthService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncode;
     private final EmailVerificationRepository emailVerificationRepository;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncode;
+    private RefreshTokenRepository refreshTokenRepository;
+    private JwtTokenProvider jwtTokenProvider;
+    private PasswordEncoder passwordEncoder;
 
     @Transactional
     public void signup(SignupReqDTO signupReqDTO) {
@@ -38,15 +44,29 @@ public class SignupService {
 
         // UserEntity 저장
         String hashedPassword = passwordEncode.encode(signupReqDTO.getPassword());
-        UserEntity userEntity = UserEntity.builder()
-                .email(signupReqDTO.getEmail())
-                .password(hashedPassword)
-                .platform(Platform.OURHOUR)
-                .isEmailVerified(true)
-                .emailVerifiedAt(LocalDateTime.now())
-                .build();
+        UserEntity userEntity = userMapper.toUserEntity(signupReqDTO, hashedPassword , LocalDateTime.now());
 
         userRepository.save(userEntity);
+
+    }
+
+    @Transactional
+    public void signin (SignupReqDTO signupReqDTO) {
+
+        // 이메일로 사용자 조회
+        UserEntity userEntity = userRepository.findByEmail(signupReqDTO.getEmail())
+                .orElseThrow(AuthException::emailNotFoundException);
+
+        // 비밀번호 일치 여부 확인
+        if (!passwordEncoder.matches(signupReqDTO.getPassword(), userEntity.getPassword())) {
+            throw invalidPasswordException();
+        }
+
+        // JWT 발급
+
+        // refresh token 저장
+
+        // access token 반환
 
     }
 }

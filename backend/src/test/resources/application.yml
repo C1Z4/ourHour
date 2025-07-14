@@ -27,4 +27,9 @@ spring:
             enable: false
 
   service:
-    base-url-email: localhost # 개발 환경
+    base-url-email: localhost
+
+jwt:
+  secret: thisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecret
+  access-token-validity-in-seconds: 300
+  refresh-token-validity-in-seconds: 1000000

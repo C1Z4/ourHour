@@ -1,0 +1,27 @@
+package com.ourhour.domain.auth;
+
+import com.ourhour.domain.org.enums.Role;
+import com.ourhour.global.jwt.annotation.OrgAuth;
+import com.ourhour.global.jwt.annotation.OrgId;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/test")
+public class AuthTestController {
+
+    @GetMapping("/auth-check")
+    public ResponseEntity<String> authCheck() {
+        return ResponseEntity.ok("인증 성공");
+    }
+
+    @OrgAuth(accessLevel = Role.ADMIN)
+    @GetMapping("/access-check")
+    public ResponseEntity<String> accessCheck(@OrgId @RequestParam Long orgId) {
+        return ResponseEntity.ok("인가 성공");
+    }
+
+}
