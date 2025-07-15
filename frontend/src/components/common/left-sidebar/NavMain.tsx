@@ -1,7 +1,10 @@
 'use client';
 
-import { ChevronRight, type LucideIcon, Edit, Trash2 } from 'lucide-react';
+import * as React from 'react';
 
+import { ChevronRight, type LucideIcon } from 'lucide-react';
+
+import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   SidebarGroup,
@@ -12,9 +15,6 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import * as React from 'react';
 
 export function NavMain({
   items,
@@ -63,44 +63,17 @@ export function NavMain({
                             <span>{subItem.title}</span>
                           </a>
                         </SidebarMenuSubButton>
-                        {subItem.rightIcon && (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 ml-1 flex-shrink-0"
-                              >
-                                <subItem.rightIcon />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-48 p-2" align="end" side="right">
-                              <div className="space-y-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="w-full justify-start"
-                                  onClick={() => {
-                                    subItem.onEdit?.();
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  채팅방 수정
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="w-full justify-start text-red-600 hover:text-red-600 hover:bg-red-50"
-                                  onClick={() => {
-                                    subItem.onDelete?.();
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  채팅방 삭제
-                                </Button>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
+                        {subItem.rightIcon && subItem.onEdit && subItem.onDelete && (
+                          <MoreOptionsPopover
+                            className="w-43"
+                            editLabel="채팅방 수정"
+                            deleteLabel="채팅방 삭제"
+                            onEdit={subItem.onEdit}
+                            onDelete={subItem.onDelete}
+                            triggerClassName="h-6 w-6 ml-1 flex-shrink-0 p-1 hover:bg-gray-200 rounded"
+                            align="end"
+                            side="right"
+                          />
                         )}
                       </div>
                     </SidebarMenuSubItem>

@@ -12,20 +12,12 @@ export function ButtonComponent({
   className,
   ...props
 }: ButtonComponentProps) {
-
   const variantMap = {
     primary: 'customPrimary',
     secondary: 'customSecondary',
     danger: 'customDanger',
     ghost: 'ghost',
-    } as const;
+  } as const;
 
-  return (
-    <Button
-      variant={variantMap[variant]}
-      size={size}
-      className={cn(className)}
-      {...props}
-    />
-  );
+  return <Button variant={variantMap[variant]} size={size} className={cn(className)} {...props} />;
 }

@@ -1,7 +1,9 @@
 import * as React from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { ButtonComponent } from './ButtonComponent';
+
 import { User, LogOut, Settings } from 'lucide-react';
+
+import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 interface ProfileSheetProps {
   children: React.ReactNode;
@@ -53,7 +55,7 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
               <h2 className="text-xl font-semibold text-center">{mockUserProfile.name}</h2>
             </div>
 
-            <div className="border-t border-gray-200 my-6"></div>
+            <div className="border-t border-gray-200 my-6" />
 
             <div className="space-y-4">
               <div>

@@ -14,8 +14,7 @@ export const BUTTON_COLORS = {
     hover: '#ed5757',
     focus: '#F07171',
   },
-}; 
-
+};
 
 export const CHAT_COLORS = {
   PINK: '#FFCBCB',
@@ -24,5 +23,3 @@ export const CHAT_COLORS = {
   YELLOW: '#F1E7A3',
   PURPLE: '#DCBBD7',
 };
-
-
