@@ -8,8 +8,6 @@ export const mockMilestones: Milestone[] = [
     progress: 65,
     completedIssues: 7,
     totalIssues: 11,
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-15',
   },
   {
     id: '2',
@@ -18,8 +16,6 @@ export const mockMilestones: Milestone[] = [
     progress: 20,
     completedIssues: 2,
     totalIssues: 10,
-    createdAt: '2024-01-10',
-    updatedAt: '2024-01-20',
   },
 ];
 
@@ -36,8 +32,6 @@ export const mockIssues: Issue[] = [
       profileImageUrl: '',
     },
     milestoneId: '1',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-15',
   },
   {
     id: '2',
@@ -51,8 +45,6 @@ export const mockIssues: Issue[] = [
       profileImageUrl: '',
     },
     milestoneId: '1',
-    createdAt: '2024-01-02',
-    updatedAt: '2024-01-16',
   },
   {
     id: '3',
@@ -66,8 +58,6 @@ export const mockIssues: Issue[] = [
       profileImageUrl: '',
     },
     milestoneId: '1',
-    createdAt: '2024-01-03',
-    updatedAt: '2024-01-17',
   },
   {
     id: '4',
@@ -81,8 +71,6 @@ export const mockIssues: Issue[] = [
       profileImageUrl: '',
     },
     milestoneId: '2',
-    createdAt: '2024-01-04',
-    updatedAt: '2024-01-18',
   },
   {
     id: '5',
@@ -96,7 +84,5 @@ export const mockIssues: Issue[] = [
       profileImageUrl: '',
     },
     milestoneId: null,
-    createdAt: '2024-01-05',
-    updatedAt: '2024-01-19',
   },
 ];
