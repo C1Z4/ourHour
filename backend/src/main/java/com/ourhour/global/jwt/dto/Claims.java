@@ -15,7 +15,6 @@ public class Claims {
 
     private String email;
     private Long userId;
-    private Long activeOrgId;
     private List<OrgAuthority> orgAuthorityList;
 
 }

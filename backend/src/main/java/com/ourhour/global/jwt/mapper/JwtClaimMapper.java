@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -29,6 +30,10 @@ public class JwtClaimMapper {
     public com.ourhour.global.jwt.dto.Claims createClaim(UserEntity userEntity, List<OrgParticipantMemberEntity> orgMembers) {
 
         List<OrgAuthority> authorityList = orgAuthorityMapper.toOrgAuthority(orgMembers);
+
+        if(authorityList == null) {
+            authorityList = new ArrayList<>(); 
+        }
 
         return com.ourhour.global.jwt.dto.Claims.builder()
                 .email(userEntity.getEmail())

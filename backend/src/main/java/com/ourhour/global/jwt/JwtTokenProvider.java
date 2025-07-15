@@ -57,7 +57,6 @@ public class JwtTokenProvider {
                 .subject(String.valueOf(claims.getUserId()))
                 .claim("email", claims.getEmail())
                 .claim("userId", claims.getUserId())
-                .claim("activeOrgId", claims.getActiveOrgId())
                 .claim("orgAuthorityList",
                      claims.getOrgAuthorityList()
                           .stream().map(
@@ -97,7 +96,6 @@ public class JwtTokenProvider {
         return Claims.builder()
                 .email((String) jwtClaims.get("email"))
                 .userId(((Number) jwtClaims.get("userId")).longValue())
-                .activeOrgId(((Number)jwtClaims.get("activeOrgId")).longValue())
                 .orgAuthorityList(orgAuthorityMapper.mapListToOrgAuthorityListHelper(orgAuthoritiesRaw))
                 .build();
     }

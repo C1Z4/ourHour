@@ -36,7 +36,6 @@ public class AuthTest {
         claims = Claims.builder()
                 .email("test@example.com")
                 .userId(1L)
-                .activeOrgId(100L)
                 .orgAuthorityList(List.of(
                         new OrgAuthority(100L, 1L, Role.ADMIN),
                         new OrgAuthority(101L, 1L, Role.MEMBER)
