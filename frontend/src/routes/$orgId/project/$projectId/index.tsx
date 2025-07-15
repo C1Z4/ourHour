@@ -14,6 +14,7 @@ export const Route = createFileRoute('/$orgId/project/$projectId/')({
 });
 
 function ProjectDashboard() {
+  const { orgId, projectId } = Route.useParams();
   const [isMyIssuesOnly, setIsMyIssuesOnly] = useState(true);
 
   const handleToggleViewMode = () => {
@@ -32,13 +33,30 @@ function ProjectDashboard() {
         projectName="개발 프로젝트명 1"
         isMyIssuesOnly={isMyIssuesOnly}
         onToggleViewMode={handleToggleViewMode}
+        orgId={orgId}
+        projectId={projectId}
       />
 
       <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <MilestoneColumn milestone={mockMilestones[0]} issues={groupedIssues.milestone1} />
-          <MilestoneColumn milestone={mockMilestones[1]} issues={groupedIssues.milestone2} />
-          <MilestoneColumn issues={groupedIssues.uncategorized} isUncategorized={true} />
+          <MilestoneColumn
+            milestone={mockMilestones[0]}
+            issues={groupedIssues.milestone1}
+            orgId={orgId}
+            projectId={projectId}
+          />
+          <MilestoneColumn
+            milestone={mockMilestones[1]}
+            issues={groupedIssues.milestone2}
+            orgId={orgId}
+            projectId={projectId}
+          />
+          <MilestoneColumn
+            issues={groupedIssues.uncategorized}
+            isUncategorized={true}
+            orgId={orgId}
+            projectId={projectId}
+          />
         </div>
       </div>
     </div>

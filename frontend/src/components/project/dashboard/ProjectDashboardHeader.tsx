@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
@@ -10,17 +11,29 @@ interface ProjectDashboardHeaderProps {
   projectName: string;
   isMyIssuesOnly: boolean;
   onToggleViewMode: () => void;
+  orgId: string;
+  projectId: string;
 }
 
 export const ProjectDashboardHeader = ({
   projectName,
   isMyIssuesOnly,
   onToggleViewMode,
+  orgId,
+  projectId,
 }: ProjectDashboardHeaderProps) => {
+  const navigate = useNavigate();
   const [isCreateMilestoneModalOpen, setIsCreateMilestoneModalOpen] = useState(false);
 
   const handleCreateMilestone = () => {
     console.log('마일스톤 등록');
+  };
+
+  const handleCreateIssue = () => {
+    navigate({
+      to: '/$orgId/project/$projectId/issue/create',
+      params: { orgId, projectId },
+    });
   };
 
   return (
@@ -37,7 +50,7 @@ export const ProjectDashboardHeader = ({
               <Plus className="h-4 w-4" />
               마일스톤 등록
             </ButtonComponent>
-            <ButtonComponent variant="danger" size="sm">
+            <ButtonComponent variant="danger" size="sm" onClick={handleCreateIssue}>
               <Plus className="h-4 w-4" />
               이슈 등록
             </ButtonComponent>
