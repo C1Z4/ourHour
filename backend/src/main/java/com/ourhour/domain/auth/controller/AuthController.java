@@ -27,11 +27,11 @@ public class AuthController {
     private long refreshTokenValidityInSeconds;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<String>> signup(@Valid @RequestBody SignupReqDTO signupReqDTO) {
+    public ResponseEntity<ApiResponse<Void>> signup(@Valid @RequestBody SignupReqDTO signupReqDTO) {
 
         authService.signup(signupReqDTO);
 
-        ApiResponse response = ApiResponse.success("회원가입이 완료되었습니다.");
+        ApiResponse<Void> response = ApiResponse.success(null, "회원가입이 완료되었습니다.");
 
         return ResponseEntity.ok(response);
     }
@@ -53,7 +53,7 @@ public class AuthController {
 
         response.setHeader("Set-Cookie", cookie.toString());
 
-        ApiResponse<SigninResDTO> signinResDTOApiResponse = ApiResponse.success(new SigninResDTO(signinResDTO.getAccessToken(), null), "로그인 완료");
+        ApiResponse<SigninResDTO> signinResDTOApiResponse = ApiResponse.success(new SigninResDTO(signinResDTO.getAccessToken(), null), "로그인이 완료되었습니다.");
 
         return ResponseEntity.ok(signinResDTOApiResponse);
     }
@@ -64,11 +64,30 @@ public class AuthController {
 
         SigninResDTO signinResDTO = authService.reissueAccessToken(refreshToken);
 
-        ApiResponse<SigninResDTO> signinResDTOApiResponse = ApiResponse.success(new SigninResDTO(signinResDTO.getAccessToken(), null), "토큰 재발급 완료");
+        ApiResponse<SigninResDTO> signinResDTOApiResponse = ApiResponse.success(new SigninResDTO(signinResDTO.getAccessToken(), null), "토큰 재발급이 완료되었습니다.");
 
         return ResponseEntity.ok(signinResDTOApiResponse);
     }
 
-//    @DeleteMapping("/token")
+    @PostMapping("/signout")
+    public ResponseEntity<ApiResponse<Void>> signout(HttpServletResponse response) {
+
+        System.out.println("잉??왜 안됨??");
+        authService.signout();
+
+        ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(false) // 개발 단계에서는 false, 배포 시에는 true
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        response.setHeader("Set-Cookie", deleteCookie.toString());
+
+        ApiResponse<Void> apiResponse = ApiResponse.success(null,"로그아웃에 성공했습니다.");
+
+        return ResponseEntity.ok(apiResponse);
+    }
 
 }

@@ -36,6 +36,10 @@ public class AuthException extends BusinessException {
         return new AuthException(404, "해당 유저가 존재하지 않습니다.");
     }
 
+    public static AuthException unauthorizedException() {
+        return new AuthException(401, "인증되지 않은 사용자입니다.");
+    }
+
     public static AuthException emailVerificationException(String message) {
         return new AuthException(message);
     }

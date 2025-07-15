@@ -7,7 +7,6 @@ import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.auth.repository.EmailVerificationRepository;
 import com.ourhour.domain.auth.repository.RefreshTokenRepository;
 import com.ourhour.domain.member.entity.MemberEntity;
-import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.domain.user.mapper.UserMapper;
@@ -15,8 +14,9 @@ import com.ourhour.domain.user.repository.UserRepository;
 import com.ourhour.global.jwt.JwtTokenProvider;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.jwt.mapper.JwtClaimMapper;
-import com.ourhour.global.jwt.mapper.OrgAuthorityMapper;
+import com.ourhour.global.jwt.util.UserContextHolder;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -154,7 +154,22 @@ public class AuthService {
 
     }
 
+    @Transactional
+    public void signout() {
 
+        // 인증 정보 확인
+        Claims claims = UserContextHolder.get();
+        if (claims == null) {
+            throw unauthorizedException();
+        }
 
+        // db에서 refresh token 삭제
+        Long userId = claims.getUserId();
+        RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findByUserEntity_UserId(userId);
+        if (refreshTokenEntity != null) {
+            refreshTokenRepository.delete(refreshTokenEntity);
+        }
+
+    }
 
 }

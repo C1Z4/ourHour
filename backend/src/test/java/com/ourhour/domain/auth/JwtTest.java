@@ -21,9 +21,6 @@ class JwtTest {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
-    @Autowired
-    private JwtClaimMapper jwtClaimMapper;
-
     private Claims claims;
 
     @BeforeEach
@@ -31,10 +28,7 @@ class JwtTest {
         claims = Claims.builder()
                 .email("test@example.com")
                 .userId(1L)
-                .activeOrgId(100L)
                 .orgAuthorityList(List.of(
-                        new OrgAuthority(100L, 1L, Role.ADMIN),
-                        new OrgAuthority(101L, 1L, Role.MEMBER)
                 ))
                 .build();
     }
@@ -75,7 +69,6 @@ class JwtTest {
         assertThat(payloadFromAccessToken.getOrgAuthorityList()).isNotNull();
         assertThat(payloadFromAccessToken.getEmail()).isEqualTo(claims.getEmail());
         assertThat(payloadFromAccessToken.getUserId()).isEqualTo(claims.getUserId());
-        assertThat(payloadFromAccessToken.getActiveOrgId()).isEqualTo(claims.getActiveOrgId());
         assertThat(payloadFromAccessToken.getOrgAuthorityList().size()).isEqualTo(claims.getOrgAuthorityList().size());
 
         assertThat(payloadFromRefreshToken.getUserId()).isEqualTo(claims.getUserId());
