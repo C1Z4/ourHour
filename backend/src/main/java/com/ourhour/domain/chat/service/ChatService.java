@@ -12,10 +12,13 @@ import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
+import com.ourhour.global.exception.BusinessException;
+import com.ourhour.global.jwt.dto.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -129,17 +132,25 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatMessageResDTO saveAndConvertMessage(ChatMessageReqDTO chatMessageReqDTO) {
+    public ChatMessageResDTO saveAndConvertMessage(ChatMessageReqDTO chatMessageReqDTO, Claims claims) {
         ChatRoomEntity chatRoom = chatRoomRepository.findById(chatMessageReqDTO.getChatRoomId())
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
-        MemberEntity sender = memberRepository.findById(chatMessageReqDTO.getSenderId())
+        Long orgId = chatRoom.getOrgEntity().getOrgId();
+        Long memberId = claims.getOrgAuthorityList().stream()
+                .filter(auth -> auth.getOrgId().equals(orgId))
+                .map(auth -> auth.getMemberId())
+                .findFirst()
+                .orElseThrow(() -> BusinessException.forbidden("해당 회사의 멤버가 아닙니다."));
+
+        MemberEntity sender = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("멤버를 찾을 수 없습니다."));
 
         ChatMessageEntity newMessage = ChatMessageEntity.builder()
                 .chatRoomEntity(chatRoom)
                 .memberEntity(sender)
                 .content(chatMessageReqDTO.getMessage())
+                .sentAt(LocalDateTime.now())
                 .build();
 
         ChatMessageEntity savedEntity = chatMessageRepository.save(newMessage);
