@@ -1,6 +1,7 @@
 package com.ourhour.domain.chat.service;
 
 import com.ourhour.domain.chat.dto.*;
+import com.ourhour.domain.chat.entity.ChatMessageEntity;
 import com.ourhour.domain.chat.entity.ChatParticipantEntity;
 import com.ourhour.domain.chat.entity.ChatRoomEntity;
 import com.ourhour.domain.chat.repository.ChatMessageRepository;
@@ -125,5 +126,31 @@ public class ChatService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 참여자를 찾을 수 없습니다."));
 
         chatParticipantRepository.delete(participantToDelete);
+    }
+
+    @Transactional
+    public ChatMessageResDTO saveAndConvertMessage(ChatMessageReqDTO chatMessageReqDTO) {
+        ChatRoomEntity chatRoom = chatRoomRepository.findById(chatMessageReqDTO.getChatRoomId())
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
+        MemberEntity sender = memberRepository.findById(chatMessageReqDTO.getSenderId())
+                .orElseThrow(() -> new IllegalArgumentException("멤버를 찾을 수 없습니다."));
+
+        ChatMessageEntity newMessage = ChatMessageEntity.builder()
+                .chatRoomEntity(chatRoom)
+                .memberEntity(sender)
+                .content(chatMessageReqDTO.getMessage())
+                .build();
+
+        ChatMessageEntity savedEntity = chatMessageRepository.save(newMessage);
+
+        return new ChatMessageResDTO(
+                savedEntity.getChatRoomEntity().getRoomId(),
+                savedEntity.getChatMessageId(),
+                savedEntity.getMemberEntity().getMemberId(),
+                savedEntity.getMemberEntity().getName(),
+                savedEntity.getContent(),
+                savedEntity.getSentAt()
+        );
     }
 }
