@@ -10,7 +10,9 @@
     "test": "vitest run",
     "coverage": "vitest run --coverage --passWithNoTests",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
-    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\""
+    "lint:fix": "eslint src --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "format:all": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\" && eslint src --ext .js,.jsx,.ts,.tsx --fix"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",
@@ -68,6 +70,7 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.5",
+    "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.1",
     "eslint-plugin-react": "^7.37.5",

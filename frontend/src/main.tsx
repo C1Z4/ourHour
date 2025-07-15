@@ -2,11 +2,15 @@ import { StrictMode } from 'react';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+import { Provider } from 'react-redux';
+
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import ReactDOM from 'react-dom/client';
 
-import { routeTree } from './routeTree.gen';
-import './styles/index.css';
+import { routeTree } from '@/routeTree.gen';
+import { store } from '@/stores/store';
+import '@/styles/index.css';
+import { initializeAuth } from '@/utils/authInitializer';
 
 const router = createRouter({ routeTree });
 
@@ -27,14 +31,19 @@ const queryClient = new QueryClient({
   },
 });
 
+// 앱 초기화 시 토큰 자동 재발급 시도
+initializeAuth();
+
 const rootElement = document.getElementById('root')!;
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </Provider>
     </StrictMode>,
   );
 }
