@@ -1,8 +1,9 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Project } from '@/types/projectTypes';
 import { SortableHeader } from './SortableHeader';
-import { StatusBadge } from './StatusBadge';
 import { ParticipantsList } from './ParticipantsList';
+import { StatusBadge } from '@/components/common/StatusBadge';
+
 
 export const ProjectColumns: ColumnDef<Project>[] = [
   {
@@ -40,7 +41,7 @@ export const ProjectColumns: ColumnDef<Project>[] = [
   {
     accessorKey: 'status',
     header: ({ column }) => <SortableHeader column={column}>상태</SortableHeader>,
-    cell: ({ row }) => <StatusBadge status={row.getValue('status')} />,
+    cell: ({ row }) => <StatusBadge type="project" status={row.getValue('status')} />,
     enableSorting: true,
   },
 ];
