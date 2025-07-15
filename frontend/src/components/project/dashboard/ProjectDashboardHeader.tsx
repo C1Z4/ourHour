@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { useNavigate } from '@tanstack/react-router';
-import { Plus } from 'lucide-react';
+import { Info, Plus } from 'lucide-react';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
@@ -36,12 +36,26 @@ export const ProjectDashboardHeader = ({
     });
   };
 
+  const handleProjectInfo = () => {
+    navigate({
+      to: '/$orgId/project/$projectId/info',
+      params: { orgId, projectId },
+    });
+  };
+
   return (
     <div className="border-b border-gray-200 bg-white px-6 py-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center space-x-3">
           <h1 className="text-2xl font-bold text-gray-900">{projectName}</h1>
-          <div className="flex items-center space-x-2">
+          <Info
+            className="size-5 text-muted-foreground cursor-pointer"
+            onClick={handleProjectInfo}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex gap-2">
             <ButtonComponent
               variant="secondary"
               size="sm"
@@ -55,25 +69,24 @@ export const ProjectDashboardHeader = ({
               이슈 등록
             </ButtonComponent>
           </div>
-        </div>
-
-        <div className="flex items-center bg-gray-100 rounded-lg p-1">
-          <ButtonComponent
-            variant={isMyIssuesOnly ? 'primary' : 'ghost'}
-            size="sm"
-            onClick={onToggleViewMode}
-            className="px-3"
-          >
-            내 이슈만 보기
-          </ButtonComponent>
-          <ButtonComponent
-            variant={!isMyIssuesOnly ? 'primary' : 'ghost'}
-            size="sm"
-            onClick={onToggleViewMode}
-            className="px-3"
-          >
-            전체보기
-          </ButtonComponent>
+          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <ButtonComponent
+              variant={isMyIssuesOnly ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={onToggleViewMode}
+              className="px-3"
+            >
+              내 이슈만 보기
+            </ButtonComponent>
+            <ButtonComponent
+              variant={!isMyIssuesOnly ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={onToggleViewMode}
+              className="px-3"
+            >
+              전체보기
+            </ButtonComponent>
+          </div>
         </div>
       </div>
 
