@@ -10,8 +10,6 @@ export interface Issue {
     profileImageUrl: string;
   };
   milestoneId: string | null;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface Milestone {
@@ -21,6 +19,15 @@ export interface Milestone {
   progress: number; // 0-100
   completedIssues: number;
   totalIssues: number;
+}
+
+export interface Comment {
+  id: string;
+  content: string;
+  author: {
+    id: string;
+    name: string;
+    profileImageUrl: string;
+  };
   createdAt: string;
-  updatedAt: string;
 }
