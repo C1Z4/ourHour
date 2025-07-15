@@ -7,13 +7,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tbl_email_verification")
@@ -21,7 +17,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class EmailVerificationEntity extends BaseVerificationEntity {
+public class EmailVerificationEntity extends AbstractVerificationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

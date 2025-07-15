@@ -3,7 +3,6 @@ package com.ourhour.domain.auth.entity;
 import jakarta.persistence.MappedSuperclass;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,7 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class BaseVerificationEntity {
+public abstract class AbstractVerificationEntity {
 
     protected String token;
     protected String email;

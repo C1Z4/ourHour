@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class WithdrawalVerificationEntity extends BaseVerificationEntity{
+public class WithdrawalVerificationEntity extends AbstractVerificationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

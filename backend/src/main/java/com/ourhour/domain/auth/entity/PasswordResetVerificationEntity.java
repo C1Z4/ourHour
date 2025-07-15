@@ -10,14 +10,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name="tbl_password_reset_verification")
-@Builder
+@SuperBuilder
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class PasswordResetVerificationEntity extends BaseVerificationEntity{
+public class PasswordResetVerificationEntity extends AbstractVerificationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
