@@ -1,10 +1,13 @@
-import {createFileRoute, useParams} from '@tanstack/react-router';
-import {useChatMessagesQuery} from "@/hooks/queries/chat/useChatMessagesQueries.ts";
-import {useChat} from "@/hooks/queries/chat/useChat.ts";
-import {useEffect, useState} from "react";
-import {ChatMessage} from "@/types/chatTypes.ts";
-import {ChatMessageList} from "@/components/chat/ChatMessageList.tsx";
-import {ChatMessageInput} from "@/components/chat/ChatMessageInput.tsx";
+import { useEffect, useState } from 'react';
+
+import { createFileRoute, useParams } from '@tanstack/react-router';
+
+import { ChatMessage } from '@/types/chatTypes.ts';
+
+import { ChatMessageInput } from '@/components/chat/ChatMessageInput.tsx';
+import { ChatMessageList } from '@/components/chat/ChatMessageList.tsx';
+import { useChat } from '@/hooks/queries/chat/useChat.ts';
+import { useChatMessagesQuery } from '@/hooks/queries/chat/useChatMessagesQueries.ts';
 
 export const Route = createFileRoute('/$orgId/chat/$roomId')({
   component: ChatRoom,

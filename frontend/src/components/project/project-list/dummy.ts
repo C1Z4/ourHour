@@ -46,4 +46,4 @@ export const mockProjects: Project[] = [
     participants: ['홍길동', '이순신'],
     status: '아카이브',
   },
-]; 
+];

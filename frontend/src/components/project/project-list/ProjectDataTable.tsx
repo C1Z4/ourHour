@@ -1,4 +1,6 @@
 import { useState } from 'react';
+
+import { useRouter, useParams } from '@tanstack/react-router';
 import {
   flexRender,
   getCoreRowModel,
@@ -9,6 +11,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
+import { PaginationComponent } from '@/components/common/PaginationComponent';
 import {
   Table,
   TableBody,
@@ -17,13 +20,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PaginationComponent } from '@/components/common/PaginationComponent';
 
 import { mockProjects } from './dummy';
 import { ProjectColumns } from './ProjectColumns';
 
 export function ProjectDataTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const router = useRouter();
+  const { orgId } = useParams({ from: '/$orgId' });
 
   const table = useReactTable({
     data: mockProjects,
@@ -38,6 +42,13 @@ export function ProjectDataTable() {
     },
   });
 
+  const handleProjectClick = (projectId: string) => {
+    router.navigate({
+      to: '/$orgId/project/$projectId',
+      params: { orgId, projectId },
+    });
+  };
+
   return (
     <div className="w-full space-y-4">
       <div className="rounded-lg border border-gray-200 overflow-hidden">
@@ -45,15 +56,13 @@ export function ProjectDataTable() {
           <TableHeader className="bg-gray-100">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} className="pl-3">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className="pl-3">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -62,8 +71,9 @@ export function ProjectDataTable() {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
                   data-state={row.getIsSelected() && 'selected'}
+                  onClick={() => handleProjectClick(row.original.id)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-4 pl-3">

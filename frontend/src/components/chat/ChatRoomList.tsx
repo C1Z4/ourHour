@@ -1,6 +1,8 @@
-import { useChatRoomListQuery } from '@/hooks/queries/chat/useChatRoomListQueries';
-import { ChatRoom } from '@/types/chatTypes.ts';
 import { Link } from '@tanstack/react-router';
+
+import { ChatRoom } from '@/types/chatTypes.ts';
+
+import { useChatRoomListQuery } from '@/hooks/queries/chat/useChatRoomListQueries';
 
 export const ChatRoomList = () => {
   const { data: chatRooms, isLoading, isError, error } = useChatRoomListQuery(1);

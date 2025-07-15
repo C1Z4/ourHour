@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Client, type IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
-import type { ChatMessage, UseChatReturn } from '../../../types/chatTypes.ts';
+import type { ChatMessage, UseChatReturn } from '@/types/chatTypes.ts';
 
 export function useChat(roomId: string | number): UseChatReturn {
   const clientRef = useRef<Client | null>(null);

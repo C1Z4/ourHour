@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ProjectDataTable } from '@/components/project/project-list';
-import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Plus } from 'lucide-react';
+
+import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { ProjectDataTable } from '@/components/project/project-list';
 
 export const Route = createFileRoute('/$orgId/project/')({
   component: ProjectListPage,

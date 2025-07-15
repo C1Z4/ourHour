@@ -1,4 +1,5 @@
 import * as React from 'react';
+
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 interface ModalComponentProps {
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
   title?: string;
   description?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
@@ -22,7 +23,7 @@ interface ModalComponentProps {
 
 export function ModalComponent({
   isOpen,
-  onOpenChange,
+  onClose,
   title,
   description,
   size = 'md',
@@ -39,7 +40,7 @@ export function ModalComponent({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         className={cn(sizeClasses[size], className)}
         onOpenAutoFocus={(e) => e.preventDefault()}
