@@ -15,12 +15,16 @@ interface MilestoneColumnProps {
   milestone?: Milestone;
   issues: Issue[];
   isUncategorized?: boolean;
+  orgId: string;
+  projectId: string;
 }
 
 export const MilestoneColumn = ({
   milestone,
   issues,
   isUncategorized = false,
+  orgId,
+  projectId,
 }: MilestoneColumnProps) => {
   const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
 
@@ -70,7 +74,7 @@ export const MilestoneColumn = ({
 
         <div className="space-y-2 mb-4">
           {issues.map((issue) => (
-            <IssueCard key={issue.id} issue={issue} />
+            <IssueCard key={issue.id} issue={issue} orgId={orgId} projectId={projectId} />
           ))}
         </div>
 

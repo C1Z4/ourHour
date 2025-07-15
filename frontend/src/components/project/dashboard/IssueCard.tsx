@@ -1,3 +1,5 @@
+import { useNavigate } from '@tanstack/react-router';
+
 import { Issue } from '@/types/issueTypes';
 
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
@@ -6,12 +8,25 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface IssueCardProps {
   issue: Issue;
+  orgId: string;
+  projectId: string;
 }
 
-export const IssueCard = ({ issue }: IssueCardProps) => {
+export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
+  const navigate = useNavigate();
+
+  const handleIssueClick = () => {
+    navigate({
+      to: '/$orgId/project/$projectId/issue/$issueId',
+      params: { orgId, projectId, issueId: issue.id },
+    });
+  };
+
   const handleEditIssue = () => {
-    // 이슈 수정 로직
-    console.log('이슈 수정:', issue.id);
+    navigate({
+      to: '/$orgId/project/$projectId/issue/edit/$issueId',
+      params: { orgId, projectId, issueId: issue.id },
+    });
   };
 
   const handleDeleteIssue = () => {
@@ -19,18 +34,27 @@ export const IssueCard = ({ issue }: IssueCardProps) => {
     console.log('이슈 삭제:', issue.id);
   };
 
+  const handlePopoverClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
-    <div className="group bg-white rounded-lg border border-gray-200 p-3 mb-3 shadow-sm hover:shadow-md transition-shadow">
+    <div
+      className="group bg-white rounded-lg border border-gray-200 p-3 mb-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+      onClick={handleIssueClick}
+    >
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs text-gray-500 font-medium">{issue.tag}</span>
-        <MoreOptionsPopover
-          className="w-32"
-          editLabel="이슈 수정"
-          deleteLabel="이슈 삭제"
-          onEdit={handleEditIssue}
-          onDelete={handleDeleteIssue}
-          triggerClassName="p-1 hover:bg-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-        />
+        <div onClick={handlePopoverClick}>
+          <MoreOptionsPopover
+            className="w-32"
+            editLabel="이슈 수정"
+            deleteLabel="이슈 삭제"
+            onEdit={handleEditIssue}
+            onDelete={handleDeleteIssue}
+            triggerClassName="p-1 hover:bg-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+          />
+        </div>
       </div>
       <div className="mb-3">
         <h3 className="text-sm font-medium text-gray-900 mb-1">{issue.title}</h3>
