@@ -10,21 +10,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
-
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tbl_email_verification")
-@SuperBuilder
+@Table(name="tbl_password_reset_verification")
+@Builder
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class EmailVerificationEntity extends BaseVerificationEntity {
+public class PasswordResetVerificationEntity extends BaseVerificationEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long tokenId;
-
 }

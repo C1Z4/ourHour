@@ -50,7 +50,7 @@ public class EmailVerificationService {
         String emailContent = "<p>안녕하세요. OURHOUR입니다.</p><br/>"
                 + "<p>OURHOUR 서비스 이용을 위해 아래 링크를 클릭하여 인증을 완료해주세요.</p>"
                 + "<p><a href=\"" + verificationLink + "\" style=\"color:#1a73e8; text-decoration:none;\"><strong>이메일 인증하기</strong></a></p>"
-                + "<p>이 링크는 1시간 동안 유효합니다.</p>"
+                + "<p>이 링크는 15분 동안 유효합니다.</p>"
                 + "<br/><p>감사합니다.<br/>OURHOUR 팀 드림</p>";
 
         // SMTP 서버에 메일 발송
@@ -73,13 +73,14 @@ public class EmailVerificationService {
         }
 
         // 3. 토큰 사용 여부 확인 (default : false)
-        if(emailVerificationEntity.getIsUsed()) {
+        if(emailVerificationEntity.isUsed()) {
             throw emailVerificationException("이미 인증된 이메일 인증 링크 입니다.");
         }
 
         // 4. 토큰 유효 처리(Dirty Checking)
-        emailVerificationEntity.setIsUsed(true);
+        emailVerificationEntity.setUsed(true);
 
-        return emailVerificationEntity.getIsUsed();
+        return emailVerificationEntity.isUsed();
+
     }
 }
