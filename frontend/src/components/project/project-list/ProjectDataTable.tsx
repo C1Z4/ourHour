@@ -8,6 +8,7 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table';
+import { useRouter, useParams } from '@tanstack/react-router';
 
 import {
   Table,
@@ -24,6 +25,8 @@ import { ProjectColumns } from './ProjectColumns';
 
 export function ProjectDataTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const router = useRouter();
+  const { orgId } = useParams({ from: '/$orgId' });
 
   const table = useReactTable({
     data: mockProjects,
@@ -37,6 +40,13 @@ export function ProjectDataTable() {
       sorting,
     },
   });
+
+  const handleProjectClick = (projectId: string) => {
+    router.navigate({
+      to: '/$orgId/project/$projectId',
+      params: { orgId, projectId },
+    });
+  };
 
   return (
     <div className="w-full space-y-4">
@@ -62,8 +72,9 @@ export function ProjectDataTable() {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
                   data-state={row.getIsSelected() && 'selected'}
+                  onClick={() => handleProjectClick(row.original.id)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-4 pl-3">
