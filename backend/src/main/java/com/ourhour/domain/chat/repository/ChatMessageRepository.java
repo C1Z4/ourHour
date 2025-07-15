@@ -11,6 +11,7 @@ import java.util.List;
 public interface ChatMessageRepository extends JpaRepository<ChatMessageEntity, Long> {
 
     @Query("SELECT  NEW com.ourhour.domain.chat.dto.ChatMessageResDTO(" +
+            "       m.chatRoomEntity.roomId, " +
             "       m.chatMessageId, " +
             "       m.memberEntity.memberId, " +
             "       m.memberEntity.name, " +

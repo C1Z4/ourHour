@@ -1,6 +1,8 @@
 package com.ourhour.domain.chat.controller;
 
-import com.ourhour.domain.chat.dto.ChatMessageDTO;
+import com.ourhour.domain.chat.dto.ChatMessageReqDTO;
+import com.ourhour.domain.chat.dto.ChatMessageResDTO;
+import com.ourhour.domain.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -12,10 +14,14 @@ import org.springframework.stereotype.Controller;
 public class ChatController {
 
     private final SimpMessageSendingOperations messagingTemplate;
+    private final ChatService chatService;
 
     @MessageMapping("/chat/message")
-    public void message(@Payload ChatMessageDTO message) {
+    public void message(@Payload ChatMessageReqDTO chatMessageReqDTO) {
 
-        messagingTemplate.convertAndSend("/sub/chat/room/" + message.getChatRoomId(), message);
-    }
+        ChatMessageResDTO chatMessageResDTO = chatService.saveAndConvertMessage(chatMessageReqDTO);
+
+        messagingTemplate.convertAndSend(
+                "/sub/chat/room/" + chatMessageResDTO.getChatRoomId(), chatMessageResDTO
+        );    }
 }
