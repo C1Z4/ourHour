@@ -1,7 +1,12 @@
+import { useState } from 'react';
+
 import { createFileRoute } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 
+import { ProjectInfo } from '@/types/projectTypes';
+
 import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { ProjectModal } from '@/components/project/modal/ProjectModal';
 import { ProjectDataTable } from '@/components/project/project-list';
 
 export const Route = createFileRoute('/$orgId/project/')({
@@ -9,6 +14,13 @@ export const Route = createFileRoute('/$orgId/project/')({
 });
 
 function ProjectListPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleProjectSubmit = (data: Partial<ProjectInfo>) => {
+    console.log('새 프로젝트 등록:', data);
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,7 +36,7 @@ function ProjectListPage() {
             <ButtonComponent variant="primary" size="sm">
               참여 중인 프로젝트만 보기
             </ButtonComponent>
-            <ButtonComponent variant="danger" size="sm">
+            <ButtonComponent variant="danger" size="sm" onClick={() => setIsModalOpen(true)}>
               <Plus size={16} />
               프로젝트 등록
             </ButtonComponent>
@@ -34,6 +46,11 @@ function ProjectListPage() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <ProjectDataTable />
         </div>
+        <ProjectModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleProjectSubmit}
+        />
       </div>
     </div>
   );

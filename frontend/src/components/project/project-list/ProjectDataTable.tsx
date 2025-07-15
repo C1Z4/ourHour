@@ -93,7 +93,7 @@ export function ProjectDataTable() {
         </Table>
       </div>
       <div className="flex justify-center pt-4">
-        <PaginationComponent />
+        <PaginationComponent currentPage={1} totalPages={1} onPageChange={() => {}} />
       </div>
     </div>
   );
