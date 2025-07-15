@@ -1,7 +1,10 @@
 'use client';
 
+import * as React from 'react';
+
 import { ChevronRight, type LucideIcon } from 'lucide-react';
 
+import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   SidebarGroup,
@@ -12,8 +15,6 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
-import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
-import * as React from 'react';
 
 export function NavMain({
   items,

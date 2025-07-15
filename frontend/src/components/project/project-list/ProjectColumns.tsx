@@ -1,9 +1,10 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { Project } from '@/types/projectTypes';
-import { SortableHeader } from './SortableHeader';
-import { ParticipantsList } from './ParticipantsList';
-import { StatusBadge } from '@/components/common/StatusBadge';
 
+import { Project } from '@/types/projectTypes';
+
+import { StatusBadge } from '@/components/common/StatusBadge';
+import { ParticipantsList } from '@/components/project/project-list/ParticipantsList';
+import { SortableHeader } from '@/components/project/project-list/SortableHeader';
 
 export const ProjectColumns: ColumnDef<Project>[] = [
   {

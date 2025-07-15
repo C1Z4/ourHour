@@ -1,7 +1,8 @@
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { Issue } from '@/types/issueTypes';
+
+import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { StatusBadge } from '@/components/common/StatusBadge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface IssueCardProps {
   issue: Issue;

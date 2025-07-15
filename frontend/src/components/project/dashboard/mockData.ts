@@ -99,4 +99,4 @@ export const mockIssues: Issue[] = [
     createdAt: '2024-01-05',
     updatedAt: '2024-01-19',
   },
-]; 
+];

@@ -1,12 +1,15 @@
-import { Plus } from 'lucide-react';
-import { ButtonComponent } from '@/components/common/ButtonComponent';
-import { Progress } from '@/components/ui/progress';
-import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
-import { IssueCard } from './IssueCard';
-import { Issue, Milestone } from '@/types/issueTypes';
 import { useState } from 'react';
+
+import { Plus } from 'lucide-react';
+
+import { Issue, Milestone } from '@/types/issueTypes';
+
+import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
+import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
+import { IssueCard } from '@/components/project/dashboard/IssueCard';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 
 interface MilestoneColumnProps {
   milestone?: Milestone;

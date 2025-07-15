@@ -1,4 +1,6 @@
 import { useState } from 'react';
+
+import { useRouter, useParams } from '@tanstack/react-router';
 import {
   flexRender,
   getCoreRowModel,
@@ -8,8 +10,8 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { useRouter, useParams } from '@tanstack/react-router';
 
+import { PaginationComponent } from '@/components/common/PaginationComponent';
 import {
   Table,
   TableBody,
@@ -18,7 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PaginationComponent } from '@/components/common/PaginationComponent';
 
 import { mockProjects } from './dummy';
 import { ProjectColumns } from './ProjectColumns';
@@ -55,15 +56,13 @@ export function ProjectDataTable() {
           <TableHeader className="bg-gray-100">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} className="pl-3">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className="pl-3">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
