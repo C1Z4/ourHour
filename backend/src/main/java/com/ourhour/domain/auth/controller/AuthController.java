@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,9 +58,17 @@ public class AuthController {
         return ResponseEntity.ok(signinResDTOApiResponse);
     }
 
-//
-//    @PostMapping("/token")
-//
+
+    @PostMapping("/token")
+    public ResponseEntity<ApiResponse<SigninResDTO>> reissueAccessToken (@CookieValue("refreshToken") String refreshToken) {
+
+        SigninResDTO signinResDTO = authService.reissueAccessToken(refreshToken);
+
+        ApiResponse<SigninResDTO> signinResDTOApiResponse = ApiResponse.success(new SigninResDTO(signinResDTO.getAccessToken(), null), "토큰 재발급 완료");
+
+        return ResponseEntity.ok(signinResDTOApiResponse);
+    }
+
 //    @DeleteMapping("/token")
 
 }

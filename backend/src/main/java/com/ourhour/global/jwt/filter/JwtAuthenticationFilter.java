@@ -11,11 +11,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Set;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+
+    private static final Set<String> EXCLUDE_URI_PREFIXES = Set.of(
+            "/api/auth/signup",
+            "/api/auth/signin",
+            "/api/auth/email-verification",
+            "/api/auth/token"
+    );
 
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
@@ -25,10 +33,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String requestURI = request.getRequestURI();
-        if (requestURI.startsWith("/api/auth/signup") || requestURI.startsWith("/api/auth/signin") || requestURI.startsWith("/api/auth/email-verification")) {
-            filterChain.doFilter(request, response); // signup과 signin에 대해서는 인증 필터를 거칠 필요가 없음.
+        boolean skipFilter = EXCLUDE_URI_PREFIXES.stream().anyMatch(requestURI::startsWith);
+
+        if (skipFilter) {
+            filterChain.doFilter(request, response);
 
             return;
+        }
+
+        // 민감 정보 응답에 대한 캐시 방지 헤더 추가
+        if (requestURI.startsWith("/api/auth") || requestURI.startsWith("/api/user")) {
+            response.setHeader("Cache-Control", "no-store");
         }
 
         try {
