@@ -78,6 +78,7 @@ export const MemberSelector = ({
                     <Checkbox
                       checked={selectedMemberIds.includes(member.id)}
                       onCheckedChange={(checked) => onMemberSelect(member.id, checked as boolean)}
+                      className="data-[state=checked]:bg-[#467599] data-[state=checked]:text-white border-color-gray-200"
                     />
                     <Avatar className="w-6 h-6">
                       <AvatarImage src={member.profileImageUrl} alt={member.name} />
