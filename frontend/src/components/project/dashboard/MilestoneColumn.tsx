@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 
 import { Issue, Milestone } from '@/types/issueTypes';
@@ -26,6 +27,8 @@ export const MilestoneColumn = ({
   orgId,
   projectId,
 }: MilestoneColumnProps) => {
+  const navigate = useNavigate();
+
   const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
 
   const [milestoneName, setMilestoneName] = useState(milestone?.name || '');
@@ -40,6 +43,13 @@ export const MilestoneColumn = ({
   const handleDeleteMilestone = () => {
     // 마일스톤 삭제 로직
     console.log('마일스톤 삭제:', milestone?.id);
+  };
+
+  const handleCreateIssue = () => {
+    navigate({
+      to: '/$orgId/project/$projectId/issue/create',
+      params: { orgId, projectId },
+    });
   };
 
   return (
@@ -78,7 +88,11 @@ export const MilestoneColumn = ({
           ))}
         </div>
 
-        <ButtonComponent variant="ghost" className="w-full text-gray-600 hover:text-gray-700">
+        <ButtonComponent
+          variant="ghost"
+          className="w-full text-gray-600 hover:text-gray-700"
+          onClick={handleCreateIssue}
+        >
           <Plus className="h-4 w-4 mr-2" />
           이슈 등록
         </ButtonComponent>
