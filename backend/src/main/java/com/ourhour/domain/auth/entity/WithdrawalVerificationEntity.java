@@ -7,17 +7,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "tbl_email_verification")
-@SuperBuilder
+@Table(name="tbl_withdrawal_verification")
+@Builder
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class EmailVerificationEntity extends AbstractVerificationEntity {
+public class WithdrawalVerificationEntity extends AbstractVerificationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

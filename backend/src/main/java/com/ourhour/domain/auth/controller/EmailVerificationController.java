@@ -21,22 +21,22 @@ public class EmailVerificationController {
     private final EmailVerificationService emailVerificationService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<SignupReqDTO>> sendEmailVerificationLink(@Valid @RequestBody SignupReqDTO signupReqDTO) {
+    public ResponseEntity<ApiResponse<String>> sendEmailVerificationLink(@Valid @RequestBody SignupReqDTO signupReqDTO) {
 
         emailVerificationService.sendEmailVerificationLink(signupReqDTO.getEmail());
 
-       ApiResponse response = ApiResponse.success(signupReqDTO.getEmail(), "이메일 인증 링크가 전송되었습니다.");
+       ApiResponse<String> response = ApiResponse.success(signupReqDTO.getEmail(), "이메일 인증 링크가 전송되었습니다.");
 
        return ResponseEntity.ok(response);
 
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam String token) {
+    public ResponseEntity<ApiResponse<Void>> verifyEmail(@RequestParam String token) {
 
         emailVerificationService.verifyEmail(token);
 
-        ApiResponse apiResponse = ApiResponse.success("이메일 인증에 성공하였습니다.");
+        ApiResponse<Void> apiResponse = ApiResponse.success(null,"이메일 인증에 성공하였습니다.");
 
         return ResponseEntity.ok(apiResponse);
     }

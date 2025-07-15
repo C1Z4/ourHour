@@ -22,7 +22,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/auth/signup",
             "/api/auth/signin",
             "/api/auth/email-verification",
-            "/api/auth/token"
+            "/api/auth/token",
+            "/api/auth/password-reset-verification"
     );
 
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
