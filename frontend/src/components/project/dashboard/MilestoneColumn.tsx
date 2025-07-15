@@ -4,6 +4,9 @@ import { Progress } from '@/components/ui/progress';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { IssueCard } from './IssueCard';
 import { Issue, Milestone } from '@/types/issueTypes';
+import { useState } from 'react';
+import { ModalComponent } from '@/components/common/ModalComponent';
+import { Input } from '@/components/ui/input';
 
 interface MilestoneColumnProps {
   milestone?: Milestone;
@@ -16,6 +19,10 @@ export const MilestoneColumn = ({
   issues,
   isUncategorized = false,
 }: MilestoneColumnProps) => {
+  const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
+
+  const [milestoneName, setMilestoneName] = useState(milestone?.name || '');
+
   const displayName = isUncategorized ? '미분류' : milestone?.name || '';
 
   const handleEditMilestone = () => {
@@ -39,7 +46,7 @@ export const MilestoneColumn = ({
                 className="w-45"
                 editLabel="마일스톤명 수정"
                 deleteLabel="마일스톤 삭제"
-                onEdit={handleEditMilestone}
+                onEdit={() => setIsEditMilestoneModalOpen(true)}
                 onDelete={handleDeleteMilestone}
               />
             )}
@@ -69,6 +76,30 @@ export const MilestoneColumn = ({
           이슈 등록
         </ButtonComponent>
       </div>
+
+      {isEditMilestoneModalOpen && (
+        <ModalComponent
+          isOpen={isEditMilestoneModalOpen}
+          onClose={() => setIsEditMilestoneModalOpen(false)}
+          title="마일스톤 수정"
+          children={
+            <Input
+              type="text"
+              className="w-full"
+              onChange={(e) => setMilestoneName(e.target.value)}
+              value={milestoneName}
+              placeholder="새로운 마일스톤명을 입력해주세요."
+            />
+          }
+          footer={
+            <div className="">
+              <ButtonComponent variant="primary" size="sm" onClick={handleEditMilestone}>
+                수정
+              </ButtonComponent>
+            </div>
+          }
+        />
+      )}
     </div>
   );
 };

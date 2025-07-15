@@ -1,5 +1,8 @@
 import { Plus } from 'lucide-react';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { useState } from 'react';
+import { ModalComponent } from '@/components/common/ModalComponent';
+import { Input } from '@/components/ui/input';
 
 interface ProjectDashboardHeaderProps {
   projectName: string;
@@ -12,13 +15,23 @@ export const ProjectDashboardHeader = ({
   isMyIssuesOnly,
   onToggleViewMode,
 }: ProjectDashboardHeaderProps) => {
+  const [isCreateMilestoneModalOpen, setIsCreateMilestoneModalOpen] = useState(false);
+
+  const handleCreateMilestone = () => {
+    console.log('마일스톤 등록');
+  };
+
   return (
     <div className="border-b border-gray-200 bg-white px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <h1 className="text-2xl font-bold text-gray-900">{projectName}</h1>
           <div className="flex items-center space-x-2">
-            <ButtonComponent variant="secondary" size="sm">
+            <ButtonComponent
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsCreateMilestoneModalOpen(true)}
+            >
               <Plus className="h-4 w-4" />
               마일스톤 등록
             </ButtonComponent>
@@ -48,6 +61,24 @@ export const ProjectDashboardHeader = ({
           </ButtonComponent>
         </div>
       </div>
+
+      {isCreateMilestoneModalOpen && (
+        <ModalComponent
+          isOpen={isCreateMilestoneModalOpen}
+          onClose={() => setIsCreateMilestoneModalOpen(false)}
+          title="마일스톤 등록"
+          children={
+            <Input type="text" className="w-full" placeholder="마일스톤명을 입력해주세요." />
+          }
+          footer={
+            <div className="">
+              <ButtonComponent variant="primary" size="sm" onClick={handleCreateMilestone}>
+                등록
+              </ButtonComponent>
+            </div>
+          }
+        />
+      )}
     </div>
   );
 };
