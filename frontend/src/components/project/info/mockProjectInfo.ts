@@ -67,8 +67,8 @@ export const mockProjectInfo: ProjectInfo = {
   id: 'm5gr84i9',
   name: '개발 프로젝트명1',
   description: '프로젝트 설명 입니다...',
-  startDate: '25.12.11',
-  endDate: '25.12.30',
+  startDate: '2025-12-11',
+  endDate: '2025-12-30',
   status: '진행중',
   participants: mockProjectMembers,
 };
