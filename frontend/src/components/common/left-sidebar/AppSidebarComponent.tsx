@@ -10,8 +10,8 @@ import {
   Mail,
   MessageCircle,
   Plus,
-  Ellipsis,
   CircleUserRound,
+  MoreHorizontal,
 } from 'lucide-react';
 
 import { NavMain } from '@/components/common/left-sidebar/NavMain';
@@ -29,7 +29,7 @@ const GreenCircle = () => <ColoredCircle color={CHAT_COLORS.GREEN} />;
 
 const PlusIcon = () => <Plus className="h-4 w-4" />;
 const UserIcon = () => <CircleUserRound className="h-4 w-4" />;
-const EllipsisIcon = () => <Ellipsis className="h-4 w-4" />;
+const MoreHorizontalIcon = () => <MoreHorizontal className="h-4 w-4" />;
 
 const data = {
   teams: [
@@ -117,7 +117,7 @@ const data = {
         {
           title: '나와의 채팅방',
           leftIcon: UserIcon,
-          rightIcon: EllipsisIcon,
+          rightIcon: MoreHorizontalIcon,
           url: '#',
           onEdit: () => console.log('나와의 채팅방 수정'),
           onDelete: () => console.log('나와의 채팅방 삭제'),
@@ -125,7 +125,7 @@ const data = {
         {
           title: '단체 채팅방1',
           leftIcon: RedCircle,
-          rightIcon: EllipsisIcon,
+          rightIcon: MoreHorizontalIcon,
           url: '#',
           onEdit: () => console.log('단체 채팅방1 수정'),
           onDelete: () => console.log('단체 채팅방1 삭제'),
@@ -133,7 +133,7 @@ const data = {
         {
           title: '단체 채팅방2',
           leftIcon: BlueCircle,
-          rightIcon: EllipsisIcon,
+          rightIcon: MoreHorizontalIcon,
           url: '#',
           onEdit: () => console.log('단체 채팅방2 수정'),
           onDelete: () => console.log('단체 채팅방2 삭제'),
@@ -141,7 +141,7 @@ const data = {
         {
           title: '단체 채팅방3',
           leftIcon: GreenCircle,
-          rightIcon: EllipsisIcon,
+          rightIcon: MoreHorizontalIcon,
           url: '#',
           onEdit: () => console.log('단체 채팅방3 수정'),
           onDelete: () => console.log('단체 채팅방3 삭제'),
