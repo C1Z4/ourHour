@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 
 import { getChatRoomList } from '@/api/chat/chatApi.ts';
 
-export const useChatRoomListQuery = (memberId: number) =>
+export const useChatRoomListQuery = (orgId: number) =>
   useQuery({
-    queryKey: ['chatRooms', memberId],
-    queryFn: () => getChatRoomList(memberId),
-    enabled: !!memberId,
+    queryKey: ['chatRooms', orgId],
+    queryFn: () => getChatRoomList(orgId),
+    enabled: !!orgId,
   });

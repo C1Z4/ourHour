@@ -1,4 +1,4 @@
-import React from 'react'; // React.CSSProperties 타입을 위해 import
+import React from 'react';
 
 import type { ChatMessage } from '@/types/chatTypes';
 
@@ -47,7 +47,7 @@ export function ChatMessageList({ messages, currentMemberId }: ChatMessageListPr
             >
               {!isMyMessage && (
                 <span style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                  {msg.senderId}
+                  {msg.senderName}
                 </span>
               )}
 
