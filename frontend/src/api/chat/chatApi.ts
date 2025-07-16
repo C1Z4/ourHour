@@ -1,17 +1,15 @@
-import axios from 'axios';
+import type { ChatRoom, ChatMessage } from '@/types/chatTypes';
 
-const API_BASE_URL = 'http://localhost:8080/api/chat-rooms';
+import axiosInstance from '@/api/axiosConfig.ts';
 
-export const getChatRoomList = async (memberId: number) => {
-  const response = await axios.get(`${API_BASE_URL}`, {
-    params: {
-      memberId: memberId.toString(),
-    },
-  });
+export const getChatRoomList = async (orgId: number) => {
+  const response = await axiosInstance.get<ChatRoom[]>(`/api/orgs/${orgId}/chat-rooms`);
   return response.data;
 };
 
-export const getChatMessages = async (roomId: number) => {
-  const response = await axios.get(`${API_BASE_URL}/${roomId}/messages`);
+export const getChatMessages = async (orgId: number, roomId: number) => {
+  const response = await axiosInstance.get<ChatMessage[]>(
+    `/api/orgs/${orgId}/chat-rooms/${roomId}/messages`,
+  );
   return response.data;
 };

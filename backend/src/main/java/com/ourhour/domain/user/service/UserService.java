@@ -1,20 +1,27 @@
 package com.ourhour.domain.user.service;
 
-import com.ourhour.domain.auth.exception.AuthException;
+import com.ourhour.domain.auth.repository.EmailVerificationRepository;
+import com.ourhour.domain.auth.service.EmailVerificationService;
+import com.ourhour.domain.member.entity.MemberEntity;
+import com.ourhour.domain.member.repository.MemberRepository;
+import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
+import com.ourhour.domain.org.enums.Role;
+import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
+import com.ourhour.domain.org.service.OrgRoleGuardService;
 import com.ourhour.domain.user.dto.PwdChangeReqDTO;
 import com.ourhour.domain.user.dto.PwdVerifyReqDTO;
 import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.domain.user.repository.UserRepository;
 import com.ourhour.domain.user.util.PasswordChanger;
 import com.ourhour.domain.user.util.PasswordVerifier;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.jwt.annotation.OrgAuth;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.ourhour.domain.auth.exception.AuthException.unauthorizedException;
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.ourhour.domain.user.exception.UserException.*;
 
 @Service
@@ -23,6 +30,10 @@ public class UserService {
 
     private final PasswordVerifier passwordVerifier;
     private final PasswordChanger passwordChanger;
+    private final AnonymizeUserService anonymizeUserService;
+    private final EmailVerificationRepository emailVerificationRepository;
+    private final MemberRepository memberRepository;
+    private final OrgRoleGuardService orgRoleGuardService;
 
     // 비밀번호 변경
     @Transactional
@@ -50,6 +61,32 @@ public class UserService {
         String pwd = pwdVerifyReqDTO.getPassword();
 
         passwordVerifier.verifyPassword(pwd);
+
+    }
+
+    // 계정 탈퇴
+    @Transactional
+    public void deleteUser(PwdVerifyReqDTO pwdVerifyReqDTO) {
+
+        String pwd = pwdVerifyReqDTO.getPassword();
+
+        UserEntity userEntity = passwordVerifier.verifyPassword(pwd);
+
+        Long userId = userEntity.getUserId();
+
+        // UserEntity와 연결된 모든 MemberEntity 조회
+        List<MemberEntity> memberEntityList = memberRepository.findByUserEntity_UserId(userId);
+
+        orgRoleGuardService.checkCanWithDraw(memberEntityList);
+
+        // soft delete 처리
+        userEntity.markAsDeleted();
+
+        // 탈퇴한 사용자 익명 처리
+        anonymizeUserService.anonymizeUser(memberEntityList);
+
+        // 탈퇴한 사용자의 인증 이메일 무효화
+        emailVerificationRepository.invalidateByEmail(userEntity.getEmail());
 
     }
 }

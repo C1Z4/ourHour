@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Table(name = "tbl_member")
 @Getter
@@ -26,6 +28,10 @@ public class MemberEntity {
     private String email;
     private String profileImgUrl;
 
-    @OneToOne(mappedBy = "memberEntity", fetch = FetchType.LAZY)
-    private OrgParticipantMemberEntity orgParticipantMemberEntity;
+    @OneToMany(mappedBy = "memberEntity", fetch = FetchType.LAZY)
+    private List<OrgParticipantMemberEntity> orgParticipantMemberEntityList;
+
+    public void anonymizeName(String suffix) {
+        this.name = "Anonymous_" + suffix;
+    }
 }

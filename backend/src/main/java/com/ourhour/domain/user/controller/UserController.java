@@ -7,6 +7,7 @@ import com.ourhour.global.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,4 +43,17 @@ public class UserController {
         return ResponseEntity.ok(response);
 
     }
+
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@Valid @RequestBody PwdVerifyReqDTO pwdVerifyReqDTO) {
+
+        userService.deleteUser(pwdVerifyReqDTO);
+
+        ApiResponse<Void> response = ApiResponse.success(null, "계정이 탈퇴되었습니다.");
+
+        return ResponseEntity.ok(response);
+
+    }
+
+
 }
