@@ -5,6 +5,7 @@ import com.ourhour.domain.chat.entity.ChatMessageEntity;
 import com.ourhour.domain.chat.entity.ChatParticipantEntity;
 import com.ourhour.domain.chat.entity.ChatRoomEntity;
 import com.ourhour.domain.chat.exceptions.ChatException;
+import com.ourhour.domain.chat.mapper.ChatMapper;
 import com.ourhour.domain.chat.repository.ChatMessageRepository;
 import com.ourhour.domain.chat.repository.ChatParticipantRepository;
 import com.ourhour.domain.chat.repository.ChatRoomRepository;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class ChatService {
 
+    private final ChatMapper chatMapper;
     private final ChatParticipantRepository chatParticipantRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
@@ -40,14 +42,8 @@ public class ChatService {
         List<ChatParticipantEntity> participants = chatParticipantRepository.findChatRoomsByOrgAndMember(orgId, memberId);
 
         return participants.stream()
-                .map(participant -> {
-                    ChatRoomEntity chatRoom = participant.getChatRoomEntity();
-
-                    return ChatRoomListResDTO.builder()
-                            .roomId(chatRoom.getRoomId())
-                            .name(chatRoom.getName())
-                            .build();
-                }).collect(Collectors.toList());
+                .map(chatMapper::toChatRoomListResDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -94,15 +90,8 @@ public class ChatService {
         List<ChatParticipantEntity> participants = chatParticipantRepository.findParticipantsByOrgAndRoom(orgId, roomId);
 
         return participants.stream()
-                .map(chatParticipant -> {
-                    MemberEntity member = chatParticipant.getMemberEntity();
-
-                    return ChatParticipantResDTO.builder()
-                            .memberId(member.getMemberId())
-                            .memberName(member.getName())
-                            .profileImageUrl(member.getProfileImgUrl())
-                            .build();
-                }).collect(Collectors.toList());
+                .map(chatMapper::toChatParticipantResDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -156,13 +145,6 @@ public class ChatService {
 
         ChatMessageEntity savedEntity = chatMessageRepository.save(newMessage);
 
-        return new ChatMessageResDTO(
-                savedEntity.getChatRoomEntity().getRoomId(),
-                savedEntity.getChatMessageId(),
-                savedEntity.getMemberEntity().getMemberId(),
-                savedEntity.getMemberEntity().getName(),
-                savedEntity.getContent(),
-                savedEntity.getSentAt()
-        );
+        return chatMapper.toChatMessageResDTO(savedEntity);
     }
 }
