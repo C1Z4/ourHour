@@ -20,7 +20,13 @@ interface SigninResponse {
 const postSignin = async (request: SigninRequest): Promise<ApiResponse<SigninResponse>> => {
   try {
     const response = await axiosInstance.post('/api/auth/signin', request);
-    loginUser(response.data.accessToken);
+
+    const accessToken = response.data.data?.accessToken;
+
+    if (accessToken) {
+      loginUser(accessToken);
+    }
+
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);
