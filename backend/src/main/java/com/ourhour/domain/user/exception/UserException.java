@@ -18,4 +18,8 @@ public class UserException extends BusinessException {
   public static UserException samePwd() {
     return new UserException(400, "이전 비밀번호와 동일합니다.");
   }
+
+  public static UserException roleConflict() {
+    return new UserException(403, "탈퇴하려면 다른 루트 관리자를 지정하거나 권한을 변경해야 합니다.");
+  }
 }

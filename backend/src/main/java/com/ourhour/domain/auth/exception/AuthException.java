@@ -40,6 +40,10 @@ public class AuthException extends BusinessException {
         return new AuthException(401, "인증되지 않은 사용자입니다.");
     }
 
+    public static AuthException deactivatedAccountException() {
+        return new AuthException(403, "탈퇴처리된 계정입니다.");
+    }
+
     public static AuthException emailVerificationException(String message) {
         return new AuthException(message);
     }

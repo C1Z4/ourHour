@@ -42,8 +42,8 @@ public class AuthService {
     @Transactional
     public void signup(SignupReqDTO signupReqDTO) {
 
-        // 이메일 중복 확인
-        if (userRepository.existsByEmail(signupReqDTO.getEmail())) {
+        // 이메일 중복 및 탈퇴된 이메일이 아닌지 확인
+        if (userRepository.existsByEmailAndIsDeletedFalse(signupReqDTO.getEmail())) {
             throw duplicateRequestException();
         }
 
@@ -65,8 +65,13 @@ public class AuthService {
     public SigninResDTO signin (SignupReqDTO signupReqDTO) {
 
         // 이메일로 사용자 조회
-        UserEntity userEntity = userRepository.findByEmail(signupReqDTO.getEmail())
+        UserEntity userEntity = userRepository.findByEmailAndIsDeletedFalse(signupReqDTO.getEmail())
                 .orElseThrow(AuthException::emailNotFoundException);
+
+        // 사용자 탈퇴 여부 확인
+        if(userEntity.isDeleted()) {
+            throw deactivatedAccountException();
+        }
 
         // 비밀번호 일치 여부 확인
         if (!passwordEncoder.matches(signupReqDTO.getPassword(), userEntity.getPassword())) {
@@ -91,11 +96,13 @@ public class AuthService {
         // UserEntity와 연결된 모든 MemberEntity 조회
         List<MemberEntity> memberEntityList = userEntity.getMemberEntityList();
 
-        // MemberEntity에 연결된 OrgParticipantMemberEntity 조회
+        // MemberEntity에 연결된 모든 OrgParticipantMemberEntity 조회
         List<OrgParticipantMemberEntity> orgParticipantMemberEntityList = new ArrayList<>();
         for (MemberEntity memberEntity : memberEntityList) {
-            OrgParticipantMemberEntity orgParticipantMemberEntity = memberEntity.getOrgParticipantMemberEntity();
-            orgParticipantMemberEntityList.add(orgParticipantMemberEntity);
+
+            List<OrgParticipantMemberEntity> participantList = memberEntity.getOrgParticipantMemberEntityList();
+            orgParticipantMemberEntityList.addAll(participantList);
+
         }
 
         return jwtClaimMapper.createClaim(userEntity, orgParticipantMemberEntityList);
