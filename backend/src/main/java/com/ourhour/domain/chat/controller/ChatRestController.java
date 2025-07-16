@@ -3,13 +3,14 @@ package com.ourhour.domain.chat.controller;
 import com.ourhour.domain.chat.dto.*;
 import com.ourhour.domain.chat.service.ChatService;
 import com.ourhour.domain.org.enums.Role;
+import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.exception.BusinessException;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
 import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.AuthorizationUtil;
 import com.ourhour.global.jwt.util.UserContextHolder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -39,91 +39,93 @@ public class ChatRestController {
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @GetMapping
-    public List<ChatRoomListResDTO> getAllChatRooms(
+    public ResponseEntity<ApiResponse<List<ChatRoomListResDTO>>> getAllChatRooms(
             @OrgId @PathVariable Long orgId) {
 
         Claims claims = UserContextHolder.get();
         Long memberId = getMemberIdForOrg(claims, orgId);
+        List<ChatRoomListResDTO> chatRooms = chatService.findAllChatRooms(orgId, memberId);
 
-        return chatService.findAllChatRooms(orgId, memberId);
+        return ResponseEntity.ok(ApiResponse.success(chatRooms, "채팅방 목록 조회에 성공했습니다."));
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @PostMapping
-    public void registChatRoom(
+    public ResponseEntity<ApiResponse<Void>> registChatRoom(
             @OrgId @PathVariable Long orgId,
             @RequestBody ChatRoomCreateReqDTO request) {
 
         chatService.registerChatRoom(orgId, request);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "채팅방 생성에 성공했습니다."));
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @PutMapping("/{roomId}")
-    public void modifyChatRoom(
+    public ResponseEntity<ApiResponse<Void>> modifyChatRoom(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId,
             @RequestBody ChatRoomUpdateReqDTO request) {
 
         chatService.modifyChatRoom(orgId, roomId, request);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "채팅방 수정에 성공했습니다."));
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @DeleteMapping("/{roomId}")
-    public void deleteChatRoom(
+    public ResponseEntity<ApiResponse<Void>> deleteChatRoom(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId) {
 
         chatService.deleteChatRoom(orgId, roomId);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "채팅방 삭제에 성공했습니다."));
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @GetMapping("/{roomId}/messages")
-    public List<ChatMessageResDTO> getMessages(
+    public ResponseEntity<ApiResponse<List<ChatMessageResDTO>>> getMessages(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId) {
 
-        return chatService.findAllMessages(orgId, roomId);
+        List<ChatMessageResDTO> chatMessages = chatService.findAllMessages(orgId, roomId);
+
+        return ResponseEntity.ok(ApiResponse.success(chatMessages, "채팅 메시지 조회에 성공했습니다."));
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @GetMapping("/{roomId}/participants")
-    public List<ChatParticipantResDTO> getChatRoomParticipants(
+    public ResponseEntity<ApiResponse<List<ChatParticipantResDTO>>> getChatRoomParticipants(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId) {
 
-        return chatService.findAllParticipants(orgId, roomId);
+        List<ChatParticipantResDTO> participants = chatService.findAllParticipants(orgId, roomId);
+
+        return ResponseEntity.ok(ApiResponse.success(participants, "채팅방 참여자 목록 조회에 성공했습니다."));
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @PostMapping("/{roomId}/participants")
-    public void addChatRoomParticipant(
+    public ResponseEntity<ApiResponse<Void>> addChatRoomParticipant(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId,
             @RequestBody ParticipantAddReqDTO request) {
 
         chatService.addChatRoomParticipant(orgId, roomId, request.getMemberId());
+
+        return ResponseEntity.ok(ApiResponse.success(null, "참여자 추가에 성공했습니다."));
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @DeleteMapping("/{roomId}/participants/{memberId}")
-    public void deleteChatRoomParticipant(
+    public ResponseEntity<ApiResponse<Void>> deleteChatRoomParticipant(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId,
             @PathVariable Long memberIdToDelete) {
 
-        Claims claims = UserContextHolder.get();
-        Long requestingMemberId = getMemberIdForOrg(claims, orgId);
+        chatService.deleteChatRoomParticipant(orgId, roomId, memberIdToDelete);
 
-        // 자기 자신이 나가기
-        boolean isDeletingSelf = requestingMemberId.equals(memberIdToDelete);
-
-        // 관리자가 다른 멤버를 내보내기
-        boolean isAdminDeletingOther = AuthorizationUtil.isHigherThan(claims, orgId, Role.ADMIN);
-
-        if (isDeletingSelf || isAdminDeletingOther) {
-            chatService.deleteChatRoomParticipant(orgId, roomId, memberIdToDelete);
-        } else {
-            throw BusinessException.forbidden("채팅방에서 다른 멤버를 내보낼 권한이 없습니다.");
-        }
+        return ResponseEntity.ok(ApiResponse.success(null, "참여자 삭제에 성공했습니다."));
     }
 }
