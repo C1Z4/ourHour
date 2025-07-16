@@ -42,6 +42,8 @@ public class UserEntity {
 
     private LocalDateTime emailVerifiedAt;
 
+    private boolean isDeleted;
+
     @Builder
     public UserEntity(String email, String password, Platform platform, boolean isEmailVerified, LocalDateTime emailVerifiedAt) {
         this.email = email;
