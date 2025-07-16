@@ -42,7 +42,7 @@ public class ProjectParticipantEntity {
     }
 
     public String getDeptName() {
-        return memberEntity.getOrgParticipantMemberEntities().stream()
+        return memberEntity.getOrgParticipantMemberEntityList().stream()
                 .filter(opm -> opm.getOrgEntity().getOrgId().equals(projectEntity.getOrgEntity().getOrgId()))
                 .map(opm -> opm.getDepartmentEntity().getName())
                 .findFirst()
@@ -50,7 +50,7 @@ public class ProjectParticipantEntity {
     }
 
     public String getPositionName() {
-        return memberEntity.getOrgParticipantMemberEntities().stream()
+        return memberEntity.getOrgParticipantMemberEntityList().stream()
                 .filter(opm -> opm.getOrgEntity().getOrgId().equals(projectEntity.getOrgEntity().getOrgId()))
                 .map(opm -> opm.getPositionEntity().getName())
                 .findFirst()
