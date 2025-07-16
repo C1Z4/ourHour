@@ -3,9 +3,7 @@ import { AxiosError } from 'axios';
 import { ApiResponse, PageResponse } from '@/types/apiTypes';
 
 import { axiosInstance } from '@/api/axiosConfig';
-import { store } from '@/stores/store';
 import { logError } from '@/utils/auth/errorUtils';
-import { getAccessTokenFromStore } from '@/utils/auth/tokenUtils';
 
 interface GetProjectSummaryListRequest {
   orgId: string;
