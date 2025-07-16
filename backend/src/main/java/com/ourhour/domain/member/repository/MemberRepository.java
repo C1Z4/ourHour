@@ -5,6 +5,7 @@ import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,4 +30,6 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
             + "WHERE m.memberId = :memberId AND o.orgId = :orgId")
     Optional<OrgParticipantMemberEntity> findOrgDetailByMemberIdAndOrgId(Long memberId, Long orgId);
 
+
+    List<MemberEntity> findByUserEntity_UserId(Long userId);
 }

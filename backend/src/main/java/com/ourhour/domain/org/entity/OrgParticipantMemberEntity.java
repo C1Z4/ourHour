@@ -22,7 +22,7 @@ public class OrgParticipantMemberEntity {
     @MapsId("orgId")
     private OrgEntity orgEntity;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="member_id")
     @MapsId("memberId")
     private MemberEntity memberEntity;

@@ -59,7 +59,4 @@ public class UserEntity {
         this.isDeleted = true;
     }
 
-    public void invalidateByEmail(String email) {
-
-    }
 }

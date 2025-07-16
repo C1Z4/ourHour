@@ -96,11 +96,13 @@ public class AuthService {
         // UserEntity와 연결된 모든 MemberEntity 조회
         List<MemberEntity> memberEntityList = userEntity.getMemberEntityList();
 
-        // MemberEntity에 연결된 OrgParticipantMemberEntity 조회
+        // MemberEntity에 연결된 모든 OrgParticipantMemberEntity 조회
         List<OrgParticipantMemberEntity> orgParticipantMemberEntityList = new ArrayList<>();
         for (MemberEntity memberEntity : memberEntityList) {
-            OrgParticipantMemberEntity orgParticipantMemberEntity = memberEntity.getOrgParticipantMemberEntity();
-            orgParticipantMemberEntityList.add(orgParticipantMemberEntity);
+
+            List<OrgParticipantMemberEntity> participantList = memberEntity.getOrgParticipantMemberEntityList();
+            orgParticipantMemberEntityList.addAll(participantList);
+
         }
 
         return jwtClaimMapper.createClaim(userEntity, orgParticipantMemberEntityList);
