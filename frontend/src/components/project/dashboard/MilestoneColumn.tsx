@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 
-import { Issue, Milestone } from '@/types/issueTypes';
+import { Issue } from '@/types/issueTypes';
 
+import { ProjectMilestone } from '@/api/project/getProjectMilestoneList';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
@@ -13,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 
 interface MilestoneColumnProps {
-  milestone?: Milestone;
+  milestone?: ProjectMilestone;
   issues: Issue[];
   isUncategorized?: boolean;
   orgId: string;
@@ -37,12 +38,12 @@ export const MilestoneColumn = ({
 
   const handleEditMilestone = () => {
     // 마일스톤 수정 로직
-    console.log('마일스톤 수정:', milestone?.id);
+    console.log('마일스톤 수정:', milestone?.milestoneId);
   };
 
   const handleDeleteMilestone = () => {
     // 마일스톤 삭제 로직
-    console.log('마일스톤 삭제:', milestone?.id);
+    console.log('마일스톤 삭제:', milestone?.milestoneId);
   };
 
   const handleCreateIssue = () => {

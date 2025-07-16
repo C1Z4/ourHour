@@ -2,12 +2,13 @@ import { useState } from 'react';
 
 import { createFileRoute } from '@tanstack/react-router';
 
+import { ProjectMilestone } from '@/api/project/getProjectMilestoneList';
 import {
   ProjectDashboardHeader,
   MilestoneColumn,
-  mockMilestones,
   mockIssues,
 } from '@/components/project/dashboard';
+import useProjectMilestoneListQuery from '@/hooks/queries/project/useProjectMilestoneListQuery';
 
 export const Route = createFileRoute('/$orgId/project/$projectId/')({
   component: ProjectDashboard,
@@ -15,6 +16,11 @@ export const Route = createFileRoute('/$orgId/project/$projectId/')({
 
 function ProjectDashboard() {
   const { orgId, projectId } = Route.useParams();
+
+  const { data: milestoneList } = useProjectMilestoneListQuery({
+    projectId,
+  });
+
   const [isMyIssuesOnly, setIsMyIssuesOnly] = useState(true);
 
   const handleToggleViewMode = () => {
@@ -39,18 +45,16 @@ function ProjectDashboard() {
 
       <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <MilestoneColumn
-            milestone={mockMilestones[0]}
-            issues={groupedIssues.milestone1}
-            orgId={orgId}
-            projectId={projectId}
-          />
-          <MilestoneColumn
-            milestone={mockMilestones[1]}
-            issues={groupedIssues.milestone2}
-            orgId={orgId}
-            projectId={projectId}
-          />
+          {(milestoneList?.data?.data || []).flat().map((milestone: ProjectMilestone) => (
+            <div key={milestone.milestoneId}>
+              <MilestoneColumn
+                milestone={milestone}
+                issues={groupedIssues.milestone1}
+                orgId={orgId}
+                projectId={projectId}
+              />
+            </div>
+          ))}
           <MilestoneColumn
             issues={groupedIssues.uncategorized}
             isUncategorized={true}

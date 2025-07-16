@@ -12,15 +12,6 @@ export interface Issue {
   milestoneId: string | null;
 }
 
-export interface Milestone {
-  id: string;
-  name: string;
-  description?: string;
-  progress: number; // 0-100
-  completedIssues: number;
-  totalIssues: number;
-}
-
 export interface Comment {
   id: string;
   content: string;
