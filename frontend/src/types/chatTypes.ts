@@ -2,6 +2,7 @@ export interface ChatMessage {
   chatRoomId: number;
   chatMessageId?: number | null;
   senderId: number;
+  senderName: string;
   message: string;
   timestamp?: string | null;
 }
