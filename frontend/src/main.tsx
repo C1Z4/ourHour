@@ -10,6 +10,7 @@ import { ToastContainer } from 'react-toastify';
 
 import { routeTree } from './routeTree.gen';
 import { store } from './stores/store';
+import { checkAuthStatus } from './utils/authInitializer';
 import './styles/index.css';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -35,6 +36,10 @@ const queryClient = new QueryClient({
 const rootElement = document.getElementById('root')!;
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
+
+  // 앱 시작 시 인증 상태 초기화
+  checkAuthStatus();
+
   root.render(
     <StrictMode>
       <Provider store={store}>
