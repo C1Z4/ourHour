@@ -1,16 +1,15 @@
 import { useState } from 'react';
 
 interface ChatMessageInputProps {
-  onSendMessage: (message: string, senderId: number) => void;
+  onSendMessage: (message: string) => void;
 }
 
 export function ChatMessageInput({ onSendMessage }: ChatMessageInputProps) {
   const [message, setMessage] = useState('');
-  const senderId = 1;
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      onSendMessage(message, senderId);
+      onSendMessage(message);
       setMessage('');
     }
   };
