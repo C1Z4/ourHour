@@ -94,7 +94,6 @@ export const ProjectMembersTable = ({
                 <Checkbox
                   checked={isAllSelected}
                   onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
-                  className="data-[state=checked]:bg-[#467599] data-[state=checked]:text-white border-color-gray-200"
                 />
               </TableHead>
               <TableHead className="text-center">이름</TableHead>
@@ -112,7 +111,6 @@ export const ProjectMembersTable = ({
                   <Checkbox
                     checked={selectedMemberIds.includes(member.id)}
                     onCheckedChange={(checked) => handleSelectMember(member.id, checked as boolean)}
-                    className="data-[state=checked]:bg-[#467599] data-[state=checked]:text-white border-color-gray-200"
                   />
                 </TableCell>
                 <TableCell>
