@@ -51,4 +51,8 @@ public class UserEntity {
         this.emailVerifiedAt = emailVerifiedAt;
     }
 
+    public void changePassword(String hashedPassword) {
+        this.password = hashedPassword;
+    }
+
 }
