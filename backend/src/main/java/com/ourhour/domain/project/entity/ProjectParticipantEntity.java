@@ -40,4 +40,20 @@ public class ProjectParticipantEntity {
         this.projectEntity = projectEntity;
         this.memberEntity = memberEntity;
     }
+
+    public String getDeptName() {
+        return memberEntity.getOrgParticipantMemberEntities().stream()
+                .filter(opm -> opm.getOrgEntity().getOrgId().equals(projectEntity.getOrgEntity().getOrgId()))
+                .map(opm -> opm.getDepartmentEntity().getName())
+                .findFirst()
+                .orElse(null);
+    }
+
+    public String getPositionName() {
+        return memberEntity.getOrgParticipantMemberEntities().stream()
+                .filter(opm -> opm.getOrgEntity().getOrgId().equals(projectEntity.getOrgEntity().getOrgId()))
+                .map(opm -> opm.getPositionEntity().getName())
+                .findFirst()
+                .orElse(null);
+    }
 }

@@ -9,13 +9,13 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ProjectParticipantMapper {
 
-    @Mapping(source = "projectParticipantId.memberId", target = "memberId")
-    @Mapping(source = "memberEntity.name", target = "name")
-    @Mapping(source = "memberEntity.phone", target = "phone")
-    @Mapping(source = "memberEntity.email", target = "email")
-    @Mapping(source = "memberEntity.orgParticipantMemberEntity.departmentEntity.name", target = "deptName")
-    @Mapping(source = "memberEntity.orgParticipantMemberEntity.positionEntity.name", target = "positionName")
-    @Mapping(source = "memberEntity.profileImgUrl", target = "profileImgUrl")
-    ProjectParticipantDTO toProjectParticipantDTO(ProjectParticipantEntity entity);
+    @Mapping(source = "entity.projectParticipantId.memberId", target = "memberId")
+    @Mapping(source = "entity.memberEntity.name", target = "name")
+    @Mapping(source = "entity.memberEntity.phone", target = "phone")
+    @Mapping(source = "entity.memberEntity.email", target = "email")
+    @Mapping(source = "entity.memberEntity.profileImgUrl", target = "profileImgUrl")
+    @Mapping(target = "deptName", expression = "java(entity.getDeptName())")
+    @Mapping(target = "positionName", expression = "java(entity.getPositionName())")
+    ProjectParticipantDTO toProjectParticipantDTO(ProjectParticipantEntity entity, Long orgId);
 
 }
