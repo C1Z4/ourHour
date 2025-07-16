@@ -10,7 +10,7 @@ export function ChatRoomListPage({ chatRooms }: ChatRoomListPageProps) {
   return (
     <div>
       <ChatRoomListHeader />
-      <ChatRoomList chatRooms={chatRooms} />
+      <ChatRoomList chatRooms={chatRooms} orgId="1" />
     </div>
   );
 }

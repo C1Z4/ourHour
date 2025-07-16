@@ -6,11 +6,19 @@ interface ChatMessageInputProps {
 
 export function ChatMessageInput({ onSendMessage }: ChatMessageInputProps) {
   const [message, setMessage] = useState('');
+  const [isComposing, setIsComposing] = useState(false);
 
   const handleSendMessage = () => {
-    if (message.trim()) {
+    if (message.trim() && !isComposing) {
       onSendMessage(message);
       setMessage('');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !isComposing) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
@@ -20,7 +28,9 @@ export function ChatMessageInput({ onSendMessage }: ChatMessageInputProps) {
         type="text"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+        onKeyDown={handleKeyDown}
+        onCompositionStart={() => setIsComposing(true)}
+        onCompositionEnd={() => setIsComposing(false)}
       />
       <button onClick={handleSendMessage}>전송</button>
     </div>
