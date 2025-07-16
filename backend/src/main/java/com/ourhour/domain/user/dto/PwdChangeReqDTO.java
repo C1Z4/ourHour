@@ -1,4 +1,4 @@
-package com.ourhour.domain.auth.dto;
+package com.ourhour.domain.user.dto;
 
 import com.ourhour.global.common.validation.ValidPassword;
 import lombok.AllArgsConstructor;
@@ -8,12 +8,13 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PwdResetReqDTO {
+public class PwdChangeReqDTO {
 
-    private String token;
+    private String currentPassword;
 
     @ValidPassword
     private String newPassword;
 
     private String newPasswordCheck;
+
 }
