@@ -16,7 +16,10 @@ import java.util.List;
 public interface ProjectParticipantRepository extends JpaRepository<ProjectParticipantEntity, ProjectParticipantId> {
 
         // 제한된 참여자 목록 조회
-        @Query("SELECT p FROM ProjectParticipantEntity p WHERE p.projectParticipantId.projectId = :projectId ORDER BY p.projectParticipantId.memberId LIMIT :limit")
+        @Query("SELECT DISTINCT p FROM ProjectParticipantEntity p " +
+                        "JOIN FETCH p.memberEntity m " +
+                        "WHERE p.projectParticipantId.projectId = :projectId " +
+                        "ORDER BY p.projectParticipantId.memberId LIMIT :limit")
         List<ProjectParticipantEntity> findLimitedParticipants(@Param("projectId") Long projectId,
                         @Param("limit") int limit);
 

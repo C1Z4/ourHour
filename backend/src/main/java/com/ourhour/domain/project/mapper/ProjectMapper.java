@@ -16,10 +16,12 @@ import org.mapstruct.ReportingPolicy;
 public interface ProjectMapper {
 
     // ProjectEntity -> ProjectSummaryResDTO
+    @Mapping(target = "status", expression = "java(entity.getStatus().getDescription())")
     @Mapping(target = "participants", ignore = true)
     ProjectSummaryResDTO toProjectSummaryResDTO(ProjectEntity entity);
 
     // ProjectEntity -> ProjectInfoDTO
+    @Mapping(target = "status", expression = "java(entity.getStatus().getDescription())")
     ProjectInfoDTO toProjectInfoDTO(ProjectEntity entity);
 
     // ProjectReqDTO -> ProjectEntity
