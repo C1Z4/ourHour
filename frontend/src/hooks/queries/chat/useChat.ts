@@ -5,6 +5,8 @@ import SockJS from 'sockjs-client';
 
 import type { ChatMessage, UseChatReturn } from '@/types/chatTypes.ts';
 
+import { getAccessTokenFromStore } from '@/utils/auth/tokenUtils';
+
 export function useChat(roomId: string | number): UseChatReturn {
   const clientRef = useRef<Client | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -29,8 +31,13 @@ export function useChat(roomId: string | number): UseChatReturn {
       return () => {};
     }
 
+    const accessToken = getAccessTokenFromStore();
+
     const client = new Client({
       webSocketFactory: () => new SockJS('http://localhost:8080/ws-stomp'),
+      connectHeaders: {
+        Authorization: `Bearer ${accessToken}`,
+      },
       onConnect: () => {
         client.subscribe(`/sub/chat/room/${roomId}`, (message: IMessage) => {
           const receivedMessage = JSON.parse(message.body);
