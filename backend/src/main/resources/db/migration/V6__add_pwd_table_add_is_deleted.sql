@@ -27,4 +27,7 @@ CREATE TABLE `tbl_password_reset_verification` (
 );
 
 ALTER TABLE `tbl_user`
-    ADD COLUMN is_deleted BOOLEAN NOT NULL DEFAULT FALSE;
+DROP INDEX `email`;
+
+ALTER TABLE `tbl_user`
+ADD COLUMN is_deleted BOOLEAN NOT NULL DEFAULT FALSE;

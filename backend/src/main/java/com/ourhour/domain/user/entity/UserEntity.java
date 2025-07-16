@@ -1,6 +1,5 @@
 package com.ourhour.domain.user.entity;
 
-import com.ourhour.domain.auth.entity.EmailVerificationEntity;
 import com.ourhour.domain.auth.entity.RefreshTokenEntity;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.user.enums.Platform;
@@ -9,7 +8,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -57,4 +55,11 @@ public class UserEntity {
         this.password = hashedPassword;
     }
 
+    public void markAsDeleted() {
+        this.isDeleted = true;
+    }
+
+    public void invalidateByEmail(String email) {
+
+    }
 }

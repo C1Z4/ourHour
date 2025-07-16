@@ -76,7 +76,7 @@ public class PasswordResetService extends AbstractVerificationService<PasswordRe
 
         // 인증된 사용자의 이메일을 통해 계정 조회
         String userEmail = passwordResetVerificationEntity.get().getEmail();
-        UserEntity userEntity = userRepository.findByEmail(userEmail)
+        UserEntity userEntity = userRepository.findByEmailAndIsDeletedFalse(userEmail)
                 .orElseThrow(AuthException::userNotFoundException);
 
         // 비밀번호 재설정

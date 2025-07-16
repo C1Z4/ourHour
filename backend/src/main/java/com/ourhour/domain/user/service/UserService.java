@@ -1,20 +1,17 @@
 package com.ourhour.domain.user.service;
 
-import com.ourhour.domain.auth.exception.AuthException;
+import com.ourhour.domain.auth.repository.EmailVerificationRepository;
+import com.ourhour.domain.auth.service.EmailVerificationService;
 import com.ourhour.domain.user.dto.PwdChangeReqDTO;
 import com.ourhour.domain.user.dto.PwdVerifyReqDTO;
 import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.domain.user.repository.UserRepository;
 import com.ourhour.domain.user.util.PasswordChanger;
 import com.ourhour.domain.user.util.PasswordVerifier;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.ourhour.domain.auth.exception.AuthException.unauthorizedException;
 import static com.ourhour.domain.user.exception.UserException.*;
 
 @Service
@@ -23,6 +20,8 @@ public class UserService {
 
     private final PasswordVerifier passwordVerifier;
     private final PasswordChanger passwordChanger;
+    private final UserRepository userRepository;
+    private final EmailVerificationRepository emailVerificationRepository;
 
     // 비밀번호 변경
     @Transactional
@@ -51,5 +50,20 @@ public class UserService {
 
         passwordVerifier.verifyPassword(pwd);
 
+    }
+
+    // 계정 탈퇴
+    @Transactional
+    public void deleteUser(PwdVerifyReqDTO pwdVerifyReqDTO) {
+
+        String pwd = pwdVerifyReqDTO.getPassword();
+
+        UserEntity userEntity = passwordVerifier.verifyPassword(pwd);
+
+        // soft delete 처리
+        userEntity.markAsDeleted();
+
+        // 인증 이메일 무효화
+        emailVerificationRepository.invalidateByEmail(userEntity.getEmail());
     }
 }
