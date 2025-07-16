@@ -58,6 +58,7 @@ export const showInfoToast = (message: string, options?: ToastOptions) => {
 export const TOAST_MESSAGES = {
   AUTH: {
     LOGIN_SUCCESS: '로그인에 성공했습니다!',
+    LOGIN_FAILED: '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.',
     LOGOUT_SUCCESS: '로그아웃되었습니다.',
   },
 
