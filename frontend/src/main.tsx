@@ -2,10 +2,13 @@ import { StrictMode } from 'react';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+import { Provider } from 'react-redux';
+
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import ReactDOM from 'react-dom/client';
 
 import { routeTree } from './routeTree.gen';
+import { store } from './stores/store';
 import './styles/index.css';
 
 const router = createRouter({ routeTree });
@@ -32,9 +35,11 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </Provider>
     </StrictMode>,
   );
 }
