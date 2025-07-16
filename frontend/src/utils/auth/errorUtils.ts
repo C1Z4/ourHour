@@ -40,7 +40,7 @@ export const handleHttpError = (error: AxiosError): void => {
 
   switch (status) {
     case 403:
-      showErrorToast(TOAST_MESSAGES.PERMISSION_DENIED);
+      showErrorToast(TOAST_MESSAGES.ERROR.PERMISSION_DENIED);
       break;
     case 404:
       console.warn('요청한 리소스를 찾을 수 없습니다.');
@@ -49,11 +49,11 @@ export const handleHttpError = (error: AxiosError): void => {
     case 502:
     case 503:
     case 504:
-      showErrorToast(TOAST_MESSAGES.SERVER_ERROR);
+      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
       break;
     default:
       if (!error.response) {
-        showErrorToast(TOAST_MESSAGES.NETWORK_ERROR);
+        showErrorToast(TOAST_MESSAGES.ERROR.NETWORK_ERROR);
       }
       break;
   }
