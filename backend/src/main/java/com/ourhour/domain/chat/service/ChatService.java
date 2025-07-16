@@ -4,6 +4,7 @@ import com.ourhour.domain.chat.dto.*;
 import com.ourhour.domain.chat.entity.ChatMessageEntity;
 import com.ourhour.domain.chat.entity.ChatParticipantEntity;
 import com.ourhour.domain.chat.entity.ChatRoomEntity;
+import com.ourhour.domain.chat.exceptions.ChatException;
 import com.ourhour.domain.chat.repository.ChatMessageRepository;
 import com.ourhour.domain.chat.repository.ChatParticipantRepository;
 import com.ourhour.domain.chat.repository.ChatRoomRepository;
@@ -52,7 +53,7 @@ public class ChatService {
     @Transactional
     public void registerChatRoom(Long orgId, ChatRoomCreateReqDTO request) {
 
-        OrgEntity orgEntity = orgRepository.findById(orgId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회사입니다."));
+        OrgEntity orgEntity = orgRepository.findById(orgId).orElseThrow(() -> BusinessException.notFound("존재하지 않는 회사입니다."));
 
         ChatRoomEntity newChatRoom = ChatRoomEntity.builder()
                 .name(request.getName())
@@ -73,7 +74,7 @@ public class ChatService {
     public void modifyChatRoom(Long orgId, Long roomId, ChatRoomUpdateReqDTO request) {
 
         ChatRoomEntity targetChatRoom = chatRoomRepository.findByOrgEntity_OrgIdAndRoomId(orgId, roomId).orElseThrow(
-                () -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
+                ChatException::chatRoomNotFound);
         targetChatRoom.update(request.getName(), request.getColor());
     }
 
@@ -108,15 +109,15 @@ public class ChatService {
     public void addChatRoomParticipant(Long orgId, Long roomId, Long memberId) {
 
         ChatRoomEntity chatRoom = chatRoomRepository.findByOrgEntity_OrgIdAndRoomId(orgId, roomId)
-                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없거나 해당 조직의 채팅방이 아닙니다."));
+                .orElseThrow(ChatException::chatRoomNotFound);
 
         boolean isOrgMember = orgParticipantMemberRepository.existsByOrgEntity_OrgIdAndMemberEntity_MemberId(orgId, memberId);
         if (!isOrgMember) {
-            throw new IllegalArgumentException("해당 조직에 속한 멤버가 아닙니다.");
+            throw BusinessException.forbidden("해당 회사의 멤버가 아닙니다.");
         }
 
         MemberEntity member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 멤버를 찾을 수 없습니다."));
+                .orElseThrow(() -> BusinessException.badRequest("해당 멤버를 찾을 수 없습니다."));
 
         ChatParticipantEntity newParticipant = ChatParticipantEntity.createParticipant(chatRoom, member);
         chatParticipantRepository.save(newParticipant);
@@ -126,7 +127,7 @@ public class ChatService {
     public void deleteChatRoomParticipant(Long orgId, Long roomId, Long memberId) {
 
         ChatParticipantEntity participantToDelete = chatParticipantRepository.findParticipantToDelete(orgId, roomId, memberId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 참여자를 찾을 수 없습니다."));
+                .orElseThrow(ChatException::notParticipated);
 
         chatParticipantRepository.delete(participantToDelete);
     }
@@ -134,7 +135,7 @@ public class ChatService {
     @Transactional
     public ChatMessageResDTO saveAndConvertMessage(ChatMessageReqDTO chatMessageReqDTO, Claims claims) {
         ChatRoomEntity chatRoom = chatRoomRepository.findById(chatMessageReqDTO.getChatRoomId())
-                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+                .orElseThrow(ChatException::chatRoomNotFound);
 
         Long orgId = chatRoom.getOrgEntity().getOrgId();
         Long memberId = claims.getOrgAuthorityList().stream()
@@ -144,7 +145,7 @@ public class ChatService {
                 .orElseThrow(() -> BusinessException.forbidden("해당 회사의 멤버가 아닙니다."));
 
         MemberEntity sender = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("멤버를 찾을 수 없습니다."));
+                .orElseThrow(() -> BusinessException.notFound("메시지를 보낼 사용자 정보를 찾을 수 없습니다."));
 
         ChatMessageEntity newMessage = ChatMessageEntity.builder()
                 .chatRoomEntity(chatRoom)
