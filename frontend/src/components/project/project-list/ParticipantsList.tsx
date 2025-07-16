@@ -1,5 +1,7 @@
+import { ParticipantSummary } from '@/api/project/getProjectSummaryList';
+
 interface ParticipantsListProps {
-  participants: string[];
+  participants: ParticipantSummary[];
   maxVisible?: number;
 }
 
@@ -14,7 +16,7 @@ export function ParticipantsList({ participants, maxVisible = 2 }: ParticipantsL
           key={index}
           className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
         >
-          {participant}
+          {participant.memberName}
         </span>
       ))}
       {remainingCount > 0 && (

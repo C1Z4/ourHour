@@ -1,0 +1,46 @@
+import { AxiosError } from 'axios';
+
+import { ApiResponse, PageResponse } from '@/types/apiTypes';
+
+import { axiosInstance } from '@/api/axiosConfig';
+import { store } from '@/stores/store';
+import { logError } from '@/utils/auth/errorUtils';
+import { getAccessTokenFromStore } from '@/utils/auth/tokenUtils';
+
+interface GetProjectSummaryListRequest {
+  orgId: string;
+  participantLimit?: number;
+  currentPage?: number;
+  size?: number;
+}
+
+export interface ParticipantSummary {
+  memberId: number;
+  memberName: string;
+}
+
+export interface ProjectSummary {
+  projectId: string;
+  name: string;
+  description: string;
+  startAt: string;
+  endAt: string;
+  status: string;
+  participants: ParticipantSummary[];
+}
+
+const getProjectSummaryList = async (
+  request: GetProjectSummaryListRequest,
+): Promise<ApiResponse<PageResponse<ProjectSummary[]>>> => {
+  try {
+    const response = await axiosInstance.get(
+      `/api/projects/${request.orgId}?participantLimit=${request.participantLimit}&currentPage=${request.currentPage}&size=${request.size}`,
+    );
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+export default getProjectSummaryList;

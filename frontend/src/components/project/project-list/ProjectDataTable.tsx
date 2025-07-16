@@ -11,6 +11,8 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
+import { ProjectSummary } from '@/api/project/getProjectSummaryList';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
 import {
   Table,
@@ -20,17 +22,29 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import useProjectSummaryListQuery from '@/hooks/queries/project/useProjectSummaryListQuery';
 
-import { mockProjects } from './dummy';
 import { ProjectColumns } from './ProjectColumns';
 
 export function ProjectDataTable() {
   const [sorting, setSorting] = useState<SortingState>([]);
+
   const router = useRouter();
+
   const { orgId } = useParams({ from: '/$orgId' });
 
-  const table = useReactTable({
-    data: mockProjects,
+  const { data: projectSummaryList, isLoading } = useProjectSummaryListQuery({
+    orgId: orgId!,
+    enabled: !!orgId,
+    currentPage: 0,
+    size: 10,
+    participantLimit: 3,
+  });
+
+  const tableData = (projectSummaryList?.data?.data || []).flat();
+
+  const table = useReactTable<ProjectSummary>({
+    data: tableData,
     columns: ProjectColumns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -48,6 +62,10 @@ export function ProjectDataTable() {
       params: { orgId, projectId },
     });
   };
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="w-full space-y-4">
@@ -73,7 +91,7 @@ export function ProjectDataTable() {
                   key={row.id}
                   className="hover:bg-gray-50 transition-colors cursor-pointer"
                   data-state={row.getIsSelected() && 'selected'}
-                  onClick={() => handleProjectClick(row.original.id)}
+                  onClick={() => handleProjectClick(row.original.projectId)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-4 pl-3">
