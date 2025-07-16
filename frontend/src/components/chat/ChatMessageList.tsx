@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 import type { ChatMessage } from '@/types/chatTypes';
 
@@ -21,6 +21,11 @@ interface ChatMessageListProps {
 }
 
 export function ChatMessageList({ messages, currentMemberId }: ChatMessageListProps) {
+  const endRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
   return (
     <div style={{ border: '1px solid #ccc', height: '300px', overflowY: 'auto', padding: '10px' }}>
       {messages.map((msg) => {
@@ -50,8 +55,8 @@ export function ChatMessageList({ messages, currentMemberId }: ChatMessageListPr
                   {msg.senderName}
                 </span>
               )}
-
               <div style={bubbleStyle}>{msg.message}</div>
+              <div ref={endRef} />
             </div>
           </div>
         );

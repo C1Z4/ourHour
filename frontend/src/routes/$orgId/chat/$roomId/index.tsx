@@ -1,8 +1,4 @@
-import { useEffect, useState } from 'react';
-
 import { createFileRoute, useParams } from '@tanstack/react-router';
-
-import { ChatMessage } from '@/types/chatTypes.ts';
 
 import { useChat } from '@/hooks/queries/chat/useChat.ts';
 import { useChatMessagesQuery } from '@/hooks/queries/chat/useChatMessagesQueries.ts';
@@ -14,31 +10,29 @@ export const Route = createFileRoute('/$orgId/chat/$roomId/')({
 
 function ChatRoom() {
   const { orgId, roomId } = useParams({ from: '/$orgId/chat/$roomId/' });
-  const { data: initialMessages, isLoading } = useChatMessagesQuery(Number(orgId), Number(roomId));
-  const { messages: newMessages, sendMessage, isConnected } = useChat(roomId);
+  const orgIdNum = Number(orgId);
+  const roomIdNum = Number(roomId);
+  const { isConnected, sendMessage } = useChat(orgIdNum, roomIdNum);
 
-  const [combinedMessages, setCombinedMessages] = useState<ChatMessage[]>([]);
-
-  useEffect(() => {
-    if (initialMessages) {
-      setCombinedMessages(initialMessages);
-    }
-  }, [initialMessages]);
-
-  useEffect(() => {
-    if (newMessages.length > 0) {
-      setCombinedMessages((prevMessages) => [...prevMessages, ...newMessages]);
-    }
-  }, [newMessages]);
+  const {
+    data: messages = [],
+    isLoading,
+    isError,
+    error,
+  } = useChatMessagesQuery(orgIdNum, roomIdNum);
 
   if (isLoading) {
     return <span>채팅 내역 불러오는 중...</span>;
   }
 
+  if (isError) {
+    return <span>채팅 내역을 불러오는데 실패하였습니다: {error.message}</span>;
+  }
+
   return (
     <ChatRoomPage
-      messages={combinedMessages}
-      sendMessage={(message) => sendMessage(message, 1)}
+      messages={messages}
+      sendMessage={(message) => sendMessage(message)}
       isConnected={isConnected}
       orgId={orgId}
       roomId={roomId}
