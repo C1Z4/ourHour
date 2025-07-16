@@ -21,13 +21,13 @@ import com.ourhour.global.common.dto.ApiResponse;
 @RequiredArgsConstructor
 public class ProjectParticipantService {
 
-
     private final ProjectParticipantRepository projectParticipantRepository;
     private final ProjectParticipantMapper projectParticipantMapper;
     private final ProjectRepository projectRepository;
 
     // 특정 프로젝트의 참가자 목록 조회
-    public ApiResponse<PageResponse<ProjectParticipantDTO>> getProjectParticipants(Long projectId, Pageable pageable) {
+    public ApiResponse<PageResponse<ProjectParticipantDTO>> getProjectParticipants(Long projectId, Long orgId,
+            Pageable pageable) {
         if (projectId <= 0) {
             throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
         }
@@ -37,31 +37,32 @@ public class ProjectParticipantService {
             throw BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다.");
         }
 
-        Page<ProjectParticipantEntity> participantPage = projectParticipantRepository.findByProjectParticipantId_ProjectId(projectId,
-                pageable);
+        Page<ProjectParticipantEntity> participantPage = projectParticipantRepository
+                .findByProjectParticipantId_ProjectId(projectId,
+                        pageable);
 
         if (participantPage.isEmpty()) {
             return ApiResponse.success(PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize()));
         }
 
         Page<ProjectParticipantDTO> participantDTOPage = participantPage
-                .map(projectParticipantMapper::toProjectParticipantDTO);
+                .map(entity -> projectParticipantMapper.toProjectParticipantDTO(entity, orgId));
 
         return ApiResponse.success(PageResponse.of(participantDTOPage));
     }
-    
+
     // 프로젝트 참여 여부 확인
     public ApiResponse<Boolean> checkProjectParticipant(Long projectId, Long memberId) {
         if (projectId <= 0 || memberId <= 0) {
             throw BusinessException.badRequest("유효하지 않은 프로젝트 ID 또는 멤버 ID입니다.");
         }
-        
-        ProjectParticipantId projectParticipantId = new ProjectParticipantId(projectId, memberId);  
+
+        ProjectParticipantId projectParticipantId = new ProjectParticipantId(projectId, memberId);
         if (!projectParticipantRepository.existsById(projectParticipantId)) {
             return ApiResponse.success(false, "프로젝트 참여 여부 확인에 성공했습니다.");
         }
 
         return ApiResponse.success(true, "프로젝트 참여 여부 확인에 성공했습니다.");
-    }   
+    }
 
 }
