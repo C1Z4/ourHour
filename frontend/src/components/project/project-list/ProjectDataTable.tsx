@@ -37,6 +37,7 @@ export function ProjectDataTable() {
   const { data: projectSummaryList, isLoading } = useProjectSummaryListQuery({
     orgId: orgId!,
     enabled: !!orgId,
+    currentPage,
   });
 
   const tableData = useMemo(

@@ -72,5 +72,6 @@ export const TOAST_MESSAGES = {
     SAVE_SUCCESS: '저장되었습니다.',
     DELETE_SUCCESS: '삭제되었습니다.',
     UPDATE_SUCCESS: '수정되었습니다.',
+    CREATE_SUCCESS: '생성되었습니다.',
   },
 } as const;

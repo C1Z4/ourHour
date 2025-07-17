@@ -4,9 +4,12 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 
 import { ProjectBaseInfo } from '@/api/project/getProjectInfo';
+import { PostCreateProjectRequest } from '@/api/project/postCreateProject';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ProjectModal } from '@/components/project/modal/ProjectModal';
 import { ProjectDataTable } from '@/components/project/project-list';
+import { useProjectCreateMutation } from '@/hooks/queries/project/useProjectCreateMutation';
+import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const Route = createFileRoute('/$orgId/project/')({
   component: ProjectListPage,
@@ -17,8 +20,23 @@ function ProjectListPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const { mutate: createProject } = useProjectCreateMutation();
+
   const handleProjectSubmit = (data: Partial<ProjectBaseInfo>) => {
-    console.log('새 프로젝트 등록:', data);
+    try {
+      createProject({
+        orgId: Number(orgId),
+        name: data.name || '',
+        description: data.description || '',
+        startAt: data.startAt || '',
+        endAt: data.endAt || '',
+        status: data.status,
+      } as unknown as PostCreateProjectRequest);
+      showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
+    } catch (error: unknown) {
+      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
+    }
+
     setIsModalOpen(false);
   };
 
