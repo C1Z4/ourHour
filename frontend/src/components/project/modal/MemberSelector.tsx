@@ -9,8 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 
 interface MemberSelectorProps {
-  selectedMemberIds: string[];
-  onMemberSelect: (memberId: string, checked: boolean) => void;
+  selectedMemberIds: number[];
+  onMemberSelect: (memberId: number, checked: boolean) => void;
   className?: string;
   participantTotalPages: number;
   initialMemberData?: Member[];
@@ -90,19 +90,16 @@ export const MemberSelector = ({
                 <div
                   key={member.memberId}
                   className="grid grid-cols-3 gap-2 items-center py-2 border-b border-gray-100 last:border-b-0 cursor-pointer"
-                  onClick={() =>
-                    onMemberSelect(
-                      member.memberId.toString(),
-                      !selectedMemberIds.includes(member.memberId.toString()),
-                    )
-                  }
+                  onClick={() => {
+                    onMemberSelect(member.memberId, !selectedMemberIds.includes(member.memberId));
+                  }}
                 >
                   <div className="flex items-center ml-8 gap-2">
                     <Checkbox
-                      checked={selectedMemberIds.includes(member.memberId.toString())}
-                      onCheckedChange={(checked) =>
-                        onMemberSelect(member.memberId.toString(), checked as boolean)
-                      }
+                      checked={selectedMemberIds.includes(member.memberId)}
+                      onCheckedChange={(checked) => {
+                        onMemberSelect(member.memberId, checked as boolean);
+                      }}
                     />
                     <Avatar className="w-6 h-6">
                       <AvatarImage src={member.profileImgUrl} alt={member.name} />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { PROJECT_STATUS_ENG_TO_KO, PROJECT_STATUS_KO_TO_ENG } from '@/types/projectTypes';
 
@@ -23,6 +23,8 @@ import useOrgMemberListQuery from '@/hooks/queries/org/useOrgMemberListQuery';
 import { MemberSelector } from './MemberSelector';
 
 interface ProjectModalProps {
+  selectedParticipantIds?: number[];
+  setSelectedParticipantIds?: (participantIds: number[]) => void;
   isOpen: boolean;
   onClose: () => void;
   initialInfoData?: ProjectBaseInfo;
@@ -33,6 +35,8 @@ interface ProjectModalProps {
 
 // 프로젝트 등록 및 수정 모달
 export const ProjectModal = ({
+  selectedParticipantIds,
+  setSelectedParticipantIds,
   isOpen,
   onClose,
   initialInfoData,
@@ -56,8 +60,10 @@ export const ProjectModal = ({
     return isNaN(date.getTime()) ? undefined : date;
   };
 
+  const didSetInitial = useRef(false);
+
   useEffect(() => {
-    if (initialInfoData) {
+    if (isOpen && initialInfoData && initialMemberData && !didSetInitial.current) {
       setFormData({
         name: initialInfoData.name,
         description: initialInfoData.description,
@@ -69,12 +75,13 @@ export const ProjectModal = ({
           ] || 'NOT_STARTED',
         participants: orgMembers || [],
       });
-    }
 
-    if (initialMemberData) {
-      setSelectedMemberIds(initialMemberData.map((p) => p.memberId.toString()));
+      const newIds = initialMemberData.map((p) => p.memberId);
+      setSelectedParticipantIds?.(newIds);
+
+      didSetInitial.current = true;
     }
-  }, [initialInfoData, initialMemberData]);
+  }, [isOpen, initialInfoData, initialMemberData, orgMembers, setSelectedParticipantIds]);
 
   const [formData, setFormData] = useState({
     name: initialInfoData?.name || '',
@@ -85,21 +92,17 @@ export const ProjectModal = ({
     participants: orgMembers || [],
   });
 
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(
-    orgMembers?.map((p) => p.memberId.toString()) || [],
-  );
-
-  const handleMemberSelect = (memberId: string, checked: boolean) => {
+  const handleMemberSelect = (memberId: number, checked: boolean) => {
     if (checked) {
-      setSelectedMemberIds([...selectedMemberIds, memberId]);
+      setSelectedParticipantIds?.([...(selectedParticipantIds || []), memberId]);
     } else {
-      setSelectedMemberIds(selectedMemberIds.filter((id) => id !== memberId));
+      setSelectedParticipantIds?.((selectedParticipantIds || []).filter((id) => id !== memberId));
     }
   };
 
   const handleSubmit = () => {
     const selectedMembers = orgMembers?.filter((member) =>
-      selectedMemberIds.includes(member.memberId.toString()),
+      selectedParticipantIds?.includes(member.memberId),
     );
 
     const projectData = {
@@ -109,6 +112,11 @@ export const ProjectModal = ({
       endAt: formData.endDate?.toISOString().split('T')[0] || '',
     } as unknown as PostCreateProjectRequest;
     onSubmit(projectData as unknown as Partial<ProjectBaseInfo>);
+    onClose();
+  };
+
+  const handleClose = () => {
+    didSetInitial.current = false;
     onClose();
   };
 
@@ -123,7 +131,7 @@ export const ProjectModal = ({
   return (
     <ModalComponent
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title={isEditing ? '프로젝트 수정' : '프로젝트 등록'}
       className="max-w-3xl p-5"
       children={
@@ -200,7 +208,7 @@ export const ProjectModal = ({
           </div>
 
           <MemberSelector
-            selectedMemberIds={selectedMemberIds}
+            selectedMemberIds={selectedParticipantIds || []}
             onMemberSelect={handleMemberSelect}
             participantTotalPages={orgMemberTotalPages || 1}
             initialMemberData={orgMembers}
@@ -209,7 +217,7 @@ export const ProjectModal = ({
       }
       footer={
         <div className="flex justify-end gap-2">
-          <ButtonComponent variant="danger" onClick={onClose}>
+          <ButtonComponent variant="danger" onClick={handleClose}>
             취소
           </ButtonComponent>
           <ButtonComponent onClick={handleSubmit}>

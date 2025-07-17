@@ -1,8 +1,6 @@
-import { useState } from 'react';
-
 import { Trash2 } from 'lucide-react';
 
-import { Member } from '@/api/project/getProjectParticipantList';
+import { Member } from '@/api/org/getOrgMemberList';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,10 +16,12 @@ import {
 
 interface ProjectMembersTableProps {
   projectMembers?: Member[];
-  selectedMemberIds: string[];
-  onSelectionChange: (memberIds: string[]) => void;
+  selectedMemberIds: number[];
+  onSelectionChange: (memberIds: number[]) => void;
   onDeleteSelected: () => void;
   participantTotalPages: number;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
 }
 
 export const ProjectMembersTable = ({
@@ -30,18 +30,18 @@ export const ProjectMembersTable = ({
   onSelectionChange,
   onDeleteSelected,
   participantTotalPages,
+  currentPage,
+  setCurrentPage,
 }: ProjectMembersTableProps) => {
-  const [currentPage, setCurrentPage] = useState(1);
-
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      onSelectionChange(projectMembers?.map((member) => member.memberId.toString()) || []);
+      onSelectionChange(projectMembers?.map((member) => member.memberId) || []);
     } else {
       onSelectionChange([]);
     }
   };
 
-  const handleSelectMember = (memberId: string, checked: boolean) => {
+  const handleSelectMember = (memberId: number, checked: boolean) => {
     if (checked) {
       onSelectionChange([...selectedMemberIds, memberId]);
     } else {
@@ -52,7 +52,7 @@ export const ProjectMembersTable = ({
   const isAllSelected =
     projectMembers &&
     projectMembers.length > 0 &&
-    projectMembers.every((member) => selectedMemberIds.includes(member.memberId.toString()));
+    projectMembers.every((member) => selectedMemberIds.includes(member.memberId));
 
   // const getRoleColor = (role: string) => {
   //   switch (role) {
@@ -104,9 +104,9 @@ export const ProjectMembersTable = ({
               <TableRow key={member.memberId} className="hover:bg-gray-50">
                 <TableCell className="w-12">
                   <Checkbox
-                    checked={selectedMemberIds.includes(member.memberId.toString())}
+                    checked={selectedMemberIds.includes(member.memberId)}
                     onCheckedChange={(checked) =>
-                      handleSelectMember(member.memberId.toString(), checked as boolean)
+                      handleSelectMember(member.memberId, checked as boolean)
                     }
                   />
                 </TableCell>

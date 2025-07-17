@@ -1,12 +1,11 @@
 import { useState } from 'react';
 
-import { PROJECT_STATUS_ENG_TO_KO, ProjectStatusKo } from '@/types/projectTypes';
-
-import { ProjectBaseInfo } from '@/api/project/getProjectInfo';
+import { PutUpdateProjectRequest } from '@/api/project/putUpdateProject';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import useProjectInfoQuery from '@/hooks/queries/project/useProjectInfoQuery';
 import useProjectParticipantListQuery from '@/hooks/queries/project/useProjectParticipantListQuery';
+import { useProjectUpdateMutation } from '@/hooks/queries/project/useProjectUpdateMutation';
 
 import { ProjectMembersTable } from './ProjectMembersTable';
 import { ProjectModal } from '../modal/ProjectModal';
@@ -17,7 +16,11 @@ interface ProjectInfoPageProps {
 }
 
 export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  // 프로젝트 구성원 삭제시 사용
+  const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
+  // 프로젝트 구성원 수정시 사용
+  const [selectedParticipantIds, setSelectedParticipantIds] = useState<number[]>([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -28,7 +31,10 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
   const { data: projectMembersData } = useProjectParticipantListQuery({
     projectId: Number(projectId),
     orgId: Number(orgId),
+    currentPage,
   });
+
+  const { mutate: updateProject } = useProjectUpdateMutation();
 
   const projectInfo = projectInfoData?.data;
   const projectMembers = projectMembersData?.data.data.flat();
@@ -41,11 +47,20 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
     setIsModalOpen(false);
   };
 
-  const handleProjectSubmit = (data: Partial<ProjectBaseInfo>) => {
-    console.log('프로젝트 수정 데이터:', data);
+  // 수정 버튼 클릭시
+  const handleProjectSubmit = (data: Partial<PutUpdateProjectRequest>) => {
+    updateProject({
+      projectId: Number(projectId),
+      name: data.name || '',
+      description: data.description || '',
+      startAt: data.startAt || '',
+      endAt: data.endAt || '',
+      status: data.status || 'NOT_STARTED',
+      participantIds: selectedParticipantIds,
+    });
   };
 
-  const handleMemberSelectionChange = (memberIds: string[]) => {
+  const handleMemberSelectionChange = (memberIds: number[]) => {
     setSelectedMemberIds(memberIds);
   };
 
@@ -70,14 +85,7 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
                     {projectInfo?.endAt ?? '~'}
                   </span>
                 )}
-                <StatusBadge
-                  type="project"
-                  status={
-                    PROJECT_STATUS_ENG_TO_KO[
-                      projectInfo?.status as keyof typeof PROJECT_STATUS_ENG_TO_KO
-                    ] as ProjectStatusKo
-                  }
-                />
+                <StatusBadge type="project" status={projectInfo?.status} />
               </div>
               <ButtonComponent variant="secondary" onClick={handleEditProject}>
                 프로젝트 수정
@@ -93,18 +101,24 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
             onSelectionChange={handleMemberSelectionChange}
             onDeleteSelected={handleDeleteSelectedMembers}
             participantTotalPages={projectMembersData?.data.totalPages || 1}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
           />
         </div>
       </div>
 
-      <ProjectModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        initialInfoData={projectInfo}
-        initialMemberData={projectMembers}
-        onSubmit={handleProjectSubmit}
-        orgId={Number(orgId)}
-      />
+      {isModalOpen && (
+        <ProjectModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          initialInfoData={projectInfo}
+          initialMemberData={projectMembers}
+          onSubmit={handleProjectSubmit}
+          orgId={Number(orgId)}
+          selectedParticipantIds={selectedParticipantIds}
+          setSelectedParticipantIds={setSelectedParticipantIds}
+        />
+      )}
     </>
   );
 };

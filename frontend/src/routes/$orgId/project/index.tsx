@@ -65,12 +65,14 @@ function ProjectListPage() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <ProjectDataTable />
         </div>
-        <ProjectModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSubmit={handleProjectSubmit}
-          orgId={Number(orgId)}
-        />
+        {isModalOpen && (
+          <ProjectModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onSubmit={handleProjectSubmit}
+            orgId={Number(orgId)}
+          />
+        )}
       </div>
     </div>
   );
