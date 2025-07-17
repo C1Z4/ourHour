@@ -12,7 +12,7 @@ interface GetProjectMilestoneListRequest {
 }
 
 export interface ProjectMilestone {
-  milestoneId: string;
+  milestoneId: number;
   name: string;
   progress: number;
   completedIssues: number;
