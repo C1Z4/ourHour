@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 
 import { ApiResponse } from '@/types/apiTypes';
-import { ProjectStatus } from '@/types/projectTypes';
+import { ProjectStatusEng } from '@/types/projectTypes';
 
 import { axiosInstance } from '@/api/axiosConfig';
 import { logError } from '@/utils/auth/errorUtils';
@@ -16,7 +16,7 @@ export interface ProjectBaseInfo {
   description: string;
   startAt: string;
   endAt: string;
-  status: ProjectStatus;
+  status: ProjectStatusEng;
 }
 
 const getProjectInfo = async (

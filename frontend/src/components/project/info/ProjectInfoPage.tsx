@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { ProjectStatus } from '@/types/projectTypes';
+import { PROJECT_STATUS_ENG_TO_KO, ProjectStatusKo } from '@/types/projectTypes';
 
 import { ProjectBaseInfo } from '@/api/project/getProjectInfo';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
@@ -62,10 +62,22 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-4">
                 <h1 className="text-3xl font-bold text-gray-900">{projectInfo?.name}</h1>
-                <span className="text-lg text-gray-600">
-                  {projectInfo?.startAt}~{projectInfo?.endAt}
-                </span>
-                <StatusBadge type="project" status={projectInfo?.status as ProjectStatus} />
+
+                {(projectInfo?.startAt || projectInfo?.endAt) && (
+                  <span className="text-lg text-gray-600">
+                    {projectInfo?.startAt ?? '~'}
+                    {projectInfo?.startAt && projectInfo?.endAt ? '~' : ''}
+                    {projectInfo?.endAt ?? '~'}
+                  </span>
+                )}
+                <StatusBadge
+                  type="project"
+                  status={
+                    PROJECT_STATUS_ENG_TO_KO[
+                      projectInfo?.status as keyof typeof PROJECT_STATUS_ENG_TO_KO
+                    ] as ProjectStatusKo
+                  }
+                />
               </div>
               <ButtonComponent variant="secondary" onClick={handleEditProject}>
                 프로젝트 수정

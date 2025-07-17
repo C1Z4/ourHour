@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 
+import { PROJECT_STATUS_ENG_TO_KO, PROJECT_STATUS_KO_TO_ENG } from '@/types/projectTypes';
+
 import { Member } from '@/api/org/getOrgMemberList';
 import { ProjectBaseInfo } from '@/api/project/getProjectInfo';
+import { PostCreateProjectRequest } from '@/api/project/postCreateProject';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { StatusBadge } from '@/components/common/StatusBadge';
@@ -60,7 +63,10 @@ export const ProjectModal = ({
         description: initialInfoData.description,
         startDate: parseDate(initialInfoData.startAt),
         endDate: parseDate(initialInfoData.endAt),
-        status: initialInfoData.status,
+        status:
+          PROJECT_STATUS_KO_TO_ENG[
+            initialInfoData.status as keyof typeof PROJECT_STATUS_KO_TO_ENG
+          ] || 'NOT_STARTED',
         participants: orgMembers || [],
       });
     }
@@ -75,7 +81,7 @@ export const ProjectModal = ({
     description: initialInfoData?.description || '',
     startDate: parseDate(initialInfoData?.startAt),
     endDate: parseDate(initialInfoData?.endAt),
-    status: initialInfoData?.status || ('계획됨' as const),
+    status: initialInfoData?.status || 'NOT_STARTED',
     participants: orgMembers || [],
   });
 
@@ -99,27 +105,26 @@ export const ProjectModal = ({
     const projectData = {
       ...formData,
       participants: selectedMembers,
-      startDate: formData.startDate?.toISOString().split('T')[0] || '',
-      endDate: formData.endDate?.toISOString().split('T')[0] || '',
-    };
-
-    onSubmit(projectData);
+      startAt: formData.startDate?.toISOString().split('T')[0] || '',
+      endAt: formData.endDate?.toISOString().split('T')[0] || '',
+    } as unknown as PostCreateProjectRequest;
+    onSubmit(projectData as unknown as Partial<ProjectBaseInfo>);
     onClose();
   };
 
   const projectStatuses = [
-    { value: '시작전' as const, label: '시작전' },
-    { value: '계획됨' as const, label: '계획됨' },
-    { value: '진행중' as const, label: '진행중' },
-    { value: '완료' as const, label: '완료' },
-    { value: '아카이브' as const, label: '아카이브' },
+    { value: 'NOT_STARTED' as const, label: 'NOT_STARTED' },
+    { value: 'PLANNING' as const, label: 'PLANNING' },
+    { value: 'IN_PROGRESS' as const, label: 'IN_PROGRESS' },
+    { value: 'DONE' as const, label: 'DONE' },
+    { value: 'ARCHIVE' as const, label: 'ARCHIVE' },
   ];
 
   return (
     <ModalComponent
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? '프로젝트 수정' : '프로젝트 등록록'}
+      title={isEditing ? '프로젝트 수정' : '프로젝트 등록'}
       className="max-w-3xl p-5"
       children={
         <div className="space-y-6 m-2">
@@ -180,7 +185,14 @@ export const ProjectModal = ({
               <SelectContent>
                 {projectStatuses.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
-                    <StatusBadge type="project" status={status.value} />
+                    <StatusBadge
+                      type="project"
+                      status={
+                        PROJECT_STATUS_ENG_TO_KO[
+                          status.value as keyof typeof PROJECT_STATUS_ENG_TO_KO
+                        ]
+                      }
+                    />
                   </SelectItem>
                 ))}
               </SelectContent>
