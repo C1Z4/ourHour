@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface OrgParticipantMemberRepository
@@ -51,4 +52,6 @@ public interface OrgParticipantMemberRepository
     default int countRootAdmins(Long orgId) {
         return countByOrgEntity_OrgIdAndRole(orgId, Role.ROOT_ADMIN);
     }
+
+    List<OrgParticipantMemberEntity> findAllByMemberEntity_MemberIdAndStatus(Long memberId, Status status);
 }

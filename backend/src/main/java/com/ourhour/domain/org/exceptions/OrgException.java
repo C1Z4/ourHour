@@ -15,4 +15,8 @@ public class OrgException extends BusinessException {
     public static OrgException tooMuchRootAdminException() {
         return new OrgException(400, "루트 관리자는 최대 2명이어야 합니다.");
     }
+
+    public static OrgException deleteUserException(String orgName) {
+        return new OrgException(400, "다음 조직에서 마지막 루트 관리자입니다. 위임 후 계정 탈퇴 가능합니다: " + orgName);
+    }
 }

@@ -5,6 +5,7 @@ import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 @Table(name = "tbl_org_participant_member")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrgParticipantMemberEntity {
 
     @EmbeddedId
@@ -30,10 +32,6 @@ public class OrgParticipantMemberEntity {
     @MapsId("memberId")
     private MemberEntity memberEntity;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name="left_by_member_id")
-    private MemberEntity leftByMemberEntity;
-
     @ManyToOne
     @JoinColumn(name = "dept_id")
     private DepartmentEntity departmentEntity;
@@ -46,7 +44,8 @@ public class OrgParticipantMemberEntity {
     private Role role;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    @Column(name = "status", nullable = false)
+    private Status status = Status.ACTIVE;
 
     private LocalDateTime joinedAt;
 

@@ -77,7 +77,8 @@ public class UserService {
         // UserEntity와 연결된 모든 MemberEntity 조회
         List<MemberEntity> memberEntityList = memberRepository.findByUserEntity_UserId(userId);
 
-        orgRoleGuardService.checkCanWithDraw(memberEntityList);
+        // 루트 관리자 정책 확인
+        orgRoleGuardService.assertNotLastRootAdminAcrossAll(memberEntityList);
 
         // soft delete 처리
         userEntity.markAsDeleted();

@@ -5,9 +5,6 @@ ALTER TABLE `tbl_org_participant_member`
     ADD COLUMN `status` ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE' AFTER `role`,
   ADD COLUMN `joined_at` DATETIME(6) NULL AFTER `status`,
   ADD COLUMN `left_at` DATETIME(6) NULL AFTER `joined_at`,
-  ADD COLUMN `left_by_member_id` BIGINT NULL AFTER `left_at`,
-  ADD CONSTRAINT `FK_opm_left_by_member`
-    FOREIGN KEY (`left_by_member_id`) REFERENCES `tbl_member`(`member_id`) ON DELETE SET NULL,
   ADD INDEX `IDX_opm_org_status` (`org_id`, `status`);
 ;
 
