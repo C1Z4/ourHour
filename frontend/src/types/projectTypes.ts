@@ -1,12 +1,4 @@
-export type Project = {
-  id: string;
-  name: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  participants: string[];
-  status: '시작전' | '계획됨' | '진행중' | '완료' | '아카이브';
-};
+export type ProjectStatus = '시작전' | '계획됨' | '진행중' | '완료' | '아카이브';
 
 export type ProjectMember = {
   id: string;
@@ -15,16 +7,8 @@ export type ProjectMember = {
   position: string;
   phone: string;
   email: string;
-  role: '루트관리자' | '관리자' | '일반';
+  role: Role;
   profileImageUrl: string;
 };
 
-export type ProjectInfo = {
-  id: string;
-  name: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  status: '시작전' | '계획됨' | '진행중' | '완료' | '아카이브';
-  participants: ProjectMember[];
-};
+export type Role = '루트관리자' | '관리자' | '일반';

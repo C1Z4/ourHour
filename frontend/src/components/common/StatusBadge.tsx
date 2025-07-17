@@ -1,6 +1,7 @@
-import { IssueStatusKor } from '@/types/issueTypes';
+import { IssueStatus } from '@/types/issueTypes';
+import { ProjectStatus } from '@/types/projectTypes';
 
-import { PROJECT_STATUS_STYLES, ISSUE_STATUS_STYLES, ProjectStatus } from '@/constants/badges';
+import { PROJECT_STATUS_STYLES, ISSUE_STATUS_STYLES } from '@/constants/badges';
 
 interface ProjectStatusBadgeProps {
   type: 'project';
@@ -9,7 +10,7 @@ interface ProjectStatusBadgeProps {
 
 interface IssueStatusBadgeProps {
   type: 'issue';
-  status: IssueStatusKor;
+  status: IssueStatus;
 }
 
 type StatusBadgeProps = ProjectStatusBadgeProps | IssueStatusBadgeProps;
@@ -20,7 +21,7 @@ export const StatusBadge = ({ type, status }: StatusBadgeProps) => {
   const statusStyles =
     type === 'project'
       ? PROJECT_STATUS_STYLES[status as ProjectStatus]
-      : ISSUE_STATUS_STYLES[status as IssueStatusKor];
+      : ISSUE_STATUS_STYLES[status as IssueStatus];
 
   return <span className={`${baseClasses} ${statusStyles}`}>{status}</span>;
 };

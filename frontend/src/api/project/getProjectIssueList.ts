@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 
 import { ApiResponse, PageResponse } from '@/types/apiTypes';
-import { IssueStatusKor } from '@/types/issueTypes';
+import { IssueStatus } from '@/types/issueTypes';
 
 import { axiosInstance } from '@/api/axiosConfig';
 import { logError } from '@/utils/auth/errorUtils';
@@ -16,7 +16,7 @@ export interface ProjectIssueSummary {
   issueId: number;
   name: string;
   tag: string | null;
-  status: IssueStatusKor;
+  status: IssueStatus;
   assigneeId: number | null;
   assigneeName: string | null;
   assigneeProfileImgUrl: string | null;

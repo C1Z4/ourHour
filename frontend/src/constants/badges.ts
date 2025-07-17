@@ -1,7 +1,3 @@
-import { Project } from '@/types/projectTypes';
-
-export type ProjectStatus = Project['status'];
-
 export const PROJECT_STATUS_STYLES = {
   시작전: 'bg-gray-100 text-gray-800',
   계획됨: 'bg-blue-100 text-blue-800',

@@ -9,4 +9,4 @@ export interface Comment {
   createdAt: string;
 }
 
-export type IssueStatusKor = '백로그' | '시작전' | '대기중' | '진행중' | '완료';
+export type IssueStatus = '백로그' | '시작전' | '대기중' | '진행중' | '완료';
