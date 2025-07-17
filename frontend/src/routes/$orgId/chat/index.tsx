@@ -19,5 +19,5 @@ function ChatListContainer() {
     return <span>채팅방 목록을 불러오는데 실패하였습니다: {error.message}</span>;
   }
 
-  return <ChatRoomListPage chatRooms={chatRooms} />;
+  return <ChatRoomListPage orgId={orgId} chatRooms={chatRooms} />;
 }

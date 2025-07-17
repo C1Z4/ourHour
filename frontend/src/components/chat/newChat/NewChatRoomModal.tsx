@@ -17,7 +17,7 @@ export const NewChatRoomModal = () => (
   <Dialog>
     <form>
       <DialogTrigger asChild>
-        <Button variant="outline">+</Button>
+        <Button variant="outline">+ 새 채팅 만들기</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
