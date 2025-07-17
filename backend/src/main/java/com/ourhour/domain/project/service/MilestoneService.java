@@ -38,6 +38,12 @@ public class MilestoneService {
             throw BusinessException.badRequest("프로젝트 정보를 찾을 수 없습니다.");
         }
 
+        // 마일스톤 이름 중복 체크
+        if (milestoneRepository.findByProjectEntity_ProjectIdAndName(projectId, milestoneReqDTO.getName())
+                .isPresent()) {
+            throw BusinessException.badRequest("이미 존재하는 마일스톤 이름입니다.");
+        }
+
         MilestoneEntity milestoneEntity = milestoneMapper.toMilestoneEntity(projectEntity, milestoneReqDTO);
 
         milestoneRepository.save(milestoneEntity);

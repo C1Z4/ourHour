@@ -80,6 +80,7 @@ public class IssueService {
         ProjectEntity projectEntity = projectRepository.findById(projectId)
                 .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다."));
 
+
         IssueEntity issueEntity = issueMapper.toIssueEntity(issueReqDTO);
 
         issueEntity.setProjectEntity(projectEntity);
@@ -89,6 +90,11 @@ public class IssueService {
             MilestoneEntity milestoneEntity = milestoneRepository.findById(issueReqDTO.getMilestoneId())
                     .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 마일스톤 ID입니다."));
             issueEntity.setMilestoneEntity(milestoneEntity);
+        } else {
+            MilestoneEntity unclassifiedMilestone = milestoneRepository
+                    .findByProjectEntity_ProjectIdAndName(projectId, "미분류")
+                    .orElseThrow(() -> BusinessException.badRequest("해당 프로젝트에 '미분류' 마일스톤이 존재하지 않습니다."));
+            issueEntity.setMilestoneEntity(unclassifiedMilestone);
         }
 
         // 담당자 설정

@@ -105,6 +105,7 @@ public class ProjectService {
     }
 
     // 프로젝트 등록
+    @Transactional
     public ApiResponse<Void> createProject(Long orgId, ProjectReqDTO projectReqDTO) {
         if (orgId <= 0) {
             throw BusinessException.badRequest("유효하지 않은 조직 ID입니다.");
@@ -119,7 +120,15 @@ public class ProjectService {
 
         ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
 
-        projectRepository.save(projectEntity);
+        ProjectEntity savedProject = projectRepository.save(projectEntity);
+
+        // 프로젝트 생성 시 '미분류' 마일스톤 자동 생성
+        MilestoneEntity unclassifiedMilestone = MilestoneEntity.builder()
+                .projectEntity(savedProject)
+                .name("미분류")
+                .progress((byte) 0)
+                .build();
+        milestoneRepository.save(unclassifiedMilestone);
 
         return ApiResponse.success(null, "프로젝트 등록이 완료되었습니다.");
     }
