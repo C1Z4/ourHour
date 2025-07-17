@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 import { useRouter, useParams } from '@tanstack/react-router';
 import {
@@ -39,12 +39,24 @@ export function ProjectDataTable() {
     enabled: !!orgId,
   });
 
-  const tableData = (projectSummaryList?.data?.data || []).flat();
+  const tableData = useMemo(
+    () => (projectSummaryList?.data?.data || []).flat(),
+    [projectSummaryList?.data?.data],
+  );
+
+  const handleSortingChange = useCallback(
+    (updater: SortingState | ((prev: SortingState) => SortingState)) => {
+      setSorting(updater);
+    },
+    [],
+  );
+
+  const memoizedColumns = useMemo(() => ProjectColumns, []);
 
   const table = useReactTable<ProjectSummary>({
     data: tableData,
-    columns: ProjectColumns,
-    onSortingChange: setSorting,
+    columns: memoizedColumns,
+    onSortingChange: handleSortingChange,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
