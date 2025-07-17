@@ -1,7 +1,5 @@
 import { Link } from '@tanstack/react-router';
 
-import { Milestone } from '@/types/issueTypes';
-
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,7 +10,7 @@ import {
 
 interface IssueDetailHeaderProps {
   projectName: string;
-  milestone?: Milestone | null;
+  milestoneName: string;
   issueTitle: string;
   orgId: string;
   projectId: string;
@@ -20,7 +18,7 @@ interface IssueDetailHeaderProps {
 
 export const IssueDetailHeader = ({
   projectName,
-  milestone,
+  milestoneName,
   issueTitle,
   orgId,
   projectId,
@@ -31,13 +29,17 @@ export const IssueDetailHeader = ({
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/$orgId/project/$projectId" params={{ orgId, projectId }}>
+              <Link
+                to="/$orgId/project/$projectId"
+                params={{ orgId, projectId }}
+                search={{ projectName }}
+              >
                 {projectName}
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>{milestone?.name || '미분류'}</BreadcrumbItem>
+          <BreadcrumbItem>{milestoneName}</BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>{issueTitle}</BreadcrumbItem>
         </BreadcrumbList>

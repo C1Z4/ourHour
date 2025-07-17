@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 
-import { mockIssues, mockMilestones } from '@/components/project/dashboard/mockData';
+import useProjectIssueDetailQuery from '@/hooks/queries/project/useProjectIssueDetailQuery';
 
 import { CommentSection } from './CommentSection';
 import { IssueDetailContent } from './IssueDetailContent';
@@ -11,15 +11,19 @@ interface IssueDetailPageProps {
   orgId: string;
   projectId: string;
   issueId: string;
+  projectName: string;
 }
 
-export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPageProps) => {
+export const IssueDetailPage = ({
+  orgId,
+  projectId,
+  issueId,
+  projectName,
+}: IssueDetailPageProps) => {
   const navigate = useNavigate();
+  const { data: issueData } = useProjectIssueDetailQuery({ issueId: Number(issueId) });
 
-  const issue = mockIssues.find((issue) => issue.id === issueId);
-  const milestone = issue?.milestoneId
-    ? mockMilestones.find((m) => m.id === issue.milestoneId)
-    : null;
+  const issue = issueData?.data;
 
   if (!issue) {
     return (
@@ -40,15 +44,15 @@ export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPagePr
   };
 
   const handleDeleteIssue = () => {
-    console.log('이슈 삭제:', issue.id);
+    console.log('이슈 삭제:', issue.issueId);
   };
 
   return (
     <div className="bg-white">
       <IssueDetailHeader
-        projectName="개발 프로젝트명 1"
-        milestone={milestone}
-        issueTitle={issue.title}
+        projectName={projectName}
+        milestoneName={issue.milestoneName}
+        issueTitle={issue.name}
         orgId={orgId}
         projectId={projectId}
       />
