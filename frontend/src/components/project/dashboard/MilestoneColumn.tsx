@@ -3,8 +3,6 @@ import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 
-import { Issue } from '@/types/issueTypes';
-
 import { ProjectMilestone } from '@/api/project/getProjectMilestoneList';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
@@ -12,29 +10,26 @@ import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { IssueCard } from '@/components/project/dashboard/IssueCard';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import useProjectIssueListQuery from '@/hooks/queries/project/useProjectIssueListQuery';
 
 interface MilestoneColumnProps {
-  milestone?: ProjectMilestone;
-  issues: Issue[];
-  isUncategorized?: boolean;
+  milestone: ProjectMilestone;
   orgId: string;
   projectId: string;
 }
 
-export const MilestoneColumn = ({
-  milestone,
-  issues,
-  isUncategorized = false,
-  orgId,
-  projectId,
-}: MilestoneColumnProps) => {
+export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumnProps) => {
   const navigate = useNavigate();
+
+  const { data: issueListData } = useProjectIssueListQuery({
+    milestoneId: milestone.milestoneId,
+  });
+
+  const issueList = (issueListData?.data.data || []).flat();
 
   const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
 
-  const [milestoneName, setMilestoneName] = useState(milestone?.name || '');
-
-  const displayName = isUncategorized ? '미분류' : milestone?.name || '';
+  const [milestoneName, setMilestoneName] = useState(milestone.name);
 
   const handleEditMilestone = () => {
     // 마일스톤 수정 로직
@@ -58,8 +53,8 @@ export const MilestoneColumn = ({
       <div className="p-4">
         <div className="bg-white border border-gray-200 rounded-md p-3 mb-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">{displayName}</h2>
-            {!isUncategorized && (
+            <h2 className="text-lg font-semibold text-gray-900">{milestone.name}</h2>
+            {milestone.milestoneId !== 0 && (
               <MoreOptionsPopover
                 className="w-45"
                 editLabel="마일스톤명 수정"
@@ -71,7 +66,7 @@ export const MilestoneColumn = ({
           </div>
         </div>
 
-        {!isUncategorized && milestone && (
+        {milestone.milestoneId !== 0 && milestone.milestoneId !== null && (
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-600">
@@ -84,8 +79,8 @@ export const MilestoneColumn = ({
         )}
 
         <div className="space-y-2 mb-4">
-          {issues.map((issue) => (
-            <IssueCard key={issue.id} issue={issue} orgId={orgId} projectId={projectId} />
+          {issueList.map((issue) => (
+            <IssueCard key={issue.issueId} issue={issue} orgId={orgId} projectId={projectId} />
           ))}
         </div>
 

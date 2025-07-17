@@ -1,8 +1,6 @@
-import { Issue } from '@/types/issueTypes';
 import { Project } from '@/types/projectTypes';
 
 export type ProjectStatus = Project['status'];
-export type IssueStatus = Issue['status'];
 
 export const PROJECT_STATUS_STYLES = {
   시작전: 'bg-gray-100 text-gray-800',
