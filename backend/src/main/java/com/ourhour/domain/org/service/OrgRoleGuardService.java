@@ -6,10 +6,10 @@ import com.ourhour.domain.org.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static com.ourhour.domain.user.exception.UserException.roleConflict;
+import static com.ourhour.domain.org.exceptions.OrgException.notMuchRootAdminException;
+import static com.ourhour.domain.org.exceptions.OrgException.tooMuchRootAdminException;
 
 @Service
 @RequiredArgsConstructor
@@ -17,20 +17,23 @@ public class OrgRoleGuardService {
 
     public void checkCanWithDraw(List<MemberEntity> memberEntityList) {
 
-        // 해당 멤버가 속해 있는 모든 회사 탐색(MemberEntity에 연결된 모든 OrgParticipantMemberEntity 조회)
-        List<OrgParticipantMemberEntity> orgParticipantMemberEntityList = new ArrayList<>();
-        for (MemberEntity memberEntity : memberEntityList) {
+    }
 
-            List<OrgParticipantMemberEntity> participantList = memberEntity.getOrgParticipantMemberEntityList();
-            orgParticipantMemberEntityList.addAll(participantList);
+    public void assertRoleChangeAllowed (Role oldRole, Role newRole, int rootAdminCount) {
 
+        // 루트 관리자-> 다른 권한 : 루트 관리자 최소 정책 위반(최소 1명)
+        if (oldRole == Role.ROOT_ADMIN && newRole != Role.ROOT_ADMIN) {
+            // 현재 루트 관리자 수가 1이하일 때 루트 관리자 권한 해제 시 예외
+            if (rootAdminCount <= 1) {
+                throw notMuchRootAdminException();
+            }
         }
 
-        // 해당 회사에 대한 권한 확인
-        for (OrgParticipantMemberEntity orgParticipantMemberEntity : orgParticipantMemberEntityList) {
-            Role role = orgParticipantMemberEntity.getRole();
-            if (role.equals(Role.ROOT_ADMIN)) {
-                throw roleConflict();
+        // 다른 권한 -> 루트 관리자 : 루트 관리자 최대 정책 위반(최대 2명)
+        if (oldRole != Role.ROOT_ADMIN && newRole == Role.ROOT_ADMIN) {
+            // 현재 루트 관리자 수가 2일 때 루트 관리자 권한 부여 시 예외
+            if (rootAdminCount >= 2) {
+                throw tooMuchRootAdminException();
             }
         }
 
