@@ -9,15 +9,17 @@ interface IssueCardProps {
   issue: ProjectIssueSummary;
   orgId: string;
   projectId: string;
+  projectName: string;
 }
 
-export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
+export const IssueCard = ({ issue, orgId, projectId, projectName }: IssueCardProps) => {
   const navigate = useNavigate();
 
   const handleIssueClick = () => {
     navigate({
       to: '/$orgId/project/$projectId/issue/$issueId',
       params: { orgId, projectId, issueId: issue.issueId.toString() },
+      search: { projectName },
     });
   };
 

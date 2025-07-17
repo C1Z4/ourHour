@@ -56,10 +56,11 @@ export function ProjectDataTable() {
     },
   });
 
-  const handleProjectClick = (projectId: string) => {
+  const handleProjectClick = (projectId: string, projectName: string) => {
     router.navigate({
       to: '/$orgId/project/$projectId',
       params: { orgId, projectId },
+      search: { projectName },
     });
   };
 
@@ -91,7 +92,7 @@ export function ProjectDataTable() {
                   key={row.id}
                   className="hover:bg-gray-50 transition-colors cursor-pointer"
                   data-state={row.getIsSelected() && 'selected'}
-                  onClick={() => handleProjectClick(row.original.projectId)}
+                  onClick={() => handleProjectClick(row.original.projectId, row.original.name)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-4 pl-3">

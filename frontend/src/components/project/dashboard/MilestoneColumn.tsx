@@ -16,9 +16,15 @@ interface MilestoneColumnProps {
   milestone: ProjectMilestone;
   orgId: string;
   projectId: string;
+  projectName: string;
 }
 
-export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumnProps) => {
+export const MilestoneColumn = ({
+  milestone,
+  orgId,
+  projectId,
+  projectName,
+}: MilestoneColumnProps) => {
   const navigate = useNavigate();
 
   const { data: issueListData } = useProjectIssueListQuery({
@@ -80,7 +86,13 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
 
         <div className="space-y-2 mb-4">
           {issueList.map((issue) => (
-            <IssueCard key={issue.issueId} issue={issue} orgId={orgId} projectId={projectId} />
+            <IssueCard
+              key={issue.issueId}
+              issue={issue}
+              orgId={orgId}
+              projectId={projectId}
+              projectName={projectName}
+            />
           ))}
         </div>
 
