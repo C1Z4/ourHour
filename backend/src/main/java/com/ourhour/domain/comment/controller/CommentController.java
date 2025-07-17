@@ -33,7 +33,7 @@ public class CommentController {
     public ResponseEntity<ApiResponse<CommentPageResDTO>> getComments(
             @RequestParam(required = false) Long postId,
             @RequestParam(required = false) Long issueId,
-            @RequestParam(defaultValue = "0") @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다.") int currentPage,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
         CommentPageResDTO response = commentService.getComments(postId, issueId, currentPage, size);
