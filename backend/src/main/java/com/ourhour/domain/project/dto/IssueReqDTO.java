@@ -1,7 +1,5 @@
 package com.ourhour.domain.project.dto;
 
-import com.ourhour.domain.project.enums.IssueStatus;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -18,7 +16,7 @@ public class IssueReqDTO {
     @NotBlank(message = "이슈 내용은 필수 입력 값입니다.")
     private String content;
 
-    private IssueStatus status;
+    private String status;
 
     private Long milestoneId;
 
