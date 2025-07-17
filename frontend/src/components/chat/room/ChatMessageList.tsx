@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 
-import type { ChatMessage } from '@/types/chatTypes';
+import type { ChatMessage } from '@/types/chatTypes.ts';
 
 const messageContainerStyle: React.CSSProperties = {
   display: 'flex',

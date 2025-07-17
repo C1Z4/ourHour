@@ -1,7 +1,7 @@
 import { ChatMessage } from '@/types/chatTypes.ts';
 
-import { ChatMessageInput } from '@/components/chat/ChatMessageInput.tsx';
-import { ChatMessageList } from '@/components/chat/ChatMessageList.tsx';
+import { ChatMessageInput } from '@/components/chat/chat-room/ChatMessageInput.tsx';
+import { ChatMessageList } from '@/components/chat/chat-room/ChatMessageList.tsx';
 
 interface ChatRoomPageProps {
   messages: ChatMessage[];

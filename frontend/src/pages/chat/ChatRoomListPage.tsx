@@ -1,7 +1,7 @@
 import { ChatRoom } from '@/types/chatTypes.ts';
 
 import { ChatRoomList } from '@/components/chat/ChatRoomList.tsx';
-import { ChatRoomListHeader } from '@/components/chat/ChatRoomListHeader.tsx';
+import { ChatRoomListHeader } from '@/components/chat/list/ChatRoomListHeader.tsx';
 
 interface ChatRoomListPageProps {
   chatRooms: ChatRoom[];
