@@ -55,7 +55,7 @@ public class ProjectParticipantService {
         Page<ProjectParticipantDTO> participantDTOPage = participantPage
                 .map(entity -> projectParticipantMapper.toProjectParticipantDTO(entity, orgId));
 
-        return ApiResponse.success(PageResponse.of(participantDTOPage));
+        return ApiResponse.success(PageResponse.of(participantDTOPage), "프로젝트 참여자 목록 조회에 성공했습니다.");
     }
 
     // 프로젝트 참여 여부 확인
