@@ -15,9 +15,10 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
 
 
     @Query("SELECT DISTINCT cp FROM ChatParticipantEntity cp " +
-            "JOIN FETCH cp.chatRoomEntity " +
+            "JOIN FETCH cp.chatRoomEntity cr " +
             "JOIN OrgParticipantMemberEntity opm ON cp.memberEntity.memberId = opm.memberEntity.memberId " +
-            "WHERE opm.orgEntity.orgId = :orgId AND cp.memberEntity.memberId = :memberId")
+            "WHERE opm.orgEntity.orgId = :orgId AND cp.memberEntity.memberId = :memberId " +
+            "AND cr.orgEntity.orgId = :orgId")
     List<ChatParticipantEntity> findChatRoomsByOrgAndMember(@Param("orgId") Long orgId, @Param("memberId") Long memberId);
 
     @Query("SELECT DISTINCT cp FROM ChatParticipantEntity cp " +
