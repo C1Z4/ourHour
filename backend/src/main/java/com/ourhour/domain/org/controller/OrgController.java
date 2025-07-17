@@ -65,10 +65,10 @@ public class OrgController {
     @GetMapping("/{orgId}/members")
     public ResponseEntity<ApiResponse<PageResponse<MemberInfoResDTO>>> getOrgMembers(
             @PathVariable @Min(value = 1, message = "팀 ID는 1 이상이어야 합니다.") Long orgId,
-            @RequestParam(defaultValue = "0") @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다.") int currentPage,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
-        Pageable pageable = PageRequest.of(currentPage, size);
+        Pageable pageable = PageRequest.of(currentPage - 1, size);
 
         PageResponse<MemberInfoResDTO> response = orgService.getOrgMembers(orgId, pageable);
 
