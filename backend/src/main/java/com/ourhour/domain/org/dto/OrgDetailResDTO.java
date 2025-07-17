@@ -1,6 +1,5 @@
 package com.ourhour.domain.org.dto;
 
-import com.ourhour.domain.org.enums.Role;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class OrgResDTO {
+public class OrgDetailResDTO {
 
     private Long orgId;
     private String name;
@@ -21,7 +20,5 @@ public class OrgResDTO {
     private String phone;
     private String businessNumber;
     private String logoImgUrl;
-    private String memberName;
-    private Role myRole;
 
 }

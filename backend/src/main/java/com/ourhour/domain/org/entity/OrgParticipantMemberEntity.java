@@ -40,7 +40,7 @@ public class OrgParticipantMemberEntity {
 
     @Builder
     public OrgParticipantMemberEntity(OrgParticipantMemberId orgParticipantMemberId, OrgEntity orgEntity, MemberEntity memberEntity, DepartmentEntity departmentEntity, PositionEntity positionEntity, Role role) {
-        this.orgParticipantMemberId = orgParticipantMemberId;
+        this.orgParticipantMemberId = new OrgParticipantMemberId();
         this.orgEntity = orgEntity;
         this.memberEntity = memberEntity;
         this.departmentEntity = departmentEntity;
