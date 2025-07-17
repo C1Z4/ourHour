@@ -12,7 +12,7 @@ interface UseProjectIssueListParams {
 
 const useProjectIssueListQuery = ({
   milestoneId,
-  currentPage = 0,
+  currentPage = 1,
   size = 10,
   enabled = true,
 }: UseProjectIssueListParams) =>

@@ -5,6 +5,8 @@ import { ApiResponse, PageResponse } from '@/types/apiTypes';
 import { axiosInstance } from '@/api/axiosConfig';
 import { logError } from '@/utils/auth/errorUtils';
 
+import { ProjectBaseInfo } from './getProjectInfo';
+
 interface GetProjectSummaryListRequest {
   orgId: string;
   participantLimit?: number;
@@ -17,13 +19,7 @@ export interface ParticipantSummary {
   memberName: string;
 }
 
-export interface ProjectSummary {
-  projectId: string;
-  name: string;
-  description: string;
-  startAt: string;
-  endAt: string;
-  status: string;
+export interface ProjectSummary extends ProjectBaseInfo {
   participants: ParticipantSummary[];
 }
 

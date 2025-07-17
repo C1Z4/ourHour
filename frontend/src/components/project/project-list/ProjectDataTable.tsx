@@ -27,8 +27,9 @@ import useProjectSummaryListQuery from '@/hooks/queries/project/useProjectSummar
 import { ProjectColumns } from './ProjectColumns';
 
 export function ProjectDataTable() {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
+  const [sorting, setSorting] = useState<SortingState>([]);
   const router = useRouter();
 
   const { orgId } = useParams({ from: '/$orgId' });
@@ -36,9 +37,6 @@ export function ProjectDataTable() {
   const { data: projectSummaryList, isLoading } = useProjectSummaryListQuery({
     orgId: orgId!,
     enabled: !!orgId,
-    currentPage: 0,
-    size: 10,
-    participantLimit: 3,
   });
 
   const tableData = (projectSummaryList?.data?.data || []).flat();
@@ -92,7 +90,9 @@ export function ProjectDataTable() {
                   key={row.id}
                   className="hover:bg-gray-50 transition-colors cursor-pointer"
                   data-state={row.getIsSelected() && 'selected'}
-                  onClick={() => handleProjectClick(row.original.projectId, row.original.name)}
+                  onClick={() =>
+                    handleProjectClick(row.original.projectId.toString(), row.original.name)
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-4 pl-3">
@@ -112,7 +112,11 @@ export function ProjectDataTable() {
         </Table>
       </div>
       <div className="flex justify-center pt-4">
-        <PaginationComponent currentPage={1} totalPages={1} onPageChange={() => {}} />
+        <PaginationComponent
+          currentPage={currentPage}
+          totalPages={projectSummaryList?.data.totalPages || 1}
+          onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
+        />
       </div>
     </div>
   );
