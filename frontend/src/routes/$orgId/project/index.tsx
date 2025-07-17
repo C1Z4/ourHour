@@ -3,8 +3,7 @@ import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 
-import { ProjectInfo } from '@/types/projectTypes';
-
+import { ProjectBaseInfo } from '@/api/project/getProjectInfo';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ProjectModal } from '@/components/project/modal/ProjectModal';
 import { ProjectDataTable } from '@/components/project/project-list';
@@ -14,9 +13,11 @@ export const Route = createFileRoute('/$orgId/project/')({
 });
 
 function ProjectListPage() {
+  const { orgId } = Route.useParams();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleProjectSubmit = (data: Partial<ProjectInfo>) => {
+  const handleProjectSubmit = (data: Partial<ProjectBaseInfo>) => {
     console.log('새 프로젝트 등록:', data);
     setIsModalOpen(false);
   };
@@ -50,6 +51,7 @@ function ProjectListPage() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleProjectSubmit}
+          orgId={Number(orgId)}
         />
       </div>
     </div>
