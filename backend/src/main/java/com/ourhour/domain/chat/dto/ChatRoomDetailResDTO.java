@@ -1,19 +1,18 @@
 package com.ourhour.domain.chat.dto;
 
 import com.ourhour.global.common.enums.TagColor;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Builder
-public class ChatRoomListResDTO {
+@AllArgsConstructor
+public class ChatRoomDetailResDTO {
 
     private Long roomId;
     private String name;
     private TagColor color;
-    private String lastMessage;
-    private LocalDateTime lastMessageTimestamp;
+    private LocalDateTime createdAt;
+    private Long orgId;
 }
-
