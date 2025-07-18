@@ -60,7 +60,7 @@ public class OrgMemberController {
     }
 
     // 구성원 권한 변경
-//    @OrgAuth(accessLevel = Role.ROOT_ADMIN)
+    @OrgAuth(accessLevel = Role.ROOT_ADMIN)
     @PatchMapping("/{orgId}/members/{memberId}/role")
     public ResponseEntity<ApiResponse<OrgMemberRoleResDTO>> getOrgMember(@OrgId @PathVariable Long orgId, @PathVariable Long memberId, @RequestBody OrgMemberRoleReqDTO orgMemberRoleReqDTO) {
 
@@ -73,13 +73,16 @@ public class OrgMemberController {
     }
 
     // 구성원 삭제
-    @OrgAuth(accessLevel = Role.ROOT_ADMIN)
+//    @OrgAuth(accessLevel = Role.ROOT_ADMIN)
     @DeleteMapping("/{orgId}/members/{memberId}")
     public ResponseEntity<ApiResponse<Void>> deleteOrgMember(@OrgId @PathVariable Long orgId, @PathVariable Long memberId) {
+
         orgMemberService.deleteOrgMember(orgId, memberId);
 
-        return ResponseEntity.ok(ApiResponse.success(null, "팀 구성원 삭제에 성공하였습니다."));
-    }
+        ApiResponse<Void> apiResponse = ApiResponse.success(null, "팀 구성원 삭제에 성공하였습니다.");
 
+        return ResponseEntity.ok(apiResponse);
+
+    }
 
 }

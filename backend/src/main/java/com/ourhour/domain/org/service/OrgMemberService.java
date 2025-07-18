@@ -5,8 +5,8 @@ import com.ourhour.domain.member.exceptions.MemberException;
 import com.ourhour.domain.org.dto.OrgMemberRoleReqDTO;
 import com.ourhour.domain.org.dto.OrgMemberRoleResDTO;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
-import com.ourhour.domain.org.entity.OrgParticipantMemberId;
 import com.ourhour.domain.org.enums.Role;
+import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.mapper.OrgParticipantMemberMapper;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
@@ -18,7 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.ourhour.domain.org.enums.Status.ACTIVE;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -59,9 +59,9 @@ public class OrgMemberService {
     @Transactional
     public OrgMemberRoleResDTO changeRole(Long orgId, Long memberId, OrgMemberRoleReqDTO orgMemberRoleReqDTO) {
 
-        // 대상 멤버 조회
+        // 활성화 상태인 대상 멤버 조회
         OrgParticipantMemberEntity orgParticipantMemberEntity = orgParticipantMemberRepository
-                .findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, memberId, ACTIVE)
+                .findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, memberId, Status.ACTIVE)
                 .orElseThrow(MemberException::memberNotFoundException);
 
         Role oldRole = orgParticipantMemberEntity.getRole();
@@ -91,10 +91,21 @@ public class OrgMemberService {
     }
 
     // 구성원 삭제
+    // TODO : 리스트 삭제
     @Transactional
     public void deleteOrgMember(Long orgId, Long memberId) {
 
+        // 활성화 상태인 삭제대상 멤버 조회
+        OrgParticipantMemberEntity orgParticipantMemberEntity = orgParticipantMemberRepository
+                .findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, memberId, Status.ACTIVE)
+                .orElseThrow(MemberException::memberNotFoundException);
 
-        orgParticipantMemberRepository.deleteById(new OrgParticipantMemberId(orgId, memberId));
+        // 마지막 루트 관리자 정책 검토
+        orgRoleGuardService.assertNotLastRootAdminInOrg(orgId, memberId);
+
+        // 삭제 처리
+        orgParticipantMemberEntity.changeStatus(Status.INACTIVE);
+        orgParticipantMemberEntity.markLeftNow();
+
     }
 }

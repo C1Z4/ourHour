@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 
@@ -63,5 +64,13 @@ public class OrgParticipantMemberEntity {
 
     public void changeRole(Role newRole) {
         this.role = newRole;
+    }
+
+    public void changeStatus(Status status) {
+        this.status = status;
+    }
+
+    public void markLeftNow() {
+        this.leftAt = LocalDateTime.now();
     }
 }

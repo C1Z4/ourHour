@@ -1,16 +1,22 @@
 package com.ourhour.domain.org.service;
 
+import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.member.entity.MemberEntity;
+import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
+import com.ourhour.domain.org.exceptions.OrgException;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
+import com.ourhour.global.jwt.util.UserContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.ourhour.global.jwt.dto.Claims;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.ourhour.domain.auth.exception.AuthException.unauthorizedException;
 import static com.ourhour.domain.org.exceptions.OrgException.*;
 
 @Service
@@ -18,6 +24,7 @@ import static com.ourhour.domain.org.exceptions.OrgException.*;
 public class OrgRoleGuardService {
 
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
+    private final MemberRepository memberRepository;
 
     // 계정 탈퇴 예외 처리
     public void assertNotLastRootAdminAcrossAll(List<MemberEntity> memberEntityList) {
@@ -40,7 +47,7 @@ public class OrgRoleGuardService {
 
                 // 루트 관리자인 경우 해당 회사의 루트 관리자 수 조회
                 Long orgId = opm.getOrgEntity().getOrgId();
-                int rootAdminCount = orgParticipantMemberRepository.countRootAdmins(orgId);
+                int rootAdminCount = orgParticipantMemberRepository.countByOrgEntity_OrgIdAndRoleAndStatus(orgId, Role.ROOT_ADMIN, Status.ACTIVE);
 
                 if (rootAdminCount <= 1) {
                     String orgName = opm.getOrgEntity().getName();
@@ -55,6 +62,44 @@ public class OrgRoleGuardService {
 
     }
 
+    // 구성원 삭제 전 정책 검사
+    public void assertNotLastRootAdminInOrg(Long orgId, Long targetMemberId) {
+
+        // 삭제하려는 대상이 ACTIVE ROOT_ADMIN 인지 확인 (아니면 정책 비적용 → 통과)
+        boolean isTargetRoot = orgParticipantMemberRepository
+                .existsByOrgEntity_OrgIdAndMemberEntity_MemberIdAndRoleAndStatus(
+                        orgId, targetMemberId, Role.ROOT_ADMIN, Status.ACTIVE
+                );
+        if (!isTargetRoot) {
+            return;
+        }
+
+        // 삭제 요청자 확인 (삭제를 하고 있는 주체)
+        Long actingUserId = UserContextHolder.get().getUserId();
+
+        // 해당 조직 내 삭제 요청자 확인
+        MemberEntity actingMember =  memberRepository
+                .findMemberInOrgByUserId(orgId, actingUserId)
+                .orElseThrow(AuthException::userNotFoundException);
+        Long actingMemberId = actingMember.getMemberId();
+
+        // 자기 자신인 경우 삭제 금지
+        if (actingMemberId.equals(targetMemberId)) {
+            throw cannotSelfDeleteRootAdmin();
+        }
+
+        // 조직 내 활성 루트 관리자 조회
+        int rootAdminCount = orgParticipantMemberRepository
+                .countByOrgEntity_OrgIdAndRoleAndStatus(orgId, Role.ROOT_ADMIN, Status.ACTIVE);
+
+        // 마지막 루트 관리자인 경우 삭제 불가
+        if (rootAdminCount <= 1) {
+            throw lastRootAdminRemovalNotAllowed();
+        }
+
+    }
+
+    // 루트 관리자 권한 정책 (루트 관리자 : 회사별 최소 1명, 최대 2명)
     public void assertRoleChangeAllowed (Role oldRole, Role newRole, int rootAdminCount) {
 
         // 루트 관리자-> 다른 권한 : 루트 관리자 최소 정책 위반(최소 1명)
@@ -74,4 +119,5 @@ public class OrgRoleGuardService {
         }
 
     }
+
 }
