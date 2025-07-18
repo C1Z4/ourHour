@@ -6,6 +6,8 @@ import { Info, Plus } from 'lucide-react';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { Input } from '@/components/ui/input';
+import { useMilestoneCreateMutation } from '@/hooks/queries/project/useMilestoneCreateMutation';
+import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface ProjectDashboardHeaderProps {
   projectName: string;
@@ -25,8 +27,24 @@ export const ProjectDashboardHeader = ({
   const navigate = useNavigate();
   const [isCreateMilestoneModalOpen, setIsCreateMilestoneModalOpen] = useState(false);
 
+  const [milestoneName, setMilestoneName] = useState('');
+
+  const { mutate: createMilestone } = useMilestoneCreateMutation({
+    projectId: Number(projectId),
+  });
+
   const handleCreateMilestone = () => {
-    console.log('마일스톤 등록');
+    try {
+      createMilestone({
+        name: milestoneName,
+        projectId: Number(projectId),
+      });
+      showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
+    } catch (error) {
+      // 에러 토스트 띄워주기
+    }
+    setIsCreateMilestoneModalOpen(false);
+    setMilestoneName('');
   };
 
   const handleCreateIssue = () => {
@@ -96,7 +114,13 @@ export const ProjectDashboardHeader = ({
           onClose={() => setIsCreateMilestoneModalOpen(false)}
           title="마일스톤 등록"
           children={
-            <Input type="text" className="w-full" placeholder="마일스톤명을 입력해주세요." />
+            <Input
+              type="text"
+              className="w-full"
+              placeholder="마일스톤명을 입력해주세요."
+              value={milestoneName}
+              onChange={(e) => setMilestoneName(e.target.value)}
+            />
           }
           footer={
             <div className="">
