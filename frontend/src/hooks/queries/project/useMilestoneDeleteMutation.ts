@@ -6,7 +6,7 @@ import { queryClient } from '@/main';
 
 interface UseMilestoneDeleteMutationParams {
   projectId: number;
-  milestoneId: number;
+  milestoneId: number | null;
 }
 
 const useMilestoneDeleteMutation = ({ projectId, milestoneId }: UseMilestoneDeleteMutationParams) =>

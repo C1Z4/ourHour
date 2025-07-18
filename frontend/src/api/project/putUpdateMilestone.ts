@@ -6,7 +6,7 @@ import { axiosInstance } from '@/api/axiosConfig';
 import { logError } from '@/utils/auth/errorUtils';
 
 export interface PutUpdateMilestoneRequest {
-  milestoneId: number;
+  milestoneId: number | null;
   name: string;
 }
 

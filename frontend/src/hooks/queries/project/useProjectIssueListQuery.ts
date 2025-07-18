@@ -4,14 +4,16 @@ import getProjectIssueList from '@/api/project/getProjectIssueList';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 
 interface UseProjectIssueListParams {
-  milestoneId: number;
+  projectId: number;
+  milestoneId?: number | null;
   currentPage?: number;
   size?: number;
   enabled?: boolean;
 }
 
 const useProjectIssueListQuery = ({
-  milestoneId,
+  projectId,
+  milestoneId = null,
   currentPage = 1,
   size = 10,
   enabled = true,
@@ -20,11 +22,12 @@ const useProjectIssueListQuery = ({
     queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, milestoneId, currentPage, size],
     queryFn: () =>
       getProjectIssueList({
+        projectId,
         milestoneId,
         currentPage,
         size,
       }),
-    enabled: enabled && !!milestoneId,
+    enabled: enabled && milestoneId !== undefined,
   });
 
 export default useProjectIssueListQuery;

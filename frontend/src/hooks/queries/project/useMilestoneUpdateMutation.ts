@@ -9,7 +9,7 @@ import { handleHttpError, logError } from '@/utils/auth/errorUtils';
 
 interface UseMilestoneUpdateMutationParams {
   projectId: number;
-  milestoneId: number;
+  milestoneId: number | null;
 }
 
 export const useMilestoneUpdateMutation = ({

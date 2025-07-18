@@ -1,4 +1,4 @@
-import { IssueStatus } from '@/types/issueTypes';
+import { IssueStatusEng, IssueStatusKo } from '@/types/issueTypes';
 import { ProjectStatusEng, ProjectStatusKo } from '@/types/projectTypes';
 
 import { PROJECT_STATUS_STYLES, ISSUE_STATUS_STYLES } from '@/constants/badges';
@@ -10,7 +10,7 @@ interface ProjectStatusBadgeProps {
 
 interface IssueStatusBadgeProps {
   type: 'issue';
-  status: IssueStatus;
+  status: IssueStatusKo | IssueStatusEng | undefined;
 }
 
 type StatusBadgeProps = ProjectStatusBadgeProps | IssueStatusBadgeProps;

@@ -6,7 +6,7 @@ import { axiosInstance } from '@/api/axiosConfig';
 import { logError } from '@/utils/auth/errorUtils';
 
 export interface DeleteMilestoneRequest {
-  milestoneId: number;
+  milestoneId: number | null;
 }
 
 const deleteMilestone = async (request: DeleteMilestoneRequest): Promise<ApiResponse<void>> => {
