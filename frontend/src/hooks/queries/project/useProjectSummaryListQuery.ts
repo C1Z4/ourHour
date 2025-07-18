@@ -4,7 +4,7 @@ import getProjectSummaryList from '@/api/project/getProjectSummaryList';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 
 interface UseProjectSummaryListParams {
-  orgId: string;
+  orgId: number;
   participantLimit?: number;
   currentPage?: number;
   size?: number;

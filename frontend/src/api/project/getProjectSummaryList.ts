@@ -8,7 +8,7 @@ import { logError } from '@/utils/auth/errorUtils';
 import { ProjectBaseInfo } from './getProjectInfo';
 
 interface GetProjectSummaryListRequest {
-  orgId: string;
+  orgId: number;
   participantLimit?: number;
   currentPage?: number;
   size?: number;

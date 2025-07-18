@@ -4,7 +4,7 @@ import getProjectMilestoneList from '@/api/project/getProjectMilestoneList';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 
 interface UseProjectMilestoneListParams {
-  projectId: string;
+  projectId: number;
   currentPage?: number;
   size?: number;
   enabled?: boolean;

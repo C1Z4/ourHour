@@ -21,7 +21,7 @@ export const useMilestoneUpdateMutation = ({
       putUpdateMilestone({ ...request, milestoneId }),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId.toString()],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
       });
     },
     onError: (error: AxiosError) => {

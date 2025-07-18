@@ -39,7 +39,7 @@ export function ProjectDataTable() {
   const { orgId } = useParams({ from: '/$orgId' });
 
   const { data: projectSummaryList, isLoading } = useProjectSummaryListQuery({
-    orgId: orgId!,
+    orgId: Number(orgId),
     enabled: !!orgId,
     currentPage,
   });

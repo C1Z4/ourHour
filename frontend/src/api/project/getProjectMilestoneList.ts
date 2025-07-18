@@ -6,7 +6,7 @@ import { axiosInstance } from '@/api/axiosConfig';
 import { logError } from '@/utils/auth/errorUtils';
 
 interface GetProjectMilestoneListRequest {
-  projectId: string;
+  projectId: number;
   currentPage?: number;
   size?: number;
 }

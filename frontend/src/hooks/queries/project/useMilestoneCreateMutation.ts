@@ -16,7 +16,7 @@ export const useMilestoneCreateMutation = ({ projectId }: UseMilestoneCreateMuta
     mutationFn: (request: PostCreateMilestoneRequest) => postCreateMilestone(request),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId.toString()],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
       });
     },
     onError: (error: AxiosError) => {

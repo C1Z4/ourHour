@@ -16,7 +16,7 @@ function ProjectDashboard() {
   const [isMyIssuesOnly, setIsMyIssuesOnly] = useState(true);
 
   const { data: milestoneList } = useProjectMilestoneListQuery({
-    projectId,
+    projectId: Number(projectId),
   });
 
   const handleToggleViewMode = () => {

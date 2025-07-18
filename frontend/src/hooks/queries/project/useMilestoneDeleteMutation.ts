@@ -14,7 +14,7 @@ const useMilestoneDeleteMutation = ({ projectId, milestoneId }: UseMilestoneDele
     mutationFn: () => deleteMilestone({ milestoneId }),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId.toString()],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
       });
     },
   });

@@ -16,7 +16,7 @@ export const useProjectCreateMutation = ({ orgId }: UseProjectCreateMutationPara
     mutationFn: (request: PostCreateProjectRequest) => postCreateProject(request),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId.toString()],
+        queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId],
       });
     },
     onError: (error: AxiosError) => {

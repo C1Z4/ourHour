@@ -17,13 +17,13 @@ export const useProjectUpdateMutation = ({ orgId, projectId }: UseProjectUpdateM
     mutationFn: (request: PutUpdateProjectRequest) => putUpdateProject(request),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId.toString()],
+        queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId],
       });
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.PROJECT_INFO, projectId.toString()],
+        queryKey: [PROJECT_QUERY_KEYS.PROJECT_INFO, projectId],
       });
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, projectId.toString()],
+        queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, projectId, orgId],
       });
     },
     onError: (error: AxiosError) => {

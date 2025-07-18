@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios';
 
 import { ApiResponse } from '@/types/apiTypes';
+import { IssueStatusEng } from '@/types/issueTypes';
 
 import { axiosInstance } from '@/api/axiosConfig';
 import { logError } from '@/utils/auth/errorUtils';
@@ -11,7 +12,7 @@ export interface PostCreateIssueRequest {
   assigneeId: number | null;
   name: string;
   content: string;
-  status: string | null;
+  status: IssueStatusEng | null;
 }
 
 const postCreateIssue = async (request: PostCreateIssueRequest): Promise<ApiResponse<void>> => {

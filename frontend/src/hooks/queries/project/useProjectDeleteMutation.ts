@@ -13,7 +13,7 @@ const useProjectDeleteMutation = ({ orgId }: UseProjectDeleteMutationParams) =>
     mutationFn: (request: DeleteProjectRequest) => deleteProject(request),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId.toString()],
+        queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId],
       });
     },
   });

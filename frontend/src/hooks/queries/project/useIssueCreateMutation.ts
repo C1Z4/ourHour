@@ -17,7 +17,7 @@ export const useIssueCreateMutation = ({ milestoneId, projectId }: UseIssueCreat
     mutationFn: (request: PostCreateIssueRequest) => postCreateIssue(request),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId.toString()],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
       });
 
       // API 요청에서 실제 milestoneId를 확인하여 무효화
