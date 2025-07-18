@@ -7,7 +7,7 @@ export const Route = createFileRoute('/$orgId/project/$projectId/info')({
 });
 
 function ProjectInfo() {
-  const { projectId } = Route.useParams();
+  const { projectId, orgId } = Route.useParams();
 
-  return <ProjectInfoPage projectId={projectId} />;
+  return <ProjectInfoPage projectId={projectId} orgId={orgId} />;
 }

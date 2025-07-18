@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { mockIssues } from '@/components/project/dashboard/mockData';
 import { IssueFormPage } from '@/components/project/issue-form/IssueFormPage';
+import useProjectIssueDetailQuery from '@/hooks/queries/project/useProjectIssueDetailQuery';
 
 export const Route = createFileRoute('/$orgId/project/$projectId/issue/edit/$issueId')({
   component: IssueEdit,
@@ -10,7 +10,9 @@ export const Route = createFileRoute('/$orgId/project/$projectId/issue/edit/$iss
 function IssueEdit() {
   const { orgId, projectId, issueId } = Route.useParams();
 
-  const issue = mockIssues.find((issue) => issue.id === issueId);
+  const { data: issueData } = useProjectIssueDetailQuery({ issueId: Number(issueId) });
+
+  const issue = issueData?.data;
 
   if (!issue) {
     return (

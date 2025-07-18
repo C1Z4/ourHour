@@ -12,15 +12,29 @@ import { getAccessTokenFromStore, logout, setAccessTokenToStore } from '@/utils/
 
 const refreshAccessToken = async (): Promise<string | null> => {
   try {
-    const response = await axios.post('/api/auth/token', {});
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
 
-    const { accessToken: newAccessToken } = response.data;
+    if (!response.ok) {
+      return null;
+    }
 
-    setAccessTokenToStore(newAccessToken);
+    const data = await response.json();
+    const newAccessToken = data.data?.accessToken || data.accessToken;
 
-    return newAccessToken;
+    if (newAccessToken) {
+      setAccessTokenToStore(newAccessToken);
+      return newAccessToken;
+    }
+
+    return null;
   } catch (error) {
-    logout();
+    console.error('Error during token refresh:', error);
     return null;
   }
 };
@@ -42,22 +56,15 @@ axiosInstance.interceptors.request.use(
     }
 
     const token = getAccessTokenFromStore();
+
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    if (import.meta.env.DEV) {
-      console.log(`🚀 [REQUEST] ${config.method?.toUpperCase()} ${config.url}`, {
-        headers: config.headers,
-        data: config.data,
-      });
     }
 
     return config;
   },
   (error: AxiosError) => {
     hideLoading();
-    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   },
 );
@@ -66,20 +73,6 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     hideLoading();
-
-    if (import.meta.env.DEV) {
-      console.log(`✅ [RESPONSE] ${response.config.method?.toUpperCase()} ${response.config.url}`, {
-        status: response.status,
-        data: response.data,
-      });
-    }
-
-    if (response.data && typeof response.data === 'object' && 'data' in response.data) {
-      return {
-        ...response,
-        data: response.data.data,
-      };
-    }
 
     return response;
   },

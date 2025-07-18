@@ -10,9 +10,9 @@ import com.ourhour.domain.project.entity.MilestoneEntity;
 import com.ourhour.domain.project.dto.ProjectReqDTO;
 import com.ourhour.domain.project.entity.ProjectEntity;
 import com.ourhour.domain.project.entity.ProjectParticipantEntity;
-import com.ourhour.domain.project.mapper.MilestoneMapper;
 import com.ourhour.domain.project.mapper.ProjectMapper;
 import com.ourhour.domain.project.repository.MilestoneRepository;
+import com.ourhour.domain.project.repository.IssueRepository;
 import com.ourhour.domain.project.repository.ProjectParticipantRepository;
 import com.ourhour.domain.project.repository.ProjectRepository;
 import com.ourhour.global.common.dto.ApiResponse;
@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.ProjectParticipantId;
+import com.ourhour.domain.project.enums.IssueStatus;
+
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -44,7 +46,7 @@ public class ProjectService {
     private final MemberRepository memberRepository;
 
     private final MilestoneRepository milestoneRepository;
-    private final MilestoneMapper milestoneMapper;
+    private final IssueRepository issueRepository;
 
     // 프로젝트 요약 목록 조회 - 페이징 처리
     public ApiResponse<PageResponse<ProjectSummaryResDTO>> getProjectsSummaryList(Long orgId, int participantLimit,
@@ -103,6 +105,7 @@ public class ProjectService {
     }
 
     // 프로젝트 등록
+    @Transactional
     public ApiResponse<Void> createProject(Long orgId, ProjectReqDTO projectReqDTO) {
         if (orgId <= 0) {
             throw BusinessException.badRequest("유효하지 않은 조직 ID입니다.");
@@ -116,7 +119,7 @@ public class ProjectService {
         }
 
         ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
-        
+
         projectRepository.save(projectEntity);
 
         return ApiResponse.success(null, "프로젝트 등록이 완료되었습니다.");
@@ -188,9 +191,32 @@ public class ProjectService {
             return ApiResponse.success(PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize()));
         }
 
-        Page<MileStoneInfoDTO> milestoneInfoPage = milestonePage.map(milestoneMapper::toMileStoneInfoDTO);
+        List<MileStoneInfoDTO> milestoneInfoList = milestonePage.getContent().stream()
+                .map(milestone -> {
+                    int totalIssues = (int) issueRepository
+                            .countByMilestoneEntity_MilestoneId(milestone.getMilestoneId());
+                    int completedIssues = (int) issueRepository.countByMilestoneEntity_MilestoneIdAndStatus(
+                            milestone.getMilestoneId(), IssueStatus.COMPLETED);
+                    return new MileStoneInfoDTO(
+                            milestone.getMilestoneId(),
+                            milestone.getName(),
+                            completedIssues,
+                            totalIssues,
+                            (byte) (totalIssues == 0 ? 0 : (completedIssues * 100 / totalIssues)));
+                })
+                .collect(Collectors.toList());
 
-        return ApiResponse.success(PageResponse.of(milestoneInfoPage), "특정 프로젝트의 마일스톤 목록 조회에 성공했습니다.");
+        PageResponse<MileStoneInfoDTO> response = PageResponse.<MileStoneInfoDTO>builder()
+                .data(milestoneInfoList)
+                .currentPage(milestonePage.getNumber())
+                .size(milestonePage.getSize())
+                .totalPages(milestonePage.getTotalPages())
+                .totalElements(milestonePage.getTotalElements())
+                .hasNext(milestonePage.hasNext())
+                .hasPrevious(milestonePage.hasPrevious())
+                .build();
+
+        return ApiResponse.success(response, "특정 프로젝트의 마일스톤 목록 조회에 성공했습니다.");
     }
 
 }

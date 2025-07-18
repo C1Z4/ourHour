@@ -5,6 +5,7 @@ import com.ourhour.domain.project.entity.ProjectParticipantId;
 import com.ourhour.domain.project.mapper.ProjectParticipantMapper;
 import com.ourhour.domain.project.repository.ProjectParticipantRepository;
 import com.ourhour.domain.project.repository.ProjectRepository;
+import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class ProjectParticipantService {
     private final ProjectParticipantRepository projectParticipantRepository;
     private final ProjectParticipantMapper projectParticipantMapper;
     private final ProjectRepository projectRepository;
+    private final OrgRepository orgRepository;
 
     // 특정 프로젝트의 참가자 목록 조회
     public ApiResponse<PageResponse<ProjectParticipantDTO>> getProjectParticipants(Long projectId, Long orgId,
@@ -37,6 +39,11 @@ public class ProjectParticipantService {
             throw BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다.");
         }
 
+        // 회사 존재 여부 확인
+        if (!orgRepository.existsById(orgId)) {
+            throw BusinessException.badRequest("존재하지 않는 회사 ID입니다.");
+        }
+
         Page<ProjectParticipantEntity> participantPage = projectParticipantRepository
                 .findByProjectParticipantId_ProjectId(projectId,
                         pageable);
@@ -48,7 +55,7 @@ public class ProjectParticipantService {
         Page<ProjectParticipantDTO> participantDTOPage = participantPage
                 .map(entity -> projectParticipantMapper.toProjectParticipantDTO(entity, orgId));
 
-        return ApiResponse.success(PageResponse.of(participantDTOPage));
+        return ApiResponse.success(PageResponse.of(participantDTOPage), "프로젝트 참여자 목록 조회에 성공했습니다.");
     }
 
     // 프로젝트 참여 여부 확인
