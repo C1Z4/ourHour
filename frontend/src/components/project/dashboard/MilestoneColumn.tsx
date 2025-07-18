@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
@@ -16,7 +16,7 @@ import useProjectIssueListQuery from '@/hooks/queries/project/useProjectIssueLis
 import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface MilestoneColumnProps {
-  milestone: ProjectMilestone | { milestoneId: null; name: string };
+  milestone: ProjectMilestone | { milestoneId: number | null; name: string };
   orgId: string;
   projectId: string;
 }
@@ -24,10 +24,14 @@ interface MilestoneColumnProps {
 export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumnProps) => {
   const navigate = useNavigate();
 
-  const { data: issueListData } = useProjectIssueListQuery({
+  const { data: issueListData, refetch: refetchIssueList } = useProjectIssueListQuery({
     projectId: Number(projectId),
     milestoneId: milestone.milestoneId || null,
   });
+
+  useEffect(() => {
+    refetchIssueList();
+  }, [milestone.milestoneId]);
 
   const issueList = (issueListData?.data.data || []).flat();
 
