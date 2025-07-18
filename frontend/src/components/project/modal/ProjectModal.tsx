@@ -133,7 +133,7 @@ export const ProjectModal = ({
       isOpen={isOpen}
       onClose={handleClose}
       title={isEditing ? '프로젝트 수정' : '프로젝트 등록'}
-      className="max-w-3xl p-5"
+      className="max-w-3xl"
       children={
         <div className="space-y-6 m-2">
           <div>
