@@ -30,15 +30,17 @@ export const IssueDetailSidebar = ({ issue }: IssueDetailSidebarProps) => (
 
       <div>
         <h3 className="text-sm font-medium text-gray-700 mb-2">할당자</h3>
-        <div className="flex items-center gap-2">
-          <Avatar className="w-6 h-6">
-            <AvatarImage src={issue.assigneeProfileImgUrl || ''} alt={issue.assigneeName || ''} />
-            <AvatarFallback className="text-xs">
-              {issue.assigneeName?.charAt(0) || ''}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm text-gray-900">{issue.assigneeName}</span>
-        </div>
+        {issue.assigneeId && (
+          <div className="flex items-center gap-2">
+            <Avatar className="w-6 h-6">
+              <AvatarImage src={issue.assigneeProfileImgUrl || ''} alt={issue.assigneeName || ''} />
+              <AvatarFallback className="text-xs">
+                {issue.assigneeName?.charAt(0) || ''}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-gray-900">{issue.assigneeName}</span>
+          </div>
+        )}
       </div>
     </div>
   </div>
