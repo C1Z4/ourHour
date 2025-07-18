@@ -4,11 +4,17 @@ import deleteProject, { DeleteProjectRequest } from '@/api/project/deleteProject
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
 
-const useProjectDeleteMutation = () =>
+interface UseProjectDeleteMutationParams {
+  orgId: number;
+}
+
+const useProjectDeleteMutation = ({ orgId }: UseProjectDeleteMutationParams) =>
   useMutation({
     mutationFn: (request: DeleteProjectRequest) => deleteProject(request),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST] });
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId.toString()],
+      });
     },
   });
 

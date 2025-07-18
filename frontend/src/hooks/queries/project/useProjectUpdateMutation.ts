@@ -3,16 +3,28 @@ import { useMutation } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 import putUpdateProject, { PutUpdateProjectRequest } from '@/api/project/putUpdateProject';
+import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
 import { handleHttpError, logError } from '@/utils/auth/errorUtils';
 
-export const useProjectUpdateMutation = () =>
+interface UseProjectUpdateMutationParams {
+  orgId: number;
+  projectId: number;
+}
+
+export const useProjectUpdateMutation = ({ orgId, projectId }: UseProjectUpdateMutationParams) =>
   useMutation({
     mutationFn: (request: PutUpdateProjectRequest) => putUpdateProject(request),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projectSummaryList'] });
-      queryClient.invalidateQueries({ queryKey: ['projectInfo'] });
-      queryClient.invalidateQueries({ queryKey: ['projectParticipantList'] });
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId.toString()],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEYS.PROJECT_INFO, projectId.toString()],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, projectId.toString()],
+      });
     },
     onError: (error: AxiosError) => {
       logError(error);

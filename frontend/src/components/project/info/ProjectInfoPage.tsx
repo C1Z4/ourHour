@@ -48,8 +48,13 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
   });
 
   const { mutate: passwordVerification } = usePasswordVerificationMutation();
-  const { mutate: updateProject } = useProjectUpdateMutation();
-  const { mutate: deleteProject } = useProjectDeleteMutation();
+  const { mutate: updateProject } = useProjectUpdateMutation({
+    orgId: Number(orgId),
+    projectId: Number(projectId),
+  });
+  const { mutate: deleteProject } = useProjectDeleteMutation({
+    orgId: Number(orgId),
+  });
   const projectInfo = projectInfoData?.data;
   const projectMembers = projectMembersData?.data.data.flat();
 

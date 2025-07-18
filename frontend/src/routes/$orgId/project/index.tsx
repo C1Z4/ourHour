@@ -20,7 +20,9 @@ function ProjectListPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { mutate: createProject } = useProjectCreateMutation();
+  const { mutate: createProject } = useProjectCreateMutation({
+    orgId: Number(orgId),
+  });
 
   const handleProjectSubmit = (data: Partial<ProjectBaseInfo>) => {
     try {
