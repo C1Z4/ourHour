@@ -18,6 +18,7 @@ export interface ProjectIssueSummary {
   name: string;
   tag: string | null;
   status: IssueStatusKo;
+  milestoneId: number | null;
   assigneeId: number | null;
   assigneeName: string | null;
   assigneeProfileImgUrl: string | null;
