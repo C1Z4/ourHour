@@ -12,7 +12,7 @@ function ChatRoom() {
   const { orgId, roomId } = useParams({ from: '/$orgId/chat/$roomId/' });
   const orgIdNum = Number(orgId);
   const roomIdNum = Number(roomId);
-  const { isConnected, sendMessage } = useChat(orgIdNum, roomIdNum);
+  const { sendMessage } = useChat(orgIdNum, roomIdNum);
 
   const {
     data: messages = [],
@@ -33,9 +33,9 @@ function ChatRoom() {
     <ChatRoomPage
       messages={messages}
       sendMessage={(message) => sendMessage(message)}
-      isConnected={isConnected}
       orgId={orgId}
       roomId={roomId}
+      name="채팅방 이름 자리"
     />
   );
 }

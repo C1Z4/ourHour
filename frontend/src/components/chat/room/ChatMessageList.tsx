@@ -2,19 +2,7 @@ import React, { useRef, useEffect } from 'react';
 
 import type { ChatMessage } from '@/types/chatTypes.ts';
 
-const messageContainerStyle: React.CSSProperties = {
-  display: 'flex',
-  width: '100%',
-  marginBottom: '8px',
-};
-
-const bubbleBaseStyle: React.CSSProperties = {
-  maxWidth: '70%',
-  padding: '8px 12px',
-  borderRadius: '12px',
-  wordBreak: 'break-word',
-};
-
+import { cn } from '@/lib/utils';
 interface ChatMessageListProps {
   messages: ChatMessage[];
   currentMemberId: number;
@@ -26,38 +14,31 @@ export function ChatMessageList({ messages, currentMemberId }: ChatMessageListPr
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
   return (
-    <div style={{ border: '1px solid #ccc', height: '300px', overflowY: 'auto', padding: '10px' }}>
+    <div className="flex flex-col space-y-3">
       {messages.map((msg) => {
         const isMyMessage = msg.senderId === currentMemberId;
 
-        const containerStyle: React.CSSProperties = {
-          ...messageContainerStyle,
-          justifyContent: isMyMessage ? 'flex-end' : 'flex-start',
-        };
-
-        const bubbleStyle: React.CSSProperties = {
-          ...bubbleBaseStyle,
-          background: isMyMessage ? 'yellow' : 'lightgreen',
-        };
-
         return (
-          <div key={msg.chatMessageId} style={containerStyle}>
+          <div
+            key={msg.chatMessageId}
+            className={cn('flex flex-col', isMyMessage ? 'items-end' : 'items-start')}
+          >
+            {!isMyMessage && (
+              <span className="text-xs text-muted-foreground mb-1">{msg.senderName}</span>
+            )}
             <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: isMyMessage ? 'flex-end' : 'flex-start',
-              }}
-            >
-              {!isMyMessage && (
-                <span style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
-                  {msg.senderName}
-                </span>
+              key={msg.chatMessageId}
+              className={cn(
+                'flex flex-col w-max max-w-[75%] gap-2 rounded-lg px-3 py-2 text-sm',
+                isMyMessage ? 'bg-primary text-primary-foreground ml-auto' : 'bg-muted',
               )}
-              <div style={bubbleStyle}>{msg.message}</div>
-              <div ref={endRef} />
+            >
+              {msg.message}
             </div>
+
+            <div ref={endRef} />
           </div>
         );
       })}
