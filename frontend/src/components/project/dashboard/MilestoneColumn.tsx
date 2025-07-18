@@ -10,7 +10,9 @@ import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { IssueCard } from '@/components/project/dashboard/IssueCard';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { useMilestoneUpdateMutation } from '@/hooks/queries/project/useMilestoneUpdateMutation';
 import useProjectIssueListQuery from '@/hooks/queries/project/useProjectIssueListQuery';
+import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface MilestoneColumnProps {
   milestone: ProjectMilestone;
@@ -37,9 +39,23 @@ export const MilestoneColumn = ({
 
   const [milestoneName, setMilestoneName] = useState(milestone.name);
 
+  const { mutate: updateMilestone } = useMilestoneUpdateMutation({
+    projectId: Number(projectId),
+    milestoneId: milestone.milestoneId,
+  });
+
   const handleEditMilestone = () => {
-    // 마일스톤 수정 로직
-    console.log('마일스톤 수정:', milestone?.milestoneId);
+    try {
+      updateMilestone({
+        name: milestoneName,
+        milestoneId: milestone.milestoneId,
+      });
+      showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
+      setIsEditMilestoneModalOpen(false);
+      setMilestoneName(milestoneName);
+    } catch (error) {
+      // 에러 토스트 띄워주기기
+    }
   };
 
   const handleDeleteMilestone = () => {
