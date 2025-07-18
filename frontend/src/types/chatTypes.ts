@@ -1,3 +1,4 @@
+import { CHAT_COLORS } from './../styles/colors';
 export interface ChatMessage {
   chatRoomId: number;
   chatMessageId?: number | null;
@@ -14,4 +15,5 @@ export interface UseChatReturn {
 export interface ChatRoom {
   roomId: number;
   name: string;
+  color: keyof typeof CHAT_COLORS;
 }
