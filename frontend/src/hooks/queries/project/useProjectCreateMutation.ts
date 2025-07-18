@@ -17,6 +17,7 @@ export const useProjectCreateMutation = ({ orgId }: UseProjectCreateMutationPara
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId],
+        exact: false,
       });
     },
     onError: (error: AxiosError) => {

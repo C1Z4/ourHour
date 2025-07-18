@@ -19,7 +19,7 @@ const useProjectIssueListQuery = ({
   enabled = true,
 }: UseProjectIssueListParams) =>
   useQuery({
-    queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, milestoneId, currentPage, size],
+    queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, projectId, milestoneId, currentPage, size],
     queryFn: () =>
       getProjectIssueList({
         projectId,

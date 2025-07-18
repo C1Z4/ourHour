@@ -10,9 +10,14 @@ import { handleHttpError, logError } from '@/utils/auth/errorUtils';
 interface UseIssueUpdateMutationParams {
   milestoneId: number | null;
   issueId: number;
+  projectId: number;
 }
 
-export const useIssueUpdateMutation = ({ milestoneId, issueId }: UseIssueUpdateMutationParams) =>
+export const useIssueUpdateMutation = ({
+  milestoneId,
+  issueId,
+  projectId,
+}: UseIssueUpdateMutationParams) =>
   useMutation({
     mutationFn: (request: PutUpdateIssueRequest) => putUpdateIssue(request),
     onSuccess: () => {
@@ -20,7 +25,8 @@ export const useIssueUpdateMutation = ({ milestoneId, issueId }: UseIssueUpdateM
         queryKey: [PROJECT_QUERY_KEYS.ISSUE_DETAIL, issueId],
       });
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, milestoneId],
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, projectId, milestoneId],
+        exact: false,
       });
     },
     onError: (error: AxiosError) => {

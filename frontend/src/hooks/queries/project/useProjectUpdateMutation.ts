@@ -18,12 +18,14 @@ export const useProjectUpdateMutation = ({ orgId, projectId }: UseProjectUpdateM
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId],
+        exact: false,
       });
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.PROJECT_INFO, projectId],
       });
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, projectId, orgId],
+        exact: false,
       });
     },
     onError: (error: AxiosError) => {

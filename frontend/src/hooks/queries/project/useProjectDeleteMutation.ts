@@ -14,6 +14,7 @@ const useProjectDeleteMutation = ({ orgId }: UseProjectDeleteMutationParams) =>
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId],
+        exact: false,
       });
     },
   });
