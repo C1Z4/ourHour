@@ -1,7 +1,8 @@
 package com.ourhour.domain.org.mapper;
 
 import com.ourhour.domain.org.dto.OrgReqDTO;
-import com.ourhour.domain.org.dto.OrgResDTO;
+import com.ourhour.domain.org.dto.OrgDetailReqDTO;
+import com.ourhour.domain.org.dto.OrgDetailResDTO;
 import com.ourhour.domain.org.entity.OrgEntity;
 
 import org.mapstruct.Mapper;
@@ -11,15 +12,11 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface OrgMapper {
 
-    // ReqDTO -> Entity 변환 (DB 등록)
+    // OrgReqDTO -> entity 변환
     OrgEntity toOrgEntity(OrgReqDTO orgReqDTO);
 
-    // Entity -> ResDTO 변환 (응답)
-    OrgResDTO toOrgResDTO(OrgEntity orgEntity);
 
-    // Entity -> Entity 변환 (수정)
-    @Mapping(target = "orgId", ignore = true)
-    @Mapping(target= "orgParticipantMemberEntityList", ignore = true)
-    void updateOrgEntity(@MappingTarget OrgEntity orgEntity, OrgReqDTO orgReqDTO);
+    // Entity -> ResDTO 변환 (응답)
+    OrgDetailResDTO toOrgDetailResDTO(OrgEntity orgEntity);
     
 }

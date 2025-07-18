@@ -14,10 +14,7 @@ import org.hibernate.validator.constraints.URL;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrgReqDTO {
-
-    @NotBlank(message = "사용자 이름은 필수입니다.")
-    private String memberName;
+public class OrgDetailReqDTO {
 
     @NotBlank(message = "회사명은 필수입니다.")
     @Size(min = 2, max = 100, message = "이름은 2글자 이상입니다.")

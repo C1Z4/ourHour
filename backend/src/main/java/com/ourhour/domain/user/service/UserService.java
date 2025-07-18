@@ -6,6 +6,7 @@ import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.Role;
+import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.service.OrgRoleGuardService;
 import com.ourhour.domain.user.dto.PwdChangeReqDTO;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,7 @@ public class UserService {
     private final EmailVerificationRepository emailVerificationRepository;
     private final MemberRepository memberRepository;
     private final OrgRoleGuardService orgRoleGuardService;
+    private final OrgParticipantMemberRepository orgParticipantMemberRepository;
 
     // 비밀번호 변경
     @Transactional
@@ -69,18 +72,25 @@ public class UserService {
     public void deleteUser(PwdVerifyReqDTO pwdVerifyReqDTO) {
 
         String pwd = pwdVerifyReqDTO.getPassword();
-
         UserEntity userEntity = passwordVerifier.verifyPassword(pwd);
 
         Long userId = userEntity.getUserId();
-
         // UserEntity와 연결된 모든 MemberEntity 조회
         List<MemberEntity> memberEntityList = memberRepository.findByUserEntity_UserId(userId);
 
-        orgRoleGuardService.checkCanWithDraw(memberEntityList);
+        // 루트 관리자 정책 확인
+        orgRoleGuardService.assertNotLastRootAdminAcrossAll(memberEntityList);
 
         // soft delete 처리
         userEntity.markAsDeleted();
+
+        // 탈퇴한 사용자가 속한 모든 회사의 활성상태 INACTIVE 처리
+        if (!memberEntityList.isEmpty()) {
+            LocalDateTime now = LocalDateTime.now();
+
+            orgParticipantMemberRepository
+                    .updateDeactivateAllMembers(memberEntityList, Status.INACTIVE, now, Status.ACTIVE);
+        }
 
         // 탈퇴한 사용자 익명 처리
         anonymizeUserService.anonymizeUser(memberEntityList);
