@@ -4,6 +4,8 @@ import { ProjectIssueSummary } from '@/api/project/getProjectIssueList';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import useIssueDeleteMutation from '@/hooks/queries/project/useIssueDeleteMutation';
+import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface IssueCardProps {
   issue: ProjectIssueSummary;
@@ -13,6 +15,12 @@ interface IssueCardProps {
 
 export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
   const navigate = useNavigate();
+
+  const { mutate: deleteIssue } = useIssueDeleteMutation({
+    projectId: Number(projectId),
+    milestoneId: issue.milestoneId || null,
+    issueId: issue.issueId,
+  });
 
   const handleIssueClick = () => {
     navigate({
@@ -29,8 +37,12 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
   };
 
   const handleDeleteIssue = () => {
-    // 이슈 삭제 로직
-    console.log('이슈 삭제:', issue.issueId);
+    try {
+      deleteIssue();
+      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
+    } catch (error) {
+      // showErrorToast(TOAST_MESSAGES.CRUD.DELETE_ERROR);
+    }
   };
 
   const handlePopoverClick = (e: React.MouseEvent) => {

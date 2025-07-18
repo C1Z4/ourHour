@@ -1,6 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
 
+import useIssueDeleteMutation from '@/hooks/queries/project/useIssueDeleteMutation';
 import useProjectIssueDetailQuery from '@/hooks/queries/project/useProjectIssueDetailQuery';
+import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 import { CommentSection } from './CommentSection';
 import { IssueDetailContent } from './IssueDetailContent';
@@ -18,6 +20,12 @@ export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPagePr
   const { data: issueData } = useProjectIssueDetailQuery({ issueId: Number(issueId) });
 
   const issue = issueData?.data;
+
+  const { mutate: deleteIssue } = useIssueDeleteMutation({
+    projectId: Number(projectId),
+    milestoneId: issue?.milestoneId || null,
+    issueId: Number(issueId),
+  });
 
   if (!issue) {
     return (
@@ -38,7 +46,16 @@ export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPagePr
   };
 
   const handleDeleteIssue = () => {
-    console.log('이슈 삭제:', issue.issueId);
+    try {
+      deleteIssue();
+      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
+      navigate({
+        to: '/$orgId/project/$projectId',
+        params: { orgId, projectId },
+      });
+    } catch (error) {
+      // showErrorToast(TOAST_MESSAGES.CRUD.DELETE_ERROR);
+    }
   };
 
   return (
