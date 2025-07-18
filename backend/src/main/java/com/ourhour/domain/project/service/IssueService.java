@@ -37,7 +37,7 @@ public class IssueService {
 
     // 특정 마일스톤의 이슈 목록 조회 (milestoneId가 null이면 마일스톤이 할당되지 않은 이슈들 조회)
     public ApiResponse<PageResponse<IssueSummaryDTO>> getMilestoneIssues(Long projectId, Long milestoneId,
-            Pageable pageable) {
+                                                                         Pageable pageable) {
         if (projectId <= 0) {
             throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
         }
@@ -105,7 +105,7 @@ public class IssueService {
             MilestoneEntity milestoneEntity = milestoneRepository.findById(issueReqDTO.getMilestoneId())
                     .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 마일스톤 ID입니다."));
             issueEntity.setMilestoneEntity(milestoneEntity);
-        } 
+        }
 
         // 담당자 설정
         if (issueReqDTO.getAssigneeId() != null && issueReqDTO.getAssigneeId() > 0) {
@@ -132,6 +132,22 @@ public class IssueService {
                 .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 이슈 ID입니다."));
 
         issueMapper.updateIssueEntity(issueEntity, issueReqDTO);
+
+        if (issueReqDTO.getAssigneeId() != null) {
+            MemberEntity assignee = memberRepository.findById(issueReqDTO.getAssigneeId())
+                    .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 담당자 ID입니다."));
+            issueEntity.setAssigneeEntity(assignee);
+        } else {
+            issueEntity.setAssigneeEntity(null);
+        }
+
+        if (issueReqDTO.getMilestoneId() != null) {
+            MilestoneEntity milestone = milestoneRepository.findById(issueReqDTO.getMilestoneId())
+                    .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 마일스톤 ID입니다."));
+            issueEntity.setMilestoneEntity(milestone);
+        } else {
+            issueEntity.setMilestoneEntity(null);
+        }
 
         IssueEntity savedIssueEntity = issueRepository.save(issueEntity);
 
