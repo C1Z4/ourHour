@@ -14,6 +14,7 @@ public interface ChatMapper {
 
     @Mapping(source = "chatRoomEntity.roomId", target = "roomId")
     @Mapping(source = "chatRoomEntity.name", target = "name")
+    @Mapping(source = "chatRoomEntity.color", target = "color")
     ChatRoomListResDTO toChatRoomListResDTO(ChatParticipantEntity participant);
 
     @Mapping(source = "memberEntity.memberId", target = "memberId")
