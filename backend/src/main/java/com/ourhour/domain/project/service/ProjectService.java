@@ -120,15 +120,7 @@ public class ProjectService {
 
         ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
 
-        ProjectEntity savedProject = projectRepository.save(projectEntity);
-
-        // 프로젝트 생성 시 '미분류' 마일스톤 자동 생성
-        MilestoneEntity unclassifiedMilestone = MilestoneEntity.builder()
-                .projectEntity(savedProject)
-                .name("미분류")
-                .progress((byte) 0)
-                .build();
-        milestoneRepository.save(unclassifiedMilestone);
+        projectRepository.save(projectEntity);
 
         return ApiResponse.success(null, "프로젝트 등록이 완료되었습니다.");
     }

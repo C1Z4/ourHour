@@ -11,6 +11,8 @@ public interface IssueRepository extends JpaRepository<IssueEntity, Long> {
 
     Page<IssueEntity> findByMilestoneEntity_MilestoneId(Long milestoneId, Pageable pageable);
 
+    Page<IssueEntity> findByProjectEntity_ProjectIdAndMilestoneEntityIsNull(Long projectId, Pageable pageable);
+
     long countByMilestoneEntity_MilestoneId(Long milestoneId);
 
     long countByMilestoneEntity_MilestoneIdAndStatus(Long milestoneId, IssueStatus status);

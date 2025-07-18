@@ -129,16 +129,18 @@ public class ProjectController {
                 return ResponseEntity.ok(response);
         }
 
-        // 특정 마일스톤의 이슈 목록 조회
-        @GetMapping("/milestones/{milestoneId}/issues")
+        // 특정 마일스톤의 이슈 목록 조회 (milestoneId가 없으면 프로젝트의 모든 이슈 조회)
+        @GetMapping("/{projectId}/issues")
         public ResponseEntity<ApiResponse<PageResponse<IssueSummaryDTO>>> getMilestoneIssues(
-                        @PathVariable @Min(value = 1, message = "마일스톤 ID는 1 이상이어야 합니다.") Long milestoneId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @RequestParam(required = false) Long milestoneId,
                         @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
                 Pageable pageable = PageRequest.of(currentPage - 1, size, Sort.by(Sort.Direction.ASC, "issueId"));
 
-                ApiResponse<PageResponse<IssueSummaryDTO>> response = issueService.getMilestoneIssues(milestoneId,
+                ApiResponse<PageResponse<IssueSummaryDTO>> response = issueService.getMilestoneIssues(projectId,
+                                milestoneId,
                                 pageable);
 
                 return ResponseEntity.ok(response);
