@@ -17,7 +17,8 @@ export interface PostCreateProjectRequest {
 
 const postCreateProject = async (request: PostCreateProjectRequest): Promise<ApiResponse<void>> => {
   try {
-    const response = await axiosInstance.post(`/api/projects/${request.orgId}`, request);
+    const { orgId, ...requestBody } = request;
+    const response = await axiosInstance.post(`/api/projects/${orgId}`, requestBody);
 
     return response.data;
   } catch (error: unknown) {
