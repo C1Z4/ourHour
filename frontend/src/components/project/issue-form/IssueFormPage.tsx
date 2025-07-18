@@ -1,12 +1,12 @@
 import { useState } from 'react';
 
-import { useNavigate } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 
-import { Issue } from '@/types/issueTypes';
+import { IssueStatusKo, ISSUE_STATUS_ENG_TO_KO, ISSUE_STATUS_KO_TO_ENG } from '@/types/issueTypes';
 
+import { IssueDetail } from '@/api/project/getProjectIssueDetail';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { StatusBadge } from '@/components/common/StatusBadge';
-import { mockMilestones } from '@/components/project/dashboard/mockData';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import {
@@ -17,57 +17,65 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  FORM_MESSAGES,
-  ISSUE_STATUSES,
-  ISSUE_TAGS,
-  MOCK_ASSIGNEES,
-} from '@/constants/issueConstants';
+import { FORM_MESSAGES, ISSUE_TAGS, MOCK_ASSIGNEES } from '@/constants/issueConstants';
+import { useIssueCreateMutation } from '@/hooks/queries/project/useIssueCreateMutation';
+import useProjectMilestoneListQuery from '@/hooks/queries/project/useProjectMilestoneListQuery';
+import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface IssueFormPageProps {
   orgId: string;
   projectId: string;
   issueId?: string;
-  initialData?: Issue;
+  initialData?: IssueDetail;
 }
 
 export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueFormPageProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
+
+  const { mutate: createIssue } = useIssueCreateMutation({
+    milestoneId: null,
+    projectId: Number(projectId),
+  });
+
+  const { data: milestoneList } = useProjectMilestoneListQuery({ projectId });
+
+  const milestones = milestoneList?.data.data.flat();
+
   const isEditing = !!issueId;
 
   const [formData, setFormData] = useState({
-    title: initialData?.title || '',
-    description: initialData?.description || '',
-    milestoneId: initialData?.milestoneId || 'no-milestone',
-    status: initialData?.status || '백로그',
-    tag: initialData?.tag || 'no-tag',
-    assigneeId: initialData?.assignee?.id || 'no-assignee',
+    name: initialData?.name || '',
+    content: initialData?.content || '',
+    milestoneName: initialData?.milestoneName || '',
+    status: initialData?.status || 'BACKLOG',
+    tag: initialData?.tag || null,
+    assigneeId: initialData?.assigneeId?.toString() || '',
   });
 
   const [errors, setErrors] = useState({
-    title: '',
-    description: '',
+    name: '',
+    content: '',
   });
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
-    if (field === 'title' && value.trim()) {
-      setErrors((prev) => ({ ...prev, title: '' }));
+    if (field === 'name' && value.trim()) {
+      setErrors((prev) => ({ ...prev, name: '' }));
     }
-    if (field === 'description' && value.trim()) {
-      setErrors((prev) => ({ ...prev, description: '' }));
+    if (field === 'content' && value.trim()) {
+      setErrors((prev) => ({ ...prev, content: '' }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {
-      title: formData.title.trim() ? '' : FORM_MESSAGES.REQUIRED_TITLE,
-      description: formData.description.trim() ? '' : FORM_MESSAGES.REQUIRED_DESCRIPTION,
+      name: formData.name.trim() ? '' : FORM_MESSAGES.REQUIRED_TITLE,
+      content: formData.content.trim() ? '' : FORM_MESSAGES.REQUIRED_DESCRIPTION,
     };
 
     setErrors(newErrors);
-    return !newErrors.title && !newErrors.description;
+    return !newErrors.name && !newErrors.content;
   };
 
   const handleSubmit = () => {
@@ -75,16 +83,37 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
       return;
     }
 
-    console.log('Form submitted:', formData);
+    // 이슈 등록
+    if (!isEditing) {
+      const issueData = {
+        projectId: Number(projectId),
+        milestoneId:
+          formData.milestoneName && formData.milestoneName !== 'no-milestone'
+            ? Number(formData.milestoneName)
+            : null,
+        assigneeId:
+          formData.assigneeId && formData.assigneeId !== 'no-assignee'
+            ? Number(formData.assigneeId)
+            : null,
+        name: formData.name,
+        content: formData.content,
+        status: formData.status,
+      };
 
-    navigate({
-      to: '/$orgId/project/$projectId/issue/$issueId',
-      params: {
-        orgId,
-        projectId,
-        issueId: issueId || 'new-issue-id',
-      },
-    });
+      createIssue(issueData, {
+        onSuccess: () => {
+          showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
+          router.navigate({
+            to: '/$orgId/project/$projectId',
+            params: { orgId, projectId },
+          });
+        },
+      });
+      return;
+    }
+
+    // 수정 로직 (현재는 미구현)
+    console.log('Form submitted:', formData);
   };
 
   const handleCancel = () => {
@@ -102,16 +131,15 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">마일스톤</label>
             <Select
-              value={formData.milestoneId}
-              onValueChange={(value) => handleInputChange('milestoneId', value)}
+              value={formData.milestoneName}
+              onValueChange={(value) => handleInputChange('milestoneName', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="마일스톤을 선택하세요" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="no-milestone">미분류</SelectItem>
-                {mockMilestones.map((milestone) => (
-                  <SelectItem key={milestone.id} value={milestone.id}>
+                {milestones?.map((milestone) => (
+                  <SelectItem key={milestone.milestoneId} value={milestone.milestoneId.toString()}>
                     {milestone.name}
                   </SelectItem>
                 ))}
@@ -124,12 +152,12 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
               제목 <span className="text-red-500">*</span>
             </label>
             <Input
-              value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
+              value={formData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="이슈 제목을 입력하세요"
-              className={errors.title ? 'border-red-500' : ''}
+              className={errors.name ? 'border-red-500' : ''}
             />
-            {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
+            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
           </div>
 
           <div>
@@ -137,14 +165,12 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
               내용 <span className="text-red-500">*</span>
             </label>
             <Textarea
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              value={formData.content}
+              onChange={(e) => handleInputChange('content', e.target.value)}
               placeholder="이슈 내용을 입력하세요"
-              className={`min-h-[120px] ${errors.description ? 'border-red-500' : ''}`}
+              className={`min-h-[120px] ${errors.content ? 'border-red-500' : ''}`}
             />
-            {errors.description && (
-              <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-            )}
+            {errors.content && <p className="mt-1 text-sm text-red-600">{errors.content}</p>}
           </div>
 
           <div className="flex gap-4">
@@ -155,12 +181,17 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
                 onValueChange={(value) => handleInputChange('status', value)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="상태를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ISSUE_STATUSES.map((status) => (
-                    <SelectItem key={status.value} value={status.value}>
-                      <StatusBadge status={status.value} type="issue" />
+                  {Object.keys(ISSUE_STATUS_ENG_TO_KO).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      <StatusBadge
+                        status={
+                          ISSUE_STATUS_ENG_TO_KO[status as keyof typeof ISSUE_STATUS_ENG_TO_KO]
+                        }
+                        type="issue"
+                      />
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -170,11 +201,11 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">태그</label>
               <Select
-                value={formData.tag}
+                value={formData.tag || ''}
                 onValueChange={(value) => handleInputChange('tag', value)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="태그를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no-tag">태그 없음</SelectItem>
@@ -193,7 +224,7 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">할당자</label>
               <Select
-                value={formData.assigneeId}
+                value={formData.assigneeId?.toString() || ''}
                 onValueChange={(value) => handleInputChange('assigneeId', value)}
               >
                 <SelectTrigger>
