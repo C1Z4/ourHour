@@ -12,7 +12,7 @@ interface GetProjectMilestoneListRequest {
 }
 
 export interface ProjectMilestone {
-  milestoneId: number;
+  milestoneId: number | null;
   name: string;
   progress: number;
   completedIssues: number;
@@ -27,7 +27,6 @@ const getProjectMilestoneList = async (
       `/api/projects/${request.projectId}/milestones?currentPage=${request.currentPage}&size=${request.size}`,
     );
 
-    console.log(response.data);
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);

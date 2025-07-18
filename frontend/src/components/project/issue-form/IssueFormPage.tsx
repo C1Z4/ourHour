@@ -40,11 +40,11 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
   const router = useRouter();
 
   const { mutate: createIssue } = useIssueCreateMutation({
-    milestoneId: null,
     projectId: Number(projectId),
   });
 
   const { mutate: updateIssue } = useIssueUpdateMutation({
+    projectId: Number(projectId),
     milestoneId: initialData?.milestoneId || null,
     issueId: Number(issueId),
   });
@@ -92,6 +92,22 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
   });
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
+    if (field === 'assigneeId') {
+      setFormData((prev) => ({
+        ...prev,
+        assigneeId: value === 'no-assignee' ? null : Number(value),
+      }));
+      return;
+    }
+
+    if (field === 'tag') {
+      setFormData((prev) => ({
+        ...prev,
+        tag: value === 'no-tag' ? null : value,
+      }));
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [field]: value }));
 
     if (field === 'name' && value.trim()) {
@@ -112,7 +128,7 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
     return !newErrors.name && !newErrors.content;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
@@ -129,7 +145,7 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
       };
 
       createIssue(issueData, {
-        onSuccess: () => {
+        onSuccess: async () => {
           showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
           router.navigate({
             to: '/$orgId/project/$projectId',
@@ -184,7 +200,10 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
               </SelectTrigger>
               <SelectContent>
                 {milestones?.map((milestone) => (
-                  <SelectItem key={milestone.milestoneId} value={milestone.milestoneId.toString()}>
+                  <SelectItem
+                    key={milestone.milestoneId}
+                    value={milestone.milestoneId?.toString() || ''}
+                  >
                     {milestone.name}
                   </SelectItem>
                 ))}
