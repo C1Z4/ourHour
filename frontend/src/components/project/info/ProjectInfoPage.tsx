@@ -1,11 +1,18 @@
 import { useState } from 'react';
 
+import { useRouter } from '@tanstack/react-router';
+
 import { PutUpdateProjectRequest } from '@/api/project/putUpdateProject';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { ModalComponent } from '@/components/common/ModalComponent';
 import { StatusBadge } from '@/components/common/StatusBadge';
+import { Input } from '@/components/ui/input';
+import useProjectDeleteMutation from '@/hooks/queries/project/useProjectDeleteMutation';
 import useProjectInfoQuery from '@/hooks/queries/project/useProjectInfoQuery';
 import useProjectParticipantListQuery from '@/hooks/queries/project/useProjectParticipantListQuery';
 import { useProjectUpdateMutation } from '@/hooks/queries/project/useProjectUpdateMutation';
+import usePasswordVerificationMutation from '@/hooks/queries/user/usePasswordVerificationMutation';
+import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 import { ProjectMembersTable } from './ProjectMembersTable';
 import { ProjectModal } from '../modal/ProjectModal';
@@ -16,13 +23,19 @@ interface ProjectInfoPageProps {
 }
 
 export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
+  const router = useRouter();
+
   const [currentPage, setCurrentPage] = useState(1);
-  // 프로젝트 구성원 삭제시 사용
+  // 프로젝트 구성원 삭제
   const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
-  // 프로젝트 구성원 수정시 사용
+  // 프로젝트 구성원 수정
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<number[]>([]);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // 비밀번호 확인
+  const [password, setPassword] = useState('');
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const { data: projectInfoData } = useProjectInfoQuery({
     projectId: Number(projectId),
@@ -34,17 +47,18 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
     currentPage,
   });
 
+  const { mutate: passwordVerification } = usePasswordVerificationMutation();
   const { mutate: updateProject } = useProjectUpdateMutation();
-
+  const { mutate: deleteProject } = useProjectDeleteMutation();
   const projectInfo = projectInfoData?.data;
   const projectMembers = projectMembersData?.data.data.flat();
 
   const handleEditProject = () => {
-    setIsModalOpen(true);
+    setIsEditModalOpen(true);
   };
 
-  const handleModalClose = () => {
-    setIsModalOpen(false);
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
   };
 
   // 수정 버튼 클릭시
@@ -69,6 +83,30 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
     setSelectedMemberIds([]);
   };
 
+  const handleDeleteProject = () => {
+    try {
+      passwordVerification({ password });
+      deleteProject({ projectId: Number(projectId) });
+      setIsDeleteModalOpen(false);
+      router.navigate({
+        to: '/$orgId/project',
+        params: { orgId },
+      });
+      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
+    } catch (error) {
+      showErrorToast('비밀번호가 일치하지 않습니다.');
+      setPassword('');
+    }
+  };
+
+  const openDeleteModal = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteModalClose = () => {
+    setIsDeleteModalOpen(false);
+  };
+
   return (
     <>
       <div className="bg-white">
@@ -87,9 +125,14 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
                 )}
                 <StatusBadge type="project" status={projectInfo?.status} />
               </div>
-              <ButtonComponent variant="secondary" onClick={handleEditProject}>
-                프로젝트 수정
-              </ButtonComponent>
+              <div className="flex items-center gap-4">
+                <ButtonComponent variant="secondary" onClick={handleEditProject}>
+                  프로젝트 수정
+                </ButtonComponent>
+                <ButtonComponent variant="danger" onClick={openDeleteModal}>
+                  프로젝트 삭제
+                </ButtonComponent>
+              </div>
             </div>
 
             <p className="text-gray-600 text-lg mb-8">{projectInfo?.description}</p>
@@ -107,10 +150,10 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
         </div>
       </div>
 
-      {isModalOpen && (
+      {isEditModalOpen && (
         <ProjectModal
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
+          isOpen={isEditModalOpen}
+          onClose={handleEditModalClose}
           initialInfoData={projectInfo}
           initialMemberData={projectMembers}
           onSubmit={handleProjectSubmit}
@@ -119,6 +162,24 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
           setSelectedParticipantIds={setSelectedParticipantIds}
         />
       )}
+      <ModalComponent
+        isOpen={isDeleteModalOpen}
+        onClose={handleDeleteModalClose}
+        title="비밀번호 확인"
+        children={
+          <Input
+            type="password"
+            placeholder="비밀번호를 입력해주세요."
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        }
+        footer={
+          <ButtonComponent variant="danger" onClick={handleDeleteProject}>
+            프로젝트 삭제
+          </ButtonComponent>
+        }
+      />
     </>
   );
 };
