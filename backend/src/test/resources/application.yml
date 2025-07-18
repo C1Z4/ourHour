@@ -28,6 +28,8 @@ spring:
 
   service:
     base-url-email: localhost
+    url:
+      front: localhost
 
 jwt:
   secret: thisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecret
