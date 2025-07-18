@@ -14,6 +14,7 @@ import com.ourhour.domain.project.dto.IssueReqDTO;
 public interface IssueMapper {
 
     // IssueEntity -> IssueSummaryDTO
+    @Mapping(target = "milestoneId", source = "milestoneEntity.milestoneId")
     @Mapping(target = "assigneeId", source = "assigneeEntity.memberId")
     @Mapping(target = "assigneeName", source = "assigneeEntity.name")
     @Mapping(target = "assigneeProfileImgUrl", source = "assigneeEntity.profileImgUrl")
