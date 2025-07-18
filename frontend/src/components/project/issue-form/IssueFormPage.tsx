@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
 
-import { IssueStatusKo, ISSUE_STATUS_ENG_TO_KO, ISSUE_STATUS_KO_TO_ENG } from '@/types/issueTypes';
+import {
+  ISSUE_STATUS_ENG_TO_KO,
+  ISSUE_STATUS_KO_TO_ENG,
+  IssueStatusEng,
+  IssueStatusKo,
+} from '@/types/issueTypes';
 
 import { IssueDetail } from '@/api/project/getProjectIssueDetail';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
@@ -17,9 +22,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { FORM_MESSAGES, ISSUE_TAGS, MOCK_ASSIGNEES } from '@/constants/issueConstants';
+import { FORM_MESSAGES, ISSUE_TAGS } from '@/constants/issueConstants';
 import { useIssueCreateMutation } from '@/hooks/queries/project/useIssueCreateMutation';
+import { useIssueUpdateMutation } from '@/hooks/queries/project/useIssueUpdateMutation';
 import useProjectMilestoneListQuery from '@/hooks/queries/project/useProjectMilestoneListQuery';
+import useProjectParticipantListQuery from '@/hooks/queries/project/useProjectParticipantListQuery';
 import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface IssueFormPageProps {
@@ -37,19 +44,46 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
     projectId: Number(projectId),
   });
 
-  const { data: milestoneList } = useProjectMilestoneListQuery({ projectId });
+  const { mutate: updateIssue } = useIssueUpdateMutation({
+    milestoneId: initialData?.milestoneId || null,
+    issueId: Number(issueId),
+  });
+
+  const { data: milestoneList } = useProjectMilestoneListQuery({
+    projectId: Number(projectId),
+  });
+
+  const { data: projectParticipantListData } = useProjectParticipantListQuery({
+    projectId: Number(projectId),
+    orgId: Number(orgId),
+  });
+
+  const participants = projectParticipantListData?.data.data.flat();
 
   const milestones = milestoneList?.data.data.flat();
 
   const isEditing = !!issueId;
 
+  useEffect(() => {
+    if (initialData) {
+      const { milestoneId, status, tag, assigneeId, ...rest } = initialData;
+      setFormData({
+        ...rest,
+        milestoneId: milestoneId || null,
+        status: status ? ISSUE_STATUS_KO_TO_ENG[status as IssueStatusKo] || 'BACKLOG' : 'BACKLOG',
+        tag: tag || null,
+        assigneeId: assigneeId || null,
+      });
+    }
+  }, [initialData]);
+
   const [formData, setFormData] = useState({
-    name: initialData?.name || '',
-    content: initialData?.content || '',
-    milestoneName: initialData?.milestoneName || '',
-    status: initialData?.status || 'BACKLOG',
-    tag: initialData?.tag || null,
-    assigneeId: initialData?.assigneeId?.toString() || '',
+    name: '',
+    content: '',
+    milestoneId: null as number | null,
+    status: 'BACKLOG' as IssueStatusEng,
+    tag: null as string | null,
+    assigneeId: null as number | null,
   });
 
   const [errors, setErrors] = useState({
@@ -87,17 +121,11 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
     if (!isEditing) {
       const issueData = {
         projectId: Number(projectId),
-        milestoneId:
-          formData.milestoneName && formData.milestoneName !== 'no-milestone'
-            ? Number(formData.milestoneName)
-            : null,
-        assigneeId:
-          formData.assigneeId && formData.assigneeId !== 'no-assignee'
-            ? Number(formData.assigneeId)
-            : null,
+        milestoneId: formData.milestoneId,
+        assigneeId: formData.assigneeId,
         name: formData.name,
         content: formData.content,
-        status: formData.status,
+        status: formData.status as IssueStatusEng,
       };
 
       createIssue(issueData, {
@@ -112,8 +140,25 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
       return;
     }
 
-    // 수정 로직 (현재는 미구현)
-    console.log('Form submitted:', formData);
+    // 이슈 수정
+    const issueData = {
+      issueId: Number(issueId),
+      milestoneId: formData.milestoneId,
+      assigneeId: formData.assigneeId,
+      name: formData.name,
+      content: formData.content,
+      status: formData.status as IssueStatusEng,
+    };
+
+    updateIssue(issueData, {
+      onSuccess: () => {
+        showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
+        router.navigate({
+          to: '/$orgId/project/$projectId/issue/$issueId',
+          params: { orgId, projectId, issueId },
+        });
+      },
+    });
   };
 
   const handleCancel = () => {
@@ -131,8 +176,8 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">마일스톤</label>
             <Select
-              value={formData.milestoneName}
-              onValueChange={(value) => handleInputChange('milestoneName', value)}
+              value={formData.milestoneId?.toString() || ''}
+              onValueChange={(value) => handleInputChange('milestoneId', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="마일스톤을 선택하세요" />
@@ -232,16 +277,16 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no-assignee">할당자 없음</SelectItem>
-                  {MOCK_ASSIGNEES.map((assignee) => (
-                    <SelectItem key={assignee.value} value={assignee.value}>
+                  {participants?.map((assignee) => (
+                    <SelectItem key={assignee.memberId} value={assignee.memberId.toString()}>
                       <div className="flex items-center gap-2">
                         <Avatar className="w-6 h-6">
-                          <AvatarImage src={assignee.profileImageUrl} alt={assignee.label} />
+                          <AvatarImage src={assignee.profileImgUrl} alt={assignee.name} />
                           <AvatarFallback className="text-xs">
-                            {assignee.label.charAt(0)}
+                            {assignee.name.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
-                        {assignee.label}
+                        {assignee.name}
                       </div>
                     </SelectItem>
                   ))}
