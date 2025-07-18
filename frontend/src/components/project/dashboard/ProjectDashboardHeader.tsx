@@ -7,10 +7,10 @@ import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { Input } from '@/components/ui/input';
 import { useMilestoneCreateMutation } from '@/hooks/queries/project/useMilestoneCreateMutation';
+import { useAppSelector } from '@/stores/hooks';
 import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface ProjectDashboardHeaderProps {
-  projectName: string;
   isMyIssuesOnly: boolean;
   onToggleViewMode: () => void;
   orgId: string;
@@ -18,13 +18,13 @@ interface ProjectDashboardHeaderProps {
 }
 
 export const ProjectDashboardHeader = ({
-  projectName,
   isMyIssuesOnly,
   onToggleViewMode,
   orgId,
   projectId,
 }: ProjectDashboardHeaderProps) => {
   const navigate = useNavigate();
+  const currentProjectName = useAppSelector((state) => state.projectName.currentProjectName);
   const [isCreateMilestoneModalOpen, setIsCreateMilestoneModalOpen] = useState(false);
 
   const [milestoneName, setMilestoneName] = useState('');
@@ -65,7 +65,7 @@ export const ProjectDashboardHeader = ({
     <div className="border-b border-gray-200 bg-white px-6 py-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
-          <h1 className="text-2xl font-bold text-gray-900">{projectName}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{currentProjectName}</h1>
           <Info
             className="size-5 text-muted-foreground cursor-pointer"
             onClick={handleProjectInfo}

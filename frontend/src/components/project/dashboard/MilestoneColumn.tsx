@@ -16,22 +16,17 @@ import useProjectIssueListQuery from '@/hooks/queries/project/useProjectIssueLis
 import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface MilestoneColumnProps {
-  milestone: ProjectMilestone;
+  milestone: ProjectMilestone | { milestoneId: null; name: string };
   orgId: string;
   projectId: string;
-  projectName: string;
 }
 
-export const MilestoneColumn = ({
-  milestone,
-  orgId,
-  projectId,
-  projectName,
-}: MilestoneColumnProps) => {
+export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumnProps) => {
   const navigate = useNavigate();
 
   const { data: issueListData } = useProjectIssueListQuery({
-    milestoneId: milestone.milestoneId,
+    projectId: Number(projectId),
+    milestoneId: milestone.milestoneId || null,
   });
 
   const issueList = (issueListData?.data.data || []).flat();
@@ -42,19 +37,19 @@ export const MilestoneColumn = ({
 
   const { mutate: updateMilestone } = useMilestoneUpdateMutation({
     projectId: Number(projectId),
-    milestoneId: milestone.milestoneId,
+    milestoneId: milestone?.milestoneId || null,
   });
 
   const { mutate: deleteMilestone } = useMilestoneDeleteMutation({
     projectId: Number(projectId),
-    milestoneId: milestone.milestoneId,
+    milestoneId: milestone?.milestoneId || null,
   });
 
   const handleEditMilestone = () => {
     try {
       updateMilestone({
         name: milestoneName,
-        milestoneId: milestone.milestoneId,
+        milestoneId: milestone?.milestoneId || null,
       });
       showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
       setIsEditMilestoneModalOpen(false);
@@ -86,7 +81,7 @@ export const MilestoneColumn = ({
         <div className="bg-white border border-gray-200 rounded-md p-3 mb-4 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">{milestone.name}</h2>
-            {milestone.milestoneId !== 0 && (
+            {milestone.milestoneId !== 0 && milestone.milestoneId !== null && (
               <MoreOptionsPopover
                 className="w-45"
                 editLabel="마일스톤명 수정"
@@ -98,27 +93,23 @@ export const MilestoneColumn = ({
           </div>
         </div>
 
-        {milestone.milestoneId !== 0 && milestone.milestoneId !== null && (
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">
-                {milestone.completedIssues}/{milestone.totalIssues}
-              </span>
-              <span className="text-sm font-medium text-gray-900">{milestone.progress}%</span>
+        {milestone.milestoneId !== 0 &&
+          milestone.milestoneId !== null &&
+          'progress' in milestone && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">
+                  {milestone.completedIssues}/{milestone.totalIssues}
+                </span>
+                <span className="text-sm font-medium text-gray-900">{milestone.progress}%</span>
+              </div>
+              <Progress value={milestone.progress} className="h-2" />
             </div>
-            <Progress value={milestone.progress} className="h-2" />
-          </div>
-        )}
+          )}
 
         <div className="space-y-2 mb-4">
           {issueList.map((issue) => (
-            <IssueCard
-              key={issue.issueId}
-              issue={issue}
-              orgId={orgId}
-              projectId={projectId}
-              projectName={projectName}
-            />
+            <IssueCard key={issue.issueId} issue={issue} orgId={orgId} projectId={projectId} />
           ))}
         </div>
 

@@ -8,14 +8,10 @@ import useProjectMilestoneListQuery from '@/hooks/queries/project/useProjectMile
 
 export const Route = createFileRoute('/$orgId/project/$projectId/')({
   component: ProjectDashboard,
-  validateSearch: (search: Record<string, unknown>) => ({
-    projectName: typeof search.projectName === 'string' ? search.projectName : '',
-  }),
 });
 
 function ProjectDashboard() {
   const { orgId, projectId } = Route.useParams();
-  const { projectName } = Route.useSearch();
 
   const [isMyIssuesOnly, setIsMyIssuesOnly] = useState(true);
 
@@ -30,7 +26,6 @@ function ProjectDashboard() {
   return (
     <div className="bg-white">
       <ProjectDashboardHeader
-        projectName={projectName}
         isMyIssuesOnly={isMyIssuesOnly}
         onToggleViewMode={handleToggleViewMode}
         orgId={orgId}
@@ -41,14 +36,16 @@ function ProjectDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {(milestoneList?.data?.data || []).flat().map((milestone: ProjectMilestone) => (
             <div key={milestone.milestoneId}>
-              <MilestoneColumn
-                milestone={milestone}
-                orgId={orgId}
-                projectId={projectId}
-                projectName={projectName}
-              />
+              <MilestoneColumn milestone={milestone} orgId={orgId} projectId={projectId} />
             </div>
           ))}
+          <div className="col-span-1">
+            <MilestoneColumn
+              milestone={{ milestoneId: null, name: '미분류' }}
+              orgId={orgId}
+              projectId={projectId}
+            />
+          </div>
         </div>
       </div>
     </div>

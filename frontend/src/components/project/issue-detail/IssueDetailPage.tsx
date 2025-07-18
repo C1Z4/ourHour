@@ -11,15 +11,9 @@ interface IssueDetailPageProps {
   orgId: string;
   projectId: string;
   issueId: string;
-  projectName: string;
 }
 
-export const IssueDetailPage = ({
-  orgId,
-  projectId,
-  issueId,
-  projectName,
-}: IssueDetailPageProps) => {
+export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPageProps) => {
   const navigate = useNavigate();
   const { data: issueData } = useProjectIssueDetailQuery({ issueId: Number(issueId) });
 
@@ -50,7 +44,6 @@ export const IssueDetailPage = ({
   return (
     <div className="bg-white">
       <IssueDetailHeader
-        projectName={projectName}
         milestoneName={issue.milestoneName}
         issueTitle={issue.name}
         orgId={orgId}

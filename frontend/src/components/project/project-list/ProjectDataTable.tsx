@@ -1,5 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 
+import { useDispatch } from 'react-redux';
+
 import { useRouter, useParams } from '@tanstack/react-router';
 import {
   flexRender,
@@ -23,11 +25,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import useProjectSummaryListQuery from '@/hooks/queries/project/useProjectSummaryListQuery';
+import { setCurrentProjectName } from '@/stores/projectSlice';
 
 import { ProjectColumns } from './ProjectColumns';
 
 export function ProjectDataTable() {
   const [currentPage, setCurrentPage] = useState(1);
+  const dispatch = useDispatch();
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const router = useRouter();
@@ -71,8 +75,8 @@ export function ProjectDataTable() {
     router.navigate({
       to: '/$orgId/project/$projectId',
       params: { orgId, projectId },
-      search: { projectName },
     });
+    dispatch(setCurrentProjectName(projectName));
   };
 
   if (isLoading) {
