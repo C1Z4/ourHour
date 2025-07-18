@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 
 import { useDispatch } from 'react-redux';
 
-import { useRouter, useParams } from '@tanstack/react-router';
+import { useRouter, useParams, useSearch } from '@tanstack/react-router';
 import {
   flexRender,
   getCoreRowModel,
@@ -30,13 +30,14 @@ import { setCurrentProjectName } from '@/stores/projectSlice';
 import { ProjectColumns } from './ProjectColumns';
 
 export function ProjectDataTable() {
-  const [currentPage, setCurrentPage] = useState(1);
   const dispatch = useDispatch();
+  const router = useRouter();
+  const { orgId } = useParams({ from: '/$orgId' });
+  const search = useSearch({ from: '/$orgId/project/' }) as Record<string, unknown>;
+
+  const currentPage = Number(search.currentPage) > 0 ? Number(search.currentPage) : 1;
 
   const [sorting, setSorting] = useState<SortingState>([]);
-  const router = useRouter();
-
-  const { orgId } = useParams({ from: '/$orgId' });
 
   const { data: projectSummaryList, isLoading } = useProjectSummaryListQuery({
     orgId: Number(orgId),
@@ -77,6 +78,13 @@ export function ProjectDataTable() {
       params: { orgId, projectId },
     });
     dispatch(setCurrentProjectName(projectName));
+  };
+
+  // 페이지 변경 시 쿼리 파라미터 업데이트
+  const handlePageChange = (pageNumber: number) => {
+    router.navigate({
+      search: { currentPage: pageNumber },
+    });
   };
 
   if (isLoading) {
@@ -132,7 +140,7 @@ export function ProjectDataTable() {
         <PaginationComponent
           currentPage={currentPage}
           totalPages={projectSummaryList?.data.totalPages || 1}
-          onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
+          onPageChange={handlePageChange}
         />
       </div>
     </div>

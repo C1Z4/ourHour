@@ -13,6 +13,7 @@ import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast'
 
 export const Route = createFileRoute('/$orgId/project/')({
   component: ProjectListPage,
+  validateSearch: (search: Record<number, unknown>) => search as { currentPage?: number },
 });
 
 function ProjectListPage() {
