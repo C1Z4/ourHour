@@ -2,8 +2,6 @@ package com.ourhour.domain.chat.repository;
 
 import com.ourhour.domain.chat.entity.ChatParticipantEntity;
 import com.ourhour.domain.chat.entity.ChatParticipantId;
-import com.ourhour.domain.chat.entity.ChatRoomEntity;
-import com.ourhour.domain.member.entity.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,11 +11,11 @@ import java.util.Optional;
 
 public interface ChatParticipantRepository extends JpaRepository<ChatParticipantEntity, ChatParticipantId> {
 
-
-    @Query("SELECT DISTINCT cp FROM ChatParticipantEntity cp " +
-            "JOIN FETCH cp.chatRoomEntity " +
-            "JOIN OrgParticipantMemberEntity opm ON cp.memberEntity.memberId = opm.memberEntity.memberId " +
-            "WHERE opm.orgEntity.orgId = :orgId AND cp.memberEntity.memberId = :memberId")
+    @Query("SELECT DISTINCT cp " +
+            "FROM ChatParticipantEntity cp " +
+            "JOIN FETCH cp.chatRoomEntity cr " +
+            "WHERE cr.orgEntity.orgId = :orgId " +
+            "AND cp.memberEntity.memberId = :memberId")
     List<ChatParticipantEntity> findChatRoomsByOrgAndMember(@Param("orgId") Long orgId, @Param("memberId") Long memberId);
 
     @Query("SELECT DISTINCT cp FROM ChatParticipantEntity cp " +

@@ -13,6 +13,8 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -69,6 +71,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         // 인증되면 Authentication 객체 붙여줌
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(claims, null, null);
                         accessor.setUser(authentication);
+
+                        // @MessageMapping이 아닌 곳에서의 인증정보 사용 or 비동기처리
+                        SecurityContext context = SecurityContextHolder.createEmptyContext();
+                        context.setAuthentication(authentication);
+                        SecurityContextHolder.setContext(context);
                     }
                 }
                 return message;

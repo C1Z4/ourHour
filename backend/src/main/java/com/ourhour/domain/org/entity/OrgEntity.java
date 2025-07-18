@@ -1,5 +1,6 @@
 package com.ourhour.domain.org.entity;
 
+import com.ourhour.domain.org.dto.OrgDetailReqDTO;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -13,7 +14,6 @@ import java.util.List;
 @Entity
 @Table(name = "tbl_org")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrgEntity {
 
@@ -24,21 +24,15 @@ public class OrgEntity {
     @OneToMany(mappedBy = "orgEntity")
     private List<OrgParticipantMemberEntity> orgParticipantMemberEntityList = new ArrayList<>();
 
-    @Setter
     private String name;
-    @Setter
     private String address;
-    @Setter
     private String email;
-    @Setter
     private String representativeName;
-    @Setter
     private String phone;
-    @Setter
     private String businessNumber;
-    @Setter
     private String logoImgUrl;
 
+    // 회사 등록
     @Builder
     public OrgEntity(String name, String address, String email, String representativeName, String phone,
             String businessNumber, String logoImgUrl) {
@@ -49,6 +43,17 @@ public class OrgEntity {
         this.phone = phone;
         this.businessNumber = businessNumber;
         this.logoImgUrl = logoImgUrl;
+    }
+
+    // 회사 정보 수정
+    public void updateInfo(OrgDetailReqDTO orgDetailReqDTO) {
+        if (orgDetailReqDTO.getName() != null) this.name = orgDetailReqDTO.getName();
+        if (orgDetailReqDTO.getAddress() != null) this.address = orgDetailReqDTO.getAddress();
+        if (orgDetailReqDTO.getEmail() != null) this.email = orgDetailReqDTO.getEmail();
+        if (orgDetailReqDTO.getRepresentativeName() != null) this.representativeName = orgDetailReqDTO.getRepresentativeName();
+        if (orgDetailReqDTO.getPhone() != null) this.phone = orgDetailReqDTO.getPhone();
+        if (orgDetailReqDTO.getBusinessNumber() != null) this.businessNumber = orgDetailReqDTO.getBusinessNumber();
+        if (orgDetailReqDTO.getLogoImgUrl() != null) this.logoImgUrl = orgDetailReqDTO.getLogoImgUrl();
     }
 
 }

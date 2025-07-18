@@ -21,14 +21,11 @@ public class PasswordVerifier {
 
     public UserEntity verifyPassword(String currentPwd) {
 
-        // 예외 발생: 로그인 토큰 없음 또는 만료됨
-        Claims claims = UserContextHolder.get();
-        if (claims == null) {
-            throw unauthorizedException();
-        }
-
         // 사용자 조회
-        UserEntity userEntity = userRepository.findByUserId(claims.getUserId())
+        Claims claims = UserContextHolder.get();
+        Long userId = claims.getUserId();
+
+        UserEntity userEntity = userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(AuthException::userNotFoundException);
 
         // 예외 발생: 현재 비밀번호 불일치

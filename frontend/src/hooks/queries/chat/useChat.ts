@@ -1,62 +1,71 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
-import { Client, type IMessage } from '@stomp/stompjs';
+import { useQueryClient } from '@tanstack/react-query';
+
+import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
-import type { ChatMessage, UseChatReturn } from '@/types/chatTypes.ts';
+import type { ChatMessage } from '@/types/chatTypes.ts';
 
-export function useChat(roomId: string | number): UseChatReturn {
+import { getAccessTokenFromStore } from '@/utils/auth/tokenUtils';
+
+export function useChat(orgId: number, roomId: number) {
+  const queryClient = useQueryClient();
   const clientRef = useRef<Client | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
 
-  const sendMessage = (messageContent: string, senderId: number) => {
-    if (clientRef.current && clientRef.current.connected) {
-      const chatMessage = {
-        chatRoomId: roomId,
-        senderId: senderId,
-        message: messageContent,
-      };
+  useEffect(() => {
+    if (orgId && roomId && !clientRef.current) {
+      const accessToken = getAccessTokenFromStore();
+
+      const client = new Client({
+        webSocketFactory: () => new SockJS('http://localhost:8080/ws-stomp'),
+        connectHeaders: { Authorization: `Bearer ${accessToken}` },
+        onConnect: () => {
+          console.log('=== 웹소켓 연결 성공 ===');
+          client.subscribe(`/sub/chat/room/${roomId}`, (message) => {
+            const receivedMessage = JSON.parse(message.body) as ChatMessage;
+            queryClient.setQueryData<ChatMessage[]>(
+              ['chatMessages', orgId, roomId],
+              (oldData = []) => {
+                const exists = oldData.some(
+                  (m) => m.chatMessageId === receivedMessage.chatMessageId,
+                );
+                return exists ? oldData : [...oldData, receivedMessage];
+              },
+            );
+          });
+        },
+        onStompError: (frame) => {
+          console.error('STOMP Error:', frame.headers['message'], frame.body);
+        },
+      });
+
+      clientRef.current = client;
+      client.activate();
+    }
+
+    return () => {
+      if (clientRef.current?.connected) {
+        console.log('=== 웹소켓 연결을 해제합니다 ===');
+        clientRef.current.deactivate();
+        clientRef.current = null;
+      }
+    };
+  }, [orgId, roomId, queryClient]);
+
+  const sendMessage = (messageContent: string) => {
+    if (clientRef.current?.connected) {
       clientRef.current.publish({
         destination: '/pub/chat/message',
-        body: JSON.stringify(chatMessage),
+        body: JSON.stringify({
+          chatRoomId: roomId,
+          message: messageContent,
+        }),
       });
+    } else {
+      console.error('STOMP client is not connected.');
     }
   };
 
-  useEffect(() => {
-    if (!roomId) {
-      return () => {};
-    }
-
-    const client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws-stomp'),
-      onConnect: () => {
-        client.subscribe(`/sub/chat/room/${roomId}`, (message: IMessage) => {
-          const receivedMessage = JSON.parse(message.body);
-          setMessages((prevMessages) => [...prevMessages, receivedMessage]);
-        });
-        setIsConnected(true);
-        console.log('=== 웹소켓 연결 성공 ===');
-      },
-      onDisconnect: () => {
-        setIsConnected(false);
-        console.log('=== 웹소켓 연결 종료 ===');
-      },
-      onStompError: (frame) => {
-        console.error('=== STOMP 에러 ===', frame.headers.message, frame.body);
-      },
-    });
-
-    clientRef.current = client;
-    client.activate();
-
-    return () => {
-      if (clientRef.current) {
-        clientRef.current.deactivate();
-      }
-    };
-  }, [roomId]);
-
-  return { messages, sendMessage, isConnected };
+  return { sendMessage };
 }

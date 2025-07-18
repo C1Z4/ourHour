@@ -46,6 +46,14 @@ public class ChatService {
                 .collect(Collectors.toList());
     }
 
+    public ChatRoomDetailResDTO findChatRoom(Long orgId, Long roomId) {
+
+        ChatRoomEntity chatRoomEntity = chatRoomRepository.findByOrgEntity_OrgIdAndRoomId(orgId, roomId)
+                .orElseThrow(ChatException::chatRoomNotFound);
+
+        return chatMapper.toChatRoomResDTO(chatRoomEntity);
+    }
+
     @Transactional
     public void registerChatRoom(Long orgId, ChatRoomCreateReqDTO request) {
 

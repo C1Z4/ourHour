@@ -32,4 +32,14 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
 
 
     List<MemberEntity> findByUserEntity_UserId(Long userId);
+
+    /* 본인이 속한 회사 내 자기 자신의 참여 정보 찾기 */
+    @Query("""
+        select opm.memberEntity
+        from OrgParticipantMemberEntity opm
+        where opm.orgEntity.orgId = :orgId
+          and opm.memberEntity.userEntity.userId = :userId
+          and opm.status = com.ourhour.domain.org.enums.Status.ACTIVE
+    """)
+    Optional<MemberEntity> findMemberInOrgByUserId(@Param("orgId")Long orgId, @Param("userId")Long actingUserId);
 }

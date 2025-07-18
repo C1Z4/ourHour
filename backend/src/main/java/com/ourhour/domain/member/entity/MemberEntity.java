@@ -4,6 +4,7 @@ import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,6 +31,13 @@ public class MemberEntity {
 
     @OneToMany(mappedBy = "memberEntity", fetch = FetchType.LAZY)
     private List<OrgParticipantMemberEntity> orgParticipantMemberEntityList;
+
+    @Builder
+    public MemberEntity(UserEntity userEntity, String name, String email) {
+        this.userEntity = userEntity;
+        this.name = name;
+        this.email = email;
+    }
 
     public void anonymizeName(String suffix) {
         this.name = "Anonymous_" + suffix;

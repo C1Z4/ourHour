@@ -50,6 +50,18 @@ public class ChatRestController {
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
+    @GetMapping("/{roomId}")
+    public ResponseEntity<ApiResponse<ChatRoomDetailResDTO>> getChatRoom(
+            @OrgId @PathVariable Long orgId,
+            @PathVariable Long roomId
+    ) {
+
+        ChatRoomDetailResDTO chatRoom = chatService.findChatRoom(orgId, roomId);
+
+        return ResponseEntity.ok(ApiResponse.success(chatRoom, "{roomId}번 채팅방 조회에 성공했습니다."));
+    }
+
+    @OrgAuth(accessLevel = Role.MEMBER)
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> registChatRoom(
             @OrgId @PathVariable Long orgId,
