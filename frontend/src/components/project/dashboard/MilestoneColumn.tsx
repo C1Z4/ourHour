@@ -10,6 +10,7 @@ import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { IssueCard } from '@/components/project/dashboard/IssueCard';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import useMilestoneDeleteMutation from '@/hooks/queries/project/useMilestoneDeleteMutation';
 import { useMilestoneUpdateMutation } from '@/hooks/queries/project/useMilestoneUpdateMutation';
 import useProjectIssueListQuery from '@/hooks/queries/project/useProjectIssueListQuery';
 import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
@@ -44,6 +45,11 @@ export const MilestoneColumn = ({
     milestoneId: milestone.milestoneId,
   });
 
+  const { mutate: deleteMilestone } = useMilestoneDeleteMutation({
+    projectId: Number(projectId),
+    milestoneId: milestone.milestoneId,
+  });
+
   const handleEditMilestone = () => {
     try {
       updateMilestone({
@@ -59,8 +65,12 @@ export const MilestoneColumn = ({
   };
 
   const handleDeleteMilestone = () => {
-    // 마일스톤 삭제 로직
-    console.log('마일스톤 삭제:', milestone?.milestoneId);
+    try {
+      deleteMilestone();
+      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
+    } catch (error) {
+      // 에러 토스트 띄워주기기
+    }
   };
 
   const handleCreateIssue = () => {
