@@ -16,6 +16,7 @@ public class IssueSummaryDTO {
     private Long issueId;
     private String name;
     private String status;
+    private Long milestoneId;
     private Long assigneeId;
     private String assigneeName;
     private String assigneeProfileImgUrl;

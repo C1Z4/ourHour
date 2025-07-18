@@ -24,6 +24,7 @@ public interface IssueMapper {
     @Mapping(target = "assigneeId", source = "assigneeEntity.memberId")
     @Mapping(target = "assigneeName", source = "assigneeEntity.name")
     @Mapping(target = "assigneeProfileImgUrl", source = "assigneeEntity.profileImgUrl")
+    @Mapping(target = "milestoneId", source = "milestoneEntity.milestoneId")
     @Mapping(target = "milestoneName", source = "milestoneEntity.name")
     @Mapping(target = "status", expression = "java(issueEntity.getStatus().getDescription())")
     IssueDetailDTO toIssueDetailDTO(IssueEntity issueEntity);
