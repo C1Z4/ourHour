@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { ChevronLeft } from 'lucide-react';
 
 import ErrorMessage from '@/components/auth/ErrorMessage';
 import LoginForm from '@/components/auth/LoginForm';
@@ -40,7 +41,7 @@ function LoginPage() {
   };
 
   const handleSignupClick = () => {
-    console.log('회원가입 페이지로 이동');
+    navigate({ to: '/signup' });
   };
 
   const handleForgotPasswordClick = () => {
@@ -52,13 +53,24 @@ function LoginPage() {
     // 소셜 로그인 로직 구현
   };
 
+  const handleGoBack = () => {
+    navigate({ to: '/' });
+  };
+
   return (
     <div className="min-h-screen flex">
       <div className="hidden lg:block lg:w-2/3">
         <img src="/images/landing-1.jpg" alt="login-background" className="w-full h-full" />
       </div>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+        <button
+          onClick={handleGoBack}
+          className="absolute top-5 left-5 flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">로그인</h1>
