@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 
 import ErrorMessage from '@/components/auth/ErrorMessage';
@@ -17,7 +17,7 @@ export const Route = createFileRoute('/login/')({
 function LoginPage() {
   const [loginError, setLoginError] = useState('');
 
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const signinMutation = useSigninMutation();
   const isLoading = signinMutation.isPending;
@@ -30,7 +30,7 @@ function LoginPage() {
       {
         onSuccess: () => {
           showSuccessToast(TOAST_MESSAGES.AUTH.LOGIN_SUCCESS);
-          navigate({ to: '/' }); // 회사 리스트 페이지로 이동
+          router.navigate({ to: '/start', search: { page: 1 } });
         },
         onError: () => {
           setLoginError(AUTH_MESSAGES.LOGIN_FAILED);
@@ -41,7 +41,7 @@ function LoginPage() {
   };
 
   const handleSignupClick = () => {
-    navigate({ to: '/signup' });
+    router.navigate({ to: '/signup' });
   };
 
   const handleForgotPasswordClick = () => {
@@ -54,7 +54,7 @@ function LoginPage() {
   };
 
   const handleGoBack = () => {
-    navigate({ to: '/' });
+    router.navigate({ to: '/' });
   };
 
   return (
