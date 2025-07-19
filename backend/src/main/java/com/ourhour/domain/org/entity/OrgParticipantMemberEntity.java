@@ -9,9 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.cglib.core.Local;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "tbl_org_participant_member")
@@ -48,9 +47,9 @@ public class OrgParticipantMemberEntity {
     @Column(name = "status", nullable = false)
     private Status status = Status.ACTIVE;
 
-    private LocalDateTime joinedAt;
+    private LocalDate joinedAt;
 
-    private LocalDateTime leftAt;
+    private LocalDate leftAt;
 
     @Builder
     public OrgParticipantMemberEntity(OrgParticipantMemberId orgParticipantMemberId, OrgEntity orgEntity, MemberEntity memberEntity, DepartmentEntity departmentEntity, PositionEntity positionEntity, Role role) {
@@ -71,6 +70,6 @@ public class OrgParticipantMemberEntity {
     }
 
     public void markLeftNow() {
-        this.leftAt = LocalDateTime.now();
+        this.leftAt = LocalDate.now();
     }
 }
