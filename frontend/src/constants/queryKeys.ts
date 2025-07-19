@@ -9,4 +9,5 @@ export const PROJECT_QUERY_KEYS = {
 
 export const ORG_QUERY_KEYS = {
   MEMBER_LIST: 'orgMemberList',
+  MY_ORG_LIST: 'myOrgList',
 } as const;

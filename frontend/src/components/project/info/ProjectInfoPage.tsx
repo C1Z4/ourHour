@@ -94,7 +94,7 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
       deleteProject({ projectId: Number(projectId) });
       setIsDeleteModalOpen(false);
       router.navigate({
-        to: '/$orgId/project',
+        to: '/org/$orgId/project',
         params: { orgId },
       });
       showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);

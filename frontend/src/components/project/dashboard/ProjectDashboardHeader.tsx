@@ -49,14 +49,14 @@ export const ProjectDashboardHeader = ({
 
   const handleCreateIssue = () => {
     navigate({
-      to: '/$orgId/project/$projectId/issue/create',
+      to: '/org/$orgId/project/$projectId/issue/create',
       params: { orgId, projectId },
     });
   };
 
   const handleProjectInfo = () => {
     navigate({
-      to: '/$orgId/project/$projectId/info',
+      to: '/org/$orgId/project/$projectId/info',
       params: { orgId, projectId },
     });
   };

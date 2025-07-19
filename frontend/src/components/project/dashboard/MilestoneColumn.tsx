@@ -74,7 +74,7 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
 
   const handleCreateIssue = () => {
     navigate({
-      to: '/$orgId/project/$projectId/issue/create',
+      to: '/org/$orgId/project/$projectId/issue/create',
       params: { orgId, projectId },
     });
   };

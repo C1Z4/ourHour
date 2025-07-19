@@ -5,6 +5,7 @@ import { storageUtils } from '@/utils/storage';
 interface AuthState {
   accessToken: string | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
   rememberedEmail: string | null;
   shouldRememberEmail: boolean;
 }
@@ -12,6 +13,7 @@ interface AuthState {
 const initialState: AuthState = {
   accessToken: null,
   isAuthenticated: false,
+  isLoading: true,
   rememberedEmail: null,
   shouldRememberEmail: false,
 };
@@ -23,18 +25,24 @@ const authSlice = createSlice({
     setAccessToken: (state, action: PayloadAction<string | null>) => {
       state.accessToken = action.payload;
       state.isAuthenticated = !!action.payload;
+      state.isLoading = false;
     },
     login: (state, action: PayloadAction<{ accessToken: string }>) => {
       state.accessToken = action.payload.accessToken;
       state.isAuthenticated = true;
+      state.isLoading = false;
     },
     logout: (state) => {
       state.accessToken = null;
       state.isAuthenticated = false;
+      state.isLoading = false;
       // 로그아웃 시 저장된 이메일 데이터 삭제
       storageUtils.clearEmailData();
       state.rememberedEmail = null;
       state.shouldRememberEmail = false;
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
     },
     setRememberedEmail: (state, action: PayloadAction<string | null>) => {
       state.rememberedEmail = action.payload;
@@ -45,6 +53,12 @@ const authSlice = createSlice({
   },
 });
 
-export const { setAccessToken, login, logout, setRememberedEmail, setShouldRememberEmail } =
-  authSlice.actions;
+export const {
+  setAccessToken,
+  login,
+  logout,
+  setLoading,
+  setRememberedEmail,
+  setShouldRememberEmail,
+} = authSlice.actions;
 export default authSlice.reducer;

@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { IssueFormPage } from '@/components/project/issue-form/IssueFormPage';
 import useProjectIssueDetailQuery from '@/hooks/queries/project/useProjectIssueDetailQuery';
 
-export const Route = createFileRoute('/$orgId/project/$projectId/issue/edit/$issueId')({
+export const Route = createFileRoute('/org/$orgId/project/$projectId/issue/edit/$issueId')({
   component: IssueEdit,
 });
 

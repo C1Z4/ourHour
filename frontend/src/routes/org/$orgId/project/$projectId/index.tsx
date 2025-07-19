@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 
 import { ProjectMilestone } from '@/api/project/getProjectMilestoneList';
-import { ProjectDashboardHeader, MilestoneColumn } from '@/components/project/dashboard';
+import { MilestoneColumn, ProjectDashboardHeader } from '@/components/project/dashboard';
 import useProjectMilestoneListQuery from '@/hooks/queries/project/useProjectMilestoneListQuery';
 
-export const Route = createFileRoute('/$orgId/project/$projectId/')({
+export const Route = createFileRoute('/org/$orgId/project/$projectId/')({
   component: ProjectDashboard,
 });
 

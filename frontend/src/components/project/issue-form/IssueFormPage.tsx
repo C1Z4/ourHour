@@ -148,7 +148,7 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
         onSuccess: async () => {
           showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
           router.navigate({
-            to: '/$orgId/project/$projectId',
+            to: '/org/$orgId/project/$projectId',
             params: { orgId, projectId },
           });
         },
@@ -170,7 +170,7 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
       onSuccess: () => {
         showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
         router.navigate({
-          to: '/$orgId/project/$projectId/issue/$issueId',
+          to: '/org/$orgId/project/$projectId/issue/$issueId',
           params: { orgId, projectId, issueId },
         });
       },

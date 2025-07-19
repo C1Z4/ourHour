@@ -4,12 +4,12 @@ import { useChatMessagesQuery } from '@/hooks/queries/chat/useChatMessagesQuerie
 import { useChatRoomDetailQuery } from '@/hooks/queries/chat/useChatRoomDetailQueries';
 import { ChatRoomPage } from '@/pages/chat/ChatRoomPage.tsx';
 
-export const Route = createFileRoute('/$orgId/chat/$roomId/')({
+export const Route = createFileRoute('/org/$orgId/chat/$roomId/')({
   component: ChatRoom,
 });
 
 function ChatRoom() {
-  const { orgId, roomId } = useParams({ from: '/$orgId/chat/$roomId/' });
+  const { orgId, roomId } = useParams({ from: '/org/$orgId/chat/$roomId/' });
   const orgIdNum = Number(orgId);
   const roomIdNum = Number(roomId);
 

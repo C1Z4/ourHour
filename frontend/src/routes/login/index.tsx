@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 
 import ErrorMessage from '@/components/auth/ErrorMessage';
 import LoginForm from '@/components/auth/LoginForm';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { AUTH_MESSAGES, PLATFORM_NAME } from '@/constants/messages';
 import { useSigninMutation } from '@/hooks/queries/auth/useAuthMutations';
+import { useAppSelector } from '@/stores/hooks';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const Route = createFileRoute('/login/')({
@@ -17,10 +19,29 @@ export const Route = createFileRoute('/login/')({
 function LoginPage() {
   const [loginError, setLoginError] = useState('');
 
-  const navigate = useNavigate();
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
 
   const signinMutation = useSigninMutation();
-  const isLoading = signinMutation.isPending;
+  const isSigninLoading = signinMutation.isPending;
+
+  // 로그인 상태일 때 홈페이지로 리다이렉트
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.navigate({ to: '/' });
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  // 로딩 중이거나 이미 로그인된 상태면 로딩 화면 표시
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
+  }
 
   const handleLoginSubmit = (email: string, password: string) => {
     setLoginError('');
@@ -30,7 +51,7 @@ function LoginPage() {
       {
         onSuccess: () => {
           showSuccessToast(TOAST_MESSAGES.AUTH.LOGIN_SUCCESS);
-          navigate({ to: '/' }); // 회사 리스트 페이지로 이동
+          router.navigate({ to: '/start', search: { page: 1 } });
         },
         onError: () => {
           setLoginError(AUTH_MESSAGES.LOGIN_FAILED);
@@ -41,7 +62,7 @@ function LoginPage() {
   };
 
   const handleSignupClick = () => {
-    navigate({ to: '/signup' });
+    router.navigate({ to: '/signup' });
   };
 
   const handleForgotPasswordClick = () => {
@@ -54,7 +75,7 @@ function LoginPage() {
   };
 
   const handleGoBack = () => {
-    navigate({ to: '/' });
+    router.navigate({ to: '/' });
   };
 
   return (
@@ -82,10 +103,10 @@ function LoginPage() {
             onSubmit={handleLoginSubmit}
             onSignupClick={handleSignupClick}
             onForgotPasswordClick={handleForgotPasswordClick}
-            isLoading={isLoading}
+            isLoading={isSigninLoading}
           />
 
-          <SocialLoginButtons onSocialLogin={handleSocialLogin} isLoading={isLoading} />
+          <SocialLoginButtons onSocialLogin={handleSocialLogin} isLoading={isSigninLoading} />
         </div>
       </div>
     </div>

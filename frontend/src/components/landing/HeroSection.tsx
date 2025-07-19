@@ -30,7 +30,9 @@ export function HeroSection() {
               size="lg"
               className="bg-[#467599] hover:bg-[#3a5f80] text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
             >
-              <Link to="/login">지금 시작하기</Link>
+              <Link to="/start" search={{ page: 1 }}>
+                지금 시작하기
+              </Link>
             </Button>
           </div>
         </div>

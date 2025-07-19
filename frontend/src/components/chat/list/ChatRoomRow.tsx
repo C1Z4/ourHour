@@ -70,10 +70,7 @@ export const ChatRoomRow = ({ orgId, chatRoom }: Props) => {
           </PopoverContent>
         </Popover>
       </TableCell>
-      <Link
-        to="/$orgId/chat/$roomId"
-        params={{ orgId: String(orgId), roomId: String(chatRoom.roomId) }}
-      >
+      <Link to="/org/$orgId/chat/$roomId" params={{ orgId, roomId: String(chatRoom.roomId) }}>
         <TableCell className="flex item-center py-4">{chatRoom.name}</TableCell>
       </Link>
       <TableCell>{isLoading ? '로딩 중...' : latestMessage}</TableCell>

@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 
 import { AxiosError } from 'axios';
 
+import deleteSignout from '@/api/auth/deleteSignout';
 import postSendEmailVerification, {
   SendEmailVerificationRequest,
 } from '@/api/auth/postSendEmailVerification';
@@ -30,6 +31,15 @@ export const useSignupMutation = () =>
 export const useSendEmailVerificationMutation = () =>
   useMutation({
     mutationFn: (request: SendEmailVerificationRequest) => postSendEmailVerification(request),
+    onError: (error: AxiosError) => {
+      logError(error);
+      handleHttpError(error);
+    },
+  });
+
+export const useSignoutMutation = () =>
+  useMutation({
+    mutationFn: () => deleteSignout(),
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
