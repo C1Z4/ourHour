@@ -40,7 +40,7 @@ export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPagePr
 
   const handleEditIssue = () => {
     navigate({
-      to: '/$orgId/project/$projectId/issue/edit/$issueId',
+      to: '/org/$orgId/project/$projectId/issue/edit/$issueId',
       params: { orgId, projectId, issueId },
     });
   };
@@ -50,7 +50,7 @@ export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPagePr
       deleteIssue();
       showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
       navigate({
-        to: '/$orgId/project/$projectId',
+        to: '/org/$orgId/project/$projectId',
         params: { orgId, projectId },
       });
     } catch (error) {

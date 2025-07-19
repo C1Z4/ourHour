@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useChatRoomListQuery } from '@/hooks/queries/chat/useChatRoomListQueries';
 import { ChatRoomListPage } from '@/pages/chat/ChatRoomListPage.tsx';
 
-export const Route = createFileRoute('/$orgId/chat/')({
+export const Route = createFileRoute('/org/$orgId/chat/')({
   component: ChatListContainer,
 });
 
