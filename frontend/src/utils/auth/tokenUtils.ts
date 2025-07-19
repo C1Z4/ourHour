@@ -15,3 +15,21 @@ export const logout = () => {
   store.dispatch(logoutAction());
   window.location.href = '/login';
 };
+
+export const getMemberIdFromToken = (): number => {
+  const token = getAccessTokenFromStore();
+  if (!token) {
+    return 0;
+  }
+
+  try {
+    const base64Payload = token.split('.')[1];
+    const payload = JSON.parse(atob(base64Payload));
+    const memberId = Number(payload?.orgAuthorityList?.[0]?.memberId);
+
+    return typeof memberId === 'number' ? memberId : 0;
+  } catch (error) {
+    console.error('토큰 파싱 중 오류 발생:', error);
+    return 0;
+  }
+};
