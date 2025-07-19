@@ -1,23 +1,29 @@
 import { Label } from '@/components/ui/label.tsx';
 import { CHAT_COLORS } from '@/styles/colors.ts';
 
-export const ChatRoomColorPicker = () => (
+interface Props {
+  selectedColor: string;
+  onChangeColor: (color: keyof typeof CHAT_COLORS) => void;
+}
+export const ChatRoomColorPicker = ({ selectedColor, onChangeColor }: Props) => (
   <div className="grid gap-3">
     <Label htmlFor="color">태그 색상</Label>
-    <div style={{ display: 'flex', gap: '1rem' }}>
-      {Object.entries(CHAT_COLORS).map(([name, hex]) => (
+    <div className="flex justify-center gap-8">
+      {(Object.keys(CHAT_COLORS) as Array<keyof typeof CHAT_COLORS>).map((name) => (
         <label key={name} style={{ cursor: 'pointer', position: 'relative' }}>
-          <input type="radio" name="color" value={name} style={{ display: 'none' }} />
+          <input
+            type="radio"
+            name="color"
+            value={name}
+            style={{ display: 'none' }}
+            checked={selectedColor === name}
+            onChange={() => onChangeColor(name)}
+          />
           <span
-            style={{
-              display: 'inline-block',
-              width: '45px',
-              height: '45px',
-              borderRadius: '50%',
-              backgroundColor: hex,
-              border: `2px solid ${hex}`,
-              boxShadow: '0 0 4px rgba(0, 0, 0, 0.1)',
-            }}
+            className={`inline-block w-11 h-11 rounded-full border-2 transition-all ${
+              selectedColor === name ? 'border-blue-500 scale-110' : 'border-transparent'
+            }`}
+            style={{ backgroundColor: CHAT_COLORS[name] }}
           />
         </label>
       ))}

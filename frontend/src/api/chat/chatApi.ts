@@ -1,11 +1,11 @@
 import type { ChatRoom, ChatMessage } from '@/types/chatTypes';
 
-import axiosInstance from '@/api/axiosConfig.ts';
+import { axiosInstance } from '@/api/axiosConfig.ts';
 import { CHAT_COLORS } from '@/styles/colors.ts';
 
 export interface ChatRoomCreatePayload {
   name: string;
-  color: typeof CHAT_COLORS;
+  color: keyof typeof CHAT_COLORS;
   memberIds: number[];
 }
 
