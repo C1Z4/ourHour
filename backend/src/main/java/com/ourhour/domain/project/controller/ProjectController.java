@@ -41,6 +41,7 @@ import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.exception.BusinessException;
 
+
 @RestController
 @RequestMapping("/api/projects")
 @RequiredArgsConstructor
@@ -222,7 +223,12 @@ public class ProjectController {
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId,
                         @Valid @RequestBody IssueReqDTO issueReqDTO) {
 
-                ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO);
+                Claims claims = UserContextHolder.get();
+                if (claims == null) {
+                    throw BusinessException.unauthorized("인증 정보가 없습니다.");
+                }
+
+                ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO, claims);
 
                 return ResponseEntity.ok(response);
         }

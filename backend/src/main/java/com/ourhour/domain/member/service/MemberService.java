@@ -33,14 +33,14 @@ public class MemberService {
         Page<OrgParticipantMemberEntity> orgParticipantMemberEntityPage = memberRepository.findOrgListByMemberId(memberId, pageable);
 
         if (orgParticipantMemberEntityPage.isEmpty()) {
-            return PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize());
+            return PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize());
         }
 
         List<MemberOrgSummaryResDTO> dtoList = memberOrgMapper.toMemberOrgSummaryResDTOList(orgParticipantMemberEntityPage.getContent());
 
         return PageResponse.<MemberOrgSummaryResDTO>builder()
                 .data(dtoList)
-                .currentPage(orgParticipantMemberEntityPage.getNumber())
+                .currentPage(orgParticipantMemberEntityPage.getNumber() + 1)
                 .size(orgParticipantMemberEntityPage.getSize())
                 .totalPages(orgParticipantMemberEntityPage.getTotalPages())
                 .totalElements(orgParticipantMemberEntityPage.getTotalElements())
