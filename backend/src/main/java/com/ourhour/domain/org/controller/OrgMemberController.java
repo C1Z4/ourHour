@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/organizations")
 @RequiredArgsConstructor
@@ -44,6 +46,16 @@ public class OrgMemberController {
         PageResponse<MemberInfoResDTO> response = orgMemberService.getOrgMembers(orgId, pageable);
 
         return ResponseEntity.ok(ApiResponse.success(response, "팀 구성원 조회에 성공하였습니다."));
+    }
+
+    @OrgAuth
+    @GetMapping("/{orgId}/members/all")
+    public ResponseEntity<ApiResponse<List<MemberInfoResDTO>>> getAllOrgMembers(
+            @OrgId @PathVariable @Min(value = 1, message = "팀 ID는 1 이상이어야 합니다.") Long orgId) {
+
+        List<MemberInfoResDTO> response = orgMemberService.getAllOrgMembers(orgId);
+
+        return ResponseEntity.ok(ApiResponse.success(response, "전체 구성원 조회에 성공하였습니다."));
     }
 
     // 구성원 상세 조회
