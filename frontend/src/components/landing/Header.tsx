@@ -19,7 +19,7 @@ export const Header = () => (
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <img src={logo} alt="OurHour Logo" className="w-10 h-10" />
-          <h1 className="text-xl font-bold text-[#467599]">OurHour</h1>
+          <h1 className="text-xl font-bold text-[#467599]">OURHOUR</h1>
         </div>
 
         <nav className="hidden md:flex items-center space-x-8">
@@ -42,7 +42,9 @@ export const Header = () => (
             <Link to="/login">로그인</Link>
           </ButtonComponent>
           <ButtonComponent variant="primary" asChild>
-            <Link to="/login">시작하기</Link>
+            <Link to="/start" search={{ page: 1 }}>
+              시작하기
+            </Link>
           </ButtonComponent>
         </div>
       </div>
