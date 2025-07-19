@@ -28,7 +28,9 @@ function StartPage() {
   const { data: myOrgList } = useMyOrgListQuery({});
   const totalPages = myOrgList?.data.totalPages ?? 1;
 
-  const currentOrgs = myOrgList?.data.data.flat() ?? [];
+  const currentOrgs = Array.isArray(myOrgList?.data)
+    ? myOrgList.data
+    : (myOrgList?.data?.data ?? []);
 
   const handleBackClick = () => {
     navigate({ to: '/' });
@@ -55,6 +57,7 @@ function StartPage() {
     navigate({
       to: '/org/$orgId/project',
       params: { orgId: orgId.toString() },
+      search: { currentPage: 1 },
     });
   };
 
