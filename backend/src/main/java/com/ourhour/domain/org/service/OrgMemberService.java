@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -107,5 +108,21 @@ public class OrgMemberService {
         orgParticipantMemberEntity.changeStatus(Status.INACTIVE);
         orgParticipantMemberEntity.markLeftNow();
 
+    }
+
+    public List<MemberInfoResDTO> getAllOrgMembers(Long orgId) {
+
+        if (orgId == null || orgId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 회사 ID입니다.");
+        }
+
+        // 회사 존재 여부 확인
+        if (!orgRepository.existsById(orgId)) {
+            throw BusinessException.badRequest("존재하지 않는 회사 ID 입니다: " + orgId);
+        }
+
+        List<MemberInfoResDTO> memberInfoResDTOList = orgParticipantMemberRepository.findAllByOrgEntity_OrgId(orgId);
+
+        return memberInfoResDTOList;
     }
 }

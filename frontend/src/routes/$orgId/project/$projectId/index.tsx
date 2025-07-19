@@ -2,12 +2,9 @@ import { useState } from 'react';
 
 import { createFileRoute } from '@tanstack/react-router';
 
-import {
-  ProjectDashboardHeader,
-  MilestoneColumn,
-  mockMilestones,
-  mockIssues,
-} from '@/components/project/dashboard';
+import { ProjectMilestone } from '@/api/project/getProjectMilestoneList';
+import { ProjectDashboardHeader, MilestoneColumn } from '@/components/project/dashboard';
+import useProjectMilestoneListQuery from '@/hooks/queries/project/useProjectMilestoneListQuery';
 
 export const Route = createFileRoute('/$orgId/project/$projectId/')({
   component: ProjectDashboard,
@@ -15,22 +12,20 @@ export const Route = createFileRoute('/$orgId/project/$projectId/')({
 
 function ProjectDashboard() {
   const { orgId, projectId } = Route.useParams();
+
   const [isMyIssuesOnly, setIsMyIssuesOnly] = useState(true);
+
+  const { data: milestoneList } = useProjectMilestoneListQuery({
+    projectId: Number(projectId),
+  });
 
   const handleToggleViewMode = () => {
     setIsMyIssuesOnly(!isMyIssuesOnly);
   };
 
-  const groupedIssues = {
-    milestone1: mockIssues.filter((issue) => issue.milestoneId === '1'),
-    milestone2: mockIssues.filter((issue) => issue.milestoneId === '2'),
-    uncategorized: mockIssues.filter((issue) => issue.milestoneId === null),
-  };
-
   return (
     <div className="bg-white">
       <ProjectDashboardHeader
-        projectName="개발 프로젝트명 1"
         isMyIssuesOnly={isMyIssuesOnly}
         onToggleViewMode={handleToggleViewMode}
         orgId={orgId}
@@ -39,24 +34,18 @@ function ProjectDashboard() {
 
       <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <MilestoneColumn
-            milestone={mockMilestones[0]}
-            issues={groupedIssues.milestone1}
-            orgId={orgId}
-            projectId={projectId}
-          />
-          <MilestoneColumn
-            milestone={mockMilestones[1]}
-            issues={groupedIssues.milestone2}
-            orgId={orgId}
-            projectId={projectId}
-          />
-          <MilestoneColumn
-            issues={groupedIssues.uncategorized}
-            isUncategorized={true}
-            orgId={orgId}
-            projectId={projectId}
-          />
+          {(milestoneList?.data?.data || []).flat().map((milestone: ProjectMilestone) => (
+            <div key={milestone.milestoneId}>
+              <MilestoneColumn milestone={milestone} orgId={orgId} projectId={projectId} />
+            </div>
+          ))}
+          <div className="col-span-1">
+            <MilestoneColumn
+              milestone={{ milestoneId: null, name: '미분류' }}
+              orgId={orgId}
+              projectId={projectId}
+            />
+          </div>
         </div>
       </div>
     </div>

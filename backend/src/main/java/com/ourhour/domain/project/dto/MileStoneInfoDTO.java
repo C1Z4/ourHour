@@ -15,6 +15,8 @@ public class MileStoneInfoDTO {
 
     private Long milestoneId;
     private String name;
+    private int completedIssues;
+    private int totalIssues;
     private byte progress;
 
 }

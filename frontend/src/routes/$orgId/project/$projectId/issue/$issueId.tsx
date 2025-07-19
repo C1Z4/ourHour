@@ -8,6 +8,5 @@ export const Route = createFileRoute('/$orgId/project/$projectId/issue/$issueId'
 
 function IssueDetail() {
   const { orgId, projectId, issueId } = Route.useParams();
-
   return <IssueDetailPage orgId={orgId} projectId={projectId} issueId={issueId} />;
 }

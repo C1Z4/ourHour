@@ -1,9 +1,6 @@
-import { useState } from 'react';
-
 import { Trash2 } from 'lucide-react';
 
-import { ProjectMember } from '@/types/projectTypes';
-
+import { Member } from '@/api/org/getOrgMemberList';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,35 +15,33 @@ import {
 } from '@/components/ui/table';
 
 interface ProjectMembersTableProps {
-  members: ProjectMember[];
-  selectedMemberIds: string[];
-  onSelectionChange: (memberIds: string[]) => void;
+  projectMembers?: Member[];
+  selectedMemberIds: number[];
+  onSelectionChange: (memberIds: number[]) => void;
   onDeleteSelected: () => void;
+  participantTotalPages: number;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
 }
 
 export const ProjectMembersTable = ({
-  members,
+  projectMembers,
   selectedMemberIds,
   onSelectionChange,
   onDeleteSelected,
+  participantTotalPages,
+  currentPage,
+  setCurrentPage,
 }: ProjectMembersTableProps) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const totalPages = Math.ceil(members.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentMembers = members.slice(startIndex, endIndex);
-
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      onSelectionChange(currentMembers.map((member) => member.id));
+      onSelectionChange(projectMembers?.map((member) => member.memberId) || []);
     } else {
       onSelectionChange([]);
     }
   };
 
-  const handleSelectMember = (memberId: string, checked: boolean) => {
+  const handleSelectMember = (memberId: number, checked: boolean) => {
     if (checked) {
       onSelectionChange([...selectedMemberIds, memberId]);
     } else {
@@ -55,21 +50,22 @@ export const ProjectMembersTable = ({
   };
 
   const isAllSelected =
-    currentMembers.length > 0 &&
-    currentMembers.every((member) => selectedMemberIds.includes(member.id));
+    projectMembers &&
+    projectMembers.length > 0 &&
+    projectMembers.every((member) => selectedMemberIds.includes(member.memberId));
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case '루트관리자':
-        return 'bg-purple-100 text-purple-800';
-      case '관리자':
-        return 'bg-red-100 text-red-800';
-      case '일반':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  // const getRoleColor = (role: string) => {
+  //   switch (role) {
+  //     case '루트관리자':
+  //       return 'bg-purple-100 text-purple-800';
+  //     case '관리자':
+  //       return 'bg-red-100 text-red-800';
+  //     case '일반':
+  //       return 'bg-blue-100 text-blue-800';
+  //     default:
+  //       return 'bg-gray-100 text-gray-800';
+  //   }
+  // };
 
   return (
     <div className="space-y-4">
@@ -96,45 +92,37 @@ export const ProjectMembersTable = ({
                   onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
                 />
               </TableHead>
-              <TableHead className="text-center">이름</TableHead>
-              <TableHead className="text-center">부서</TableHead>
-              <TableHead className="text-center">직책</TableHead>
-              <TableHead className="text-center">연락처</TableHead>
-              <TableHead className="text-center">이메일</TableHead>
-              <TableHead className="text-center">권한</TableHead>
+              <TableHead className="w-32 text-center">이름</TableHead>
+              <TableHead className="w-24 text-center">부서</TableHead>
+              <TableHead className="w-24 text-center">직책</TableHead>
+              <TableHead className="w-32 text-center">연락처</TableHead>
+              <TableHead className="w-48 text-center">이메일</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentMembers.map((member) => (
-              <TableRow key={member.id} className="hover:bg-gray-50">
-                <TableCell>
+            {projectMembers?.map((member) => (
+              <TableRow key={member.memberId} className="hover:bg-gray-50">
+                <TableCell className="w-12">
                   <Checkbox
-                    checked={selectedMemberIds.includes(member.id)}
-                    onCheckedChange={(checked) => handleSelectMember(member.id, checked as boolean)}
+                    checked={selectedMemberIds.includes(member.memberId)}
+                    onCheckedChange={(checked) =>
+                      handleSelectMember(member.memberId, checked as boolean)
+                    }
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell className="w-32">
                   <div className="flex items-center gap-3">
                     <Avatar className="w-8 h-8">
-                      <AvatarImage src={member.profileImageUrl} alt={member.name} />
+                      <AvatarImage src={member.profileImgUrl} alt={member.name} />
                       <AvatarFallback className="text-sm">{member.name.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <span className="font-medium">{member.name}</span>
+                    <span className="font-medium truncate">{member.name}</span>
                   </div>
                 </TableCell>
-                <TableCell className="text-center">{member.department}</TableCell>
-                <TableCell className="text-center">{member.position}</TableCell>
-                <TableCell className="text-center">{member.phone}</TableCell>
-                <TableCell className="text-center">{member.email}</TableCell>
-                <TableCell className="text-center">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(
-                      member.role,
-                    )}`}
-                  >
-                    {member.role}
-                  </span>
-                </TableCell>
+                <TableCell className="w-24 text-center truncate">{member.departmentName}</TableCell>
+                <TableCell className="w-24 text-center truncate">{member.positionName}</TableCell>
+                <TableCell className="w-32 text-center truncate">{member.phone}</TableCell>
+                <TableCell className="w-48 text-center truncate">{member.email}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -144,8 +132,8 @@ export const ProjectMembersTable = ({
       <div className="flex justify-center">
         <PaginationComponent
           currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          totalPages={participantTotalPages}
+          onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
         />
       </div>
     </div>

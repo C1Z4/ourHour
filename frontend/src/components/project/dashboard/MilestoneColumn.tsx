@@ -1,48 +1,75 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 
-import { Issue, Milestone } from '@/types/issueTypes';
-
+import { ProjectMilestone } from '@/api/project/getProjectMilestoneList';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { IssueCard } from '@/components/project/dashboard/IssueCard';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import useMilestoneDeleteMutation from '@/hooks/queries/project/useMilestoneDeleteMutation';
+import { useMilestoneUpdateMutation } from '@/hooks/queries/project/useMilestoneUpdateMutation';
+import useProjectIssueListQuery from '@/hooks/queries/project/useProjectIssueListQuery';
+import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface MilestoneColumnProps {
-  milestone?: Milestone;
-  issues: Issue[];
-  isUncategorized?: boolean;
+  milestone: ProjectMilestone | { milestoneId: number | null; name: string };
   orgId: string;
   projectId: string;
 }
 
-export const MilestoneColumn = ({
-  milestone,
-  issues,
-  isUncategorized = false,
-  orgId,
-  projectId,
-}: MilestoneColumnProps) => {
+export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumnProps) => {
   const navigate = useNavigate();
+
+  const { data: issueListData, refetch: refetchIssueList } = useProjectIssueListQuery({
+    projectId: Number(projectId),
+    milestoneId: milestone.milestoneId || null,
+  });
+
+  useEffect(() => {
+    refetchIssueList();
+  }, [milestone.milestoneId]);
+
+  const issueList = (issueListData?.data.data || []).flat();
 
   const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
 
-  const [milestoneName, setMilestoneName] = useState(milestone?.name || '');
+  const [milestoneName, setMilestoneName] = useState(milestone.name);
 
-  const displayName = isUncategorized ? '미분류' : milestone?.name || '';
+  const { mutate: updateMilestone } = useMilestoneUpdateMutation({
+    projectId: Number(projectId),
+    milestoneId: milestone?.milestoneId || null,
+  });
+
+  const { mutate: deleteMilestone } = useMilestoneDeleteMutation({
+    projectId: Number(projectId),
+    milestoneId: milestone?.milestoneId || null,
+  });
 
   const handleEditMilestone = () => {
-    // 마일스톤 수정 로직
-    console.log('마일스톤 수정:', milestone?.id);
+    try {
+      updateMilestone({
+        name: milestoneName,
+        milestoneId: milestone?.milestoneId || null,
+      });
+      showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
+      setIsEditMilestoneModalOpen(false);
+      setMilestoneName(milestoneName);
+    } catch (error) {
+      // 에러 토스트 띄워주기기
+    }
   };
 
   const handleDeleteMilestone = () => {
-    // 마일스톤 삭제 로직
-    console.log('마일스톤 삭제:', milestone?.id);
+    try {
+      deleteMilestone();
+      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
+    } catch (error) {
+      // 에러 토스트 띄워주기기
+    }
   };
 
   const handleCreateIssue = () => {
@@ -57,8 +84,8 @@ export const MilestoneColumn = ({
       <div className="p-4">
         <div className="bg-white border border-gray-200 rounded-md p-3 mb-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">{displayName}</h2>
-            {!isUncategorized && (
+            <h2 className="text-lg font-semibold text-gray-900">{milestone.name}</h2>
+            {milestone.milestoneId !== 0 && milestone.milestoneId !== null && (
               <MoreOptionsPopover
                 className="w-45"
                 editLabel="마일스톤명 수정"
@@ -70,21 +97,23 @@ export const MilestoneColumn = ({
           </div>
         </div>
 
-        {!isUncategorized && milestone && (
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">
-                {milestone.completedIssues}/{milestone.totalIssues}
-              </span>
-              <span className="text-sm font-medium text-gray-900">{milestone.progress}%</span>
+        {milestone.milestoneId !== 0 &&
+          milestone.milestoneId !== null &&
+          'progress' in milestone && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">
+                  {milestone.completedIssues}/{milestone.totalIssues}
+                </span>
+                <span className="text-sm font-medium text-gray-900">{milestone.progress}%</span>
+              </div>
+              <Progress value={milestone.progress} className="h-2" />
             </div>
-            <Progress value={milestone.progress} className="h-2" />
-          </div>
-        )}
+          )}
 
         <div className="space-y-2 mb-4">
-          {issues.map((issue) => (
-            <IssueCard key={issue.id} issue={issue} orgId={orgId} projectId={projectId} />
+          {issueList.map((issue) => (
+            <IssueCard key={issue.issueId} issue={issue} orgId={orgId} projectId={projectId} />
           ))}
         </div>
 
