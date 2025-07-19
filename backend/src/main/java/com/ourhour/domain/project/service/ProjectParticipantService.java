@@ -72,4 +72,9 @@ public class ProjectParticipantService {
         return ApiResponse.success(true, "프로젝트 참여 여부 확인에 성공했습니다.");
     }
 
+    public boolean isProjectParticipant(Long projectId, Long memberId) {
+        ProjectParticipantId projectParticipantId = new ProjectParticipantId(projectId, memberId);
+        return projectParticipantRepository.existsById(projectParticipantId);
+    }
+
 }
