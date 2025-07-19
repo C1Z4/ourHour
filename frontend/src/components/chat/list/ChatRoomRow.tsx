@@ -11,7 +11,7 @@ import { useChatMessagesQuery } from '@/hooks/queries/chat/useChatMessagesQuerie
 import { CHAT_COLORS } from '@/styles/colors';
 
 interface Props {
-  orgId: string;
+  orgId: number;
   chatRoom: ChatRoom;
 }
 
@@ -19,7 +19,6 @@ export const ChatRoomRow = ({ orgId, chatRoom }: Props) => {
   const { data: messages = [], isLoading } = useChatMessagesQuery(Number(orgId), chatRoom.roomId);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const latestMessage = messages[messages.length - 1]?.message ?? '메시지가 없습니다.';
-
   const handleColorSelect = (color: string) => {
     setIsPopoverOpen(false);
   };
