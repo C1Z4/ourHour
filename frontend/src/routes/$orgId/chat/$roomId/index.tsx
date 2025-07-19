@@ -1,7 +1,7 @@
 import { createFileRoute, useParams } from '@tanstack/react-router';
 
-import { useChat } from '@/hooks/queries/chat/useChat.ts';
 import { useChatMessagesQuery } from '@/hooks/queries/chat/useChatMessagesQueries.ts';
+import { useChatRoomDetailQuery } from '@/hooks/queries/chat/useChatRoomDetailQueries';
 import { ChatRoomPage } from '@/pages/chat/ChatRoomPage.tsx';
 
 export const Route = createFileRoute('/$orgId/chat/$roomId/')({
@@ -12,30 +12,34 @@ function ChatRoom() {
   const { orgId, roomId } = useParams({ from: '/$orgId/chat/$roomId/' });
   const orgIdNum = Number(orgId);
   const roomIdNum = Number(roomId);
-  const { sendMessage } = useChat(orgIdNum, roomIdNum);
 
   const {
     data: messages = [],
-    isLoading,
-    isError,
-    error,
+    isLoading: isMessageLoading,
+    isError: isMessageError,
+    error: messageError,
   } = useChatMessagesQuery(orgIdNum, roomIdNum);
 
-  if (isLoading) {
-    return <span>채팅 내역 불러오는 중...</span>;
+  const {
+    data: chatRoom,
+    isLoading: isDetailLoading,
+    isError: isDetailError,
+    error: detailError,
+  } = useChatRoomDetailQuery(orgIdNum, roomIdNum);
+
+  if (isMessageLoading || isDetailLoading) {
+    return <span>채팅방 불러오는 중...</span>;
   }
 
-  if (isError) {
-    return <span>채팅 내역을 불러오는데 실패하였습니다: {error.message}</span>;
+  if (isMessageError) {
+    return <span>채팅 내역을 불러오는데 실패하였습니다: {messageError.message}</span>;
+  }
+
+  if (isDetailError) {
+    return <span>채팅방 정보를 불러오는데 실패하였습니다: {detailError.message}</span>;
   }
 
   return (
-    <ChatRoomPage
-      messages={messages}
-      sendMessage={(message) => sendMessage(message)}
-      orgId={orgId}
-      roomId={roomId}
-      name="채팅방 이름 자리"
-    />
+    <ChatRoomPage key={chatRoom?.name} messages={messages} orgId={orgIdNum} roomId={roomIdNum} />
   );
 }
