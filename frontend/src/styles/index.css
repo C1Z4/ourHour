@@ -10,6 +10,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    scroll-behavior: smooth;
+  }
+  html {
+    scroll-behavior: smooth;
   }
   :root {
     --sidebar-background: 0 0% 98%;
