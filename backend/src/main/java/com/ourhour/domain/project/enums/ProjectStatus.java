@@ -6,7 +6,8 @@ public enum ProjectStatus {
     NOT_STARTED("시작전"),
     PLANNING("예정됨"),
     IN_PROGRESS("진행중"),
-    DONE("완료");
+    DONE("완료"),
+    ARCHIVE("아카이브");
 
     private final String description;
 

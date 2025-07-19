@@ -1,11 +1,3 @@
-export const ISSUE_STATUSES = [
-  { value: '백로그', label: '백로그' },
-  { value: '시작전', label: '시작전' },
-  { value: '대기중', label: '대기중' },
-  { value: '진행중', label: '진행중' },
-  { value: '완료', label: '완료' },
-] as const;
-
 export const ISSUE_TAGS = [
   { value: 'feat', label: 'feat', color: 'bg-blue-500' },
   { value: 'bug', label: 'bug', color: 'bg-red-500' },

@@ -1,12 +1,11 @@
 import { ColumnDef } from '@tanstack/react-table';
 
-import { Project } from '@/types/projectTypes';
-
+import { ProjectSummary } from '@/api/project/getProjectSummaryList';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { ParticipantsList } from '@/components/project/project-list/ParticipantsList';
 import { SortableHeader } from '@/components/project/project-list/SortableHeader';
 
-export const ProjectColumns: ColumnDef<Project>[] = [
+export const ProjectColumns: ColumnDef<ProjectSummary>[] = [
   {
     accessorKey: 'name',
     header: ({ column }) => <SortableHeader column={column}>프로젝트명</SortableHeader>,
@@ -22,15 +21,15 @@ export const ProjectColumns: ColumnDef<Project>[] = [
     enableSorting: false,
   },
   {
-    accessorKey: 'startDate',
+    accessorKey: 'startAt',
     header: ({ column }) => <SortableHeader column={column}>시작일</SortableHeader>,
-    cell: ({ row }) => <div className="text-gray-700">{row.getValue('startDate')}</div>,
+    cell: ({ row }) => <div className="text-gray-700">{row.getValue('startAt')}</div>,
     enableSorting: true,
   },
   {
-    accessorKey: 'endDate',
+    accessorKey: 'endAt',
     header: ({ column }) => <SortableHeader column={column}>종료일</SortableHeader>,
-    cell: ({ row }) => <div className="text-gray-700">{row.getValue('endDate')}</div>,
+    cell: ({ row }) => <div className="text-gray-700">{row.getValue('endAt')}</div>,
     enableSorting: true,
   },
   {

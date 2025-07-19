@@ -14,16 +14,20 @@ import com.ourhour.domain.project.dto.IssueReqDTO;
 public interface IssueMapper {
 
     // IssueEntity -> IssueSummaryDTO
+    @Mapping(target = "milestoneId", source = "milestoneEntity.milestoneId")
     @Mapping(target = "assigneeId", source = "assigneeEntity.memberId")
     @Mapping(target = "assigneeName", source = "assigneeEntity.name")
     @Mapping(target = "assigneeProfileImgUrl", source = "assigneeEntity.profileImgUrl")
+    @Mapping(target = "status", expression = "java(issueEntity.getStatus().getDescription())")
     IssueSummaryDTO toIssueSummaryDTO(IssueEntity issueEntity);
 
     // IssueEntity -> IssueDetailDTO
     @Mapping(target = "assigneeId", source = "assigneeEntity.memberId")
     @Mapping(target = "assigneeName", source = "assigneeEntity.name")
     @Mapping(target = "assigneeProfileImgUrl", source = "assigneeEntity.profileImgUrl")
+    @Mapping(target = "milestoneId", source = "milestoneEntity.milestoneId")
     @Mapping(target = "milestoneName", source = "milestoneEntity.name")
+    @Mapping(target = "status", expression = "java(issueEntity.getStatus().getDescription())")
     IssueDetailDTO toIssueDetailDTO(IssueEntity issueEntity);
 
     // IssueReqDTO -> IssueEntity

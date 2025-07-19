@@ -1,28 +1,37 @@
-import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig, isAxiosError } from 'axios';
 
 import { logError, handleHttpError } from '@/utils/auth/errorUtils';
 import { showLoading, hideLoading } from '@/utils/auth/loadingUtils';
-import {
-  addRetryingRequest,
-  removeRetryingRequest,
-  isRetryingRequest,
-  generateRequestKey,
-} from '@/utils/auth/retryUtils';
 import { getAccessTokenFromStore, logout, setAccessTokenToStore } from '@/utils/auth/tokenUtils';
 
+// Access Token을 재발급하는 함수
 const refreshAccessToken = async (): Promise<string | null> => {
   try {
-    const response = await axios.post('/api/auth/token', {});
-
-    const { accessToken: newAccessToken } = response.data;
-
+    const response = await axiosInstance.post('/api/auth/token', {});
+    const newAccessToken = response.data.accessToken as string;
     setAccessTokenToStore(newAccessToken);
-
     return newAccessToken;
   } catch (error) {
-    logout();
+    logout(); // Refresh Token이 만료되었거나 유효하지 않으면 로그아웃 처리
     return null;
   }
+};
+
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (error: AxiosError) => void;
+}> = [];
+
+const processQueue = (error: AxiosError | null, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else if (token) {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
 };
 
 export const axiosInstance = axios.create({
@@ -46,18 +55,10 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    if (import.meta.env.DEV) {
-      console.log(`🚀 [REQUEST] ${config.method?.toUpperCase()} ${config.url}`, {
-        headers: config.headers,
-        data: config.data,
-      });
-    }
-
     return config;
   },
   (error: AxiosError) => {
     hideLoading();
-    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   },
 );
@@ -66,13 +67,6 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     hideLoading();
-
-    if (import.meta.env.DEV) {
-      console.log(`✅ [RESPONSE] ${response.config.method?.toUpperCase()} ${response.config.url}`, {
-        status: response.status,
-        data: response.data,
-      });
-    }
 
     if (response.data && typeof response.data === 'object' && 'data' in response.data) {
       return {
@@ -88,40 +82,50 @@ axiosInstance.interceptors.response.use(
 
     hideLoading();
 
-    logError(error, originalRequest);
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      const requestKey = generateRequestKey(
-        originalRequest.method || '',
-        originalRequest.url || '',
-      );
-
-      if (isRetryingRequest(requestKey)) {
-        return Promise.reject(error);
-      }
-
-      addRetryingRequest(requestKey);
-
-      try {
-        const newToken = await refreshAccessToken();
-        if (newToken && originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          removeRetryingRequest(requestKey);
-          return axiosInstance(originalRequest);
-        }
-      } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
-      }
-
-      removeRetryingRequest(requestKey);
-      logout();
+    if (!isAxiosError(error)) {
       return Promise.reject(error);
     }
 
-    handleHttpError(error);
+    logError(error, originalRequest);
 
+    // 401 에러이고, 재시도한 요청이 아닐 때
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // 토큰 재발급이 이미 진행 중이라면, 이 요청은 대기열에 추가
+        return new Promise<string>((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return axiosInstance(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const newAccessToken = await refreshAccessToken();
+        if (newAccessToken && originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          processQueue(null, newAccessToken); // 대기열에 있던 요청들 재실행
+          return axiosInstance(originalRequest); // 원래 요청 다시 보내기
+        }
+        // newAccessToken이 null인 경우 (refreshAccessToken 내부에서 logout 처리됨)
+        // 여기서 추가적인 reject 처리는 불필요.
+      } catch (refreshError) {
+        processQueue(refreshError as AxiosError, null);
+        logout(); // Refresh Token이 만료되었거나 문제 발생 시 로그아웃
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    handleHttpError(error);
     return Promise.reject(error);
   },
 );

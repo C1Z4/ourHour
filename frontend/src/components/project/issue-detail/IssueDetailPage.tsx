@@ -1,6 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
 
-import { mockIssues, mockMilestones } from '@/components/project/dashboard/mockData';
+import useIssueDeleteMutation from '@/hooks/queries/project/useIssueDeleteMutation';
+import useProjectIssueDetailQuery from '@/hooks/queries/project/useProjectIssueDetailQuery';
+import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 import { CommentSection } from './CommentSection';
 import { IssueDetailContent } from './IssueDetailContent';
@@ -15,11 +17,15 @@ interface IssueDetailPageProps {
 
 export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPageProps) => {
   const navigate = useNavigate();
+  const { data: issueData } = useProjectIssueDetailQuery({ issueId: Number(issueId) });
 
-  const issue = mockIssues.find((issue) => issue.id === issueId);
-  const milestone = issue?.milestoneId
-    ? mockMilestones.find((m) => m.id === issue.milestoneId)
-    : null;
+  const issue = issueData?.data;
+
+  const { mutate: deleteIssue } = useIssueDeleteMutation({
+    projectId: Number(projectId),
+    milestoneId: issue?.milestoneId || null,
+    issueId: Number(issueId),
+  });
 
   if (!issue) {
     return (
@@ -34,21 +40,29 @@ export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPagePr
 
   const handleEditIssue = () => {
     navigate({
-      to: '/$orgId/project/$projectId/issue/edit/$issueId',
+      to: '/org/$orgId/project/$projectId/issue/edit/$issueId',
       params: { orgId, projectId, issueId },
     });
   };
 
   const handleDeleteIssue = () => {
-    console.log('이슈 삭제:', issue.id);
+    try {
+      deleteIssue();
+      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
+      navigate({
+        to: '/org/$orgId/project/$projectId',
+        params: { orgId, projectId },
+      });
+    } catch (error) {
+      // showErrorToast(TOAST_MESSAGES.CRUD.DELETE_ERROR);
+    }
   };
 
   return (
     <div className="bg-white">
       <IssueDetailHeader
-        projectName="개발 프로젝트명 1"
-        milestone={milestone}
-        issueTitle={issue.title}
+        milestoneName={issue.milestoneName}
+        issueTitle={issue.name}
         orgId={orgId}
         projectId={projectId}
       />

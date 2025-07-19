@@ -1,12 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { useNavigate } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 
-import { Issue } from '@/types/issueTypes';
+import {
+  ISSUE_STATUS_ENG_TO_KO,
+  ISSUE_STATUS_KO_TO_ENG,
+  IssueStatusEng,
+  IssueStatusKo,
+} from '@/types/issueTypes';
 
+import { IssueDetail } from '@/api/project/getProjectIssueDetail';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { StatusBadge } from '@/components/common/StatusBadge';
-import { mockMilestones } from '@/components/project/dashboard/mockData';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import {
@@ -17,72 +22,157 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  FORM_MESSAGES,
-  ISSUE_STATUSES,
-  ISSUE_TAGS,
-  MOCK_ASSIGNEES,
-} from '@/constants/issueConstants';
+import { FORM_MESSAGES, ISSUE_TAGS } from '@/constants/issueConstants';
+import { useIssueCreateMutation } from '@/hooks/queries/project/useIssueCreateMutation';
+import { useIssueUpdateMutation } from '@/hooks/queries/project/useIssueUpdateMutation';
+import useProjectMilestoneListQuery from '@/hooks/queries/project/useProjectMilestoneListQuery';
+import useProjectParticipantListQuery from '@/hooks/queries/project/useProjectParticipantListQuery';
+import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface IssueFormPageProps {
   orgId: string;
   projectId: string;
   issueId?: string;
-  initialData?: Issue;
+  initialData?: IssueDetail;
 }
 
 export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueFormPageProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
+
+  const { mutate: createIssue } = useIssueCreateMutation({
+    projectId: Number(projectId),
+  });
+
+  const { mutate: updateIssue } = useIssueUpdateMutation({
+    projectId: Number(projectId),
+    milestoneId: initialData?.milestoneId || null,
+    issueId: Number(issueId),
+  });
+
+  const { data: milestoneList } = useProjectMilestoneListQuery({
+    projectId: Number(projectId),
+  });
+
+  const { data: projectParticipantListData } = useProjectParticipantListQuery({
+    projectId: Number(projectId),
+    orgId: Number(orgId),
+  });
+
+  const participants = projectParticipantListData?.data.data.flat();
+
+  const milestones = milestoneList?.data.data.flat();
+
   const isEditing = !!issueId;
 
+  useEffect(() => {
+    if (initialData) {
+      const { milestoneId, status, tag, assigneeId, ...rest } = initialData;
+      setFormData({
+        ...rest,
+        milestoneId: milestoneId || null,
+        status: status ? ISSUE_STATUS_KO_TO_ENG[status as IssueStatusKo] || 'BACKLOG' : 'BACKLOG',
+        tag: tag || null,
+        assigneeId: assigneeId || null,
+      });
+    }
+  }, [initialData]);
+
   const [formData, setFormData] = useState({
-    title: initialData?.title || '',
-    description: initialData?.description || '',
-    milestoneId: initialData?.milestoneId || 'no-milestone',
-    status: initialData?.status || '백로그',
-    tag: initialData?.tag || 'no-tag',
-    assigneeId: initialData?.assignee?.id || 'no-assignee',
+    name: '',
+    content: '',
+    milestoneId: null as number | null,
+    status: 'BACKLOG' as IssueStatusEng,
+    tag: null as string | null,
+    assigneeId: null as number | null,
   });
 
   const [errors, setErrors] = useState({
-    title: '',
-    description: '',
+    name: '',
+    content: '',
   });
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
+    if (field === 'assigneeId') {
+      setFormData((prev) => ({
+        ...prev,
+        assigneeId: value === 'no-assignee' ? null : Number(value),
+      }));
+      return;
+    }
+
+    if (field === 'tag') {
+      setFormData((prev) => ({
+        ...prev,
+        tag: value === 'no-tag' ? null : value,
+      }));
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [field]: value }));
 
-    if (field === 'title' && value.trim()) {
-      setErrors((prev) => ({ ...prev, title: '' }));
+    if (field === 'name' && value.trim()) {
+      setErrors((prev) => ({ ...prev, name: '' }));
     }
-    if (field === 'description' && value.trim()) {
-      setErrors((prev) => ({ ...prev, description: '' }));
+    if (field === 'content' && value.trim()) {
+      setErrors((prev) => ({ ...prev, content: '' }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {
-      title: formData.title.trim() ? '' : FORM_MESSAGES.REQUIRED_TITLE,
-      description: formData.description.trim() ? '' : FORM_MESSAGES.REQUIRED_DESCRIPTION,
+      name: formData.name.trim() ? '' : FORM_MESSAGES.REQUIRED_TITLE,
+      content: formData.content.trim() ? '' : FORM_MESSAGES.REQUIRED_DESCRIPTION,
     };
 
     setErrors(newErrors);
-    return !newErrors.title && !newErrors.description;
+    return !newErrors.name && !newErrors.content;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
 
-    console.log('Form submitted:', formData);
+    // 이슈 등록
+    if (!isEditing) {
+      const issueData = {
+        projectId: Number(projectId),
+        milestoneId: formData.milestoneId,
+        assigneeId: formData.assigneeId,
+        name: formData.name,
+        content: formData.content,
+        status: formData.status as IssueStatusEng,
+      };
 
-    navigate({
-      to: '/$orgId/project/$projectId/issue/$issueId',
-      params: {
-        orgId,
-        projectId,
-        issueId: issueId || 'new-issue-id',
+      createIssue(issueData, {
+        onSuccess: async () => {
+          showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
+          router.navigate({
+            to: '/org/$orgId/project/$projectId',
+            params: { orgId, projectId },
+          });
+        },
+      });
+      return;
+    }
+
+    // 이슈 수정
+    const issueData = {
+      issueId: Number(issueId),
+      milestoneId: formData.milestoneId,
+      assigneeId: formData.assigneeId,
+      name: formData.name,
+      content: formData.content,
+      status: formData.status as IssueStatusEng,
+    };
+
+    updateIssue(issueData, {
+      onSuccess: () => {
+        showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
+        router.navigate({
+          to: '/org/$orgId/project/$projectId/issue/$issueId',
+          params: { orgId, projectId, issueId },
+        });
       },
     });
   };
@@ -102,16 +192,18 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">마일스톤</label>
             <Select
-              value={formData.milestoneId}
+              value={formData.milestoneId?.toString() || ''}
               onValueChange={(value) => handleInputChange('milestoneId', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="마일스톤을 선택하세요" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="no-milestone">미분류</SelectItem>
-                {mockMilestones.map((milestone) => (
-                  <SelectItem key={milestone.id} value={milestone.id}>
+                {milestones?.map((milestone) => (
+                  <SelectItem
+                    key={milestone.milestoneId}
+                    value={milestone.milestoneId?.toString() || ''}
+                  >
                     {milestone.name}
                   </SelectItem>
                 ))}
@@ -124,12 +216,12 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
               제목 <span className="text-red-500">*</span>
             </label>
             <Input
-              value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
+              value={formData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="이슈 제목을 입력하세요"
-              className={errors.title ? 'border-red-500' : ''}
+              className={errors.name ? 'border-red-500' : ''}
             />
-            {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
+            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
           </div>
 
           <div>
@@ -137,14 +229,12 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
               내용 <span className="text-red-500">*</span>
             </label>
             <Textarea
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              value={formData.content}
+              onChange={(e) => handleInputChange('content', e.target.value)}
               placeholder="이슈 내용을 입력하세요"
-              className={`min-h-[120px] ${errors.description ? 'border-red-500' : ''}`}
+              className={`min-h-[120px] ${errors.content ? 'border-red-500' : ''}`}
             />
-            {errors.description && (
-              <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-            )}
+            {errors.content && <p className="mt-1 text-sm text-red-600">{errors.content}</p>}
           </div>
 
           <div className="flex gap-4">
@@ -155,12 +245,17 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
                 onValueChange={(value) => handleInputChange('status', value)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="상태를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ISSUE_STATUSES.map((status) => (
-                    <SelectItem key={status.value} value={status.value}>
-                      <StatusBadge status={status.value} type="issue" />
+                  {Object.keys(ISSUE_STATUS_ENG_TO_KO).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      <StatusBadge
+                        status={
+                          ISSUE_STATUS_ENG_TO_KO[status as keyof typeof ISSUE_STATUS_ENG_TO_KO]
+                        }
+                        type="issue"
+                      />
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -170,11 +265,11 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">태그</label>
               <Select
-                value={formData.tag}
+                value={formData.tag || ''}
                 onValueChange={(value) => handleInputChange('tag', value)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="태그를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no-tag">태그 없음</SelectItem>
@@ -193,7 +288,7 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">할당자</label>
               <Select
-                value={formData.assigneeId}
+                value={formData.assigneeId?.toString() || ''}
                 onValueChange={(value) => handleInputChange('assigneeId', value)}
               >
                 <SelectTrigger>
@@ -201,16 +296,16 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no-assignee">할당자 없음</SelectItem>
-                  {MOCK_ASSIGNEES.map((assignee) => (
-                    <SelectItem key={assignee.value} value={assignee.value}>
+                  {participants?.map((assignee) => (
+                    <SelectItem key={assignee.memberId} value={assignee.memberId.toString()}>
                       <div className="flex items-center gap-2">
                         <Avatar className="w-6 h-6">
-                          <AvatarImage src={assignee.profileImageUrl} alt={assignee.label} />
+                          <AvatarImage src={assignee.profileImgUrl} alt={assignee.name} />
                           <AvatarFallback className="text-xs">
-                            {assignee.label.charAt(0)}
+                            {assignee.name.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
-                        {assignee.label}
+                        {assignee.name}
                       </div>
                     </SelectItem>
                   ))}

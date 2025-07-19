@@ -60,6 +60,8 @@ export const TOAST_MESSAGES = {
     LOGIN_SUCCESS: '로그인에 성공했습니다!',
     LOGIN_FAILED: '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.',
     LOGOUT_SUCCESS: '로그아웃되었습니다.',
+    SIGNUP_EMAIL_VERIFICATION: '회원가입 메일이 전송되었습니다. 이메일을 확인해주세요.',
+    SIGNUP_FAILED: '회원가입에 실패했습니다. 이메일과 비밀번호를 확인해주세요.',
   },
 
   ERROR: {
@@ -72,5 +74,6 @@ export const TOAST_MESSAGES = {
     SAVE_SUCCESS: '저장되었습니다.',
     DELETE_SUCCESS: '삭제되었습니다.',
     UPDATE_SUCCESS: '수정되었습니다.',
+    CREATE_SUCCESS: '생성되었습니다.',
   },
 } as const;

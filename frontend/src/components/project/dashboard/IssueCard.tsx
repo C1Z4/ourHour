@@ -1,13 +1,14 @@
 import { useNavigate } from '@tanstack/react-router';
 
-import { Issue } from '@/types/issueTypes';
-
+import { ProjectIssueSummary } from '@/api/project/getProjectIssueList';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import useIssueDeleteMutation from '@/hooks/queries/project/useIssueDeleteMutation';
+import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface IssueCardProps {
-  issue: Issue;
+  issue: ProjectIssueSummary;
   orgId: string;
   projectId: string;
 }
@@ -15,23 +16,33 @@ interface IssueCardProps {
 export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
   const navigate = useNavigate();
 
+  const { mutate: deleteIssue } = useIssueDeleteMutation({
+    projectId: Number(projectId),
+    milestoneId: issue.milestoneId || null,
+    issueId: issue.issueId,
+  });
+
   const handleIssueClick = () => {
     navigate({
-      to: '/$orgId/project/$projectId/issue/$issueId',
-      params: { orgId, projectId, issueId: issue.id },
+      to: '/org/$orgId/project/$projectId/issue/$issueId',
+      params: { orgId, projectId, issueId: issue.issueId.toString() },
     });
   };
 
   const handleEditIssue = () => {
     navigate({
-      to: '/$orgId/project/$projectId/issue/edit/$issueId',
-      params: { orgId, projectId, issueId: issue.id },
+      to: '/org/$orgId/project/$projectId/issue/edit/$issueId',
+      params: { orgId, projectId, issueId: issue.issueId.toString() },
     });
   };
 
   const handleDeleteIssue = () => {
-    // 이슈 삭제 로직
-    console.log('이슈 삭제:', issue.id);
+    try {
+      deleteIssue();
+      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
+    } catch (error) {
+      // showErrorToast(TOAST_MESSAGES.CRUD.DELETE_ERROR);
+    }
   };
 
   const handlePopoverClick = (e: React.MouseEvent) => {
@@ -44,7 +55,7 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
       onClick={handleIssueClick}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-500 font-medium">{issue.tag}</span>
+        <span className="text-xs text-gray-500 font-medium">{issue.tag || '태그없음'}</span>
         <div onClick={handlePopoverClick}>
           <MoreOptionsPopover
             className="w-32"
@@ -57,15 +68,19 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
         </div>
       </div>
       <div className="mb-3">
-        <h3 className="text-sm font-medium text-gray-900 mb-1">{issue.title}</h3>
+        <h3 className="text-sm font-medium text-gray-900 mb-1">{issue.name}</h3>
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Avatar className="h-6 w-6">
-            <AvatarImage src={issue.assignee.profileImageUrl} />
-            <AvatarFallback className="text-xs">{issue.assignee.name.charAt(0)}</AvatarFallback>
+            {issue.assigneeId && (
+              <>
+                <AvatarImage src={issue.assigneeProfileImgUrl || ''} />
+                <AvatarFallback className="text-xs">{issue.assigneeName?.charAt(0)}</AvatarFallback>
+              </>
+            )}
           </Avatar>
-          <span className="text-xs text-gray-700">{issue.assignee.name}</span>
+          <span className="text-xs text-gray-700">{issue.assigneeName}</span>
         </div>
         <StatusBadge type="issue" status={issue.status} />
       </div>

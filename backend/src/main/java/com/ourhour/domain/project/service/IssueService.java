@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.entity.MilestoneEntity;
 import com.ourhour.domain.project.entity.ProjectEntity;
@@ -20,6 +21,7 @@ import com.ourhour.domain.project.repository.ProjectRepository;
 import com.ourhour.domain.project.repository.MilestoneRepository;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
+import com.ourhour.global.jwt.dto.Claims;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,18 +36,31 @@ public class IssueService {
     private final IssueMapper issueMapper;
     private final ProjectRepository projectRepository;
     private final MemberRepository memberRepository;
+    private final ProjectParticipantService projectParticipantService;
 
-    // 특정 마일스톤의 이슈 목록 조회
-    public ApiResponse<PageResponse<IssueSummaryDTO>> getMilestoneIssues(Long milestoneId, Pageable pageable) {
-        if (milestoneId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 마일스톤 ID입니다.");
+    // 특정 마일스톤의 이슈 목록 조회 (milestoneId가 null이면 마일스톤이 할당되지 않은 이슈들 조회)
+    public ApiResponse<PageResponse<IssueSummaryDTO>> getMilestoneIssues(Long projectId, Long milestoneId,
+                                                                         Pageable pageable) {
+        if (projectId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
         }
 
-        if (!milestoneRepository.existsById(milestoneId)) {
-            throw BusinessException.badRequest("존재하지 않는 마일스톤 ID입니다.");
+        if (!projectRepository.existsById(projectId)) {
+            throw BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다.");
         }
 
-        Page<IssueEntity> issuePage = issueRepository.findByMilestoneEntity_MilestoneId(milestoneId, pageable);
+        Page<IssueEntity> issuePage;
+
+        if (milestoneId != null && milestoneId > 0) {
+            // 특정 마일스톤의 이슈 조회
+            if (!milestoneRepository.existsById(milestoneId)) {
+                throw BusinessException.badRequest("존재하지 않는 마일스톤 ID입니다.");
+            }
+            issuePage = issueRepository.findByMilestoneEntity_MilestoneId(milestoneId, pageable);
+        } else {
+            // 마일스톤이 할당되지 않은 이슈들 조회
+            issuePage = issueRepository.findByProjectEntity_ProjectIdAndMilestoneEntityIsNull(projectId, pageable);
+        }
 
         if (issuePage.isEmpty()) {
             return ApiResponse.success(PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize()));
@@ -53,7 +68,11 @@ public class IssueService {
 
         Page<IssueSummaryDTO> issueDTOPage = issuePage.map(issueMapper::toIssueSummaryDTO);
 
-        return ApiResponse.success(PageResponse.of(issueDTOPage), "특정 마일스톤의 이슈 목록 조회에 성공했습니다.");
+        String message = milestoneId != null && milestoneId > 0
+                ? "특정 마일스톤의 이슈 목록 조회에 성공했습니다."
+                : "마일스톤이 할당되지 않은 이슈 목록 조회에 성공했습니다.";
+
+        return ApiResponse.success(PageResponse.of(issueDTOPage), message);
     }
 
     // 이슈 상세 조회
@@ -117,6 +136,22 @@ public class IssueService {
 
         issueMapper.updateIssueEntity(issueEntity, issueReqDTO);
 
+        if (issueReqDTO.getAssigneeId() != null) {
+            MemberEntity assignee = memberRepository.findById(issueReqDTO.getAssigneeId())
+                    .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 담당자 ID입니다."));
+            issueEntity.setAssigneeEntity(assignee);
+        } else {
+            issueEntity.setAssigneeEntity(null);
+        }
+
+        if (issueReqDTO.getMilestoneId() != null) {
+            MilestoneEntity milestone = milestoneRepository.findById(issueReqDTO.getMilestoneId())
+                    .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 마일스톤 ID입니다."));
+            issueEntity.setMilestoneEntity(milestone);
+        } else {
+            issueEntity.setMilestoneEntity(null);
+        }
+
         IssueEntity savedIssueEntity = issueRepository.save(issueEntity);
 
         IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(savedIssueEntity);
@@ -126,9 +161,31 @@ public class IssueService {
 
     // 이슈 삭제
     @Transactional
-    public ApiResponse<Void> deleteIssue(Long issueId) {
+    public ApiResponse<Void> deleteIssue(Long issueId, Claims claims) {
         if (issueId <= 0) {
             throw BusinessException.badRequest("유효하지 않은 이슈 ID입니다.");
+        }
+
+        IssueEntity issueEntity = issueRepository.findById(issueId)
+                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 이슈 ID입니다."));
+
+        Long orgId = issueEntity.getProjectEntity().getOrgEntity().getOrgId();
+        Long projectId = issueEntity.getProjectEntity().getProjectId();
+
+        Long memberId = claims.getOrgAuthorityList().stream()       
+                                .filter(auth -> auth.getOrgId().equals(orgId))
+                                .map(auth -> auth.getMemberId())
+                                .findFirst()
+        .orElseThrow(() -> BusinessException.forbidden("해당 회사의 멤버가 아닙니다."));
+
+        boolean isParticipant = projectParticipantService.isProjectParticipant(projectId, memberId);
+
+        boolean isAdminOrRootAdmin = claims.getOrgAuthorityList().stream()
+                                .filter(auth -> auth.getOrgId().equals(orgId))
+                                .anyMatch(auth -> auth.getRole().equals(Role.ADMIN) || auth.getRole().equals(Role.ROOT_ADMIN));
+
+        if (!(isParticipant || isAdminOrRootAdmin)) {
+                throw BusinessException.forbidden("프로젝트 참여자이거나 ADMIN 이상 권한이 있어야 합니다.");
         }
 
         issueRepository.deleteById(issueId);
