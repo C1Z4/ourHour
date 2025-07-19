@@ -11,7 +11,7 @@ export interface ChatRoomCreatePayload {
 
 export interface ChatRoomUpdatePayload {
   name: string;
-  color: typeof CHAT_COLORS;
+  color: keyof typeof CHAT_COLORS;
 }
 
 export interface ChatParticipantAddPayload {
