@@ -37,6 +37,7 @@ public class IssueService {
     private final ProjectRepository projectRepository;
     private final MemberRepository memberRepository;
     private final ProjectParticipantService projectParticipantService;
+
     // 특정 마일스톤의 이슈 목록 조회 (milestoneId가 null이면 마일스톤이 할당되지 않은 이슈들 조회)
     public ApiResponse<PageResponse<IssueSummaryDTO>> getMilestoneIssues(Long projectId, Long milestoneId,
                                                                          Pageable pageable) {
