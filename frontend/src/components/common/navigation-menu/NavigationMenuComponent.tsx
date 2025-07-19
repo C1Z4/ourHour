@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useNavigate } from '@tanstack/react-router';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { Bell, Menu, Users, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,15 @@ import {
 import { ProfileSheet } from '../ProfileSheet';
 
 export function NavigationMenuComponent() {
+  const location = useLocation();
+  const orgId = location.pathname.split('/')[2];
+
   const [isActive, setIsActive] = useState('');
 
   const navigate = useNavigate();
 
-  const handleNavigate = (path: string) => {
-    navigate({ to: path });
+  const handleNavigate = (path: string, orgId: string) => {
+    navigate({ to: path, params: { orgId } });
   };
 
   return (
@@ -41,7 +44,7 @@ export function NavigationMenuComponent() {
                     isActive === 'project' ? 'text-black' : 'text-gray-500'
                   }`}
                   onClick={() => {
-                    handleNavigate('/project');
+                    handleNavigate('/org/$orgId/project', orgId);
                     setIsActive('project');
                   }}
                 >
@@ -54,7 +57,7 @@ export function NavigationMenuComponent() {
                     isActive === 'board' ? 'text-black' : 'text-gray-500'
                   }`}
                   onClick={() => {
-                    handleNavigate('/board');
+                    handleNavigate('/org/$orgId/board', orgId);
                     setIsActive('board');
                   }}
                 >
@@ -67,7 +70,7 @@ export function NavigationMenuComponent() {
                     isActive === 'mail' ? 'text-black' : 'text-gray-500'
                   }`}
                   onClick={() => {
-                    handleNavigate('/mail');
+                    handleNavigate('/org/$orgId/mail', orgId);
                     setIsActive('mail');
                   }}
                 >
@@ -80,7 +83,7 @@ export function NavigationMenuComponent() {
                     isActive === 'chat' ? 'text-black' : 'text-gray-500'
                   }`}
                   onClick={() => {
-                    handleNavigate('/chat');
+                    handleNavigate('/org/$orgId/chat', orgId);
                     setIsActive('chat');
                   }}
                 >

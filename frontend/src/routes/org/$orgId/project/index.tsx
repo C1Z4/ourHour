@@ -11,7 +11,7 @@ import { ProjectDataTable } from '@/components/project/project-list';
 import { useProjectCreateMutation } from '@/hooks/queries/project/useProjectCreateMutation';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
-export const Route = createFileRoute('/$orgId/project/')({
+export const Route = createFileRoute('/org/$orgId/project/')({
   component: ProjectListPage,
   validateSearch: (search: Record<number, unknown>) => search as { currentPage?: number },
 });

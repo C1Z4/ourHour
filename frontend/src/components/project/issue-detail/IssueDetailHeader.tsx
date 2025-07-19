@@ -31,7 +31,7 @@ export const IssueDetailHeader = ({
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link to="/$orgId/project/$projectId" params={{ orgId, projectId }}>
+                <Link to="/org/$orgId/project/$projectId" params={{ orgId, projectId }}>
                   {currentProjectName}
                 </Link>
               </BreadcrumbLink>

@@ -1,8 +1,8 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useDispatch } from 'react-redux';
 
-import { useRouter, useParams, useSearch } from '@tanstack/react-router';
+import { useParams, useRouter, useSearch } from '@tanstack/react-router';
 import {
   flexRender,
   getCoreRowModel,
@@ -32,8 +32,8 @@ import { ProjectColumns } from './ProjectColumns';
 export function ProjectDataTable() {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { orgId } = useParams({ from: '/$orgId' });
-  const search = useSearch({ from: '/$orgId/project/' }) as Record<string, unknown>;
+  const { orgId } = useParams({ from: '/org/$orgId/project/' });
+  const search = useSearch({ from: '/org/$orgId/project/' }) as Record<string, unknown>;
 
   const currentPage = Number(search.currentPage) > 0 ? Number(search.currentPage) : 1;
 
@@ -74,7 +74,7 @@ export function ProjectDataTable() {
 
   const handleProjectClick = (projectId: string, projectName: string) => {
     router.navigate({
-      to: '/$orgId/project/$projectId',
+      to: '/org/$orgId/project/$projectId',
       params: { orgId, projectId },
     });
     dispatch(setCurrentProjectName(projectName));

@@ -24,14 +24,14 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
 
   const handleIssueClick = () => {
     navigate({
-      to: '/$orgId/project/$projectId/issue/$issueId',
+      to: '/org/$orgId/project/$projectId/issue/$issueId',
       params: { orgId, projectId, issueId: issue.issueId.toString() },
     });
   };
 
   const handleEditIssue = () => {
     navigate({
-      to: '/$orgId/project/$projectId/issue/edit/$issueId',
+      to: '/org/$orgId/project/$projectId/issue/edit/$issueId',
       params: { orgId, projectId, issueId: issue.issueId.toString() },
     });
   };
