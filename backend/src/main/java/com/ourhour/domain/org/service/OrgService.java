@@ -27,6 +27,7 @@ import com.ourhour.global.exception.BusinessException;
 
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.common.service.ImageService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -44,6 +45,7 @@ public class OrgService {
     private final ProjectParticipantRepository projectParticipantRepository;
     private final UserRepository userRepository;
     private final OrgParticipantMemberMapper orgParticipantMemberMapper;
+    private final ImageService imageService;
 
     @Transactional
     public OrgResDTO registerOrg(OrgReqDTO orgReqDTO) {
@@ -55,6 +57,19 @@ public class OrgService {
         // 회사를 등록한 사용자 조회
         UserEntity userEntity = userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(AuthException::userNotFoundException);
+
+        // 이미지 처리
+        String logoUrl = orgReqDTO.getLogoImgUrl();
+        
+        // Base64 데이터인 경우 파일로 저장하고 URL로 변환
+        if (logoUrl != null && logoUrl.startsWith("data:image/")) {
+            logoUrl = imageService.saveBase64Image(logoUrl);
+        }
+
+        // 변환된 이미지 URL로 OrgReqDTO 업데이트
+        if (logoUrl != null) {
+            orgReqDTO.setLogoImgUrl(logoUrl);
+        }
 
         // OrgReqDTO에서 OrgEntity로 변환
         OrgEntity orgReqEntity = orgMapper.toOrgEntity(orgReqDTO);
