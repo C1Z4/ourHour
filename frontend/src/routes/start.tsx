@@ -3,11 +3,15 @@ import { useEffect, useState } from 'react';
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
 import { ChevronLeft, Plus } from 'lucide-react';
 
+import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
+import { OrgFormData, OrgModal } from '@/components/org/OrgModal';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
+import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
+import { getImageUrl } from '@/utils/imageUtils';
+import { showSuccessToast } from '@/utils/toast';
 
-import { ButtonComponent } from '../components/common/ButtonComponent';
-import useMyOrgListQuery from '../hooks/queries/member/useMyOrgListQuery';
 import logo from '/public/images/logo.png';
 
 export const Route = createFileRoute('/start')({
@@ -24,6 +28,9 @@ function StartPage() {
 
   const [currentPage, setCurrentPage] = useState(search.page);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
+
+  const { mutate: createOrg } = useOrgCreateMutation();
 
   const { data: myOrgList } = useMyOrgListQuery({});
   const totalPages = myOrgList?.data.totalPages ?? 1;
@@ -37,8 +44,30 @@ function StartPage() {
   };
 
   const handleCreateCompany = () => {
-    // 회사 생성 로직
-    console.log('회사 생성하기');
+    setIsOrgModalOpen(true);
+  };
+
+  const handleOrgModalClose = () => {
+    setIsOrgModalOpen(false);
+  };
+
+  const handleOrgModalSubmit = (data: OrgFormData) => {
+    try {
+      createOrg({
+        memberName: data.memberName,
+        name: data.name,
+        address: data.address,
+        email: data.email,
+        phone: data.phone,
+        representativeName: data.representativeName,
+        businessNumber: data.businessNumber,
+        logoImgUrl: data.logoImgUrl,
+      });
+      showSuccessToast('회사 생성 완료');
+      setIsOrgModalOpen(false);
+    } catch (error) {
+      // 에러 토스트
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -106,7 +135,7 @@ function StartPage() {
                   <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-4">
                     {org.logoImgUrl && !imageErrors.has(org.orgId) ? (
                       <img
-                        src={org.logoImgUrl}
+                        src={getImageUrl(org.logoImgUrl)}
                         alt={`${org.name} 로고`}
                         className="w-8 h-8 rounded-full object-cover"
                         onError={() => handleImageError(org.orgId)}
@@ -147,6 +176,12 @@ function StartPage() {
           </CardContent>
         </Card>
       </div>
+
+      <OrgModal
+        isOpen={isOrgModalOpen}
+        onClose={handleOrgModalClose}
+        onSubmit={handleOrgModalSubmit}
+      />
     </div>
   );
 }
