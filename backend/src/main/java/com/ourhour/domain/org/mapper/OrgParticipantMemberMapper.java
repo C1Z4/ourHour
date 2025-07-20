@@ -1,6 +1,7 @@
 package com.ourhour.domain.org.mapper;
 
 import com.ourhour.domain.member.entity.MemberEntity;
+import com.ourhour.domain.member.dto.MemberInfoResDTO;
 import com.ourhour.domain.org.dto.OrgMemberRoleResDTO;
 import com.ourhour.domain.org.dto.OrgResDTO;
 import com.ourhour.domain.org.entity.OrgEntity;
@@ -32,4 +33,15 @@ public interface OrgParticipantMemberMapper {
     @Mapping(source = "orgParticipantMemberEntity.role", target = "newRole")
     @Mapping(source = "rootAdminCount", target = "rootAdminCount")
     OrgMemberRoleResDTO toOrgMemberRoleResDTO(OrgParticipantMemberEntity orgParticipantMemberEntity, Role oldRole, int rootAdminCount);
+
+    // Entity -> DTO 변환 (구성원 상세 조회)
+    @Mapping(source = "orgParticipantMemberEntity.memberEntity.memberId", target = "memberId")
+    @Mapping(source = "orgParticipantMemberEntity.memberEntity.name", target = "name")
+    @Mapping(source = "orgParticipantMemberEntity.memberEntity.email", target = "email")
+    @Mapping(source = "orgParticipantMemberEntity.memberEntity.phone", target = "phone")
+    @Mapping(source = "orgParticipantMemberEntity.positionEntity.name", target = "positionName")
+    @Mapping(source = "orgParticipantMemberEntity.departmentEntity.name", target = "deptName")
+    @Mapping(source = "orgParticipantMemberEntity.memberEntity.profileImgUrl", target = "profileImgUrl")
+    @Mapping(source = "orgParticipantMemberEntity.role", target = "role")
+    MemberInfoResDTO toMemberInfoResDTO(OrgParticipantMemberEntity orgParticipantMemberEntity);
 }
