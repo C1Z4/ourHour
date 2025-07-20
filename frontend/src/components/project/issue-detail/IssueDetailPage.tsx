@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 
+import { IssueDetail } from '@/api/project/getProjectIssueDetail';
 import useIssueDeleteMutation from '@/hooks/queries/project/useIssueDeleteMutation';
 import useProjectIssueDetailQuery from '@/hooks/queries/project/useProjectIssueDetailQuery';
 import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
@@ -19,7 +20,7 @@ export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPagePr
   const navigate = useNavigate();
   const { data: issueData } = useProjectIssueDetailQuery({ issueId: Number(issueId) });
 
-  const issue = issueData?.data;
+  const issue = issueData as IssueDetail | undefined;
 
   const { mutate: deleteIssue } = useIssueDeleteMutation({
     projectId: Number(projectId),

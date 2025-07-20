@@ -30,12 +30,15 @@ public class OrgReqDTO {
 
     private String representativeName;
 
-    @Pattern(regexp = "^\\d{2,3}-\\d{3,4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다.")
+   @Pattern(regexp = "^\\d{2,3}-\\d{3,4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다.")
     private String phone;
 
     private String businessNumber;
 
-    @URL
+    @Pattern(
+            regexp = "^(https?://.*|data:image/(png|jpg|jpeg|gif|svg\\+xml);base64,.*)$",
+            message = "올바른 URL 또는 Base64 이미지 데이터여야 합니다"
+    )
     private String logoImgUrl;
 
 }

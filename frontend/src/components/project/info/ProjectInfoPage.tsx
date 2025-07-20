@@ -2,10 +2,13 @@ import { useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
 
+import { ProjectBaseInfo } from '@/api/project/getProjectInfo';
 import { PutUpdateProjectRequest } from '@/api/project/putUpdateProject';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { StatusBadge } from '@/components/common/StatusBadge';
+import { ProjectMembersTable } from '@/components/project/info/ProjectMembersTable';
+import { ProjectModal } from '@/components/project/modal/ProjectModal';
 import { Input } from '@/components/ui/input';
 import useProjectDeleteMutation from '@/hooks/queries/project/useProjectDeleteMutation';
 import useProjectInfoQuery from '@/hooks/queries/project/useProjectInfoQuery';
@@ -13,9 +16,6 @@ import useProjectParticipantListQuery from '@/hooks/queries/project/useProjectPa
 import { useProjectUpdateMutation } from '@/hooks/queries/project/useProjectUpdateMutation';
 import usePasswordVerificationMutation from '@/hooks/queries/user/usePasswordVerificationMutation';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
-
-import { ProjectMembersTable } from './ProjectMembersTable';
-import { ProjectModal } from '../modal/ProjectModal';
 
 interface ProjectInfoPageProps {
   projectId: string;
@@ -55,8 +55,8 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
   const { mutate: deleteProject } = useProjectDeleteMutation({
     orgId: Number(orgId),
   });
-  const projectInfo = projectInfoData?.data;
-  const projectMembers = projectMembersData?.data.data.flat();
+  const projectInfo = projectInfoData as ProjectBaseInfo | undefined;
+  const projectMembers = Array.isArray(projectMembersData?.data) ? projectMembersData.data : [];
 
   const handleEditProject = () => {
     setIsEditModalOpen(true);
@@ -68,15 +68,21 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
 
   // 수정 버튼 클릭시
   const handleProjectSubmit = (data: Partial<PutUpdateProjectRequest>) => {
-    updateProject({
-      projectId: Number(projectId),
-      name: data.name || '',
-      description: data.description || '',
-      startAt: data.startAt || '',
-      endAt: data.endAt || '',
-      status: data.status || 'NOT_STARTED',
-      participantIds: selectedParticipantIds,
-    });
+    try {
+      updateProject({
+        orgId: Number(orgId),
+        projectId: Number(projectId),
+        name: data.name || '',
+        description: data.description || '',
+        startAt: data.startAt || '',
+        endAt: data.endAt || '',
+        status: data.status || 'NOT_STARTED',
+        participantIds: selectedParticipantIds,
+      });
+      showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
+    } catch (error) {
+      // 에러 토스트
+    }
   };
 
   const handleMemberSelectionChange = (memberIds: number[]) => {
@@ -91,11 +97,12 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
   const handleDeleteProject = () => {
     try {
       passwordVerification({ password });
-      deleteProject({ projectId: Number(projectId) });
+      deleteProject({ orgId: Number(orgId), projectId: Number(projectId) });
       setIsDeleteModalOpen(false);
       router.navigate({
         to: '/org/$orgId/project',
         params: { orgId },
+        search: { currentPage: 1 },
       });
       showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
     } catch (error) {

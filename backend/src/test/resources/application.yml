@@ -30,7 +30,10 @@ spring:
     base-url-email: localhost
     url:
       front: localhost
-
+# 이미지 업로드 설정
+app:
+  upload:
+    path: ./uploads/images
 jwt:
   secret: thisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecret
   access-token-validity-in-seconds: 300

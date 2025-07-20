@@ -34,11 +34,13 @@ function ProjectDashboard() {
 
       <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {(milestoneList?.data?.data || []).flat().map((milestone: ProjectMilestone) => (
-            <div key={milestone.milestoneId}>
-              <MilestoneColumn milestone={milestone} orgId={orgId} projectId={projectId} />
-            </div>
-          ))}
+          {(Array.isArray(milestoneList?.data) ? milestoneList.data : []).map(
+            (milestone: ProjectMilestone) => (
+              <div key={milestone.milestoneId}>
+                <MilestoneColumn milestone={milestone} orgId={orgId} projectId={projectId} />
+              </div>
+            ),
+          )}
           <div className="col-span-1">
             <MilestoneColumn
               milestone={{ milestoneId: null, name: '미분류' }}

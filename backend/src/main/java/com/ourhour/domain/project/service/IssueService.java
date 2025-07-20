@@ -51,6 +51,7 @@ public class IssueService {
 
         Page<IssueEntity> issuePage;
 
+
         if (milestoneId != null && milestoneId > 0) {
             // 특정 마일스톤의 이슈 조회
             if (!milestoneRepository.existsById(milestoneId)) {
@@ -62,8 +63,9 @@ public class IssueService {
             issuePage = issueRepository.findByProjectEntity_ProjectIdAndMilestoneEntityIsNull(projectId, pageable);
         }
 
+
         if (issuePage.isEmpty()) {
-            return ApiResponse.success(PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize()));
+            return ApiResponse.success(PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize()));
         }
 
         Page<IssueSummaryDTO> issueDTOPage = issuePage.map(issueMapper::toIssueSummaryDTO);
@@ -126,13 +128,32 @@ public class IssueService {
 
     // 이슈 수정
     @Transactional
-    public ApiResponse<IssueDetailDTO> updateIssue(Long issueId, IssueReqDTO issueReqDTO) {
+    public ApiResponse<IssueDetailDTO> updateIssue(Long issueId, IssueReqDTO issueReqDTO, Claims claims) {
         if (issueId <= 0) {
             throw BusinessException.badRequest("유효하지 않은 이슈 ID입니다.");
         }
 
         IssueEntity issueEntity = issueRepository.findById(issueId)
                 .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 이슈 ID입니다."));
+
+        Long orgId = issueEntity.getProjectEntity().getOrgEntity().getOrgId();
+        Long projectId = issueEntity.getProjectEntity().getProjectId();
+
+        Long memberId = claims.getOrgAuthorityList().stream()       
+                                .filter(auth -> auth.getOrgId().equals(orgId))
+                                .map(auth -> auth.getMemberId())
+                                .findFirst()
+        .orElseThrow(() -> BusinessException.forbidden("해당 회사의 멤버가 아닙니다."));
+
+        boolean isParticipant = projectParticipantService.isProjectParticipant(projectId, memberId);
+
+        boolean isAdminOrRootAdmin = claims.getOrgAuthorityList().stream()
+                                .filter(auth -> auth.getOrgId().equals(orgId))
+                                .anyMatch(auth -> auth.getRole().equals(Role.ADMIN) || auth.getRole().equals(Role.ROOT_ADMIN));
+
+        if (!(isParticipant || isAdminOrRootAdmin)) {
+            throw BusinessException.forbidden("프로젝트 참여자이거나 ADMIN 이상 권한이 있어야 합니다.");
+        }
 
         issueMapper.updateIssueEntity(issueEntity, issueReqDTO);
 

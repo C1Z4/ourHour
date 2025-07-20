@@ -20,7 +20,7 @@ const postSignin = async (request: SigninRequest): Promise<ApiResponse<SigninRes
   try {
     const response = await axiosInstance.post('/api/auth/signin', request);
 
-    const accessToken = response.data.data?.accessToken;
+    const accessToken = response.data.accessToken;
 
     if (accessToken) {
       loginUser(accessToken);

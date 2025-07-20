@@ -188,33 +188,23 @@ public class ProjectService {
         Page<MilestoneEntity> milestonePage = milestoneRepository.findByProjectEntity_ProjectId(projectId, pageable);
 
         if (milestonePage.isEmpty()) {
-            return ApiResponse.success(PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize()));
+            return ApiResponse.success(PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize()));
         }
 
-        List<MileStoneInfoDTO> milestoneInfoList = milestonePage.getContent().stream()
-                .map(milestone -> {
-                    int totalIssues = (int) issueRepository
-                            .countByMilestoneEntity_MilestoneId(milestone.getMilestoneId());
-                    int completedIssues = (int) issueRepository.countByMilestoneEntity_MilestoneIdAndStatus(
-                            milestone.getMilestoneId(), IssueStatus.COMPLETED);
-                    return new MileStoneInfoDTO(
-                            milestone.getMilestoneId(),
-                            milestone.getName(),
-                            completedIssues,
-                            totalIssues,
-                            (byte) (totalIssues == 0 ? 0 : (completedIssues * 100 / totalIssues)));
-                })
-                .collect(Collectors.toList());
+        Page<MileStoneInfoDTO> milestoneInfoPage = milestonePage.map(milestone -> {
+            int totalIssues = (int) issueRepository
+                    .countByMilestoneEntity_MilestoneId(milestone.getMilestoneId());
+            int completedIssues = (int) issueRepository.countByMilestoneEntity_MilestoneIdAndStatus(
+                    milestone.getMilestoneId(), IssueStatus.COMPLETED);
+            return new MileStoneInfoDTO(
+                    milestone.getMilestoneId(),
+                    milestone.getName(),
+                    completedIssues,
+                    totalIssues,
+                    (byte) (totalIssues == 0 ? 0 : (completedIssues * 100 / totalIssues)));
+        });
 
-        PageResponse<MileStoneInfoDTO> response = PageResponse.<MileStoneInfoDTO>builder()
-                .data(milestoneInfoList)
-                .currentPage(milestonePage.getNumber())
-                .size(milestonePage.getSize())
-                .totalPages(milestonePage.getTotalPages())
-                .totalElements(milestonePage.getTotalElements())
-                .hasNext(milestonePage.hasNext())
-                .hasPrevious(milestonePage.hasPrevious())
-                .build();
+        PageResponse<MileStoneInfoDTO> response = PageResponse.of(milestoneInfoPage);
 
         return ApiResponse.success(response, "특정 프로젝트의 마일스톤 목록 조회에 성공했습니다.");
     }

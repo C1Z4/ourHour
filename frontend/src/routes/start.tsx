@@ -3,12 +3,18 @@ import { useEffect, useState } from 'react';
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
 import { ChevronLeft, Plus } from 'lucide-react';
 
-import { PaginationComponent } from '@/components/common/PaginationComponent';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { PageResponse } from '@/types/apiTypes';
 
-import { ButtonComponent } from '../components/common/ButtonComponent';
-import useMyOrgListQuery from '../hooks/queries/member/useMyOrgListQuery';
-import logo from '/public/images/logo.png';
+import { MyOrg } from '@/api/org/getMyOrgList';
+import logo from '@/assets/images/logo.png';
+import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { PaginationComponent } from '@/components/common/PaginationComponent';
+import { OrgFormData, OrgModal } from '@/components/org/OrgModal';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
+import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
+import { getImageUrl } from '@/utils/file/imageUtils';
+import { showSuccessToast } from '@/utils/toast';
 
 export const Route = createFileRoute('/start')({
   component: StartPage,
@@ -24,19 +30,51 @@ function StartPage() {
 
   const [currentPage, setCurrentPage] = useState(search.page);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
 
-  const { data: myOrgList } = useMyOrgListQuery({});
-  const totalPages = myOrgList?.data.totalPages ?? 1;
+  const { mutate: createOrg } = useOrgCreateMutation();
 
-  const currentOrgs = myOrgList?.data.data.flat() ?? [];
+  const { data: myOrgList } = useMyOrgListQuery({
+    currentPage,
+  });
+  const totalPages = (myOrgList as unknown as PageResponse<MyOrg[]>)?.totalPages ?? 1;
+
+  const currentOrgs = Array.isArray(myOrgList?.data)
+    ? myOrgList.data
+    : (myOrgList?.data?.data ?? []);
 
   const handleBackClick = () => {
     navigate({ to: '/' });
   };
 
   const handleCreateCompany = () => {
-    // 회사 생성 로직
-    console.log('회사 생성하기');
+    setIsOrgModalOpen(true);
+  };
+
+  const handleOrgModalClose = () => {
+    setIsOrgModalOpen(false);
+  };
+
+  const handleOrgModalSubmit = async (data: OrgFormData) => {
+    try {
+      await createOrg({
+        memberName: data.memberName,
+        name: data.name,
+        address: data.address === '' ? null : data.address,
+        email: data.email === '' ? null : data.email,
+        phone: data.phone === '' ? null : data.phone,
+        representativeName: data.representativeName === '' ? null : data.representativeName,
+        businessNumber: data.businessNumber === '' ? null : data.businessNumber,
+        logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl,
+      });
+      showSuccessToast('회사 생성 완료');
+      setIsOrgModalOpen(false);
+
+      // 페이지 새로고침(임시)
+      window.location.reload();
+    } catch (error) {
+      // 에러 토스트
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -55,6 +93,7 @@ function StartPage() {
     navigate({
       to: '/org/$orgId/project',
       params: { orgId: orgId.toString() },
+      search: { currentPage: 1 },
     });
   };
 
@@ -103,7 +142,7 @@ function StartPage() {
                   <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-4">
                     {org.logoImgUrl && !imageErrors.has(org.orgId) ? (
                       <img
-                        src={org.logoImgUrl}
+                        src={getImageUrl(org.logoImgUrl)}
                         alt={`${org.name} 로고`}
                         className="w-8 h-8 rounded-full object-cover"
                         onError={() => handleImageError(org.orgId)}
@@ -121,15 +160,13 @@ function StartPage() {
               ))}
             </div>
 
-            {totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-200">
-                <PaginationComponent
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                />
-              </div>
-            )}
+            <div className="px-6 py-4 border-t border-gray-200">
+              <PaginationComponent
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
 
             <div className="px-6 py-4 border-t border-gray-200">
               <ButtonComponent
@@ -144,6 +181,12 @@ function StartPage() {
           </CardContent>
         </Card>
       </div>
+
+      <OrgModal
+        isOpen={isOrgModalOpen}
+        onClose={handleOrgModalClose}
+        onSubmit={handleOrgModalSubmit}
+      />
     </div>
   );
 }

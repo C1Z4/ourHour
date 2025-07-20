@@ -1,4 +1,4 @@
-import logo from '/public/images/logo.png';
+import logo from '@/assets/images/logo.png';
 
 export const Footer = () => (
   <footer className="bg-gray-900 text-white py-12">
