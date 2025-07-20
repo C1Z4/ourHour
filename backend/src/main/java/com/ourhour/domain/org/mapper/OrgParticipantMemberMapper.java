@@ -23,14 +23,14 @@ public interface OrgParticipantMemberMapper {
     @Mapping(source = "orgEntity.businessNumber", target = "businessNumber")
     @Mapping(source = "orgEntity.logoImgUrl", target = "logoImgUrl")
     @Mapping(source = "memberEntity.name", target = "memberName")
-    @Mapping(source = "orgParticipantMemberEntity.role", target = "myRole")
+    @Mapping(target = "myRole", expression = "java(orgParticipantMemberEntity.getRole().getDescription())")
     OrgResDTO toOrgResDTO(OrgEntity orgEntity, MemberEntity memberEntity, OrgParticipantMemberEntity orgParticipantMemberEntity);
 
     // Entity -> DTO 변환 (구성원 권한 변경)
     @Mapping(source = "orgParticipantMemberEntity.orgEntity.orgId", target = "orgId")
     @Mapping(source = "orgParticipantMemberEntity.memberEntity.memberId", target = "memberId")
-    @Mapping(source = "oldRole", target = "oldRole")
-    @Mapping(source = "orgParticipantMemberEntity.role", target = "newRole")
+    @Mapping(target = "oldRole", expression = "java(oldRole.getDescription())")
+    @Mapping(target = "newRole", expression = "java(orgParticipantMemberEntity.getRole().getDescription())")
     @Mapping(source = "rootAdminCount", target = "rootAdminCount")
     OrgMemberRoleResDTO toOrgMemberRoleResDTO(OrgParticipantMemberEntity orgParticipantMemberEntity, Role oldRole, int rootAdminCount);
 
