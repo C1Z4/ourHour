@@ -1,6 +1,6 @@
 import { Trash2 } from 'lucide-react';
 
-import { Member, MemberRole } from '@/types/memberTypes';
+import { Member, MemberRoleKo } from '@/types/memberTypes';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
@@ -29,7 +29,7 @@ interface ProjectMembersTableProps {
   selectedMemberIds: number[];
   onSelectionChange: (memberIds: number[]) => void;
   onDeleteSelected: () => void;
-  onRoleChange?: (memberId: number, newRole: MemberRole) => void;
+  onRoleChange?: (memberId: number, newRole: MemberRoleKo) => void;
   participantTotalPages: number;
   currentPage: number;
   setCurrentPage: (page: number) => void;
@@ -64,7 +64,7 @@ export const ProjectMembersTable = ({
 
   const handleRoleChange = (memberId: number, newRole: string) => {
     if (onRoleChange) {
-      onRoleChange(memberId, newRole as MemberRole);
+      onRoleChange(memberId, newRole as MemberRoleKo);
     }
   };
 
@@ -74,10 +74,10 @@ export const ProjectMembersTable = ({
     projectMembers.every((member) => selectedMemberIds.includes(member.memberId));
 
   const roleOptions = [
-    { value: MemberRole.ROOT_ADMIN, label: '루트관리자' },
-    { value: MemberRole.ADMIN, label: '관리자' },
-    { value: MemberRole.MEMBER, label: '일반회원' },
-    { value: MemberRole.GUEST, label: '게스트' },
+    { value: '루트관리자', label: '루트관리자' },
+    { value: '관리자', label: '관리자' },
+    { value: '일반회원', label: '일반회원' },
+    { value: '게스트', label: '게스트' },
   ];
 
   return (

@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 
-import { MemberRole } from '@/types/memberTypes';
+import { MEMBER_ROLE_KO_TO_ENG, MemberRoleKo } from '@/types/memberTypes';
 
 import { OrgBaseInfo } from '@/api/org/getOrgInfo';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
@@ -15,6 +15,7 @@ import { useOrgDeleteMutation } from '@/hooks/queries/org/useOrgDeleteMutation';
 import useOrgInfoQuery from '@/hooks/queries/org/useOrgInfoQuery';
 import useOrgMemberListQuery from '@/hooks/queries/org/useOrgMemberListQuery';
 import { useOrgUpdateMutation } from '@/hooks/queries/org/useOrgUpdateMutation';
+import { usePatchMemberRoleMutation } from '@/hooks/queries/org/usePatchMemberRole';
 import usePasswordVerificationMutation from '@/hooks/queries/user/usePasswordVerificationMutation';
 import { getImageUrl } from '@/utils/file/imageUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
@@ -44,7 +45,7 @@ function OrgInfoPage() {
   // 권한 변경을 위한 임시 상태
   const [pendingRoleChange, setPendingRoleChange] = useState<{
     memberId: number;
-    newRole: MemberRole;
+    newRole: MemberRoleKo;
   } | null>(null);
 
   const { data: orgInfoData } = useOrgInfoQuery({ orgId: Number(orgId) });
@@ -67,6 +68,10 @@ function OrgInfoPage() {
   const { mutate: deleteOrg } = useOrgDeleteMutation();
 
   const { mutate: deleteMember } = useMemberDeleteMutation();
+
+  const { mutate: patchMemberRole } = usePatchMemberRoleMutation({
+    orgId: Number(orgId),
+  });
 
   const handleEditProject = () => {
     setIsEditModalOpen(true);
@@ -142,7 +147,7 @@ function OrgInfoPage() {
     setImageErrors((prev) => new Set(prev).add(orgId));
   };
 
-  const handleRoleChange = (memberId: number, newRole: MemberRole) => {
+  const handleRoleChange = (memberId: number, newRole: MemberRoleKo) => {
     // 권한 변경 시 비밀번호 확인 모달 열기
     setPendingRoleChange({ memberId, newRole });
     setIsRoleChangeModalOpen(true);
@@ -156,10 +161,11 @@ function OrgInfoPage() {
     try {
       passwordVerification({ password });
 
-      console.log('memberId', pendingRoleChange.memberId);
-      console.log('newRole', pendingRoleChange.newRole);
-      // 권한 변경 API 호출
-      // updateMemberRole({ memberId: pendingRoleChange.memberId, newRole: pendingRoleChange.newRole });
+      patchMemberRole({
+        orgId: Number(orgId),
+        memberId: pendingRoleChange.memberId,
+        newRole: MEMBER_ROLE_KO_TO_ENG[pendingRoleChange.newRole],
+      });
 
       setIsRoleChangeModalOpen(false);
       setPassword('');
