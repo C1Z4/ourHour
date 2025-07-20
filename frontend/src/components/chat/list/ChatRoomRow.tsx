@@ -8,10 +8,11 @@ import { ChatRoom } from '@/types/chatTypes';
 import { Button } from '@/components/ui/button';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { useChatMessagesQuery } from '@/hooks/queries/chat/useChatMessagesQueries';
+import { useUpdateChatRoomQuery } from '@/hooks/queries/chat/useUpdateChatRoomQueries';
 import { CHAT_COLORS } from '@/styles/colors';
 
 interface Props {
-  orgId: string;
+  orgId: number;
   chatRoom: ChatRoom;
 }
 
@@ -19,8 +20,15 @@ export const ChatRoomRow = ({ orgId, chatRoom }: Props) => {
   const { data: messages = [], isLoading } = useChatMessagesQuery(Number(orgId), chatRoom.roomId);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const latestMessage = messages[messages.length - 1]?.message ?? '메시지가 없습니다.';
+  const { mutate: updateColor } = useUpdateChatRoomQuery(orgId, chatRoom.roomId);
 
-  const handleColorSelect = (color: string) => {
+  const handleColorSelect = (e: React.MouseEvent, color: keyof typeof CHAT_COLORS) => {
+    e.stopPropagation();
+
+    updateColor({
+      name: chatRoom.name,
+      color: color,
+    });
     setIsPopoverOpen(false);
   };
 
@@ -47,12 +55,12 @@ export const ChatRoomRow = ({ orgId, chatRoom }: Props) => {
             className="w-fit p-2 bg-gray-100 border-gray-200 rounded-lg shadow-sm"
           >
             <div className="flex gap-2">
-              {Object.keys(CHAT_COLORS).map((color) => (
+              {(Object.keys(CHAT_COLORS) as Array<keyof typeof CHAT_COLORS>).map((color) => (
                 <Button
                   variant="ghost"
                   size="icon"
                   key={color}
-                  onClick={() => handleColorSelect(color)}
+                  onClick={(e) => handleColorSelect(e, color)}
                   className="h-8 w-8 rounded-full hover:scale-110 transition-transform"
                   style={{ backgroundColor: CHAT_COLORS[color as keyof typeof CHAT_COLORS] }}
                   aria-label={`${color} color`}
@@ -62,7 +70,7 @@ export const ChatRoomRow = ({ orgId, chatRoom }: Props) => {
           </PopoverContent>
         </Popover>
       </TableCell>
-      <Link to="/$orgId/chat/$roomId" params={{ orgId, roomId: String(chatRoom.roomId) }}>
+      <Link to="/org/$orgId/chat/$roomId" params={{ orgId, roomId: String(chatRoom.roomId) }}>
         <TableCell className="flex item-center py-4">{chatRoom.name}</TableCell>
       </Link>
       <TableCell>{isLoading ? '로딩 중...' : latestMessage}</TableCell>

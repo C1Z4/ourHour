@@ -8,6 +8,7 @@ import com.ourhour.domain.org.entity.OrgParticipantMemberId;
 
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
+import com.ourhour.global.common.dto.PageResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -83,4 +84,15 @@ public interface OrgParticipantMemberRepository
     boolean existsByOrgEntityAndMemberEntity(OrgEntity orgEntity, MemberEntity memberToJoin);
 
     Optional<OrgParticipantMemberEntity> findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(Long orgId, Long userId, Status status);
+
+    @Query("SELECT new com.ourhour.domain.member.dto.MemberInfoResDTO(" +
+            "m.memberId, m.name, m.email, m.phone, " +
+            "COALESCE(p.name, ''), COALESCE(d.name, ''), m.profileImgUrl) " +
+            "FROM OrgParticipantMemberEntity opm " +
+            "JOIN opm.memberEntity m " +
+            "LEFT JOIN opm.positionEntity p " +
+            "LEFT JOIN opm.departmentEntity d " +
+            "WHERE opm.orgEntity.orgId = :orgId " +
+            "ORDER BY m.memberId ASC")
+   List<MemberInfoResDTO> findAllByOrgEntity_OrgId(Long orgId);
 }

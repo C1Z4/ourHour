@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
-import { useRouter, useParams } from '@tanstack/react-router';
+import { useDispatch } from 'react-redux';
+
+import { useParams, useRouter, useSearch } from '@tanstack/react-router';
 import {
   flexRender,
   getCoreRowModel,
@@ -11,6 +13,8 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
+import { ProjectSummary } from '@/api/project/getProjectSummaryList';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
 import {
   Table,
@@ -20,19 +24,45 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import useProjectSummaryListQuery from '@/hooks/queries/project/useProjectSummaryListQuery';
+import { setCurrentProjectName } from '@/stores/projectSlice';
 
-import { mockProjects } from './dummy';
 import { ProjectColumns } from './ProjectColumns';
 
 export function ProjectDataTable() {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const dispatch = useDispatch();
   const router = useRouter();
-  const { orgId } = useParams({ from: '/$orgId' });
+  const { orgId } = useParams({ from: '/org/$orgId/project/' });
+  const search = useSearch({ from: '/org/$orgId/project/' }) as Record<string, unknown>;
 
-  const table = useReactTable({
-    data: mockProjects,
-    columns: ProjectColumns,
-    onSortingChange: setSorting,
+  const currentPage = Number(search.currentPage) > 0 ? Number(search.currentPage) : 1;
+
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const { data: projectSummaryList, isLoading } = useProjectSummaryListQuery({
+    orgId: Number(orgId),
+    enabled: !!orgId,
+    currentPage,
+  });
+
+  const tableData = useMemo(
+    () => (Array.isArray(projectSummaryList?.data) ? projectSummaryList.data : []),
+    [projectSummaryList?.data],
+  );
+
+  const handleSortingChange = useCallback(
+    (updater: SortingState | ((prev: SortingState) => SortingState)) => {
+      setSorting(updater);
+    },
+    [],
+  );
+
+  const memoizedColumns = useMemo(() => ProjectColumns, []);
+
+  const table = useReactTable<ProjectSummary>({
+    data: tableData,
+    columns: memoizedColumns,
+    onSortingChange: handleSortingChange,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -42,12 +72,34 @@ export function ProjectDataTable() {
     },
   });
 
-  const handleProjectClick = (projectId: string) => {
+  const handleProjectClick = (projectId: string, projectName: string) => {
     router.navigate({
-      to: '/$orgId/project/$projectId',
+      to: '/org/$orgId/project/$projectId',
       params: { orgId, projectId },
     });
+    dispatch(setCurrentProjectName(projectName));
   };
+
+  // 페이지 변경 시 쿼리 파라미터 업데이트
+  const handlePageChange = (pageNumber: number) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('currentPage', pageNumber.toString());
+    router.navigate({
+      to: url.pathname + url.search,
+      replace: true,
+    });
+  };
+
+  // // 페이지 변경 시 쿼리 파라미터 업데이트
+  // const handlePageChange = (pageNumber: number) => {
+  //   router.navigate({
+  //     search: { currentPage: pageNumber },
+  //   });
+  // };
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="w-full space-y-4">
@@ -73,7 +125,9 @@ export function ProjectDataTable() {
                   key={row.id}
                   className="hover:bg-gray-50 transition-colors cursor-pointer"
                   data-state={row.getIsSelected() && 'selected'}
-                  onClick={() => handleProjectClick(row.original.id)}
+                  onClick={() =>
+                    handleProjectClick(row.original.projectId.toString(), row.original.name)
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-4 pl-3">
@@ -93,7 +147,11 @@ export function ProjectDataTable() {
         </Table>
       </div>
       <div className="flex justify-center pt-4">
-        <PaginationComponent currentPage={1} totalPages={1} onPageChange={() => {}} />
+        <PaginationComponent
+          currentPage={currentPage}
+          totalPages={projectSummaryList?.data.totalPages || 1}
+          onPageChange={handlePageChange}
+        />
       </div>
     </div>
   );

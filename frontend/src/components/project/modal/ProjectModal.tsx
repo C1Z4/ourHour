@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import { ProjectInfo } from '@/types/projectTypes';
+import { PROJECT_STATUS_ENG_TO_KO, PROJECT_STATUS_KO_TO_ENG } from '@/types/projectTypes';
 
+import { Member } from '@/api/org/getOrgMemberList';
+import { ProjectBaseInfo } from '@/api/project/getProjectInfo';
+import { PostCreateProjectRequest } from '@/api/project/postCreateProject';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { StatusBadge } from '@/components/common/StatusBadge';
@@ -15,21 +18,40 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import useOrgMemberListQuery from '@/hooks/queries/org/useOrgMemberListQuery';
 
 import { MemberSelector } from './MemberSelector';
-import { mockCompanyMembers } from './mockCompanyMembers';
 
 interface ProjectModalProps {
+  selectedParticipantIds?: number[];
+  setSelectedParticipantIds?: (participantIds: number[]) => void;
   isOpen: boolean;
   onClose: () => void;
-  initialData?: ProjectInfo;
-  onSubmit: (data: Partial<ProjectInfo>) => void;
+  initialInfoData?: ProjectBaseInfo;
+  initialMemberData?: Member[];
+  onSubmit: (data: Partial<ProjectBaseInfo>) => void;
+  orgId: number;
 }
 
-export const ProjectModal = ({ isOpen, onClose, initialData, onSubmit }: ProjectModalProps) => {
-  const isEditing = !!initialData;
+// 프로젝트 등록 및 수정 모달
+export const ProjectModal = ({
+  selectedParticipantIds,
+  setSelectedParticipantIds,
+  isOpen,
+  onClose,
+  initialInfoData,
+  initialMemberData,
+  onSubmit,
+  orgId,
+}: ProjectModalProps) => {
+  const isEditing = !!initialInfoData; // 프로젝트 수정 컴포넌트 여부
 
-  // 안전한 날짜 파싱 함수
+  const { data: orgMembersData } = useOrgMemberListQuery({
+    orgId,
+  });
+  const orgMembers = Array.isArray(orgMembersData?.data) ? orgMembersData.data : [];
+  const orgMemberTotalPages = orgMembersData?.data.totalPages;
+
   const parseDate = (dateString: string | undefined): Date | undefined => {
     if (!dateString) {
       return undefined;
@@ -38,57 +60,80 @@ export const ProjectModal = ({ isOpen, onClose, initialData, onSubmit }: Project
     return isNaN(date.getTime()) ? undefined : date;
   };
 
+  const didSetInitial = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && initialInfoData && initialMemberData && !didSetInitial.current) {
+      setFormData({
+        name: initialInfoData.name,
+        description: initialInfoData.description,
+        startDate: parseDate(initialInfoData.startAt),
+        endDate: parseDate(initialInfoData.endAt),
+        status:
+          PROJECT_STATUS_KO_TO_ENG[
+            initialInfoData.status as keyof typeof PROJECT_STATUS_KO_TO_ENG
+          ] || 'NOT_STARTED',
+        participants: orgMembers || [],
+      });
+
+      const newIds = initialMemberData.map((p) => p.memberId);
+      setSelectedParticipantIds?.(newIds);
+
+      didSetInitial.current = true;
+    }
+  }, [isOpen, initialInfoData, initialMemberData, orgMembers, setSelectedParticipantIds]);
+
   const [formData, setFormData] = useState({
-    name: initialData?.name || '',
-    description: initialData?.description || '',
-    startDate: parseDate(initialData?.startDate),
-    endDate: parseDate(initialData?.endDate),
-    status: initialData?.status || ('계획됨' as const),
-    participants: initialData?.participants || [],
+    name: initialInfoData?.name || '',
+    description: initialInfoData?.description || '',
+    startDate: parseDate(initialInfoData?.startAt),
+    endDate: parseDate(initialInfoData?.endAt),
+    status: initialInfoData?.status || 'NOT_STARTED',
+    participants: orgMembers || [],
   });
 
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(
-    initialData?.participants.map((p) => p.id) || [],
-  );
-
-  const handleMemberSelect = (memberId: string, checked: boolean) => {
+  const handleMemberSelect = (memberId: number, checked: boolean) => {
     if (checked) {
-      setSelectedMemberIds([...selectedMemberIds, memberId]);
+      setSelectedParticipantIds?.([...(selectedParticipantIds || []), memberId]);
     } else {
-      setSelectedMemberIds(selectedMemberIds.filter((id) => id !== memberId));
+      setSelectedParticipantIds?.((selectedParticipantIds || []).filter((id) => id !== memberId));
     }
   };
 
   const handleSubmit = () => {
-    const selectedMembers = mockCompanyMembers.filter((member) =>
-      selectedMemberIds.includes(member.id),
+    const selectedMembers = orgMembers?.filter((member) =>
+      selectedParticipantIds?.includes(member.memberId),
     );
 
     const projectData = {
       ...formData,
       participants: selectedMembers,
-      startDate: formData.startDate?.toISOString().split('T')[0] || '',
-      endDate: formData.endDate?.toISOString().split('T')[0] || '',
-    };
+      startAt: formData.startDate?.toISOString().split('T')[0] || '',
+      endAt: formData.endDate?.toISOString().split('T')[0] || '',
+    } as unknown as PostCreateProjectRequest;
+    onSubmit(projectData as unknown as Partial<ProjectBaseInfo>);
+    onClose();
+  };
 
-    onSubmit(projectData);
+  const handleClose = () => {
+    didSetInitial.current = false;
     onClose();
   };
 
   const projectStatuses = [
-    { value: '시작전' as const, label: '시작전' },
-    { value: '계획됨' as const, label: '계획됨' },
-    { value: '진행중' as const, label: '진행중' },
-    { value: '완료' as const, label: '완료' },
-    { value: '아카이브' as const, label: '아카이브' },
+    { value: 'NOT_STARTED' as const, label: 'NOT_STARTED' },
+    { value: 'PLANNING' as const, label: 'PLANNING' },
+    { value: 'IN_PROGRESS' as const, label: 'IN_PROGRESS' },
+    { value: 'DONE' as const, label: 'DONE' },
+    { value: 'ARCHIVE' as const, label: 'ARCHIVE' },
   ];
 
   return (
     <ModalComponent
       isOpen={isOpen}
-      onClose={onClose}
-      title={isEditing ? '프로젝트 수정' : '프로젝트 생성'}
-      className="max-w-3xl p-5"
+      onClose={handleClose}
+      title={isEditing ? '프로젝트 수정' : '프로젝트 등록'}
+      className="max-w-3xl"
       children={
         <div className="space-y-6 m-2">
           <div>
@@ -148,7 +193,14 @@ export const ProjectModal = ({ isOpen, onClose, initialData, onSubmit }: Project
               <SelectContent>
                 {projectStatuses.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
-                    <StatusBadge type="project" status={status.value} />
+                    <StatusBadge
+                      type="project"
+                      status={
+                        PROJECT_STATUS_ENG_TO_KO[
+                          status.value as keyof typeof PROJECT_STATUS_ENG_TO_KO
+                        ]
+                      }
+                    />
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -156,18 +208,20 @@ export const ProjectModal = ({ isOpen, onClose, initialData, onSubmit }: Project
           </div>
 
           <MemberSelector
-            selectedMemberIds={selectedMemberIds}
+            selectedMemberIds={selectedParticipantIds || []}
             onMemberSelect={handleMemberSelect}
+            participantTotalPages={orgMemberTotalPages || 1}
+            initialMemberData={orgMembers}
           />
         </div>
       }
       footer={
         <div className="flex justify-end gap-2">
-          <ButtonComponent variant="danger" onClick={onClose}>
+          <ButtonComponent variant="danger" onClick={handleClose}>
             취소
           </ButtonComponent>
           <ButtonComponent onClick={handleSubmit}>
-            {isEditing ? '수정 완료' : '프로젝트 생성'}
+            {isEditing ? '수정 완료' : '프로젝트 등록'}
           </ButtonComponent>
         </div>
       }

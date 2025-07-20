@@ -11,7 +11,7 @@ import {
 
 import { ChatRoomRow } from './ChatRoomRow';
 interface ListProps {
-  orgId: string;
+  orgId: number;
   chatRooms: ChatRoom[];
 }
 

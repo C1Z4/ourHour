@@ -42,7 +42,7 @@ export function ModalComponent({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className={cn(sizeClasses[size], 'max-h-[90vh] flex flex-col', className)}
+        className={cn(sizeClasses[size], 'max-h-[90vh] flex flex-col p-5', className)}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {(title || description) && (
@@ -52,7 +52,7 @@ export function ModalComponent({
           </DialogHeader>
         )}
 
-        <div className="flex-1 overflow-y-auto py-4 min-h-0">{children}</div>
+        <div className="flex-1 overflow-y-auto py-4 min-h-0 p-2">{children}</div>
 
         {footer && <DialogFooter className="flex-shrink-0">{footer}</DialogFooter>}
       </DialogContent>

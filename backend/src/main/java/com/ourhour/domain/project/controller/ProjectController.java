@@ -10,12 +10,16 @@ import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectParticipantDTO;
 import com.ourhour.domain.project.dto.ProjectReqDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryResDTO;
+import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.project.service.IssueService;
 import com.ourhour.domain.project.service.MilestoneService;
 import com.ourhour.domain.project.service.ProjectParticipantService;
 import com.ourhour.domain.project.service.ProjectService;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
+import com.ourhour.global.jwt.annotation.OrgAuth;
+import com.ourhour.domain.project.annotation.ProjectParticipantOnly;
+import com.ourhour.global.jwt.annotation.OrgId;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -34,6 +38,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.jwt.dto.Claims;
+import com.ourhour.global.exception.BusinessException;
+
 
 @RestController
 @RequestMapping("/api/projects")
@@ -47,17 +55,20 @@ public class ProjectController {
         private final MilestoneService milestoneService;
 
         // 프로젝트 등록
+        @OrgAuth(accessLevel = Role.ADMIN)
         @PostMapping("/{orgId}")
         public ResponseEntity<ApiResponse<Void>> createProject(
-                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
+                        @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @Valid @RequestBody ProjectReqDTO projectReqDTO) {
                 ApiResponse<Void> response = projectService.createProject(orgId, projectReqDTO);
                 return ResponseEntity.ok(response);
         }
 
         // 프로젝트 수정(정보, 참가자)
-        @PutMapping("/{projectId}")
+        @OrgAuth(accessLevel = Role.ADMIN)
+        @PutMapping("/{orgId}/{projectId}")
         public ResponseEntity<ApiResponse<Void>> updateProject(
+                        @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @Valid @RequestBody ProjecUpdateReqDTO projectReqDTO) {
                 ApiResponse<Void> response = projectService.updateProject(projectId, projectReqDTO);
@@ -65,8 +76,10 @@ public class ProjectController {
         }
 
         // 프로젝트 삭제
-        @DeleteMapping("/{projectId}")
+        @OrgAuth(accessLevel = Role.ADMIN)
+        @DeleteMapping("/{orgId}/{projectId}")
         public ResponseEntity<ApiResponse<Void>> deleteProject(
+                        @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId) {
                 ApiResponse<Void> response = projectService.deleteProject(projectId);
                 return ResponseEntity.ok(response);
@@ -77,10 +90,10 @@ public class ProjectController {
         public ResponseEntity<ApiResponse<PageResponse<ProjectSummaryResDTO>>> getProjectsSummary(
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @RequestParam(defaultValue = "3") @Min(value = 1, message = "참여자 제한은 1 이상이어야 합니다.") @Max(value = 10, message = "참여자 제한은 10 이하여야 합니다.") int participantLimit,
-                        @RequestParam(defaultValue = "0") @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다.") int currentPage,
+                        @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
-                Pageable pageable = PageRequest.of(currentPage, size, Sort.by(Sort.Direction.ASC, "projectId"));
+                Pageable pageable = PageRequest.of(currentPage - 1, size, Sort.by(Sort.Direction.ASC, "projectId"));
 
                 ApiResponse<PageResponse<ProjectSummaryResDTO>> response = projectService.getProjectsSummaryList(orgId,
                                 participantLimit, pageable);
@@ -93,10 +106,10 @@ public class ProjectController {
         public ResponseEntity<ApiResponse<PageResponse<ProjectParticipantDTO>>> getProjectParticipants(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
-                        @RequestParam(defaultValue = "0") @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다 .") int currentPage,
+                        @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다 .") int currentPage,
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = " 페이지 크기는 100이하여야 합니다.") int size) {
 
-                Pageable pageable = PageRequest.of(currentPage, size,
+                Pageable pageable = PageRequest.of(currentPage - 1, size,
                                 Sort.by(Sort.Direction.ASC, "ProjectParticipantId.memberId"));
 
                 ApiResponse<PageResponse<ProjectParticipantDTO>> response = projectParticipantService
@@ -118,10 +131,10 @@ public class ProjectController {
         @GetMapping("/{projectId}/milestones")
         public ResponseEntity<ApiResponse<PageResponse<MileStoneInfoDTO>>> getProjectMilestones(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
-                        @RequestParam(defaultValue = "0") @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다.") int currentPage,
+                        @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
-                Pageable pageable = PageRequest.of(currentPage, size, Sort.by(Sort.Direction.ASC, "milestoneId"));
+                Pageable pageable = PageRequest.of(currentPage - 1, size, Sort.by(Sort.Direction.ASC, "milestoneId"));
 
                 ApiResponse<PageResponse<MileStoneInfoDTO>> response = projectService.getProjectMilestones(projectId,
                                 pageable);
@@ -129,22 +142,25 @@ public class ProjectController {
                 return ResponseEntity.ok(response);
         }
 
-        // 특정 마일스톤의 이슈 목록 조회
-        @GetMapping("/milestones/{milestoneId}/issues")
+        // 특정 마일스톤의 이슈 목록 조회 (milestoneId가 없으면 프로젝트의 모든 이슈 조회)
+        @GetMapping("/{projectId}/issues")
         public ResponseEntity<ApiResponse<PageResponse<IssueSummaryDTO>>> getMilestoneIssues(
-                        @PathVariable @Min(value = 1, message = "마일스톤 ID는 1 이상이어야 합니다.") Long milestoneId,
-                        @RequestParam(defaultValue = "0") @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다.") int currentPage,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @RequestParam(required = false) Long milestoneId,
+                        @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
-                Pageable pageable = PageRequest.of(currentPage, size, Sort.by(Sort.Direction.ASC, "issueId"));
+                Pageable pageable = PageRequest.of(currentPage - 1, size, Sort.by(Sort.Direction.ASC, "issueId"));
 
-                ApiResponse<PageResponse<IssueSummaryDTO>> response = issueService.getMilestoneIssues(milestoneId,
+                ApiResponse<PageResponse<IssueSummaryDTO>> response = issueService.getMilestoneIssues(projectId,
+                                milestoneId,
                                 pageable);
 
                 return ResponseEntity.ok(response);
         }
 
         // 마일스톤 등록
+        @ProjectParticipantOnly
         @PostMapping("/{projectId}/milestones")
         public ResponseEntity<ApiResponse<Void>> createMilestone(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
@@ -156,6 +172,7 @@ public class ProjectController {
         }
 
         // 마일스톤 수정(마일스톤 이름)
+        @ProjectParticipantOnly
         @PutMapping("/milestones/{milestoneId}")
         public ResponseEntity<ApiResponse<Void>> updateMilestone(
                         @PathVariable @Min(value = 1, message = "마일스톤 ID는 1 이상이어야 합니다.") Long milestoneId,
@@ -169,10 +186,14 @@ public class ProjectController {
         // 마일스톤 삭제
         @DeleteMapping("/milestones/{milestoneId}")
         public ResponseEntity<ApiResponse<Void>> deleteMilestone(
-                        @PathVariable @Min(value = 1, message = "마일스톤 ID는 1 이상이어야 합니다.") Long milestoneId) {
+                @PathVariable Long milestoneId) {
 
-                ApiResponse<Void> response = milestoneService.deleteMilestone(milestoneId);
+                Claims claims = UserContextHolder.get();
+                if (claims == null) {
+                    throw BusinessException.unauthorized("인증 정보가 없습니다.");
+                }
 
+                ApiResponse<Void> response = milestoneService.deleteMilestone(milestoneId, claims);
                 return ResponseEntity.ok(response);
         }
 
@@ -187,34 +208,46 @@ public class ProjectController {
         }
 
         // 이슈 등록
+        @ProjectParticipantOnly
         @PostMapping("/{projectId}/issues")
         public ResponseEntity<ApiResponse<IssueDetailDTO>> createIssue(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @Valid @RequestBody IssueReqDTO issueReqDTO) {
 
                 ApiResponse<IssueDetailDTO> response = issueService.createIssue(projectId, issueReqDTO);
-                
+
                 return ResponseEntity.ok(response);
         }
 
         // 이슈 수정
+        @ProjectParticipantOnly
         @PutMapping("/issues/{issueId}")
         public ResponseEntity<ApiResponse<IssueDetailDTO>> updateIssue(
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId,
                         @Valid @RequestBody IssueReqDTO issueReqDTO) {
 
-                ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO);
+                Claims claims = UserContextHolder.get();
+                if (claims == null) {
+                    throw BusinessException.unauthorized("인증 정보가 없습니다.");
+                }
+
+                ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO, claims);
 
                 return ResponseEntity.ok(response);
-        }       
+        }
 
         // 이슈 삭제
         @DeleteMapping("/issues/{issueId}")
         public ResponseEntity<ApiResponse<Void>> deleteIssue(
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId) {
 
-                ApiResponse<Void> response = issueService.deleteIssue(issueId);
-                
+                Claims claims = UserContextHolder.get();
+                if (claims == null) {
+                    throw BusinessException.unauthorized("인증 정보가 없습니다.");
+                }
+
+                ApiResponse<Void> response = issueService.deleteIssue(issueId, claims);
+
                 return ResponseEntity.ok(response);
         }
 
@@ -227,6 +260,6 @@ public class ProjectController {
                 ApiResponse<Boolean> response = projectParticipantService.checkProjectParticipant(projectId, memberId);
 
                 return ResponseEntity.ok(response);
-        }       
+        }
 
 }

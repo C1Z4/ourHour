@@ -4,14 +4,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { Provider } from 'react-redux';
 
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import ReactDOM from 'react-dom/client';
 import { ToastContainer } from 'react-toastify';
 
+import 'react-toastify/dist/ReactToastify.css';
 import { routeTree } from './routeTree.gen';
 import { store } from './stores/store';
 import './styles/index.css';
-import 'react-toastify/dist/ReactToastify.css';
+import { restoreAuthFromServer } from './utils/auth/tokenUtils';
 
 const router = createRouter({ routeTree });
 
@@ -21,7 +23,7 @@ declare module '@tanstack/react-router' {
   }
 }
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 2,
@@ -35,6 +37,10 @@ const queryClient = new QueryClient({
 const rootElement = document.getElementById('root')!;
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
+
+  // 앱 시작 시 인증 상태 초기화
+  restoreAuthFromServer();
+
   root.render(
     <StrictMode>
       <Provider store={store}>
@@ -52,6 +58,7 @@ if (!rootElement.innerHTML) {
             pauseOnHover
             theme="light"
           />
+          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
         </QueryClientProvider>
       </Provider>
     </StrictMode>,
