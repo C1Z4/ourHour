@@ -13,6 +13,7 @@ export const useOrgCreateMutation = () =>
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [ORG_QUERY_KEYS.MY_ORG_LIST],
+        exact: false,
       });
     },
     onError: (error: AxiosError) => {
