@@ -1,5 +1,6 @@
 package com.ourhour.domain.org.mapper;
 
+import com.ourhour.domain.member.dto.MyMemberInfoReqDTO;
 import com.ourhour.domain.member.dto.MyMemberInfoResDTO;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.org.dto.OrgMemberRoleResDTO;
@@ -36,7 +37,6 @@ public interface OrgParticipantMemberMapper {
 
 
     // Enity -> DTO 변화 (회사 내 개인정보 조회)
-    @Mapping(source = "userId", target = "userId")
     @Mapping(source = "opm.memberEntity.memberId", target = "memberId")
     @Mapping(source = "opm.orgEntity.orgId", target = "orgId")
     @Mapping(source = "opm.memberEntity.name", target="name")
@@ -46,5 +46,6 @@ public interface OrgParticipantMemberMapper {
     @Mapping(source = "opm.departmentEntity.name", target="deptName")
     @Mapping(source = "opm.positionEntity.name", target="positionName")
     @Mapping(source = "opm.role", target="role")
-    MyMemberInfoResDTO toMyMemberInfoResDTO(Long userId, OrgParticipantMemberEntity opm);
+    MyMemberInfoResDTO toMyMemberInfoResDTO(OrgParticipantMemberEntity opm);
+
 }

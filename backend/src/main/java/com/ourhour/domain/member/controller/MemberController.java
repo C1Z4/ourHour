@@ -2,6 +2,7 @@ package com.ourhour.domain.member.controller;
 
 import com.ourhour.domain.member.dto.MemberOrgDetailResDTO;
 import com.ourhour.domain.member.dto.MemberOrgSummaryResDTO;
+import com.ourhour.domain.member.dto.MyMemberInfoReqDTO;
 import com.ourhour.domain.member.dto.MyMemberInfoResDTO;
 import com.ourhour.domain.member.service.MemberService;
 import com.ourhour.domain.org.entity.OrgEntity;
@@ -24,6 +25,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -96,12 +99,26 @@ public class MemberController {
     }
 
     // 회사 내 개인 정보 조회
+    @OrgAuth
     @GetMapping("/organizations/{orgId}/me")
     public ResponseEntity<ApiResponse<MyMemberInfoResDTO>> findMyMemberInfoInOrg(@OrgId @PathVariable Long orgId) {
 
         MyMemberInfoResDTO memberInfoResDTO = memberService.findMyMemberInfoInOrg(orgId);
 
         ApiResponse<MyMemberInfoResDTO> apiResponse = ApiResponse.success(memberInfoResDTO, "회사 내 개인 정보 조회에 성공하였습니다.");
+
+        return ResponseEntity.ok(apiResponse);
+
+    }
+
+    // 회사 내 개인 정보 수정
+    @OrgAuth
+    @PostMapping("/organizations/{orgId}/me")
+    public ResponseEntity<ApiResponse<MyMemberInfoResDTO>> updateMyMemberInfoInOrg(@OrgId @PathVariable Long orgId, @RequestBody MyMemberInfoReqDTO myMemberInfoReqDTO) {
+
+        MyMemberInfoResDTO memberInfoResDTO = memberService.updateMyMemberInfoInOrg(orgId, myMemberInfoReqDTO);
+
+        ApiResponse<MyMemberInfoResDTO> apiResponse = ApiResponse.success(memberInfoResDTO, "회사 내 개인 정보 수정에 성공하였습니다.");
 
         return ResponseEntity.ok(apiResponse);
 

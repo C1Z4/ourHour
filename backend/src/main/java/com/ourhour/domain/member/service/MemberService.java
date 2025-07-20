@@ -1,7 +1,11 @@
 package com.ourhour.domain.member.service;
 
+import com.ourhour.domain.member.dto.MyMemberInfoReqDTO;
 import com.ourhour.domain.member.dto.MyMemberInfoResDTO;
+import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.exceptions.MemberException;
+import com.ourhour.domain.org.entity.DepartmentEntity;
+import com.ourhour.domain.org.entity.PositionEntity;
 import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.mapper.OrgParticipantMemberMapper;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
@@ -18,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.ourhour.global.common.dto.PageResponse;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -80,15 +85,53 @@ public class MemberService {
     public MyMemberInfoResDTO findMyMemberInfoInOrg(Long orgId) {
 
         // 해당 회사 내에 내 정보가 있고 활성 상태인지 조회
-        Long userId = UserContextHolder.get().getUserId();
-        OrgParticipantMemberEntity opm = orgParticipantMemberRepository
-                .findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(orgId, userId, Status.ACTIVE)
-                .orElseThrow(MemberException::memberNotFoundException);
+        OrgParticipantMemberEntity opm = findMyMemberInOrgHelper(orgId);
 
-        MyMemberInfoResDTO memberInfoResDTO = orgParticipantMemberMapper.toMyMemberInfoResDTO(userId, opm);
+        MyMemberInfoResDTO memberInfoResDTO = orgParticipantMemberMapper.toMyMemberInfoResDTO(opm);
 
         return memberInfoResDTO;
 
+    }
+
+    // 회사 내 개인정보 수정
+    @Transactional
+    public MyMemberInfoResDTO updateMyMemberInfoInOrg(Long orgId, MyMemberInfoReqDTO myInfoReqDTO) {
+
+        // 해당 회사 내에 내 정보가 있고 활성 상태인지 조회
+        OrgParticipantMemberEntity opm = findMyMemberInOrgHelper(orgId);
+        MemberEntity memberEntity = opm.getMemberEntity();
+        DepartmentEntity deptEntity = opm.getDepartmentEntity();
+        PositionEntity positionEntity = opm.getPositionEntity();
+
+        // memberEntity 업데이트
+        memberEntity.changeMyMemberInfo(myInfoReqDTO.getName(), myInfoReqDTO.getPhone(), myInfoReqDTO.getEmail(), myInfoReqDTO.getProfileImgUrl());
+
+        // 부서 재할당
+        if (myInfoReqDTO.getDeptName() != null) {
+        }
+
+        // 직책 재할당
+        if (myInfoReqDTO.getPositionName() != null) {
+
+        }
+
+        // Entity -> DTO 변환
+        MyMemberInfoResDTO memberInfoResDTO = orgParticipantMemberMapper.toMyMemberInfoResDTO(opm);
+
+        return memberInfoResDTO;
+
+    }
+
+    // 해당 회사 내에 내 정보가 있고 활성 상태인지 조회
+    private OrgParticipantMemberEntity findMyMemberInOrgHelper(Long orgId) {
+
+        return orgParticipantMemberRepository
+                .findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(
+                        orgId,
+                        UserContextHolder.get().getUserId(),
+                        Status.ACTIVE
+                )
+                .orElseThrow(MemberException::memberNotFoundException);
     }
 
 }
