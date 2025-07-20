@@ -151,6 +151,7 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
           </div>
 
           <ProjectMembersTable
+            type="project"
             projectMembers={projectMembers}
             selectedMemberIds={selectedMemberIds}
             onSelectionChange={handleMemberSelectionChange}
@@ -174,24 +175,27 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
           setSelectedParticipantIds={setSelectedParticipantIds}
         />
       )}
-      <ModalComponent
-        isOpen={isDeleteModalOpen}
-        onClose={handleDeleteModalClose}
-        title="비밀번호 확인"
-        children={
-          <Input
-            type="password"
-            placeholder="비밀번호를 입력해주세요."
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        }
-        footer={
-          <ButtonComponent variant="danger" onClick={handleDeleteProject}>
-            프로젝트 삭제
-          </ButtonComponent>
-        }
-      />
+
+      {isDeleteModalOpen && (
+        <ModalComponent
+          isOpen={isDeleteModalOpen}
+          onClose={handleDeleteModalClose}
+          title="비밀번호 확인"
+          children={
+            <Input
+              type="password"
+              placeholder="비밀번호를 입력해주세요."
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          }
+          footer={
+            <ButtonComponent variant="danger" onClick={handleDeleteProject}>
+              프로젝트 삭제
+            </ButtonComponent>
+          }
+        />
+      )}
     </>
   );
 };
