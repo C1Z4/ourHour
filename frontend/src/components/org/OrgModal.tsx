@@ -1,16 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { X } from 'lucide-react';
-
+import { OrgBaseInfo } from '@/api/org/getOrgInfo';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { ModalComponent } from '@/components/common/ModalComponent';
+import { LogoUpload } from '@/components/org/LogoUpload';
+import { OrgBasicInfo } from '@/components/org/OrgBasicInfo';
 import { compressAndSaveImage, validateFileSize, validateFileType } from '@/utils/file/fileStorage';
 import { showErrorToast } from '@/utils/toast';
 
 // import { DepartmentPositionManager } from './DepartmentPositionManager';
-
-import { LogoUpload } from './LogoUpload';
-import { OrgBasicInfo } from './OrgBasicInfo';
 
 // interface Department {
 //   id: string;
@@ -26,6 +24,7 @@ interface OrgModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: OrgFormData) => void;
+  initialInfoData?: OrgBaseInfo;
 }
 
 export interface OrgFormData {
@@ -41,19 +40,36 @@ export interface OrgFormData {
   //   positions: Position[];
 }
 
-export function OrgModal({ isOpen, onClose, onSubmit }: OrgModalProps) {
+export function OrgModal({ isOpen, onClose, onSubmit, initialInfoData }: OrgModalProps) {
+  const isEditing = !!initialInfoData;
+
   const [formData, setFormData] = useState<OrgFormData>({
-    memberName: '',
-    logoImgUrl: '',
-    name: '',
-    address: '',
-    email: '',
-    businessNumber: '',
-    representativeName: '',
+    memberName: initialInfoData?.representativeName || '', // 임시로 대표자 이름으로 설정 추후 redux 세션스토리지에 저장한 멤버 이름(내 멤버이름)으로 변경
+    logoImgUrl: initialInfoData?.logoImgUrl || '',
+    name: initialInfoData?.name || '',
+    address: initialInfoData?.address || '',
+    email: initialInfoData?.email || '',
+    businessNumber: initialInfoData?.businessNumber || '',
+    representativeName: initialInfoData?.representativeName || '',
     phone: '',
     // departments: [{ id: '1', name: '' }],
     // positions: [{ id: '1', name: '' }],
   });
+
+  useEffect(() => {
+    if (initialInfoData) {
+      setFormData({
+        memberName: initialInfoData.representativeName, // 임시로 대표자 이름으로 설정
+        logoImgUrl: initialInfoData.logoImgUrl,
+        name: initialInfoData.name,
+        address: initialInfoData.address,
+        email: initialInfoData.email,
+        businessNumber: initialInfoData.businessNumber,
+        representativeName: initialInfoData.representativeName,
+        phone: initialInfoData.phone,
+      });
+    }
+  }, [initialInfoData]);
 
   const [logoPreview, setLogoPreview] = useState<string>('');
 
@@ -107,59 +123,63 @@ export function OrgModal({ isOpen, onClose, onSubmit }: OrgModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+
+    if (isEditing) {
+      const { memberName, ...updateData } = formData;
+      onSubmit(updateData as OrgFormData);
+    } else {
+      onSubmit(formData);
+    }
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <h2 className="text-xl font-semibold">회사 등록</h2>
-          <ButtonComponent variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-            <X className="h-4 w-4" />
-          </ButtonComponent>
-        </CardHeader>
+    <ModalComponent
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEditing ? '회사 정보 수정' : '회사 등록'}
+      size="xl"
+      footer={
+        <ButtonComponent
+          variant="primary"
+          type="submit"
+          className="w-full py-3"
+          onClick={handleSubmit}
+        >
+          {isEditing ? '수정' : '등록'}
+        </ButtonComponent>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <LogoUpload
+          logoImgUrl={formData.logoImgUrl ?? ''}
+          logoPreview={logoPreview}
+          onLogoUpload={handleLogoUpload}
+          onFileSelect={handleFileSelect}
+        />
 
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <LogoUpload
-              logoPreview={logoPreview}
-              onLogoUpload={handleLogoUpload}
-              onFileSelect={handleFileSelect}
-            />
+        <OrgBasicInfo
+          formData={{
+            memberName: formData.memberName ?? '',
+            name: formData.name,
+            address: formData.address ?? '',
+            email: formData.email ?? '',
+            businessNumber: formData.businessNumber ?? '',
+            representativeName: formData.representativeName ?? '',
+            phone: formData.phone ?? '',
+          }}
+          onInputChange={handleInputChange}
+          isEditing={isEditing}
+        />
 
-            <OrgBasicInfo
-              formData={{
-                memberName: formData.memberName,
-                name: formData.name,
-                address: formData.address ?? '',
-                email: formData.email ?? '',
-                businessNumber: formData.businessNumber ?? '',
-                representativeName: formData.representativeName ?? '',
-                phone: formData.phone ?? '',
-              }}
-              onInputChange={handleInputChange}
-            />
-
-            {/* <DepartmentPositionManager
-              departments={formData.departments}
-              positions={formData.positions}
-              onDepartmentsChange={(departments) =>
-                setFormData((prev) => ({ ...prev, departments }))
-              }
-              onPositionsChange={(positions) => setFormData((prev) => ({ ...prev, positions }))}
-            /> */}
-
-            <ButtonComponent variant="primary" type="submit" className="w-full py-3">
-              등록
-            </ButtonComponent>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+        {/* <DepartmentPositionManager
+          departments={formData.departments}
+          positions={formData.positions}
+          onDepartmentsChange={(departments) =>
+            setFormData((prev) => ({ ...prev, departments }))
+          }
+          onPositionsChange={(positions) => setFormData((prev) => ({ ...prev, positions }))}
+        /> */}
+      </form>
+    </ModalComponent>
   );
 }
