@@ -80,7 +80,7 @@ public interface OrgParticipantMemberRepository
     // 조직 내 활성 루트 관리자 수 조회
     int countByOrgEntity_OrgIdAndRoleAndStatus(Long orgId, Role role, Status status);
 
-    OrgParticipantMemberEntity findByOrgEntity_OrgId(Long orgId);
-
     boolean existsByOrgEntityAndMemberEntity(OrgEntity orgEntity, MemberEntity memberToJoin);
+
+    Optional<OrgParticipantMemberEntity> findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(Long orgId, Long userId, Status status);
 }
