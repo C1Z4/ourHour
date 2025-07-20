@@ -22,4 +22,8 @@ public class PositionEntity {
     private List<OrgParticipantMemberEntity> orgParticipantMemberEntityList = new ArrayList<>();
 
     private String name;
+
+    public void changePosition(String positionName) {
+        if (positionName!=null) this.name =positionName;
+    }
 }

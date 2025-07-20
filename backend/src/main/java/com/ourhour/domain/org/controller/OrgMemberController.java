@@ -97,17 +97,4 @@ public class OrgMemberController {
 
     }
 
-    // 회사 나가기
-    @OrgAuth
-    @DeleteMapping("/{orgId}/members/me")
-    public ResponseEntity<ApiResponse<Void>> exitOrg(@OrgId @PathVariable Long orgId) {
-
-        orgMemberService.exitOrg(orgId);
-
-        ApiResponse<Void> apiResponse = ApiResponse.success(null, "회사를 성공적으로 나갔습니다.");
-
-        return ResponseEntity.ok(apiResponse);
-
-    }
-
 }
