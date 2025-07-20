@@ -1,6 +1,7 @@
 package com.ourhour.domain.org.controller;
 
 import com.ourhour.domain.org.dto.OrgInvReqDTO;
+import com.ourhour.domain.org.dto.OrgInvResDTO;
 import com.ourhour.domain.org.dto.OrgJoinReqDTO;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.service.OrgInvService;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -56,5 +59,18 @@ public class OrgInvController {
         return ResponseEntity.ok(apiResponse);
 
     }
+
+    @OrgAuth(accessLevel = Role.ADMIN)
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<OrgInvResDTO>>> getInvList(@OrgId Long orgId) {
+
+        List<OrgInvResDTO> orgInvResDTOList = orgInvService.getInvList(orgId);
+
+        ApiResponse<List<OrgInvResDTO>> apiResponse = ApiResponse.success(orgInvResDTOList,"초대 링크를 보낸 리스트 조회에 성공하였습니다.");
+
+        return ResponseEntity.ok(apiResponse);
+
+    }
+
 
 }
