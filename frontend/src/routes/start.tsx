@@ -3,16 +3,18 @@ import { useEffect, useState } from 'react';
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
 import { ChevronLeft, Plus } from 'lucide-react';
 
+import { PageResponse } from '@/types/apiTypes';
+
+import { MyOrg } from '@/api/org/getMyOrgList';
+import logo from '@/assets/images/logo.png';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
 import { OrgFormData, OrgModal } from '@/components/org/OrgModal';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
 import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
-import { getImageUrl } from '@/utils/imageUtils';
+import { getImageUrl } from '@/utils/file/imageUtils';
 import { showSuccessToast } from '@/utils/toast';
-
-import logo from '/public/images/logo.png';
 
 export const Route = createFileRoute('/start')({
   component: StartPage,
@@ -32,8 +34,10 @@ function StartPage() {
 
   const { mutate: createOrg } = useOrgCreateMutation();
 
-  const { data: myOrgList } = useMyOrgListQuery({});
-  const totalPages = myOrgList?.data.totalPages ?? 1;
+  const { data: myOrgList } = useMyOrgListQuery({
+    currentPage,
+  });
+  const totalPages = (myOrgList as unknown as PageResponse<MyOrg[]>)?.totalPages ?? 1;
 
   const currentOrgs = Array.isArray(myOrgList?.data)
     ? myOrgList.data
@@ -51,20 +55,23 @@ function StartPage() {
     setIsOrgModalOpen(false);
   };
 
-  const handleOrgModalSubmit = (data: OrgFormData) => {
+  const handleOrgModalSubmit = async (data: OrgFormData) => {
     try {
-      createOrg({
+      await createOrg({
         memberName: data.memberName,
         name: data.name,
-        address: data.address,
-        email: data.email,
-        phone: data.phone,
-        representativeName: data.representativeName,
-        businessNumber: data.businessNumber,
-        logoImgUrl: data.logoImgUrl,
+        address: data.address === '' ? null : data.address,
+        email: data.email === '' ? null : data.email,
+        phone: data.phone === '' ? null : data.phone,
+        representativeName: data.representativeName === '' ? null : data.representativeName,
+        businessNumber: data.businessNumber === '' ? null : data.businessNumber,
+        logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl,
       });
       showSuccessToast('회사 생성 완료');
       setIsOrgModalOpen(false);
+
+      // 페이지 새로고침(임시)
+      window.location.reload();
     } catch (error) {
       // 에러 토스트
     }
@@ -153,15 +160,13 @@ function StartPage() {
               ))}
             </div>
 
-            {totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-200">
-                <PaginationComponent
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                />
-              </div>
-            )}
+            <div className="px-6 py-4 border-t border-gray-200">
+              <PaginationComponent
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
 
             <div className="px-6 py-4 border-t border-gray-200">
               <ButtonComponent

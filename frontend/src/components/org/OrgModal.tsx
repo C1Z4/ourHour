@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { compressAndSaveImage, validateFileSize, validateFileType } from '@/utils/fileStorage';
+import { compressAndSaveImage, validateFileSize, validateFileType } from '@/utils/file/fileStorage';
 import { showErrorToast } from '@/utils/toast';
 
 // import { DepartmentPositionManager } from './DepartmentPositionManager';
@@ -136,11 +136,11 @@ export function OrgModal({ isOpen, onClose, onSubmit }: OrgModalProps) {
               formData={{
                 memberName: formData.memberName,
                 name: formData.name,
-                address: formData.address,
-                email: formData.email,
-                businessNumber: formData.businessNumber,
-                representativeName: formData.representativeName,
-                phone: formData.phone,
+                address: formData.address ?? '',
+                email: formData.email ?? '',
+                businessNumber: formData.businessNumber ?? '',
+                representativeName: formData.representativeName ?? '',
+                phone: formData.phone ?? '',
               }}
               onInputChange={handleInputChange}
             />

@@ -1,11 +1,11 @@
 import { Link } from '@tanstack/react-router';
 
+import logo from '@/assets/images/logo.png';
 import { useSignoutMutation } from '@/hooks/queries/auth/useAuthMutations';
 import { useAppSelector } from '@/stores/hooks';
 
 import { showSuccessToast, TOAST_MESSAGES } from '../../utils/toast';
 import { ButtonComponent } from '../common/ButtonComponent';
-import logo from '/public/images/logo.png';
 
 const smoothScrollTo = (elementId: string) => {
   const element = document.getElementById(elementId);
