@@ -61,8 +61,8 @@ public class OrgInvController {
     }
 
     @OrgAuth(accessLevel = Role.ADMIN)
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<OrgInvResDTO>>> getInvList(@OrgId Long orgId) {
+    @GetMapping("/{orgId}/invitation")
+    public ResponseEntity<ApiResponse<List<OrgInvResDTO>>> getInvList(@OrgId @PathVariable Long orgId) {
 
         List<OrgInvResDTO> orgInvResDTOList = orgInvService.getInvList(orgId);
 
