@@ -85,13 +85,26 @@ public class OrgMemberController {
     }
 
     // 구성원 삭제
-//    @OrgAuth(accessLevel = Role.ROOT_ADMIN)
+    @OrgAuth(accessLevel = Role.ROOT_ADMIN)
     @DeleteMapping("/{orgId}/members/{memberId}")
     public ResponseEntity<ApiResponse<Void>> deleteOrgMember(@OrgId @PathVariable Long orgId, @PathVariable Long memberId) {
 
         orgMemberService.deleteOrgMember(orgId, memberId);
 
         ApiResponse<Void> apiResponse = ApiResponse.success(null, "팀 구성원 삭제에 성공하였습니다.");
+
+        return ResponseEntity.ok(apiResponse);
+
+    }
+
+    // 회사 나가기
+    @OrgAuth
+    @DeleteMapping("/{orgId}/members/me")
+    public ResponseEntity<ApiResponse<Void>> exitOrg(@OrgId @PathVariable Long orgId) {
+
+        orgMemberService.exitOrg(orgId);
+
+        ApiResponse<Void> apiResponse = ApiResponse.success(null, "회사를 성공적으로 나갔습니다.");
 
         return ResponseEntity.ok(apiResponse);
 

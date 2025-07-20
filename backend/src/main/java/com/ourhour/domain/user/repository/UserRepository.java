@@ -14,4 +14,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByUserIdAndIsDeletedFalse(Long userId);
 
     boolean existsByEmailAndIsDeletedFalse(@NotBlank(message = "이메일은 필수입니다.") @Email String email);
+
+    String findEmailByUserIdAndIsDeletedFalse(Long userId);
 }

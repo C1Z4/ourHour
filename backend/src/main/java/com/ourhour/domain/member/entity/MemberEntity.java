@@ -39,7 +39,8 @@ public class MemberEntity {
         this.email = email;
     }
 
-    public void anonymizeName(String suffix) {
-        this.name = "Anonymous_" + suffix;
+    public void anonymizeMember(String suffix) {
+        this.name = "Anonymous_Name" + suffix;
+        this.email = "Anonymous_Email" + suffix;
     }
 }
