@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 
+import { Link } from '@tanstack/react-router';
 import { ChevronRight, type LucideIcon } from 'lucide-react';
 
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
@@ -21,7 +22,7 @@ export function NavMain({
 }: {
   items: {
     title: string;
-    url: string;
+    url?: string;
     icon?: LucideIcon | React.ComponentType;
     isActive?: boolean;
     items?: {
@@ -58,10 +59,10 @@ export function NavMain({
                     <SidebarMenuSubItem key={subItem.title}>
                       <div className="flex items-center w-full">
                         <SidebarMenuSubButton asChild className="flex-1">
-                          <a href={subItem.url}>
+                          <Link to={subItem.url}>
                             {subItem.leftIcon && <subItem.leftIcon />}
                             <span>{subItem.title}</span>
-                          </a>
+                          </Link>
                         </SidebarMenuSubButton>
                         {subItem.rightIcon && subItem.onEdit && subItem.onDelete && (
                           <MoreOptionsPopover
