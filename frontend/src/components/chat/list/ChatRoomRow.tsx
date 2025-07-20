@@ -12,7 +12,7 @@ import { useChatMessagesQuery } from '@/hooks/queries/chat/useChatMessagesQuerie
 import { useUpdateChatRoomQuery } from '@/hooks/queries/chat/useUpdateChatRoomQueries';
 import { CHAT_COLORS } from '@/styles/colors';
 
-import { ChatRoomDetailModal } from './ChatRoomDetailMaodal';
+import { ChatRoomDetailModal } from './ChatRoomDetailModal.tsx';
 
 interface Props {
   orgId: number;
