@@ -23,4 +23,6 @@ public class AnonymizeUserService {
 
     }
 
+    // 삭제된 또는
+
 }

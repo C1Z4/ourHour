@@ -17,6 +17,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 public class OrgParticipantMemberEntity {
 
     @EmbeddedId
@@ -50,16 +51,6 @@ public class OrgParticipantMemberEntity {
     private LocalDate joinedAt;
 
     private LocalDate leftAt;
-
-    @Builder
-    public OrgParticipantMemberEntity(OrgParticipantMemberId orgParticipantMemberId, OrgEntity orgEntity, MemberEntity memberEntity, DepartmentEntity departmentEntity, PositionEntity positionEntity, Role role) {
-        this.orgParticipantMemberId = new OrgParticipantMemberId();
-        this.orgEntity = orgEntity;
-        this.memberEntity = memberEntity;
-        this.departmentEntity = departmentEntity;
-        this.positionEntity = positionEntity;
-        this.role = role;
-    }
 
     public void changeRole(Role newRole) {
         this.role = newRole;

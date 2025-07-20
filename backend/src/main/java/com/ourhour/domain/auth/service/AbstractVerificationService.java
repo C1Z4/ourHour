@@ -54,7 +54,7 @@ public abstract class AbstractVerificationService<T extends AbstractVerification
 
         // 토큰 유효성 검사
         // 1. 토큰 조회
-        T entity = entityOptional.orElseThrow(() -> emailVerificationException("이메일 인증에 실패했습니다."));
+        T entity = entityOptional.orElseThrow(() -> emailVerificationException("유효하지 않은 초대링크입니다."));
 
         // 2. 만료 시간 확인
         if (entity.getExpiredAt().isBefore(LocalDateTime.now())) {

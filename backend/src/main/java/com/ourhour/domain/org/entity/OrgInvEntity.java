@@ -49,7 +49,7 @@ public class OrgInvEntity extends AbstractVerificationEntity {
             String token,
             String email,
             Role role,
-            LocalDateTime expiresAt
+            LocalDateTime expiredAt
     ) {
         return OrgInvEntity.builder()
                 .orgInvBatchEntity(batch)
@@ -58,8 +58,16 @@ public class OrgInvEntity extends AbstractVerificationEntity {
                 .role(role)
                 .status(InvStatus.PENDING)
                 .createdAt(LocalDateTime.now())
-                .expiredAt(expiresAt)
+                .expiredAt(expiredAt)
                 .isUsed(false)
                 .build();
+    }
+
+    public void changeStatusToAccepted() {
+        this.status = InvStatus.ACCEPTED;
+    }
+
+    public void changeStatusToExpired() {
+        this.status = InvStatus.ACCEPTED;
     }
 }

@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 public interface OrgRepository extends JpaRepository<OrgEntity, Long> {
 
+    OrgEntity findByOrgId(Long orgId);
 }

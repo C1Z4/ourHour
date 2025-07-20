@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.sql.Struct;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,4 +43,8 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
           and opm.status = com.ourhour.domain.org.enums.Status.ACTIVE
     """)
     Optional<MemberEntity> findMemberInOrgByUserId(@Param("orgId")Long orgId, @Param("userId")Long actingUserId);
+
+    MemberEntity findByEmail(String memberEmail);
+
+    Optional<MemberEntity> findByUserEntity_UserIdAndEmail(Long userId, String invitedEmail);
 }

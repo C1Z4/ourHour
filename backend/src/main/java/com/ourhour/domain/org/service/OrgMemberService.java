@@ -10,6 +10,7 @@ import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.mapper.OrgParticipantMemberMapper;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
+import com.ourhour.domain.user.service.AnonymizeUserService;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class OrgMemberService {
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
     private final OrgParticipantMemberMapper orgParticipantMemberMapper;
     private final OrgRoleGuardService orgRoleGuardService;
+    private final AnonymizeUserService anonymizeUserService;
 
     // 회사 구성원 목록 조회
     public PageResponse<MemberInfoResDTO> getOrgMembers(Long orgId, Pageable pageable) {
@@ -107,5 +109,12 @@ public class OrgMemberService {
         orgParticipantMemberEntity.changeStatus(Status.INACTIVE);
         orgParticipantMemberEntity.markLeftNow();
 
+        // 삭제된 사용자 익명 처리
+        anonymizeUserService.anonymizeUser(m);
+
     }
+
+    // 회사 나가기
+    @Transactional
+    public void
 }
