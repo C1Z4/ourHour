@@ -4,6 +4,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { AxiosError } from 'axios';
 import { ChevronLeft } from 'lucide-react';
 
+import landingImage from '@/assets/images/landing-1.jpg';
 import ErrorMessage from '@/components/auth/ErrorMessage';
 import SignupForm from '@/components/auth/SignupForm';
 import { AUTH_MESSAGES } from '@/constants/messages';
@@ -54,7 +55,7 @@ function SignupPage() {
   return (
     <div className="min-h-screen flex">
       <div className="hidden lg:block lg:w-2/3">
-        <img src="/images/landing-1.jpg" alt="login-background" className="w-full h-full" />
+        <img src={landingImage} alt="signup-background" className="w-full h-full" />
       </div>
 
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
