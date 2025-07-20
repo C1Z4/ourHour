@@ -17,11 +17,11 @@ public interface ProjectParticipantRepository extends JpaRepository<ProjectParti
 
         // 제한된 참여자 목록 조회
         @Query("SELECT DISTINCT p FROM ProjectParticipantEntity p " +
-                        "JOIN FETCH p.memberEntity m " +
-                        "WHERE p.projectParticipantId.projectId = :projectId " +
-                        "ORDER BY p.projectParticipantId.memberId LIMIT :limit")
+                "JOIN FETCH p.memberEntity m " +
+                "WHERE p.projectParticipantId.projectId = :projectId " +
+                "ORDER BY p.projectParticipantId.memberId LIMIT :limit")
         List<ProjectParticipantEntity> findLimitedParticipants(@Param("projectId") Long projectId,
-                        @Param("limit") int limit);
+                                                               @Param("limit") int limit);
 
         // 프로젝트 참여자 목록 조회
         @Query("SELECT p FROM ProjectParticipantEntity p WHERE p.projectParticipantId.projectId = :projectId")
@@ -37,11 +37,10 @@ public interface ProjectParticipantRepository extends JpaRepository<ProjectParti
 
         // 특정 멤버가 특정 조직에서 참여 중인 프로젝트 이름 목록 조회
         @Query("SELECT new com.ourhour.domain.project.dto.ProjectNameResDTO(" +
-                        "proj.projectId, proj.name) " +
-                        "FROM ProjectParticipantEntity pp " +
-                        "JOIN pp.projectEntity proj " +
-                        "WHERE pp.projectParticipantId.memberId = :memberId " +
-                        "AND proj.orgEntity.orgId = :orgId " +
-                        "ORDER BY proj.projectId ASC")
-        List<ProjectNameResDTO> findMemberProjectsByOrg(@Param("memberId") Long memberId, @Param("orgId") Long orgId);
+                "proj.projectId, proj.name) " +
+                "FROM ProjectParticipantEntity pp " +
+                "JOIN pp.projectEntity proj " +
+                "WHERE pp.projectParticipantId.memberId IN :memberIdList " +
+                "ORDER BY proj.projectId ASC")
+        List<ProjectNameResDTO> findMemberProjectsByOrg(@Param("memberIdList") List<Long> memberIdList);
 }
