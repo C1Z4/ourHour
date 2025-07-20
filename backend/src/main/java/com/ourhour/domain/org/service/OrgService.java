@@ -126,6 +126,19 @@ public class OrgService {
         OrgEntity orgEntity = orgRepository.findById(orgId)
                 .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 회사 ID 입니다: " + orgId));
 
+        // 이미지 처리
+        String logoUrl = orgDetailReqDTO.getLogoImgUrl();
+
+        // Base64 데이터인 경우 파일로 저장하고 URL로 변환
+        if (logoUrl != null && logoUrl.startsWith("data:image/")) {
+            logoUrl = imageService.saveBase64Image(logoUrl);
+        }
+
+        // 변환된 이미지 URL로 OrgReqDTO 업데이트
+        if (logoUrl != null) {
+            orgDetailReqDTO.setLogoImgUrl(logoUrl);
+        }
+
         orgEntity.updateInfo(orgDetailReqDTO);
 
         OrgEntity updatedOrgEntity = orgRepository.save(orgEntity);
