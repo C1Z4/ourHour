@@ -10,7 +10,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { buttonVariants } from '@/components/ui/button-variants';
 interface Props {
   onConfirm: () => void;
   isPending: boolean;
@@ -29,11 +28,7 @@ export const ChatRoomDeleteAlert = ({ onConfirm, isPending }: Props) => (
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogAction
-          onClick={onConfirm}
-          disabled={isPending}
-          className={buttonVariants({ variant: 'destructive' })}
-        >
+        <AlertDialogAction onClick={onConfirm} disabled={isPending}>
           {isPending ? '나가는 중...' : '나가기'}
         </AlertDialogAction>
         <AlertDialogCancel>취소</AlertDialogCancel>
