@@ -6,13 +6,12 @@ import { Info } from 'lucide-react';
 
 import { ChatRoom } from '@/types/chatTypes';
 
+import { ChatRoomDetailModal } from '@/components/chat/list/ChatRoomDetailModal.tsx';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { useChatMessagesQuery } from '@/hooks/queries/chat/useChatMessagesQueries';
 import { useUpdateChatRoomQuery } from '@/hooks/queries/chat/useUpdateChatRoomQueries';
 import { CHAT_COLORS } from '@/styles/colors';
-
-import { ChatRoomDetailModal } from './ChatRoomDetailModal.tsx';
 
 interface Props {
   orgId: number;
