@@ -2,11 +2,14 @@ package com.ourhour.domain.member.controller;
 
 import com.ourhour.domain.member.dto.MemberOrgDetailResDTO;
 import com.ourhour.domain.member.dto.MemberOrgSummaryResDTO;
+import com.ourhour.domain.member.dto.MyMemberInfoResDTO;
 import com.ourhour.domain.member.service.MemberService;
 import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.exception.BusinessException;
+import com.ourhour.global.jwt.annotation.OrgAuth;
+import com.ourhour.global.jwt.annotation.OrgId;
 import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.common.dto.PageResponse;
@@ -66,8 +69,9 @@ public class MemberController {
     }
 
     // 본인이 속한 회사 상세 조회
+    @OrgAuth
     @GetMapping("/organizations/{orgId}")
-    public ResponseEntity<ApiResponse<MemberOrgDetailResDTO>> findOrgDetailByMemberIdAndOrgId(@PathVariable Long orgId) {
+    public ResponseEntity<ApiResponse<MemberOrgDetailResDTO>> findOrgDetailByMemberIdAndOrgId(@OrgId @PathVariable Long orgId) {
 
         Claims claims = UserContextHolder.get();
 
@@ -89,6 +93,18 @@ public class MemberController {
         MemberOrgDetailResDTO memberOrgDetailResDTO = memberService.findOrgDetailByMemberIdAndOrgId(memberId, orgEntity.getOrgId());
 
         return ResponseEntity.ok(ApiResponse.success(memberOrgDetailResDTO, "본인이 속한 회사 상세 조회에 성공했습니다."));
+    }
+
+    // 회사 내 개인 정보 조회
+    @GetMapping("/organizations/{orgId}/me")
+    public ResponseEntity<ApiResponse<MyMemberInfoResDTO>> findMyMemberInfoInOrg(@OrgId @PathVariable Long orgId) {
+
+        MyMemberInfoResDTO memberInfoResDTO = memberService.findMyMemberInfoInOrg(orgId);
+
+        ApiResponse<MyMemberInfoResDTO> apiResponse = ApiResponse.success(memberInfoResDTO, "회사 내 개인 정보 조회에 성공하였습니다.");
+
+        return ResponseEntity.ok(apiResponse);
+
     }
 
 
