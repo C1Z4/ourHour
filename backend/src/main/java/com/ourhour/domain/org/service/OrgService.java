@@ -1,5 +1,6 @@
 package com.ourhour.domain.org.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.ourhour.domain.auth.exception.AuthException;
@@ -91,10 +92,14 @@ public class OrgService {
         memberRepository.save(memberEntity);
 
         // 해당 회사의 루트 관리자 권한 부여
+        OrgParticipantMemberId orgParticipantMemberId = new OrgParticipantMemberId(orgEntity.getOrgId(), memberEntity.getMemberId());
         OrgParticipantMemberEntity orgParticipantMemberEntity = OrgParticipantMemberEntity.builder()
+                .orgParticipantMemberId(orgParticipantMemberId)
                 .orgEntity(orgEntity)
                 .memberEntity(memberEntity)
                 .role(Role.ROOT_ADMIN)
+                .status(Status.ACTIVE)
+                .joinedAt(LocalDate.now())
                 .build();
         orgParticipantMemberRepository.save(orgParticipantMemberEntity);
 
