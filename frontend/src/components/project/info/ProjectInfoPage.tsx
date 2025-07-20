@@ -68,15 +68,21 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
 
   // 수정 버튼 클릭시
   const handleProjectSubmit = (data: Partial<PutUpdateProjectRequest>) => {
-    updateProject({
-      projectId: Number(projectId),
-      name: data.name || '',
-      description: data.description || '',
-      startAt: data.startAt || '',
-      endAt: data.endAt || '',
-      status: data.status || 'NOT_STARTED',
-      participantIds: selectedParticipantIds,
-    });
+    try {
+      updateProject({
+        orgId: Number(orgId),
+        projectId: Number(projectId),
+        name: data.name || '',
+        description: data.description || '',
+        startAt: data.startAt || '',
+        endAt: data.endAt || '',
+        status: data.status || 'NOT_STARTED',
+        participantIds: selectedParticipantIds,
+      });
+      showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
+    } catch (error) {
+      // 에러 토스트
+    }
   };
 
   const handleMemberSelectionChange = (memberIds: number[]) => {
@@ -91,7 +97,7 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
   const handleDeleteProject = () => {
     try {
       passwordVerification({ password });
-      deleteProject({ projectId: Number(projectId) });
+      deleteProject({ orgId: Number(orgId), projectId: Number(projectId) });
       setIsDeleteModalOpen(false);
       router.navigate({
         to: '/org/$orgId/project',
