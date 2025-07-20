@@ -12,8 +12,10 @@ import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.mapper.OrgParticipantMemberMapper;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
+import com.ourhour.domain.user.service.AnonymizeUserService;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.exception.BusinessException;
+import com.ourhour.global.jwt.util.UserContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +34,7 @@ public class OrgMemberService {
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
     private final OrgParticipantMemberMapper orgParticipantMemberMapper;
     private final OrgRoleGuardService orgRoleGuardService;
+    private final AnonymizeUserService anonymizeUserService;
 
     // 회사 구성원 목록 조회
     public PageResponse<MemberInfoResDTO> getOrgMembers(Long orgId, Pageable pageable) {
@@ -115,7 +118,7 @@ public class OrgMemberService {
     public void deleteOrgMember(Long orgId, Long memberId) {
 
         // 활성화 상태인 삭제대상 멤버 조회
-        OrgParticipantMemberEntity orgParticipantMemberEntity = orgParticipantMemberRepository
+        OrgParticipantMemberEntity opm = orgParticipantMemberRepository
                 .findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, memberId, Status.ACTIVE)
                 .orElseThrow(MemberException::memberNotFoundException);
 
@@ -123,8 +126,40 @@ public class OrgMemberService {
         orgRoleGuardService.assertNotLastRootAdminInOrg(orgId, memberId);
 
         // 삭제 처리
-        orgParticipantMemberEntity.changeStatus(Status.INACTIVE);
-        orgParticipantMemberEntity.markLeftNow();
+        opm.changeStatus(Status.INACTIVE);
+
+        // 삭제 일자 업데이트
+        opm.markLeftNow();
+
+        // 삭제된 사용자 익명 처리
+        anonymizeUserService.anonymizeMember(opm);
+
+    }
+
+    // 회사 나가기
+    // TODO: 비밀번호 확인 API와 연동하여 삭제 요청 전에 재인증 로직 추가 필요
+    @Transactional
+    public void exitOrg (Long orgId) {
+
+        // 현재 사용자 ID
+        Long userId = UserContextHolder.get().getUserId();
+
+        // 해당 회사에 속한 멤버 엔티티 찾기
+        OrgParticipantMemberEntity opm = orgParticipantMemberRepository
+                .findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(orgId, userId, Status.ACTIVE)
+                .orElseThrow(() -> new RuntimeException("해당 회사에 소속된 멤버를 찾을 수 없습니다."));
+
+        // 루트 관리자 정책 확인
+        orgRoleGuardService.assertNotLastRootAdminInOrg(opm);
+
+        // 해당 회사의 멤버 INACTIVE 처리
+        opm.changeStatus(Status.INACTIVE);
+
+        // 나간 일자 업데이트
+        opm.markLeftNow();
+
+        // 나간 사용자 익명 처리
+        anonymizeUserService.anonymizeMember(opm);
 
     }
 
@@ -146,4 +181,5 @@ public class OrgMemberService {
 
         return memberInfoResDTOList;
     }
+
 }

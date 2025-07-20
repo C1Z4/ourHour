@@ -6,17 +6,14 @@ import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
-import com.ourhour.domain.org.exceptions.OrgException;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.global.jwt.util.UserContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com.ourhour.global.jwt.dto.Claims;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.ourhour.domain.auth.exception.AuthException.unauthorizedException;
 import static com.ourhour.domain.org.exceptions.OrgException.*;
 
 @Service
@@ -62,6 +59,19 @@ public class OrgRoleGuardService {
 
     }
 
+    // 회사 나가기 전 정책 검사
+    public void assertNotLastRootAdminInOrg(OrgParticipantMemberEntity opm) {
+
+        // 나가는 대상이 ACTIVE ROOT_ADMIN 인지 확인 (아니면 정책 비적용 → 통과)
+        boolean isTargetRoot = opm.getRole() == Role.ROOT_ADMIN;
+        if (!isTargetRoot) {
+            return;
+        }
+
+        assertMoreThanOneRootAdmin(opm.getOrgEntity().getOrgId());
+
+    }
+
     // 구성원 삭제 전 정책 검사
     public void assertNotLastRootAdminInOrg(Long orgId, Long targetMemberId) {
 
@@ -88,14 +98,7 @@ public class OrgRoleGuardService {
             throw cannotSelfDeleteRootAdmin();
         }
 
-        // 조직 내 활성 루트 관리자 조회
-        int rootAdminCount = orgParticipantMemberRepository
-                .countByOrgEntity_OrgIdAndRoleAndStatus(orgId, Role.ROOT_ADMIN, Status.ACTIVE);
-
-        // 마지막 루트 관리자인 경우 삭제 불가
-        if (rootAdminCount <= 1) {
-            throw lastRootAdminRemovalNotAllowed();
-        }
+        assertMoreThanOneRootAdmin(orgId);
 
     }
 
@@ -118,6 +121,19 @@ public class OrgRoleGuardService {
             }
         }
 
+    }
+
+    // 조직 내 활성 루트 관리자 조회
+    private int countActiveRootAdmins(Long orgId) {
+        return orgParticipantMemberRepository
+                .countByOrgEntity_OrgIdAndRoleAndStatus(orgId, Role.ROOT_ADMIN, Status.ACTIVE);
+    }
+
+    // 마지막 루트 관리자인 경우 삭제 불가
+    private void assertMoreThanOneRootAdmin(Long orgId) {
+        if (countActiveRootAdmins(orgId) <= 1) {
+            throw lastRootAdminRemovalNotAllowed();
+        }
     }
 
 }

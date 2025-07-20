@@ -14,6 +14,7 @@ import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberId;
 import com.ourhour.domain.org.enums.Role;
+import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.mapper.OrgMapper;
 import com.ourhour.domain.org.mapper.OrgParticipantMemberMapper;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
@@ -23,6 +24,7 @@ import com.ourhour.domain.project.repository.ProjectParticipantRepository;
 import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.domain.user.repository.UserRepository;
 
+import com.ourhour.domain.user.service.AnonymizeUserService;
 import com.ourhour.global.exception.BusinessException;
 
 import com.ourhour.global.jwt.dto.Claims;
@@ -45,8 +47,11 @@ public class OrgService {
     private final ProjectParticipantRepository projectParticipantRepository;
     private final UserRepository userRepository;
     private final OrgParticipantMemberMapper orgParticipantMemberMapper;
+    private final OrgRoleGuardService orgRoleGuardService;
+    private final AnonymizeUserService anonymizeUserService;
     private final ImageService imageService;
 
+    // 회사 등록
     @Transactional
     public OrgResDTO registerOrg(OrgReqDTO orgReqDTO) {
 
@@ -60,7 +65,7 @@ public class OrgService {
 
         // 이미지 처리
         String logoUrl = orgReqDTO.getLogoImgUrl();
-        
+
         // Base64 데이터인 경우 파일로 저장하고 URL로 변환
         if (logoUrl != null && logoUrl.startsWith("data:image/")) {
             logoUrl = imageService.saveBase64Image(logoUrl);
@@ -148,6 +153,7 @@ public class OrgService {
     }
 
     // 회사 삭제
+    // TODO: 비밀번호 확인 API와 연동하여 삭제 요청 전에 재인증 로직 추가 필요
     @Transactional
     public void deleteOrg(Long orgId) {
         orgRepository.deleteById(orgId);
@@ -171,4 +177,5 @@ public class OrgService {
 
         return projectParticipantRepository.findMemberProjectsByOrg(memberId, orgId);
     }
+
 }

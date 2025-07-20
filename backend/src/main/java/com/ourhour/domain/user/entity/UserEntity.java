@@ -2,6 +2,7 @@ package com.ourhour.domain.user.entity;
 
 import com.ourhour.domain.auth.entity.RefreshTokenEntity;
 import com.ourhour.domain.member.entity.MemberEntity;
+import com.ourhour.domain.org.entity.OrgInvEntity;
 import com.ourhour.domain.user.enums.Platform;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -28,6 +29,9 @@ public class UserEntity {
 
     @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RefreshTokenEntity> refreshTokenEntityList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "acceptedUserEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrgInvEntity> orgInvEntityList = new ArrayList<>();
 
     private String email;
 
