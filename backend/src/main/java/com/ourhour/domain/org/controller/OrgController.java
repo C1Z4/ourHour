@@ -46,7 +46,7 @@ public class OrgController {
     // 회사 정보 수정
     @OrgAuth(accessLevel = Role.ROOT_ADMIN)
     @PutMapping("/{orgId}")
-    public ResponseEntity<ApiResponse<OrgDetailResDTO>> updateOrg(@PathVariable Long orgId,
+    public ResponseEntity<ApiResponse<OrgDetailResDTO>> updateOrg(@OrgId @PathVariable Long orgId,
             @Valid @RequestBody OrgDetailReqDTO orgDetailReqDTO) {
         OrgDetailResDTO orgDetailResDTO = orgService.updateOrg(orgId, orgDetailReqDTO);
 

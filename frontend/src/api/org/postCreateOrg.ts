@@ -3,6 +3,7 @@ import { AxiosError } from 'axios';
 import { ApiResponse } from '@/types/apiTypes';
 
 import { axiosInstance } from '@/api/axiosConfig';
+import { OrgBaseInfo } from '@/api/org/getOrgInfo';
 import { logError } from '@/utils/auth/errorUtils';
 
 export interface PostCreateOrgRequest {
@@ -16,15 +17,7 @@ export interface PostCreateOrgRequest {
   logoImgUrl: string | null;
 }
 
-export interface PostCreateOrgResponse {
-  orgId: number;
-  name: string;
-  address: string;
-  email: string;
-  representativeName: string;
-  phone: string;
-  businessNumber: string;
-  logoImgUrl: string;
+export interface PostCreateOrgResponse extends OrgBaseInfo {
   memberName: string;
   myRole: string;
 }

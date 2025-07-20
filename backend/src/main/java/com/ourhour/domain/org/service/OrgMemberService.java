@@ -4,6 +4,8 @@ import com.ourhour.domain.member.dto.MemberInfoResDTO;
 import com.ourhour.domain.member.exceptions.MemberException;
 import com.ourhour.domain.org.dto.OrgMemberRoleReqDTO;
 import com.ourhour.domain.org.dto.OrgMemberRoleResDTO;
+import com.ourhour.domain.org.entity.DepartmentEntity;
+import com.ourhour.domain.org.entity.PositionEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
@@ -20,8 +22,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +48,20 @@ public class OrgMemberService {
             throw BusinessException.badRequest("존재하지 않는 회사 ID 입니다: " + orgId);
         }
 
-        Page<MemberInfoResDTO> memberInfoPage = orgParticipantMemberRepository.findByOrgId(orgId, pageable);
+        Page<OrgParticipantMemberEntity> page = orgParticipantMemberRepository.findByOrgId(orgId, pageable);
+
+        Page<MemberInfoResDTO> memberInfoPage = page.map(entity -> {
+            MemberInfoResDTO dto = new MemberInfoResDTO();
+            dto.setMemberId(entity.getMemberEntity().getMemberId());
+            dto.setName(entity.getMemberEntity().getName());
+            dto.setEmail(entity.getMemberEntity().getEmail());
+            dto.setPhone(entity.getMemberEntity().getPhone());
+            dto.setPositionName(Optional.ofNullable(entity.getPositionEntity()).map(PositionEntity::getName).orElse(null));
+            dto.setDeptName(Optional.ofNullable(entity.getDepartmentEntity()).map(DepartmentEntity::getName).orElse(null));
+            dto.setProfileImgUrl(entity.getMemberEntity().getProfileImgUrl());
+            dto.setRole(entity.getRole().getDescription());
+            return dto;
+        });
 
         return PageResponse.of(memberInfoPage);
     }
@@ -53,7 +69,9 @@ public class OrgMemberService {
     // 회사 구성원 상세 조회
     public MemberInfoResDTO getOrgMember(Long orgId, Long memberId) {
 
-        MemberInfoResDTO memberInfoResDTO = orgParticipantMemberRepository.findByOrgIdAndMemberId(orgId, memberId);
+        OrgParticipantMemberEntity orgParticipantMemberEntity = orgParticipantMemberRepository.findByOrgEntity_OrgIdAndMemberEntity_MemberId(orgId, memberId);  
+
+        MemberInfoResDTO memberInfoResDTO = orgParticipantMemberMapper.toMemberInfoResDTO(orgParticipantMemberEntity);
 
         return memberInfoResDTO;
 
@@ -156,7 +174,10 @@ public class OrgMemberService {
             throw BusinessException.badRequest("존재하지 않는 회사 ID 입니다: " + orgId);
         }
 
-        List<MemberInfoResDTO> memberInfoResDTOList = orgParticipantMemberRepository.findAllByOrgEntity_OrgId(orgId);
+        List<OrgParticipantMemberEntity> orgParticipantMemberEntityList = orgParticipantMemberRepository.findAllByOrgEntity_OrgId(orgId);
+        List<MemberInfoResDTO> memberInfoResDTOList = orgParticipantMemberEntityList.stream()
+                .map(orgParticipantMemberMapper::toMemberInfoResDTO)
+                .collect(Collectors.toList());
 
         return memberInfoResDTOList;
     }

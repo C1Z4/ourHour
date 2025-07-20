@@ -102,6 +102,13 @@ const LoginForm = ({
     onSubmit(email, password);
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
+    }
+  };
+
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
       <div className="space-y-2">
@@ -115,6 +122,7 @@ const LoginForm = ({
           placeholder="이메일을 입력하세요"
           value={email}
           onChange={handleEmailChange}
+          onKeyDown={handleKeyPress}
           disabled={isLoading}
           className={emailError ? 'border-red-500' : ''}
         />
@@ -132,6 +140,7 @@ const LoginForm = ({
           placeholder="비밀번호를 입력하세요"
           value={password}
           onChange={handlePasswordChange}
+          onKeyDown={handleKeyPress}
           disabled={isLoading}
           className={passwordError ? 'border-red-500' : ''}
         />
