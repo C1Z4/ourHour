@@ -33,20 +33,25 @@ public class MemberService {
         Page<OrgParticipantMemberEntity> orgParticipantMemberEntityPage = memberRepository.findOrgListByMemberId(memberId, pageable);
 
         if (orgParticipantMemberEntityPage.isEmpty()) {
-            return PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize());
+            return PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize());
         }
 
-        List<MemberOrgSummaryResDTO> dtoList = memberOrgMapper.toMemberOrgSummaryResDTOList(orgParticipantMemberEntityPage.getContent());
+        Page<MemberOrgSummaryResDTO> dtoPage = orgParticipantMemberEntityPage.map(memberOrgMapper::toMemberOrgSummaryResDTO);
 
-        return PageResponse.<MemberOrgSummaryResDTO>builder()
-                .data(dtoList)
-                .currentPage(orgParticipantMemberEntityPage.getNumber())
-                .size(orgParticipantMemberEntityPage.getSize())
-                .totalPages(orgParticipantMemberEntityPage.getTotalPages())
-                .totalElements(orgParticipantMemberEntityPage.getTotalElements())
-                .hasNext(orgParticipantMemberEntityPage.hasNext())
-                .hasPrevious(orgParticipantMemberEntityPage.hasPrevious())
-                .build();
+        return PageResponse.of(dtoPage);
+    }
+
+    public PageResponse<MemberOrgSummaryResDTO> findOrgSummaryByMemberIds(List<Long> memberIds, Pageable pageable) {
+
+        Page<OrgParticipantMemberEntity> orgParticipantMemberEntityPage = memberRepository.findOrgListByMemberIds(memberIds, pageable);
+
+        if (orgParticipantMemberEntityPage.isEmpty()) {
+            return PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize());
+        }
+
+        Page<MemberOrgSummaryResDTO> dtoPage = orgParticipantMemberEntityPage.map(memberOrgMapper::toMemberOrgSummaryResDTO);
+
+        return PageResponse.of(dtoPage);
     }
 
     public MemberOrgDetailResDTO findOrgDetailByMemberIdAndOrgId(Long memberId, Long orgId) {

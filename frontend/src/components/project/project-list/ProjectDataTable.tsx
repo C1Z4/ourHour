@@ -46,8 +46,8 @@ export function ProjectDataTable() {
   });
 
   const tableData = useMemo(
-    () => (projectSummaryList?.data?.data || []).flat(),
-    [projectSummaryList?.data?.data],
+    () => (Array.isArray(projectSummaryList?.data) ? projectSummaryList.data : []),
+    [projectSummaryList?.data],
   );
 
   const handleSortingChange = useCallback(
@@ -82,10 +82,20 @@ export function ProjectDataTable() {
 
   // 페이지 변경 시 쿼리 파라미터 업데이트
   const handlePageChange = (pageNumber: number) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('currentPage', pageNumber.toString());
     router.navigate({
-      search: { currentPage: pageNumber },
+      to: url.pathname + url.search,
+      replace: true,
     });
   };
+
+  // // 페이지 변경 시 쿼리 파라미터 업데이트
+  // const handlePageChange = (pageNumber: number) => {
+  //   router.navigate({
+  //     search: { currentPage: pageNumber },
+  //   });
+  // };
 
   if (isLoading) {
     return <LoadingSpinner />;

@@ -10,7 +10,7 @@ interface UseProjectDeleteMutationParams {
 
 const useProjectDeleteMutation = ({ orgId }: UseProjectDeleteMutationParams) =>
   useMutation({
-    mutationFn: (request: DeleteProjectRequest) => deleteProject(request),
+    mutationFn: (request: DeleteProjectRequest) => deleteProject({ ...request, orgId }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId],

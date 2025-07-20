@@ -33,7 +33,7 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
     refetchIssueList();
   }, [milestone.milestoneId]);
 
-  const issueList = (issueListData?.data.data || []).flat();
+  const issueList = Array.isArray(issueListData?.data) ? issueListData.data : [];
 
   const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
 

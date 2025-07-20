@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { IssueDetail } from '@/api/project/getProjectIssueDetail';
 import { IssueFormPage } from '@/components/project/issue-form/IssueFormPage';
 import useProjectIssueDetailQuery from '@/hooks/queries/project/useProjectIssueDetailQuery';
 
@@ -12,7 +13,7 @@ function IssueEdit() {
 
   const { data: issueData } = useProjectIssueDetailQuery({ issueId: Number(issueId) });
 
-  const issue = issueData?.data;
+  const issue = issueData as IssueDetail | undefined;
 
   if (!issue) {
     return (

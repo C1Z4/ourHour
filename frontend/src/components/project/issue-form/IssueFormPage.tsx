@@ -58,9 +58,11 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
     orgId: Number(orgId),
   });
 
-  const participants = projectParticipantListData?.data.data.flat();
+  const participants = Array.isArray(projectParticipantListData?.data)
+    ? projectParticipantListData.data
+    : [];
 
-  const milestones = milestoneList?.data.data.flat();
+  const milestones = Array.isArray(milestoneList?.data) ? milestoneList.data : [];
 
   const isEditing = !!issueId;
 
