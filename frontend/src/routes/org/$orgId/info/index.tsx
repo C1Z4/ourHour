@@ -10,6 +10,7 @@ import { ModalComponent } from '@/components/common/ModalComponent';
 import { OrgModal } from '@/components/org/OrgModal';
 import { ProjectMembersTable } from '@/components/project/info/ProjectMembersTable';
 import { Input } from '@/components/ui/input';
+import { useMemberDeleteMutation } from '@/hooks/queries/org/useMemberDeleteMutation';
 import { useOrgDeleteMutation } from '@/hooks/queries/org/useOrgDeleteMutation';
 import useOrgInfoQuery from '@/hooks/queries/org/useOrgInfoQuery';
 import useOrgMemberListQuery from '@/hooks/queries/org/useOrgMemberListQuery';
@@ -65,6 +66,8 @@ function OrgInfoPage() {
 
   const { mutate: deleteOrg } = useOrgDeleteMutation();
 
+  const { mutate: deleteMember } = useMemberDeleteMutation();
+
   const handleEditProject = () => {
     setIsEditModalOpen(true);
   };
@@ -98,8 +101,15 @@ function OrgInfoPage() {
   };
 
   const handleDeleteSelectedMembers = () => {
-    console.log('선택된 구성원 삭제:', selectedMemberIds);
-    setSelectedMemberIds([]);
+    try {
+      selectedMemberIds.forEach((memberId) => {
+        deleteMember({ orgId: Number(orgId), memberId });
+      });
+      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
+      setSelectedMemberIds([]);
+    } catch (error) {
+      // 에러 토스트
+    }
   };
 
   const handleDeleteOrg = () => {
