@@ -31,7 +31,19 @@ public class EmailVerificationService extends AbstractVerificationService<EmailV
         String contentTemplate = "<p>OURHOUR 서비스 이용을 위해 아래 링크를 클릭하여 인증을 완료해주세요.\n</p>";
         String linkName = "이메일 인증하기";
 
-        sendVerificationEmail(email, serviceBaseUrl, "/api/auth/email-verification?token=", subject, contentTemplate ,linkName,emailVerificationRepository);
+        String token = sendVerificationEmail(
+                email,
+                serviceBaseUrl,
+                "/api/auth/email-verification?token=",
+                subject,
+                contentTemplate,
+                linkName);
+
+        // DB 저장
+        EmailVerificationEntity emailVerificationEntity = buildVerificationEntity(
+                token, email, LocalDateTime.now(), LocalDateTime.now().plusMinutes(15), false
+        );
+        emailVerificationRepository.save(emailVerificationEntity);
 
     }
 
@@ -52,7 +64,7 @@ public class EmailVerificationService extends AbstractVerificationService<EmailV
                 .email(email)
                 .createdAt(createdAt)
                 .expiredAt(expiredAt)
-                .isUsed(false)
+                .isUsed(isUsed)
                 .build();
     }
 }

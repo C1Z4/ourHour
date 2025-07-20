@@ -21,25 +21,17 @@ public abstract class AbstractVerificationService<T extends AbstractVerification
     <br/><p>감사합니다.<br/>OURHOUR 팀 드림</p>
     """;
 
-    protected void sendVerificationEmail(
+    protected String sendVerificationEmail(
             String email,
             String serviceBaseUrl,
             String endpoint,
             String subject,
             String contentTemplate,
-            String linkName,
-            JpaRepository<T, Long> repository
+            String linkName
     ) {
 
         // 토큰 생성
         String token = UUID.randomUUID().toString();
-
-        // 현재 시각
-        LocalDateTime now = LocalDateTime.now();
-
-        // DB 저장
-        T entity = buildVerificationEntity(token, email, now, now.plusMinutes(15), false);
-        repository.save(entity);
 
         // 이메일 내용 구성
         String link = serviceBaseUrl + endpoint + token;
@@ -51,6 +43,8 @@ public abstract class AbstractVerificationService<T extends AbstractVerification
 
         emailSenderService.sendEmail(email, subject, content);
 
+        return token;
+
     }
 
     protected void verifyEmail(
@@ -60,19 +54,19 @@ public abstract class AbstractVerificationService<T extends AbstractVerification
 
         // 토큰 유효성 검사
         // 1. 토큰 조회
-        T entity = entityOptional.orElseThrow(() -> emailVerificationException("이메일 인증에 실패했습니다."));
+        T entity = entityOptional.orElseThrow(() -> emailVerificationException("유효하지 않은 초대링크입니다."));
 
         // 2. 만료 시간 확인
         if (entity.getExpiredAt().isBefore(LocalDateTime.now())) {
             throw emailVerificationException("이메일 인증 링크가 만료되었습니다.");
         }
 
-        // 3. 토큰 사용 여부 확인 (default : false)
+        // 3. 토큰 사용 여부 확인 (default(인증 안됐을 시) : isUsed = false)
         if(Boolean.TRUE.equals(entity.isUsed())) {
             throw emailVerificationException("이미 인증된 이메일 인증 링크 입니다.");
         }
 
-        // 4. 토큰 유효 처리(Dirty Checking)
+        // 4. 토큰 유효 처리
         entity.setUsed(true);
 
     }

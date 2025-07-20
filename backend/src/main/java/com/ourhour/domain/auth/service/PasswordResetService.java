@@ -1,6 +1,7 @@
 package com.ourhour.domain.auth.service;
 
 import com.ourhour.domain.auth.dto.PwdResetReqDTO;
+import com.ourhour.domain.auth.entity.EmailVerificationEntity;
 import com.ourhour.domain.auth.entity.PasswordResetVerificationEntity;
 import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.auth.repository.PasswordResetVerificationRepository;
@@ -40,12 +41,21 @@ public class PasswordResetService extends AbstractVerificationService<PasswordRe
 
         String subject = "[OURHOUR] 비밀번호 변경 안내";
         String contentTemplate = "<p>비밀번호 변경을 위해 아래 링크를 클릭해주세요.\n</p>";
-        
-        
-        
         String linkName = "비밀번호 변경하기";
 
-        sendVerificationEmail(email, serviceBaseUrl, "/api/auth/password-reset/verification?token=", subject, contentTemplate, linkName, passwordResetVerificationRepository);
+        String token = sendVerificationEmail(
+                email,
+                serviceBaseUrl,
+                "/api/auth/email-verification?token=",
+                subject,
+                contentTemplate,
+                linkName);
+
+        // DB 저장
+        PasswordResetVerificationEntity passwordResetVerificationEntity = buildVerificationEntity(
+                token, email, LocalDateTime.now(), LocalDateTime.now().plusMinutes(15), false
+        );
+        passwordResetVerificationRepository.save(passwordResetVerificationEntity);
 
     }
 
@@ -91,7 +101,7 @@ public class PasswordResetService extends AbstractVerificationService<PasswordRe
                 .email(email)
                 .createdAt(createdAt)
                 .expiredAt(expiredAt)
-                .isUsed(false)
+                .isUsed(isUsed)
                 .build();
     }
 

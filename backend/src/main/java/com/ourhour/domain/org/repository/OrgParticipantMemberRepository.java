@@ -2,6 +2,7 @@ package com.ourhour.domain.org.repository;
 
 import com.ourhour.domain.member.dto.MemberInfoResDTO;
 import com.ourhour.domain.member.entity.MemberEntity;
+import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberId;
 
@@ -79,6 +80,10 @@ public interface OrgParticipantMemberRepository
 
     // 조직 내 활성 루트 관리자 수 조회
     int countByOrgEntity_OrgIdAndRoleAndStatus(Long orgId, Role role, Status status);
+
+    boolean existsByOrgEntityAndMemberEntity(OrgEntity orgEntity, MemberEntity memberToJoin);
+
+    Optional<OrgParticipantMemberEntity> findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(Long orgId, Long userId, Status status);
 
     @Query("SELECT new com.ourhour.domain.member.dto.MemberInfoResDTO(" +
             "m.memberId, m.name, m.email, m.phone, " +
