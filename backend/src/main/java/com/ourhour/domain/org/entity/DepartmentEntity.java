@@ -23,4 +23,7 @@ public class DepartmentEntity {
 
     private String name;
 
+    public void changeDept(String deptName) {
+        if (deptName != null) this.name = deptName;
+    }
 }
