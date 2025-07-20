@@ -1,0 +1,43 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button-variants';
+interface Props {
+  onConfirm: () => void;
+  isPending: boolean;
+}
+
+export const ChatRoomDeleteAlert = ({ onConfirm, isPending }: Props) => (
+  <AlertDialog>
+    <AlertDialogTrigger>
+      <Button variant="destructive">나가기</Button>
+    </AlertDialogTrigger>
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>정말 나가시겠습니까?</AlertDialogTitle>
+        <AlertDialogDescription>
+          해당 채팅방과 관련된 모든 정보가 삭제되며, 이 작업은 되돌릴 수 없습니다.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogAction
+          onClick={onConfirm}
+          disabled={isPending}
+          className={buttonVariants({ variant: 'destructive' })}
+        >
+          {isPending ? '나가는 중...' : '나가기'}
+        </AlertDialogAction>
+        <AlertDialogCancel>취소</AlertDialogCancel>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+);

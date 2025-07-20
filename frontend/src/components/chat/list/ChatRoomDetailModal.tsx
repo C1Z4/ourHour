@@ -12,7 +12,10 @@ import {
 } from '@/components/ui/dialog';
 import { useChatRoomDetailQuery } from '@/hooks/queries/chat/useChatRoomDetailQueries';
 import { useChatRoomParticipantsQuery } from '@/hooks/queries/chat/useChatRoomParticipantsQueries';
+import { useDeleteChatRoomQuery } from '@/hooks/queries/chat/useDeleteChatRoomQueries';
 import { CHAT_COLORS } from '@/styles/colors';
+
+import { ChatRoomDeleteAlert } from './ChatRoomDeleteAlert';
 interface Props {
   orgId: number;
   roomId: number;
@@ -22,6 +25,15 @@ interface Props {
 export const ChatRoomDetailModal = ({ orgId, roomId, onClose }: Props) => {
   const { data: chatRoom, isLoading } = useChatRoomDetailQuery(orgId, roomId);
   const { data: chatRoomParticipants } = useChatRoomParticipantsQuery(orgId, roomId);
+  const { mutate: deleteRoom, isPending } = useDeleteChatRoomQuery(orgId, roomId);
+
+  const handleLeaveChatRoom = () => {
+    deleteRoom(undefined, {
+      onSuccess: () => {
+        onClose();
+      },
+    });
+  };
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -63,8 +75,10 @@ export const ChatRoomDetailModal = ({ orgId, roomId, onClose }: Props) => {
           </div>
         </div>
         <DialogFooter>
-          <ButtonComponent variant="danger">나가기</ButtonComponent>
-          <ButtonComponent onClick={onClose}>닫기</ButtonComponent>
+          <ChatRoomDeleteAlert onConfirm={handleLeaveChatRoom} isPending={isPending} />
+          <ButtonComponent variant="primary" onClick={onClose}>
+            닫기
+          </ButtonComponent>
         </DialogFooter>
       </DialogContent>
     </Dialog>
