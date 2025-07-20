@@ -22,6 +22,19 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
             + "WHERE m.memberId = :memberId")
     Page<OrgParticipantMemberEntity> findOrgListByMemberId(@Param("memberId") Long memberId, Pageable pageable);
 
+    /* 본인이 속한 모든 회사 목록 조회 (여러 memberId) */
+    @Query("SELECT opm FROM OrgParticipantMemberEntity opm "
+            + "JOIN opm.memberEntity m "
+            + "JOIN opm.orgEntity o "
+            + "LEFT JOIN opm.departmentEntity d "
+            + "LEFT JOIN opm.positionEntity p "
+            + "WHERE m.memberId IN :memberIds")
+    Page<OrgParticipantMemberEntity> findOrgListByMemberIds(@Param("memberIds") List<Long> memberIds, Pageable pageable);
+
+    /* userId로 모든 memberId 조회 */
+    @Query("SELECT DISTINCT m.memberId FROM MemberEntity m WHERE m.userEntity.userId = :userId")
+    List<Long> findAllMemberIdsByUserId(@Param("userId") Long userId);
+
    /* 본인이 속한 회사 조회 */
     @Query("SELECT opm FROM OrgParticipantMemberEntity opm "
             + "JOIN FETCH opm.memberEntity m "

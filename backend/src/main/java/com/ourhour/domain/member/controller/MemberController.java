@@ -52,12 +52,15 @@ public class MemberController {
             throw BusinessException.unauthorized("인증 정보가 없습니다.");
         }
 
-        Long memberId = claims.getOrgAuthorityList().stream()
+        List<Long> memberIds = claims.getOrgAuthorityList().stream()
                                 .map(auth -> auth.getMemberId())
-                                .findFirst()
-                                .orElseThrow(() -> BusinessException.unauthorized("멤버 정보를 찾을 수 없습니다."));
+                                .collect(Collectors.toList());
 
-        PageResponse<MemberOrgSummaryResDTO> response = memberService.findOrgSummaryByMemberId(memberId, pageable);
+        if (memberIds.isEmpty()) {
+            throw BusinessException.unauthorized("멤버 정보를 찾을 수 없습니다.");
+        }
+
+        PageResponse<MemberOrgSummaryResDTO> response = memberService.findOrgSummaryByMemberIds(memberIds, pageable);
 
         return ResponseEntity.ok(ApiResponse.success(response, "현재 참여 중인 회사 목록 조회에 성공했습니다."));
     }
