@@ -63,7 +63,7 @@ public class OrgInvController {
     @OrgAuth(accessLevel = Role.ADMIN)
     @GetMapping("/{orgId}/invitation")
     public ResponseEntity<ApiResponse<List<OrgInvResDTO>>> getInvList(@OrgId @PathVariable Long orgId) {
-
+  
         List<OrgInvResDTO> orgInvResDTOList = orgInvService.getInvList(orgId);
 
         ApiResponse<List<OrgInvResDTO>> apiResponse = ApiResponse.success(orgInvResDTOList,"초대 링크를 보낸 리스트 조회에 성공하였습니다.");
