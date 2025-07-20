@@ -1,10 +1,18 @@
 import { Trash2 } from 'lucide-react';
 
-import { Member } from '@/api/org/getOrgMemberList';
+import { Member, MemberRoleKo } from '@/types/memberTypes';
+
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -13,22 +21,27 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { MEMBER_ROLE_STYLES } from '@/constants/badges';
 
 interface ProjectMembersTableProps {
+  type: 'project' | 'org';
   projectMembers?: Member[];
   selectedMemberIds: number[];
   onSelectionChange: (memberIds: number[]) => void;
   onDeleteSelected: () => void;
+  onRoleChange?: (memberId: number, newRole: MemberRoleKo) => void;
   participantTotalPages: number;
   currentPage: number;
   setCurrentPage: (page: number) => void;
 }
 
 export const ProjectMembersTable = ({
+  type,
   projectMembers,
   selectedMemberIds,
   onSelectionChange,
   onDeleteSelected,
+  onRoleChange,
   participantTotalPages,
   currentPage,
   setCurrentPage,
@@ -49,23 +62,23 @@ export const ProjectMembersTable = ({
     }
   };
 
+  const handleRoleChange = (memberId: number, newRole: string) => {
+    if (onRoleChange) {
+      onRoleChange(memberId, newRole as MemberRoleKo);
+    }
+  };
+
   const isAllSelected =
     projectMembers &&
     projectMembers.length > 0 &&
     projectMembers.every((member) => selectedMemberIds.includes(member.memberId));
 
-  // const getRoleColor = (role: string) => {
-  //   switch (role) {
-  //     case '루트관리자':
-  //       return 'bg-purple-100 text-purple-800';
-  //     case '관리자':
-  //       return 'bg-red-100 text-red-800';
-  //     case '일반':
-  //       return 'bg-blue-100 text-blue-800';
-  //     default:
-  //       return 'bg-gray-100 text-gray-800';
-  //   }
-  // };
+  const roleOptions = [
+    { value: '루트관리자', label: '루트관리자' },
+    { value: '관리자', label: '관리자' },
+    { value: '일반회원', label: '일반회원' },
+    { value: '게스트', label: '게스트' },
+  ];
 
   return (
     <div className="space-y-4">
@@ -97,6 +110,7 @@ export const ProjectMembersTable = ({
               <TableHead className="w-24 text-center">직책</TableHead>
               <TableHead className="w-32 text-center">연락처</TableHead>
               <TableHead className="w-48 text-center">이메일</TableHead>
+              {type === 'org' && <TableHead className="w-48 text-center">권한</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -119,10 +133,39 @@ export const ProjectMembersTable = ({
                     <span className="font-medium truncate">{member.name}</span>
                   </div>
                 </TableCell>
-                <TableCell className="w-24 text-center truncate">{member.departmentName}</TableCell>
+                <TableCell className="w-24 text-center truncate">{member.deptName}</TableCell>
                 <TableCell className="w-24 text-center truncate">{member.positionName}</TableCell>
                 <TableCell className="w-32 text-center truncate">{member.phone}</TableCell>
                 <TableCell className="w-48 text-center truncate">{member.email}</TableCell>
+                {type === 'org' && (
+                  <TableCell className="w-48 text-center">
+                    <Select
+                      value={member.role}
+                      onValueChange={(value) => handleRoleChange(member.memberId, value)}
+                    >
+                      <SelectTrigger className="w-32 mx-auto">
+                        <SelectValue>
+                          <div
+                            className={`rounded-full px-2 py-1 text-xs ${MEMBER_ROLE_STYLES[member.role]}`}
+                          >
+                            {member.role}
+                          </div>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {roleOptions.map((role) => (
+                          <SelectItem key={role.value} value={role.value}>
+                            <div
+                              className={`rounded-full px-2 py-1 text-xs ${MEMBER_ROLE_STYLES[role.label as keyof typeof MEMBER_ROLE_STYLES]}`}
+                            >
+                              {role.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

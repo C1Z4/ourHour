@@ -15,23 +15,26 @@ interface OrgBasicInfoProps {
     phone: string;
   };
   onInputChange: (field: string, value: string) => void;
+  isEditing: boolean;
 }
 
-export function OrgBasicInfo({ formData, onInputChange }: OrgBasicInfoProps) {
+export function OrgBasicInfo({ formData, onInputChange, isEditing }: OrgBasicInfoProps) {
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="memberName" className="text-sm font-medium">
-          활동 이름 <span className="text-red-500">*</span>
-        </Label>
-        <Input
-          id="memberName"
-          placeholder="활동 이름을 입력하세요"
-          value={formData.memberName}
-          onChange={(e) => onInputChange('memberName', e.target.value)}
-          required
-        />
-      </div>
+      {!isEditing && (
+        <div className="space-y-2">
+          <Label htmlFor="memberName" className="text-sm font-medium">
+            활동 이름 <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="memberName"
+            placeholder="활동 이름을 입력하세요"
+            value={formData.memberName}
+            onChange={(e) => onInputChange('memberName', e.target.value)}
+            required
+          />
+        </div>
+      )}
 
       <div className="space-y-2">
         <div className="flex items-center space-x-2">

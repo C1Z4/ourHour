@@ -1,5 +1,6 @@
 package com.ourhour.domain.org.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.ourhour.domain.auth.exception.AuthException;
@@ -91,10 +92,14 @@ public class OrgService {
         memberRepository.save(memberEntity);
 
         // 해당 회사의 루트 관리자 권한 부여
+        OrgParticipantMemberId orgParticipantMemberId = new OrgParticipantMemberId(orgEntity.getOrgId(), memberEntity.getMemberId());
         OrgParticipantMemberEntity orgParticipantMemberEntity = OrgParticipantMemberEntity.builder()
+                .orgParticipantMemberId(orgParticipantMemberId)
                 .orgEntity(orgEntity)
                 .memberEntity(memberEntity)
                 .role(Role.ROOT_ADMIN)
+                .status(Status.ACTIVE)
+                .joinedAt(LocalDate.now())
                 .build();
         orgParticipantMemberRepository.save(orgParticipantMemberEntity);
 
@@ -130,6 +135,19 @@ public class OrgService {
 
         OrgEntity orgEntity = orgRepository.findById(orgId)
                 .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 회사 ID 입니다: " + orgId));
+
+        // 이미지 처리
+        String logoUrl = orgDetailReqDTO.getLogoImgUrl();
+
+        // Base64 데이터인 경우 파일로 저장하고 URL로 변환
+        if (logoUrl != null && logoUrl.startsWith("data:image/")) {
+            logoUrl = imageService.saveBase64Image(logoUrl);
+        }
+
+        // 변환된 이미지 URL로 OrgReqDTO 업데이트
+        if (logoUrl != null) {
+            orgDetailReqDTO.setLogoImgUrl(logoUrl);
+        }
 
         orgEntity.updateInfo(orgDetailReqDTO);
 

@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios';
 
 import { ApiResponse, PageResponse } from '@/types/apiTypes';
+import { Member } from '@/types/memberTypes';
 
 import { axiosInstance } from '@/api/axiosConfig';
 import { logError } from '@/utils/auth/errorUtils';
@@ -9,16 +10,6 @@ interface GetOrgMemberListRequest {
   orgId: number;
   currentPage?: number;
   size?: number;
-}
-
-export interface Member {
-  memberId: number;
-  name: string;
-  phone: string;
-  email: string;
-  departmentName: string;
-  positionName: string;
-  profileImgUrl: string;
 }
 
 const getOrgMemberList = async (

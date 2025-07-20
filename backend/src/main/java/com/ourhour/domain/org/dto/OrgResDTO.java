@@ -1,6 +1,5 @@
 package com.ourhour.domain.org.dto;
 
-import com.ourhour.domain.org.enums.Role;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +21,6 @@ public class OrgResDTO {
     private String businessNumber;
     private String logoImgUrl;
     private String memberName;
-    private Role myRole;
+    private String myRole;
 
 }

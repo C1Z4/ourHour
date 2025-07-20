@@ -1,9 +1,10 @@
-'use client';
+import { useEffect, useState } from 'react';
 
-import * as React from 'react';
+import { useParams, useRouter } from '@tanstack/react-router';
+import { ChevronsUpDown, Info, Plus } from 'lucide-react';
 
-import { ChevronsUpDown, Plus, Info } from 'lucide-react';
-
+import { MyOrg } from '@/api/org/getMyOrgList';
+import { OrgFormData, OrgModal } from '@/components/org/OrgModal';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,23 +14,90 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
+import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
 import { useSidebar } from '@/hooks/useSidebar';
+import { getImageUrl } from '@/utils/file/imageUtils';
+import { showSuccessToast } from '@/utils/toast';
 
-export function TeamSwitcher({
-  teams,
-}: {
-  teams: {
-    name: string;
-    logo: React.ElementType;
-    plan: string;
-  }[];
-}) {
+export function TeamSwitcher() {
+  const params = useParams({ strict: false });
+  const orgId = params.orgId;
+  const router = useRouter();
+
   const { isMobile } = useSidebar();
-  const [activeTeam, setActiveTeam] = React.useState(teams[0]);
 
-  if (!activeTeam) {
-    return null;
-  }
+  const { mutate: createOrg } = useOrgCreateMutation();
+
+  const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+
+  const { data: myOrgList } = useMyOrgListQuery({
+    currentPage: 1,
+    size: 100,
+  });
+
+  const currentOrgs = Array.isArray(myOrgList?.data)
+    ? myOrgList.data
+    : (myOrgList?.data?.data ?? []);
+
+  const [activeTeam, setActiveTeam] = useState<MyOrg | null>(null);
+
+  useEffect(() => {
+    if (orgId) {
+      setActiveTeam(currentOrgs.find((org) => org.orgId === Number(orgId)) ?? null);
+    }
+  }, [currentOrgs, orgId, setActiveTeam]);
+
+  useEffect(() => {
+    if (activeTeam && activeTeam.orgId !== Number(orgId)) {
+      router.navigate({
+        to: '/org/$orgId/project',
+        params: { orgId: activeTeam.orgId.toString() },
+        search: { currentPage: 1 },
+      });
+    }
+  }, [activeTeam, orgId, router]);
+
+  const handleCreateOrg = () => {
+    setIsOrgModalOpen(true);
+  };
+
+  const handleOrgModalSubmit = async (data: OrgFormData) => {
+    try {
+      await createOrg({
+        memberName: data.memberName,
+        name: data.name,
+        address: data.address === '' ? null : data.address,
+        email: data.email === '' ? null : data.email,
+        phone: data.phone === '' ? null : data.phone,
+        representativeName: data.representativeName === '' ? null : data.representativeName,
+        businessNumber: data.businessNumber === '' ? null : data.businessNumber,
+        logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl,
+      });
+      showSuccessToast('회사 생성 완료');
+      setIsOrgModalOpen(false);
+
+      // 페이지 새로고침(임시)
+      window.location.reload();
+    } catch (error) {
+      // 에러 토스트
+    }
+  };
+
+  const handleImageError = (orgId: number) => {
+    setImageErrors((prev) => new Set(prev).add(orgId));
+  };
+
+  const handleInfoClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (activeTeam) {
+      router.navigate({
+        to: '/org/$orgId/info',
+        params: { orgId: activeTeam.orgId.toString() },
+      });
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -41,18 +109,40 @@ export function TeamSwitcher({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                <activeTeam.logo className="size-4" />
+                {activeTeam?.logoImgUrl && !imageErrors.has(activeTeam.orgId) ? (
+                  <img
+                    src={getImageUrl(activeTeam.logoImgUrl)}
+                    alt={activeTeam?.name ?? ''}
+                    width={32}
+                    height={32}
+                    className="size-8 object-cover rounded-lg"
+                    onError={() => handleImageError(activeTeam.orgId)}
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center">
+                    <span className="font-bold text-sm text-black">
+                      {activeTeam?.name?.charAt(0).toUpperCase() ?? ''}
+                    </span>
+                  </div>
+                )}
               </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium flex items-center gap-2">
-                  <div className="text-lg">{activeTeam.name}</div>
-                  <Info className="size-4 text-muted-foreground" />
-                </span>
-                <span className="truncate text-xs">{activeTeam.plan}</span>
-              </div>
+              {activeTeam && (
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-medium flex items-center gap-2">
+                    <div className="text-md font-bold">{activeTeam?.name}</div>
+                  </span>
+                </div>
+              )}
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
+          {activeTeam && (
+            <Info
+              className="size-4 text-muted-foreground cursor-pointer hover:text-foreground ml-2 absolute bottom-4 right-9"
+              onClick={handleInfoClick}
+            />
+          )}
+
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             align="start"
@@ -62,14 +152,29 @@ export function TeamSwitcher({
             <DropdownMenuLabel className="text-muted-foreground text-xs">
               회사 목록
             </DropdownMenuLabel>
-            {teams.map((team) => (
+            {currentOrgs.map((team) => (
               <DropdownMenuItem
-                key={team.name}
+                key={team.orgId}
                 onClick={() => setActiveTeam(team)}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-md border">
-                  <team.logo className="size-3.5 shrink-0" />
+                  {team.logoImgUrl && !imageErrors.has(team.orgId) ? (
+                    <img
+                      src={getImageUrl(team.logoImgUrl)}
+                      alt={team.name}
+                      width={24}
+                      height={24}
+                      className="size-3.5 shrink-0"
+                      onError={() => handleImageError(team.orgId)}
+                    />
+                  ) : (
+                    <div className="w-6 h-6 bg-gray-200 rounded flex items-center justify-center">
+                      <span className="font-bold text-xs text-black">
+                        {team.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {team.name}
               </DropdownMenuItem>
@@ -79,10 +184,19 @@ export function TeamSwitcher({
               <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                 <Plus className="size-4" />
               </div>
-              <div className="text-muted-foreground font-medium">새 회사 등록하기</div>
+              <div className="text-muted-foreground font-medium" onClick={handleCreateOrg}>
+                새 회사 등록하기
+              </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        {isOrgModalOpen && (
+          <OrgModal
+            isOpen={isOrgModalOpen}
+            onClose={() => setIsOrgModalOpen(false)}
+            onSubmit={handleOrgModalSubmit}
+          />
+        )}
       </SidebarMenuItem>
     </SidebarMenu>
   );
