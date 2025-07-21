@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import { MEMBER_ROLE_STYLES } from '@/constants/badges';
 import { useSignoutMutation } from '@/hooks/queries/auth/useAuthMutations';
 import useMyMemberInfoQuery from '@/hooks/queries/member/useMyMemberInfoQuery';
+import { getImageUrl } from '@/utils/file/imageUtils';
 
 interface ProfileSheetProps {
   children: React.ReactNode;
@@ -49,9 +50,23 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
         <div className="flex flex-col h-full">
           <div className="flex-1 p-6">
             <div className="flex flex-col items-center space-y-4">
-              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-                <User className="w-8 h-8 text-gray-400" />
-              </div>
+              {myMemberInfo?.profileImgUrl ? (
+                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                  <img
+                    src={getImageUrl(myMemberInfo.profileImgUrl)}
+                    alt={myMemberInfo?.name ?? ''}
+                    width={32}
+                    height={32}
+                    className="w-full h-full object-contain bg-white rounded-full"
+                  />
+                </div>
+              ) : (
+                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                  <span className="font-bold text-sm text-black">
+                    {myMemberInfo?.name?.charAt(0).toUpperCase() ?? ''}
+                  </span>
+                </div>
+              )}
 
               <h2 className="text-xl font-semibold text-center">{myMemberInfo?.name}</h2>
             </div>
