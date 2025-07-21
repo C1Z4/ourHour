@@ -61,7 +61,8 @@ public class OrgMemberController {
     // 구성원 상세 조회
     @OrgAuth
     @GetMapping("/{orgId}/members/{memberId}")
-    public ResponseEntity<ApiResponse<MemberInfoResDTO>> getOrgMember(@OrgId @PathVariable Long orgId, @PathVariable Long memberId) {
+    public ResponseEntity<ApiResponse<MemberInfoResDTO>> getOrgMember(@OrgId @PathVariable Long orgId,
+            @PathVariable Long memberId) {
 
         MemberInfoResDTO memberInfoResDTO = orgMemberService.getOrgMember(orgId, memberId);
 
@@ -74,7 +75,8 @@ public class OrgMemberController {
     // 구성원 권한 변경
     @OrgAuth(accessLevel = Role.ROOT_ADMIN)
     @PatchMapping("/{orgId}/members/{memberId}/role")
-    public ResponseEntity<ApiResponse<OrgMemberRoleResDTO>> getOrgMember(@OrgId @PathVariable Long orgId, @PathVariable Long memberId, @RequestBody OrgMemberRoleReqDTO orgMemberRoleReqDTO) {
+    public ResponseEntity<ApiResponse<OrgMemberRoleResDTO>> getOrgMember(@OrgId @PathVariable Long orgId,
+            @PathVariable Long memberId, @RequestBody OrgMemberRoleReqDTO orgMemberRoleReqDTO) {
 
         OrgMemberRoleResDTO orgMemberRoleResDTO = orgMemberService.changeRole(orgId, memberId, orgMemberRoleReqDTO);
 
@@ -87,7 +89,8 @@ public class OrgMemberController {
     // 구성원 삭제
     @OrgAuth(accessLevel = Role.ROOT_ADMIN)
     @DeleteMapping("/{orgId}/members/{memberId}")
-    public ResponseEntity<ApiResponse<Void>> deleteOrgMember(@OrgId @PathVariable Long orgId, @PathVariable Long memberId) {
+    public ResponseEntity<ApiResponse<Void>> deleteOrgMember(@OrgId @PathVariable Long orgId,
+            @PathVariable Long memberId) {
 
         orgMemberService.deleteOrgMember(orgId, memberId);
 
@@ -95,6 +98,16 @@ public class OrgMemberController {
 
         return ResponseEntity.ok(apiResponse);
 
+    }
+
+    // 회사 나가기
+    @OrgAuth
+    @DeleteMapping("/{orgId}/members/me")
+    public ResponseEntity<ApiResponse<Void>> exitOrg(@OrgId @PathVariable Long orgId) {
+
+        orgMemberService.exitOrg(orgId);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "회사 나가기에 성공하였습니다."));
     }
 
 }
