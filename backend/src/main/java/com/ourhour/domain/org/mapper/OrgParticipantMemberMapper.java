@@ -26,7 +26,8 @@ public interface OrgParticipantMemberMapper {
     @Mapping(source = "orgEntity.logoImgUrl", target = "logoImgUrl")
     @Mapping(source = "memberEntity.name", target = "memberName")
     @Mapping(target = "myRole", expression = "java(orgParticipantMemberEntity.getRole().getDescription())")
-    OrgResDTO toOrgResDTO(OrgEntity orgEntity, MemberEntity memberEntity, OrgParticipantMemberEntity orgParticipantMemberEntity);
+    OrgResDTO toOrgResDTO(OrgEntity orgEntity, MemberEntity memberEntity,
+            OrgParticipantMemberEntity orgParticipantMemberEntity);
 
     // Entity -> DTO 변환 (구성원 권한 변경)
     @Mapping(source = "orgParticipantMemberEntity.orgEntity.orgId", target = "orgId")
@@ -34,7 +35,8 @@ public interface OrgParticipantMemberMapper {
     @Mapping(target = "oldRole", expression = "java(oldRole.getDescription())")
     @Mapping(target = "newRole", expression = "java(orgParticipantMemberEntity.getRole().getDescription())")
     @Mapping(source = "rootAdminCount", target = "rootAdminCount")
-    OrgMemberRoleResDTO toOrgMemberRoleResDTO(OrgParticipantMemberEntity orgParticipantMemberEntity, Role oldRole, int rootAdminCount);
+    OrgMemberRoleResDTO toOrgMemberRoleResDTO(OrgParticipantMemberEntity orgParticipantMemberEntity, Role oldRole,
+            int rootAdminCount);
 
     // Entity -> DTO 변환 (구성원 상세 조회)
     @Mapping(source = "orgParticipantMemberEntity.memberEntity.memberId", target = "memberId")
@@ -44,20 +46,19 @@ public interface OrgParticipantMemberMapper {
     @Mapping(source = "orgParticipantMemberEntity.positionEntity.name", target = "positionName")
     @Mapping(source = "orgParticipantMemberEntity.departmentEntity.name", target = "deptName")
     @Mapping(source = "orgParticipantMemberEntity.memberEntity.profileImgUrl", target = "profileImgUrl")
-    @Mapping(source = "orgParticipantMemberEntity.role", target = "role")
+    @Mapping(target = "role", expression = "java(orgParticipantMemberEntity.getRole().getDescription())")
     MemberInfoResDTO toMemberInfoResDTO(OrgParticipantMemberEntity orgParticipantMemberEntity);
-
 
     // Enity -> DTO 변화 (회사 내 개인정보 조회)
     @Mapping(source = "opm.memberEntity.memberId", target = "memberId")
     @Mapping(source = "opm.orgEntity.orgId", target = "orgId")
-    @Mapping(source = "opm.memberEntity.name", target="name")
-    @Mapping(source = "opm.memberEntity.phone", target="phone")
-    @Mapping(source = "opm.memberEntity.email", target="email")
-    @Mapping(source = "opm.memberEntity.profileImgUrl", target="profileImgUrl")
-    @Mapping(source = "opm.departmentEntity.name", target="deptName")
-    @Mapping(source = "opm.positionEntity.name", target="positionName")
-    @Mapping(source = "opm.role", target="role")
+    @Mapping(source = "opm.memberEntity.name", target = "name")
+    @Mapping(source = "opm.memberEntity.phone", target = "phone")
+    @Mapping(source = "opm.memberEntity.email", target = "email")
+    @Mapping(source = "opm.memberEntity.profileImgUrl", target = "profileImgUrl")
+    @Mapping(source = "opm.departmentEntity.name", target = "deptName")
+    @Mapping(source = "opm.positionEntity.name", target = "positionName")
+    @Mapping(target = "role", expression = "java(opm.getRole().getDescription())")
     MyMemberInfoResDTO toMyMemberInfoResDTO(OrgParticipantMemberEntity opm);
 
 }

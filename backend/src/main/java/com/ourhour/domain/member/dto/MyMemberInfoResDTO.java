@@ -21,6 +21,6 @@ public class MyMemberInfoResDTO {
     private String profileImgUrl;
     private String deptName;
     private String positionName;
-    private Role role;
+    private String role;
 
 }
