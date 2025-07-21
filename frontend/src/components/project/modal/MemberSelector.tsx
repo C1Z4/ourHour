@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 
 import { Search } from 'lucide-react';
 
-import { Member } from '@/api/org/getOrgMemberList';
+import { Member } from '@/types/memberTypes';
+
 import { PaginationComponent } from '@/components/common/PaginationComponent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -51,7 +52,7 @@ export const MemberSelector = ({
     const normalizedSearchTerm = isSearchTermEnglish ? searchTerm.toLowerCase() : searchTerm;
 
     const normalizedName = normalizeText(member.name);
-    const normalizedDepartment = normalizeText(member.departmentName);
+    const normalizedDepartment = normalizeText(member.deptName);
     const normalizedPosition = normalizeText(member.positionName);
 
     return (
@@ -107,7 +108,7 @@ export const MemberSelector = ({
                     </Avatar>
                     <span className="text-sm">{member.name}</span>
                   </div>
-                  <div className="text-center text-sm text-gray-600">{member.departmentName}</div>
+                  <div className="text-center text-sm text-gray-600">{member.deptName}</div>
                   <div className="text-center text-sm text-gray-600">{member.positionName}</div>
                 </div>
               ))}
