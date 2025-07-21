@@ -89,6 +89,7 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
           },
 
           ...currentOrgs.map((org) => ({
+            id: org.orgId,
             title: org.name,
             leftIcon: Contact,
             url: `/info/${org.orgId}`,
