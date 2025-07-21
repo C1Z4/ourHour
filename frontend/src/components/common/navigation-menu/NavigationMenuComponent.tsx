@@ -1,8 +1,9 @@
 import { useState } from 'react';
 
-import { useLocation, useNavigate } from '@tanstack/react-router';
-import { Bell, Menu, Users, X } from 'lucide-react';
+import { useLocation, useRouter } from '@tanstack/react-router';
+import { Bell, Menu, Users } from 'lucide-react';
 
+import logo from '@/assets/images/logo.png';
 import { ProfileSheet } from '@/components/common/info-menu/ProfileSheet';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,21 +19,22 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
 
   const [isActive, setIsActive] = useState('');
 
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleNavigate = (path: string, orgId: string) => {
-    navigate({ to: path, params: { orgId } });
+    router.navigate({ to: path, params: { orgId } });
   };
 
   return (
     <div className="w-full border-b bg-background fixed top-0 z-50">
       <div className="w-full px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-8 h-8 bg-primary rounded">
-              <X className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-semibold">ourHour</span>
+          <div
+            className="flex items-center space-x-2 cursor-pointer"
+            onClick={() => router.navigate({ to: '/start', search: { page: 1 } })}
+          >
+            <img src={logo} alt="OurHour Logo" className="w-10 h-10" />
+            <span className="text-xl font-bold text-[#467599]">OURHOUR</span>
           </div>
 
           {!isInfoPage && (
