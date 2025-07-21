@@ -124,7 +124,7 @@ public class ChatRestController {
             @PathVariable Long roomId,
             @RequestBody ParticipantAddReqDTO request) {
 
-        chatService.addChatRoomParticipant(orgId, roomId, request.getMemberId());
+        chatService.addChatRoomParticipants(orgId, roomId, request.getMemberIds());
 
         return ResponseEntity.ok(ApiResponse.success(null, "참여자 추가에 성공했습니다."));
     }

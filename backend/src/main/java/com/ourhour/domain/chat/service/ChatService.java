@@ -103,21 +103,23 @@ public class ChatService {
     }
 
     @Transactional
-    public void addChatRoomParticipant(Long orgId, Long roomId, Long memberId) {
+    public void addChatRoomParticipants(Long orgId, Long roomId, List<Long> memberIds) {
 
         ChatRoomEntity chatRoom = chatRoomRepository.findByOrgEntity_OrgIdAndRoomId(orgId, roomId)
                 .orElseThrow(ChatException::chatRoomNotFound);
 
-        boolean isOrgMember = orgParticipantMemberRepository.existsByOrgEntity_OrgIdAndMemberEntity_MemberId(orgId, memberId);
-        if (!isOrgMember) {
-            throw BusinessException.forbidden("해당 회사의 멤버가 아닙니다.");
-        }
+        memberIds.forEach(memberId -> {
+            boolean isOrgMember = orgParticipantMemberRepository.existsByOrgEntity_OrgIdAndMemberEntity_MemberId(orgId, memberId);
+            if (!isOrgMember) {
+                throw BusinessException.forbidden("해당 회사의 멤버가 아닙니다.");
+            }
 
-        MemberEntity member = memberRepository.findById(memberId)
-                .orElseThrow(() -> BusinessException.badRequest("해당 멤버를 찾을 수 없습니다."));
+            MemberEntity member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> BusinessException.badRequest("해당 멤버를 찾을 수 없습니다."));
 
-        ChatParticipantEntity newParticipant = ChatParticipantEntity.createParticipant(chatRoom, member);
-        chatParticipantRepository.save(newParticipant);
+            ChatParticipantEntity newParticipant = ChatParticipantEntity.createParticipant(chatRoom, member);
+            chatParticipantRepository.save(newParticipant);
+        });
     }
 
     @Transactional
