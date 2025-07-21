@@ -37,7 +37,7 @@ export const IssueDetailHeader = ({
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
-            <BreadcrumbItem>{milestoneName}</BreadcrumbItem>
+            <BreadcrumbItem>{milestoneName ?? '미분류'}</BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>{issueTitle}</BreadcrumbItem>
           </BreadcrumbList>
