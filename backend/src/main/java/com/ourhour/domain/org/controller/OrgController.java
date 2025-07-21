@@ -1,6 +1,7 @@
 package com.ourhour.domain.org.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,10 @@ import com.ourhour.domain.project.dto.ProjectNameResDTO;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
+import com.ourhour.global.jwt.dto.Claims;
+import com.ourhour.global.jwt.dto.OrgAuthority;
+import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.exception.BusinessException;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +52,7 @@ public class OrgController {
     @OrgAuth(accessLevel = Role.ROOT_ADMIN)
     @PutMapping("/{orgId}")
     public ResponseEntity<ApiResponse<OrgDetailResDTO>> updateOrg(@OrgId @PathVariable Long orgId,
-            @Valid @RequestBody OrgDetailReqDTO orgDetailReqDTO) {
+                                                                  @Valid @RequestBody OrgDetailReqDTO orgDetailReqDTO) {
         OrgDetailResDTO orgDetailResDTO = orgService.updateOrg(orgId, orgDetailReqDTO);
 
         return ResponseEntity.ok(ApiResponse.success(orgDetailResDTO, "팀 수정에 성공하였습니다."));
@@ -65,11 +70,21 @@ public class OrgController {
 
     // 본인이 참여 중인 프로젝트 이름 목록 조회(좌측 사이드바)
     @OrgAuth
-    @GetMapping("/{orgId}/projects/my")
+    @GetMapping("/{orgId}/projects")
     public ResponseEntity<ApiResponse<List<ProjectNameResDTO>>> getMyProjects(@OrgId @PathVariable Long orgId) {
 
-        Long memberId = 2L;
-        List<ProjectNameResDTO> response = orgService.getMyProjects(orgId, memberId);
+        Claims claims = UserContextHolder.get();
+        if (claims == null) {
+            throw BusinessException.unauthorized("인증 정보가 없습니다.");
+        }
+
+        List<Long> memberIdList = claims.getOrgAuthorityList().stream()
+                .filter(authority -> authority.getOrgId().equals(orgId))
+                .map(OrgAuthority::getMemberId)
+                .collect(Collectors.toList());
+
+        List<ProjectNameResDTO> response = orgService.getMyProjects(memberIdList);
+
         return ResponseEntity.ok(ApiResponse.success(response, "본인이 참여 중인 프로젝트 이름 목록 조회에 성공하였습니다."));
     }
 
