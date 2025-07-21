@@ -1,41 +1,37 @@
 import { useState } from 'react';
 
+import { useLocation } from '@tanstack/react-router';
 import { User, LogOut, Settings } from 'lucide-react';
 
+import { MyMemberInfo } from '@/api/member/getMyMemberInfo';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
+import { MEMBER_ROLE_STYLES } from '@/constants/badges';
 import { useSignoutMutation } from '@/hooks/queries/auth/useAuthMutations';
+import useMyMemberInfoQuery from '@/hooks/queries/member/useMyMemberInfoQuery';
 
 interface ProfileSheetProps {
   children: React.ReactNode;
 }
 
-interface UserProfile {
-  name: string;
-  company: string;
-  department: string;
-  position: string;
-  email: string;
-  phone: string;
-  profileImage?: string;
-}
-
-const mockUserProfile: UserProfile = {
-  name: 'Jane Doe',
-  company: '회사명',
-  department: '개발 1팀',
-  position: '사원',
-  email: 'ddzeun@gmail.com',
-  phone: '010-1234-5678',
-};
-
 export function ProfileSheet({ children }: ProfileSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const location = useLocation();
+  const orgId = location.pathname.split('/')[2];
+
+  const { data: myMemberInfoData } = useMyMemberInfoQuery({ orgId: Number(orgId) });
+  const myMemberInfo = myMemberInfoData as unknown as MyMemberInfo;
 
   const { mutate: logout } = useSignoutMutation();
 
   const handleLogout = () => {
-    logout();
+    logout(undefined, {
+      onSuccess: () => {
+        setIsOpen(false);
+        window.location.href = '/';
+      },
+    });
   };
 
   const handleProfileManagement = () => {
@@ -47,6 +43,7 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent side="right" className="w-80 p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+        <SheetTitle className="sr-only">프로필 정보</SheetTitle>
         <div className="flex flex-col h-full">
           <div className="flex-1 p-6">
             <div className="flex flex-col items-center space-y-4">
@@ -54,30 +51,36 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
                 <User className="w-8 h-8 text-gray-400" />
               </div>
 
-              <h2 className="text-xl font-semibold text-center">{mockUserProfile.name}</h2>
+              <h2 className="text-xl font-semibold text-center">{myMemberInfo?.name}</h2>
             </div>
 
             <div className="border-t border-gray-200 my-6" />
 
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-600">{mockUserProfile.company}</p>
-              </div>
-              <div>
                 <p className="text-sm text-gray-600">
-                  {mockUserProfile.department ? mockUserProfile.department : ''}
+                  {myMemberInfo?.deptName ? myMemberInfo.deptName : ''}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">
-                  {mockUserProfile.position ? mockUserProfile.position : ''}
+                  {myMemberInfo?.positionName ? myMemberInfo.positionName : ''}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">{mockUserProfile.email}</p>
+                <p
+                  className={`w-fit rounded-full px-2 py-1 text-sm ${MEMBER_ROLE_STYLES[myMemberInfo?.role as keyof typeof MEMBER_ROLE_STYLES]}`}
+                >
+                  {myMemberInfo?.role ? myMemberInfo.role : ''}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">{mockUserProfile.phone}</p>
+                <p className="text-sm text-gray-600">{myMemberInfo?.email}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">
+                  {myMemberInfo?.phone ? myMemberInfo.phone : ''}
+                </p>
               </div>
             </div>
           </div>

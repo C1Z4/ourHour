@@ -13,3 +13,7 @@ export const ORG_QUERY_KEYS = {
   MY_PROJECT_LIST: 'myProjectList',
   ORG_INFO: 'orgInfo',
 } as const;
+
+export const MEMBER_QUERY_KEYS = {
+  MY_MEMBER_INFO: 'myMemberInfo',
+} as const;
