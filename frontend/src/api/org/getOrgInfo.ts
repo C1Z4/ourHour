@@ -15,9 +15,9 @@ export interface OrgBaseInfo {
   address: string;
   email: string;
   representativeName: string;
-  phone: string;
+  phone: string | null;
   businessNumber: string;
-  logoImgUrl: string;
+  logoImgUrl: string | null;
 }
 
 const getOrgInfo = async (request: GetOrgInfoRequest): Promise<ApiResponse<OrgBaseInfo>> => {

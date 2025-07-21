@@ -86,6 +86,18 @@ export function OrgBasicInfo({ formData, onInputChange, isEditing }: OrgBasicInf
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="phoneNumber" className="text-sm font-medium">
+          전화번호
+        </Label>
+        <Input
+          id="phoneNumber"
+          placeholder="전화번호를 입력하세요(ex: 010-1234-5678)"
+          value={formData.phone}
+          onChange={(e) => onInputChange('phone', e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="businessNumber" className="text-sm font-medium">
           사업자등록번호
         </Label>
@@ -99,25 +111,13 @@ export function OrgBasicInfo({ formData, onInputChange, isEditing }: OrgBasicInf
 
       <div className="space-y-2">
         <Label htmlFor="representative" className="text-sm font-medium">
-          대표
+          대표명
         </Label>
         <Input
           id="representative"
-          placeholder="대표자 이름을 입력하세요"
+          placeholder="대표 이름을 입력하세요"
           value={formData.representativeName}
           onChange={(e) => onInputChange('representativeName', e.target.value)}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="phoneNumber" className="text-sm font-medium">
-          전화번호
-        </Label>
-        <Input
-          id="phoneNumber"
-          placeholder="전화번호를 입력하세요(ex: 010-1234-5678)"
-          value={formData.phone}
-          onChange={(e) => onInputChange('phone', e.target.value)}
         />
       </div>
     </div>

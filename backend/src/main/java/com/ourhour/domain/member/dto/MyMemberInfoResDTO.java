@@ -1,6 +1,5 @@
 package com.ourhour.domain.member.dto;
 
-import com.ourhour.domain.org.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,7 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MyMemberInfoResDTO {
 
-
     private Long memberId;
     private Long orgId;
     private String name;
@@ -21,6 +19,6 @@ public class MyMemberInfoResDTO {
     private String profileImgUrl;
     private String deptName;
     private String positionName;
-    private Role role;
+    private String role;
 
 }

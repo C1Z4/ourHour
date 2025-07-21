@@ -1,27 +1,21 @@
 package com.ourhour.domain.user.service;
 
 import com.ourhour.domain.auth.repository.EmailVerificationRepository;
-import com.ourhour.domain.auth.service.EmailVerificationService;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
-import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
-import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.service.OrgRoleGuardService;
 import com.ourhour.domain.user.dto.PwdChangeReqDTO;
 import com.ourhour.domain.user.dto.PwdVerifyReqDTO;
 import com.ourhour.domain.user.entity.UserEntity;
-import com.ourhour.domain.user.repository.UserRepository;
 import com.ourhour.domain.user.util.PasswordChanger;
 import com.ourhour.domain.user.util.PasswordVerifier;
-import com.ourhour.global.jwt.annotation.OrgAuth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
 
 import static com.ourhour.domain.user.exception.UserException.*;
@@ -86,7 +80,7 @@ public class UserService {
 
         // 탈퇴한 사용자가 속한 모든 회사의 활성상태 INACTIVE 처리
         if (!memberEntityList.isEmpty()) {
-            LocalDateTime now = LocalDateTime.now();
+            LocalDate now = LocalDate.now();
 
             orgParticipantMemberRepository
                     .updateDeactivateAllMembers(memberEntityList, Status.INACTIVE, now, Status.ACTIVE);

@@ -26,8 +26,10 @@ export function NavMain({
     icon?: LucideIcon | React.ComponentType;
     isActive?: boolean;
     items?: {
+      id?: number;
       title: string;
-      url: string;
+      url?: string;
+      onClick?: () => void;
       leftIcon?: React.ComponentType;
       rightIcon?: React.ComponentType;
       onEdit?: () => void;
@@ -57,10 +59,10 @@ export function NavMain({
                 <SidebarMenuSub>
                   {item.items && item.items.length > 0 ? (
                     item.items.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
+                      <SidebarMenu key={subItem.id} onClick={subItem.onClick}>
                         <div className="flex items-center w-full">
                           <SidebarMenuSubButton asChild className="flex-1">
-                            <Link to={subItem.url}>
+                            <Link to={subItem.url ?? ''}>
                               {subItem.leftIcon && <subItem.leftIcon />}
                               <span>{subItem.title}</span>
                             </Link>
@@ -78,7 +80,7 @@ export function NavMain({
                             />
                           )}
                         </div>
-                      </SidebarMenuSubItem>
+                      </SidebarMenu>
                     ))
                   ) : (
                     <SidebarMenuSubItem>

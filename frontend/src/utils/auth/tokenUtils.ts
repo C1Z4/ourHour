@@ -65,3 +65,20 @@ export const getMemberIdFromToken = (): number => {
     return 0;
   }
 };
+
+export const getEmailFromToken = (): string | null => {
+  const token = getAccessTokenFromStore();
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const base64Payload = token.split('.')[1];
+    const payload = JSON.parse(atob(base64Payload));
+
+    return payload?.email || null;
+  } catch (error) {
+    console.error('토큰에서 이메일 추출 중 오류 발생:', error);
+    return null;
+  }
+};

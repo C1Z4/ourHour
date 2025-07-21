@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { useDispatch } from 'react-redux';
+
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
 import { ChevronLeft, Plus } from 'lucide-react';
 
@@ -13,6 +15,7 @@ import { OrgFormData, OrgModal } from '@/components/org/OrgModal';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
 import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
+import { setMemberName } from '@/stores/memberSlice';
 import { getImageUrl } from '@/utils/file/imageUtils';
 import { showSuccessToast } from '@/utils/toast';
 
@@ -25,7 +28,7 @@ export const Route = createFileRoute('/start')({
 
 function StartPage() {
   const navigate = useNavigate();
-
+  const dispatch = useDispatch();
   const search = useSearch({ from: '/start' });
 
   const [currentPage, setCurrentPage] = useState(search.page);
@@ -56,8 +59,8 @@ function StartPage() {
   };
 
   const handleOrgModalSubmit = async (data: OrgFormData) => {
-    try {
-      await createOrg({
+    createOrg(
+      {
         memberName: data.memberName,
         name: data.name,
         address: data.address === '' ? null : data.address,
@@ -66,15 +69,30 @@ function StartPage() {
         representativeName: data.representativeName === '' ? null : data.representativeName,
         businessNumber: data.businessNumber === '' ? null : data.businessNumber,
         logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl,
-      });
-      showSuccessToast('회사 생성 완료');
-      setIsOrgModalOpen(false);
+      },
+      {
+        onSuccess: (result) => {
+          showSuccessToast('회사 생성 완료');
+          setIsOrgModalOpen(false);
 
-      // 페이지 새로고침(임시)
-      window.location.reload();
-    } catch (error) {
-      // 에러 토스트
-    }
+          // 회사 생성 성공 후 orgId와 memberName을 저장
+          if (result?.data?.orgId) {
+            dispatch(
+              setMemberName({
+                orgId: result.data.orgId,
+                memberName: data.memberName,
+              }),
+            );
+          }
+
+          // 페이지 새로고침(임시)
+          window.location.reload();
+        },
+        onError: (error) => {
+          // 에러 토스트
+        },
+      },
+    );
   };
 
   const handlePageChange = (page: number) => {

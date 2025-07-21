@@ -2,6 +2,8 @@ package com.ourhour.domain.member.repository;
 
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
+import com.ourhour.domain.org.enums.Status;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.domain.Page;
@@ -29,8 +31,8 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
             + "JOIN opm.orgEntity o "
             + "LEFT JOIN opm.departmentEntity d "
             + "LEFT JOIN opm.positionEntity p "
-            + "WHERE m.memberId IN :memberIds")
-    Page<OrgParticipantMemberEntity> findOrgListByMemberIds(@Param("memberIds") List<Long> memberIds, Pageable pageable);
+            + "WHERE m.memberId IN :memberIds AND opm.status = com.ourhour.domain.org.enums.Status.ACTIVE")
+    Page<OrgParticipantMemberEntity> findOrgListByMemberIdsAndStatus(@Param("memberIds") List<Long> memberIds, @Param("status") Status status, Pageable pageable);
 
     /* userId로 모든 memberId 조회 */
     @Query("SELECT DISTINCT m.memberId FROM MemberEntity m WHERE m.userEntity.userId = :userId")

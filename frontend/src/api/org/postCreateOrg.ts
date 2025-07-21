@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios';
 
 import { ApiResponse } from '@/types/apiTypes';
+import { MemberRoleKo } from '@/types/memberTypes';
 
 import { axiosInstance } from '@/api/axiosConfig';
 import { OrgBaseInfo } from '@/api/org/getOrgInfo';
@@ -19,7 +20,7 @@ export interface PostCreateOrgRequest {
 
 export interface PostCreateOrgResponse extends OrgBaseInfo {
   memberName: string;
-  myRole: string;
+  myRole: MemberRoleKo;
 }
 
 const postCreateOrg = async (

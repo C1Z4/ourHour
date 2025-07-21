@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { Member } from '@/types/memberTypes';
 import { PROJECT_STATUS_ENG_TO_KO, PROJECT_STATUS_KO_TO_ENG } from '@/types/projectTypes';
 
-import { Member } from '@/api/org/getOrgMemberList';
 import { ProjectBaseInfo } from '@/api/project/getProjectInfo';
 import { PostCreateProjectRequest } from '@/api/project/postCreateProject';
 import { ButtonComponent } from '@/components/common/ButtonComponent';

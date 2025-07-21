@@ -30,7 +30,7 @@ export function LogoUpload({
           {logoPreview || logoImgUrl ? (
             <img
               src={logoPreview || getImageUrl(logoImgUrl)}
-              alt="회사 로고"
+              alt="회사 로고 혹은 프로필 이미지"
               className="w-full h-full object-contain bg-white rounded-full"
               style={{
                 backgroundColor: 'white',

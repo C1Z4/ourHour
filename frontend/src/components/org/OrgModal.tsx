@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 
+import { useSelector } from 'react-redux';
+
 import { OrgBaseInfo } from '@/api/org/getOrgInfo';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { LogoUpload } from '@/components/org/LogoUpload';
 import { OrgBasicInfo } from '@/components/org/OrgBasicInfo';
+import { RootState } from '@/stores/store';
 import { compressAndSaveImage, validateFileSize, validateFileType } from '@/utils/file/fileStorage';
 import { showErrorToast } from '@/utils/toast';
 
@@ -42,9 +45,11 @@ export interface OrgFormData {
 
 export function OrgModal({ isOpen, onClose, onSubmit, initialInfoData }: OrgModalProps) {
   const isEditing = !!initialInfoData;
+  const memberNames = useSelector((state: RootState) => state.memberName.memberNames);
+  const currentMemberName = initialInfoData?.orgId ? memberNames[initialInfoData.orgId] || '' : '';
 
   const [formData, setFormData] = useState<OrgFormData>({
-    memberName: initialInfoData?.representativeName || '', // 임시로 대표자 이름으로 설정 추후 redux 세션스토리지에 저장한 멤버 이름(내 멤버이름)으로 변경
+    memberName: currentMemberName || '',
     logoImgUrl: initialInfoData?.logoImgUrl || '',
     name: initialInfoData?.name || '',
     address: initialInfoData?.address || '',
@@ -59,14 +64,14 @@ export function OrgModal({ isOpen, onClose, onSubmit, initialInfoData }: OrgModa
   useEffect(() => {
     if (initialInfoData) {
       setFormData({
-        memberName: initialInfoData.representativeName, // 임시로 대표자 이름으로 설정
-        logoImgUrl: initialInfoData.logoImgUrl,
+        memberName: currentMemberName || '',
+        logoImgUrl: initialInfoData.logoImgUrl || '',
         name: initialInfoData.name,
         address: initialInfoData.address,
         email: initialInfoData.email,
         businessNumber: initialInfoData.businessNumber,
         representativeName: initialInfoData.representativeName,
-        phone: initialInfoData.phone,
+        phone: initialInfoData.phone || '',
       });
     }
   }, [initialInfoData]);
