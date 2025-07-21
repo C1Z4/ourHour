@@ -45,7 +45,7 @@ export const ChatRoomParticipantSelector = ({
         <CommandList className="min-h-[180px] max-h-[180px]">
           <CommandEmpty>해당하는 멤버가 없습니다.</CommandEmpty>
           <CommandGroup>
-            {members.map((member) => {
+            {members?.map((member) => {
               const isSelected = selectedMembers.some((m) => m.memberId === member.memberId);
               return (
                 <CommandItem

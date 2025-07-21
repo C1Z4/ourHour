@@ -11,9 +11,9 @@ export const useOrgMembersWithoutMe = (orgId: number) => {
     if (!allMembers) {
       return { currentUser: null, otherMembers: [] };
     }
-    const currentMemberId = getMemberIdFromToken();
-    const currentUser = allMembers.find((member) => member.memberId === currentMemberId) || null;
-    const otherMembers = allMembers.filter((member) => member.memberId !== currentMemberId);
+    const currentMemberId = getMemberIdFromToken(orgId);
+    const currentUser = allMembers?.find((member) => member.memberId === currentMemberId) || null;
+    const otherMembers = allMembers?.filter((member) => member.memberId !== currentMemberId);
 
     return { currentUser, otherMembers };
   }, [allMembers]);
