@@ -221,15 +221,15 @@ function OrgInfoPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <div className="text-gray-600 font-bold">주소</div>
-              <p className="text-gray-600 text-sm">{orgInfo?.address}</p>
               <div className="text-gray-600 font-bold">이메일</div>
               <p className="text-gray-600 text-sm">{orgInfo?.email}</p>
+              <div className="text-gray-600 font-bold">주소</div>
+              <p className="text-gray-600 text-sm">{orgInfo?.address}</p>
               <div className="text-gray-600 font-bold">전화번호</div>
               <p className="text-gray-600 text-sm">{orgInfo?.phone}</p>
-              <div className="text-gray-600 font-bold">사업자번호</div>
+              <div className="text-gray-600 font-bold">사업자 등록번호</div>
               <p className="text-gray-600 text-sm">{orgInfo?.businessNumber}</p>
-              <div className="text-gray-600 font-bold">대표자</div>
+              <div className="text-gray-600 font-bold">대표명</div>
               <p className="text-gray-600 text-sm">{orgInfo?.representativeName}</p>
             </div>
           </div>
