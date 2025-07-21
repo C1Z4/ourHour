@@ -5,10 +5,14 @@ import { createFileRoute, useParams } from '@tanstack/react-router';
 import { MyMemberInfoDetail } from '@/api/member/getMyMemberInfo';
 import { MemberInfoBase } from '@/api/member/putUpdateMyMemberInfo';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { ModalComponent } from '@/components/common/ModalComponent';
 import { MemberInfoForm } from '@/components/member/MemberInfoForm';
 import { LogoUpload } from '@/components/org/LogoUpload';
+import { Input } from '@/components/ui/input';
 import useMyMemberInfoQuery from '@/hooks/queries/member/useMyMemberInfoQuery';
 import { useMyMemberInfoUpdateMutation } from '@/hooks/queries/member/useMyMemberInfoUpdateMutation';
+import { useQuitOrgMutation } from '@/hooks/queries/member/useQuitOrgMutation';
+import usePasswordVerificationMutation from '@/hooks/queries/user/usePasswordVerificationMutation';
 import { compressAndSaveImage, validateFileSize, validateFileType } from '@/utils/file/fileStorage';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
@@ -26,9 +30,15 @@ function MemberInfoPage() {
     orgId: Number(orgId),
   });
 
+  const { mutate: checkPassword } = usePasswordVerificationMutation();
+
+  const { mutate: quitOrg } = useQuitOrgMutation();
+
   const myMemberInfo = myMemberInfoData as unknown as MyMemberInfoDetail;
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [password, setPassword] = useState('');
 
   useEffect(() => {
     if (myMemberInfo) {
@@ -99,8 +109,46 @@ function MemberInfoPage() {
     }
   };
 
+  const handleWithdraw = () => {
+    if (password === '') {
+      showErrorToast('비밀번호를 입력해주세요.');
+      return;
+    }
+
+    checkPassword(
+      { password },
+      {
+        onSuccess: () => {
+          quitOrg({ orgId: Number(orgId) });
+        },
+        onError: () => {
+          // 에러 토스트
+          // showErrorToast('비밀번호가 일치하지 않습니다.');
+        },
+      },
+    );
+
+    quitOrg(
+      { orgId: Number(orgId) },
+      {
+        onSuccess: () => {
+          showSuccessToast('회사를 나가셨습니다.');
+          window.location.href = '/info/password';
+        },
+        onError: () => {
+          // 에러 토스트
+          // showErrorToast('회사 나가기에 실패했습니다.');
+        },
+      },
+    );
+  };
+
+  const handleDeleteModalClose = () => {
+    setIsDeleteModalOpen(false);
+  };
+
   return (
-    <div className="p-4">
+    <div className="p-4 flex flex-col gap-6">
       <form
         onSubmit={handleSubmit}
         className="flex flex-col gap-6 justify-center items-center mt-20"
@@ -126,6 +174,37 @@ function MemberInfoPage() {
           저장
         </ButtonComponent>
       </form>
+      <div className="flex justify-center">
+        <ButtonComponent
+          variant="danger"
+          onClick={() => setIsDeleteModalOpen(true)}
+          className="w-full max-w-lg"
+        >
+          회사 나가기
+        </ButtonComponent>
+      </div>
+
+      {isDeleteModalOpen && (
+        <ModalComponent
+          isOpen={isDeleteModalOpen}
+          onClose={handleDeleteModalClose}
+          title="비밀번호 확인"
+          description="회사를 나가시려면 비밀번호를 입력해주세요."
+          children={
+            <Input
+              type="password"
+              placeholder="비밀번호를 입력해주세요."
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          }
+          footer={
+            <ButtonComponent variant="danger" onClick={handleWithdraw}>
+              회사 나가기
+            </ButtonComponent>
+          }
+        />
+      )}
     </div>
   );
 }
