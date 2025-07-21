@@ -55,30 +55,38 @@ export function NavMain({
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <SidebarMenuSub>
-                  {item.items?.map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.title}>
+                  {item.items && item.items.length > 0 ? (
+                    item.items.map((subItem) => (
+                      <SidebarMenuSubItem key={subItem.title}>
+                        <div className="flex items-center w-full">
+                          <SidebarMenuSubButton asChild className="flex-1">
+                            <Link to={subItem.url}>
+                              {subItem.leftIcon && <subItem.leftIcon />}
+                              <span>{subItem.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                          {subItem.rightIcon && subItem.onEdit && subItem.onDelete && (
+                            <MoreOptionsPopover
+                              className="w-43"
+                              editLabel="채팅방 수정"
+                              deleteLabel="채팅방 삭제"
+                              onEdit={subItem.onEdit}
+                              onDelete={subItem.onDelete}
+                              triggerClassName="h-6 w-6 ml-1 flex-shrink-0 p-1 hover:bg-gray-200 rounded"
+                              align="end"
+                              side="right"
+                            />
+                          )}
+                        </div>
+                      </SidebarMenuSubItem>
+                    ))
+                  ) : (
+                    <SidebarMenuSubItem>
                       <div className="flex items-center w-full">
-                        <SidebarMenuSubButton asChild className="flex-1">
-                          <Link to={subItem.url}>
-                            {subItem.leftIcon && <subItem.leftIcon />}
-                            <span>{subItem.title}</span>
-                          </Link>
-                        </SidebarMenuSubButton>
-                        {subItem.rightIcon && subItem.onEdit && subItem.onDelete && (
-                          <MoreOptionsPopover
-                            className="w-43"
-                            editLabel="채팅방 수정"
-                            deleteLabel="채팅방 삭제"
-                            onEdit={subItem.onEdit}
-                            onDelete={subItem.onDelete}
-                            triggerClassName="h-6 w-6 ml-1 flex-shrink-0 p-1 hover:bg-gray-200 rounded"
-                            align="end"
-                            side="right"
-                          />
-                        )}
+                        <span className="text-gray-500 text-sm">아직 존재하지 않습니다.</span>
                       </div>
                     </SidebarMenuSubItem>
-                  ))}
+                  )}
                 </SidebarMenuSub>
               </CollapsibleContent>
             </SidebarMenuItem>
