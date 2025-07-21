@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.common.service.ImageService;
@@ -59,17 +60,30 @@ public class MemberService {
         return PageResponse.of(dtoPage);
     }
 
+    // 참여 중인 회사 목록 조회
     public PageResponse<MemberOrgSummaryResDTO> findOrgSummaryByMemberIds(List<Long> memberIds, Pageable pageable) {
 
         Page<OrgParticipantMemberEntity> orgParticipantMemberEntityPage = memberRepository
-                .findOrgListByMemberIds(memberIds, pageable);
+                .findOrgListByMemberIdsAndStatus(memberIds, Status.ACTIVE, pageable);
 
         if (orgParticipantMemberEntityPage.isEmpty()) {
             return PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize());
         }
 
-        Page<MemberOrgSummaryResDTO> dtoPage = orgParticipantMemberEntityPage
-                .map(memberOrgMapper::toMemberOrgSummaryResDTO);
+        // 활성 상태만 필터링
+        List<MemberOrgSummaryResDTO> dtoList = orgParticipantMemberEntityPage.getContent().stream()
+                .filter(opm -> {
+                    try {
+                        findMyMemberInOrgHelper(opm.getOrgEntity().getOrgId());
+                        return true;
+                    } catch (Exception e) {
+                        throw BusinessException.badRequest("해당 회사 정보를 찾을 수 없습니다.");
+                    }
+                })
+                .map(memberOrgMapper::toMemberOrgSummaryResDTO)
+                .toList();
+
+        Page<MemberOrgSummaryResDTO> dtoPage = new PageImpl<>(dtoList, pageable, dtoList.size());
 
         return PageResponse.of(dtoPage);
     }
