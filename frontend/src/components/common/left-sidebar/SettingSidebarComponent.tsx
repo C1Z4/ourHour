@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useState } from 'react';
 
-import { Plus, UserCog, FileCog } from 'lucide-react';
+import { Plus, Contact, FileCog } from 'lucide-react';
 
 import { NavMain } from '@/components/common/left-sidebar/NavMain';
 import { OrgFormData, OrgModal } from '@/components/org/OrgModal';
@@ -13,7 +13,7 @@ import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
 import { showSuccessToast } from '@/utils/toast';
 
 const PlusIcon = () => <Plus className="h-4 w-4" />;
-const UserCogIcon = () => <UserCog className="h-4 w-4" />;
+const ContactIcon = () => <Contact className="h-4 w-4" />;
 const FileCogIcon = () => <FileCog className="h-4 w-4" />;
 
 export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -61,7 +61,7 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
       {
         title: '계정 관리',
         url: '#',
-        icon: UserCogIcon,
+        icon: ContactIcon,
         isActive: true,
         items: [
           {
@@ -90,7 +90,7 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
 
           ...currentOrgs.map((org) => ({
             title: org.name,
-            leftIcon: UserCogIcon,
+            leftIcon: Contact,
             url: `/info/${org.orgId}`,
           })),
         ],
