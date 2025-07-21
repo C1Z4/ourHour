@@ -12,7 +12,7 @@ import {
   NavigationMenuList,
 } from '@/components/ui/navigation-menu';
 
-export function NavigationMenuComponent() {
+export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean }) {
   const location = useLocation();
   const orgId = location.pathname.split('/')[2];
 
@@ -35,76 +35,80 @@ export function NavigationMenuComponent() {
             <span className="text-lg font-semibold">ourHour</span>
           </div>
 
-          <NavigationMenu>
-            <NavigationMenuList className="flex gap-2">
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  className={`text-sm font-medium cursor-pointer px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
-                    isActive === 'project' ? 'text-black' : 'text-gray-500'
-                  }`}
-                  onClick={() => {
-                    handleNavigate('/org/$orgId/project', orgId);
-                    setIsActive('project');
-                  }}
-                >
-                  프로젝트
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  className={`text-sm font-medium cursor-pointer px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
-                    isActive === 'board' ? 'text-black' : 'text-gray-500'
-                  }`}
-                  onClick={() => {
-                    handleNavigate('/org/$orgId/board', orgId);
-                    setIsActive('board');
-                  }}
-                >
-                  게시판
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  className={`text-sm font-medium cursor-pointer px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
-                    isActive === 'mail' ? 'text-black' : 'text-gray-500'
-                  }`}
-                  onClick={() => {
-                    handleNavigate('/org/$orgId/mail', orgId);
-                    setIsActive('mail');
-                  }}
-                >
-                  메일
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  className={`text-sm font-medium cursor-pointer px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
-                    isActive === 'chat' ? 'text-black' : 'text-gray-500'
-                  }`}
-                  onClick={() => {
-                    handleNavigate('/org/$orgId/chat', orgId);
-                    setIsActive('chat');
-                  }}
-                >
-                  채팅
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
+          {!isInfoPage && (
+            <NavigationMenu>
+              <NavigationMenuList className="flex gap-2">
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    className={`text-sm font-medium cursor-pointer px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
+                      isActive === 'project' ? 'text-black' : 'text-gray-500'
+                    }`}
+                    onClick={() => {
+                      handleNavigate('/org/$orgId/project', orgId);
+                      setIsActive('project');
+                    }}
+                  >
+                    프로젝트
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    className={`text-sm font-medium cursor-pointer px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
+                      isActive === 'board' ? 'text-black' : 'text-gray-500'
+                    }`}
+                    onClick={() => {
+                      handleNavigate('/org/$orgId/board', orgId);
+                      setIsActive('board');
+                    }}
+                  >
+                    게시판
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    className={`text-sm font-medium cursor-pointer px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
+                      isActive === 'mail' ? 'text-black' : 'text-gray-500'
+                    }`}
+                    onClick={() => {
+                      handleNavigate('/org/$orgId/mail', orgId);
+                      setIsActive('mail');
+                    }}
+                  >
+                    메일
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    className={`text-sm font-medium cursor-pointer px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
+                      isActive === 'chat' ? 'text-black' : 'text-gray-500'
+                    }`}
+                    onClick={() => {
+                      handleNavigate('/org/$orgId/chat', orgId);
+                      setIsActive('chat');
+                    }}
+                  >
+                    채팅
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+          )}
 
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon">
-              <Users className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="w-4 h-4" />
-            </Button>
-            <ProfileSheet>
+          {!isInfoPage && (
+            <div className="flex items-center space-x-2">
               <Button variant="ghost" size="icon">
-                <Menu className="w-4 h-4" />
+                <Users className="w-4 h-4" />
               </Button>
-            </ProfileSheet>
-          </div>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="w-4 h-4" />
+              </Button>
+              <ProfileSheet>
+                <Button variant="ghost" size="icon">
+                  <Menu className="w-4 h-4" />
+                </Button>
+              </ProfileSheet>
+            </div>
+          )}
         </div>
       </div>
     </div>
