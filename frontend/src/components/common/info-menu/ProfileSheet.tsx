@@ -1,9 +1,10 @@
-import * as React from 'react';
+import { useState } from 'react';
 
 import { User, LogOut, Settings } from 'lucide-react';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useSignoutMutation } from '@/hooks/queries/auth/useAuthMutations';
 
 interface ProfileSheetProps {
   children: React.ReactNode;
@@ -29,11 +30,12 @@ const mockUserProfile: UserProfile = {
 };
 
 export function ProfileSheet({ children }: ProfileSheetProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { mutate: logout } = useSignoutMutation();
 
   const handleLogout = () => {
-    console.log('로그아웃');
-    // 로그아웃 로직 구현
+    logout();
   };
 
   const handleProfileManagement = () => {

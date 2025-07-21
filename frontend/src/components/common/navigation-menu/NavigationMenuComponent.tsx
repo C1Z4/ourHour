@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { Bell, Menu, Users, X } from 'lucide-react';
 
+import { ProfileSheet } from '@/components/common/info-menu/ProfileSheet';
 import { Button } from '@/components/ui/button';
 import {
   NavigationMenu,
@@ -10,8 +11,6 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from '@/components/ui/navigation-menu';
-
-import { ProfileSheet } from '../ProfileSheet';
 
 export function NavigationMenuComponent() {
   const location = useLocation();
