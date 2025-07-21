@@ -9,7 +9,7 @@ interface ChatRoomListPageProps {
 }
 export function ChatRoomListPage({ orgId, chatRooms }: ChatRoomListPageProps) {
   return (
-    <div className="bg-gray-50 py-8">
+    <div className="py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-left mb-8 flex justify-between items-center">
           <ChatRoomListHeader orgId={orgId} />

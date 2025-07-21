@@ -11,7 +11,7 @@ export const Route = createFileRoute('/org')({
 function DefaultLayoutComponent() {
   return (
     <div className="min-h-screen bg-background">
-      <NavigationMenuComponent />
+      <NavigationMenuComponent isInfoPage={false} />
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset className="pt-16">
