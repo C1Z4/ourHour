@@ -181,6 +181,7 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
           isOpen={isDeleteModalOpen}
           onClose={handleDeleteModalClose}
           title="비밀번호 확인"
+          description="프로젝트 삭제를 위해 비밀번호를 입력해주세요."
           children={
             <Input
               type="password"
