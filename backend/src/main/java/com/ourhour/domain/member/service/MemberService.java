@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.ourhour.global.common.dto.PageResponse;
+import com.ourhour.global.common.service.ImageService;
+
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -34,6 +36,7 @@ public class MemberService {
     private final MemberOrgMapper memberOrgMapper;
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
     private final OrgParticipantMemberMapper orgParticipantMemberMapper;
+    private final ImageService imageService;
 
     public MemberOrgSummaryResDTO findOrgSummaryByMemberId(Long memberId) {
         OrgParticipantMemberEntity orgParticipantMemberEntity = memberRepository.findOrgByMemberId(memberId);
@@ -43,26 +46,30 @@ public class MemberService {
 
     public PageResponse<MemberOrgSummaryResDTO> findOrgSummaryByMemberId(Long memberId, Pageable pageable) {
 
-        Page<OrgParticipantMemberEntity> orgParticipantMemberEntityPage = memberRepository.findOrgListByMemberId(memberId, pageable);
+        Page<OrgParticipantMemberEntity> orgParticipantMemberEntityPage = memberRepository
+                .findOrgListByMemberId(memberId, pageable);
 
         if (orgParticipantMemberEntityPage.isEmpty()) {
             return PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize());
         }
 
-        Page<MemberOrgSummaryResDTO> dtoPage = orgParticipantMemberEntityPage.map(memberOrgMapper::toMemberOrgSummaryResDTO);
+        Page<MemberOrgSummaryResDTO> dtoPage = orgParticipantMemberEntityPage
+                .map(memberOrgMapper::toMemberOrgSummaryResDTO);
 
         return PageResponse.of(dtoPage);
     }
 
     public PageResponse<MemberOrgSummaryResDTO> findOrgSummaryByMemberIds(List<Long> memberIds, Pageable pageable) {
 
-        Page<OrgParticipantMemberEntity> orgParticipantMemberEntityPage = memberRepository.findOrgListByMemberIds(memberIds, pageable);
+        Page<OrgParticipantMemberEntity> orgParticipantMemberEntityPage = memberRepository
+                .findOrgListByMemberIds(memberIds, pageable);
 
         if (orgParticipantMemberEntityPage.isEmpty()) {
             return PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize());
         }
 
-        Page<MemberOrgSummaryResDTO> dtoPage = orgParticipantMemberEntityPage.map(memberOrgMapper::toMemberOrgSummaryResDTO);
+        Page<MemberOrgSummaryResDTO> dtoPage = orgParticipantMemberEntityPage
+                .map(memberOrgMapper::toMemberOrgSummaryResDTO);
 
         return PageResponse.of(dtoPage);
     }
@@ -103,15 +110,38 @@ public class MemberService {
         DepartmentEntity deptEntity = opm.getDepartmentEntity();
         PositionEntity positionEntity = opm.getPositionEntity();
 
+        // 이미지 처리
+        String profileImgUrl = myInfoReqDTO.getProfileImgUrl();
+
+        // Base64 데이터인 경우 파일로 저장하고 URL로 변환
+        if (profileImgUrl != null && profileImgUrl.startsWith("data:image/")) {
+            profileImgUrl = imageService.saveBase64Image(profileImgUrl);
+        }
+
+        // 변환된 이미지 URL로 새로운 DTO 생성
+        MyMemberInfoReqDTO updatedInfoReqDTO = myInfoReqDTO;
+        if (profileImgUrl != null) {
+            updatedInfoReqDTO = MyMemberInfoReqDTO.builder()
+                    .name(myInfoReqDTO.getName())
+                    .phone(myInfoReqDTO.getPhone())
+                    .email(myInfoReqDTO.getEmail())
+                    .profileImgUrl(profileImgUrl)
+                    .deptName(myInfoReqDTO.getDeptName())
+                    .positionName(myInfoReqDTO.getPositionName())
+                    .build();
+        }
+
         // memberEntity 업데이트
-        memberEntity.changeMyMemberInfo(myInfoReqDTO.getName(), myInfoReqDTO.getPhone(), myInfoReqDTO.getEmail(), myInfoReqDTO.getProfileImgUrl());
+        memberEntity.changeMyMemberInfo(updatedInfoReqDTO.getName(), updatedInfoReqDTO.getPhone(),
+                updatedInfoReqDTO.getEmail(),
+                updatedInfoReqDTO.getProfileImgUrl());
 
         // 부서 재할당
-        if (myInfoReqDTO.getDeptName() != null) {
+        if (updatedInfoReqDTO.getDeptName() != null) {
         }
 
         // 직책 재할당
-        if (myInfoReqDTO.getPositionName() != null) {
+        if (updatedInfoReqDTO.getPositionName() != null) {
 
         }
 
@@ -129,8 +159,7 @@ public class MemberService {
                 .findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(
                         orgId,
                         UserContextHolder.get().getUserId(),
-                        Status.ACTIVE
-                )
+                        Status.ACTIVE)
                 .orElseThrow(MemberException::memberNotFoundException);
     }
 
