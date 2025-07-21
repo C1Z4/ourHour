@@ -6,26 +6,22 @@ import { MemberRoleKo } from '@/types/memberTypes';
 import { axiosInstance } from '@/api/axiosConfig';
 import { logError } from '@/utils/auth/errorUtils';
 
+import { MemberInfoBase } from './putUpdateMyMemberInfo';
+
 interface GetMyMemberInfoRequest {
   orgId: number;
 }
 
-export interface MyMemberInfo {
+export interface MyMemberInfoDetail extends MemberInfoBase {
   userId: number;
   memberId: number;
   orgId: number;
-  name: string;
-  phone: string;
-  email: string;
-  profileImgUrl: string;
-  deptName: string;
-  positionName: string;
   role: MemberRoleKo;
 }
 
 const getMyMemberInfo = async (
   request: GetMyMemberInfoRequest,
-): Promise<ApiResponse<MyMemberInfo>> => {
+): Promise<ApiResponse<MyMemberInfoDetail>> => {
   try {
     const response = await axiosInstance.get(`/api/members/organizations/${request.orgId}/me`);
     return response.data;

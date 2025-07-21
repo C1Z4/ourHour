@@ -1,9 +1,9 @@
 import { useState } from 'react';
 
-import { useLocation } from '@tanstack/react-router';
+import { useLocation, useRouter } from '@tanstack/react-router';
 import { User, LogOut, Settings } from 'lucide-react';
 
-import { MyMemberInfo } from '@/api/member/getMyMemberInfo';
+import { MyMemberInfoDetail } from '@/api/member/getMyMemberInfo';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { MEMBER_ROLE_STYLES } from '@/constants/badges';
@@ -16,12 +16,13 @@ interface ProfileSheetProps {
 
 export function ProfileSheet({ children }: ProfileSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   const location = useLocation();
   const orgId = location.pathname.split('/')[2];
 
   const { data: myMemberInfoData } = useMyMemberInfoQuery({ orgId: Number(orgId) });
-  const myMemberInfo = myMemberInfoData as unknown as MyMemberInfo;
+  const myMemberInfo = myMemberInfoData as unknown as MyMemberInfoDetail;
 
   const { mutate: logout } = useSignoutMutation();
 
@@ -35,8 +36,9 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
   };
 
   const handleProfileManagement = () => {
-    console.log('개인 정보 관리');
-    // 개인 정보 관리 페이지로 이동
+    router.navigate({
+      to: '/info/password',
+    });
   };
 
   return (
