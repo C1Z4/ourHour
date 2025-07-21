@@ -90,9 +90,9 @@ function OrgInfoPage() {
         address: data.address || '',
         email: data.email || '',
         representativeName: data.representativeName || '',
-        phone: data.phone || '',
+        phone: data.phone === '' ? null : data.phone || '',
         businessNumber: data.businessNumber || '',
-        logoImgUrl: data.logoImgUrl || '',
+        logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl || '',
       });
       showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
       handleEditModalClose();
