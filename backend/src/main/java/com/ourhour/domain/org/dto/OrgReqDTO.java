@@ -35,7 +35,10 @@ public class OrgReqDTO {
 
     private String businessNumber;
 
-    @URL
+    @Pattern(
+            regexp = "^(https?://.*|data:image/(png|jpg|jpeg|gif|svg\\+xml);base64,.*|/images/.*)$",
+            message = "올바른 URL, Base64 이미지 데이터, 또는 기존 이미지 경로여야 합니다"
+    )
     private String logoImgUrl;
 
 }

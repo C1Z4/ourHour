@@ -26,7 +26,7 @@ public class PageResponse<T> {
     public static <T> PageResponse<T> of(Page<T> page) {
         return PageResponse.<T>builder()
                 .data(page.getContent())
-                .currentPage(page.getNumber())
+                .currentPage(page.getNumber() + 1)
                 .size(page.getSize())
                 .totalPages(page.getTotalPages())
                 .totalElements(page.getTotalElements())
@@ -44,7 +44,7 @@ public class PageResponse<T> {
                 .totalPages(0)
                 .totalElements(0)
                 .hasNext(false)
-                .hasPrevious(currentPage > 0)
+                .hasPrevious(currentPage > 1)
                 .build();
     }
 } 

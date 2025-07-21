@@ -19,6 +19,7 @@ import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.domain.project.annotation.ProjectParticipantOnly;
+import com.ourhour.global.jwt.annotation.OrgId;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -41,6 +42,7 @@ import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.exception.BusinessException;
 
+
 @RestController
 @RequestMapping("/api/projects")
 @RequiredArgsConstructor
@@ -56,7 +58,7 @@ public class ProjectController {
         @OrgAuth(accessLevel = Role.ADMIN)
         @PostMapping("/{orgId}")
         public ResponseEntity<ApiResponse<Void>> createProject(
-                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
+                        @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @Valid @RequestBody ProjectReqDTO projectReqDTO) {
                 ApiResponse<Void> response = projectService.createProject(orgId, projectReqDTO);
                 return ResponseEntity.ok(response);
@@ -64,8 +66,9 @@ public class ProjectController {
 
         // 프로젝트 수정(정보, 참가자)
         @OrgAuth(accessLevel = Role.ADMIN)
-        @PutMapping("/{projectId}")
+        @PutMapping("/{orgId}/{projectId}")
         public ResponseEntity<ApiResponse<Void>> updateProject(
+                        @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @Valid @RequestBody ProjecUpdateReqDTO projectReqDTO) {
                 ApiResponse<Void> response = projectService.updateProject(projectId, projectReqDTO);
@@ -74,8 +77,9 @@ public class ProjectController {
 
         // 프로젝트 삭제
         @OrgAuth(accessLevel = Role.ADMIN)
-        @DeleteMapping("/{projectId}")
+        @DeleteMapping("/{orgId}/{projectId}")
         public ResponseEntity<ApiResponse<Void>> deleteProject(
+                        @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId) {
                 ApiResponse<Void> response = projectService.deleteProject(projectId);
                 return ResponseEntity.ok(response);
@@ -222,7 +226,12 @@ public class ProjectController {
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId,
                         @Valid @RequestBody IssueReqDTO issueReqDTO) {
 
-                ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO);
+                Claims claims = UserContextHolder.get();
+                if (claims == null) {
+                    throw BusinessException.unauthorized("인증 정보가 없습니다.");
+                }
+
+                ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO, claims);
 
                 return ResponseEntity.ok(response);
         }

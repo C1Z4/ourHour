@@ -7,6 +7,7 @@ import { axiosInstance } from '@/api/axiosConfig';
 import { logError } from '@/utils/auth/errorUtils';
 
 export interface PutUpdateProjectRequest {
+  orgId: number;
   projectId: number;
   name: string;
   description: string;
@@ -18,7 +19,10 @@ export interface PutUpdateProjectRequest {
 
 const putUpdateProject = async (request: PutUpdateProjectRequest): Promise<ApiResponse<void>> => {
   try {
-    const response = await axiosInstance.put(`/api/projects/${request.projectId}`, request);
+    const response = await axiosInstance.put(
+      `/api/projects/${request.orgId}/${request.projectId}`,
+      request,
+    );
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);

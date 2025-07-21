@@ -12,10 +12,10 @@ interface GetOrgMemberListRequest {
 
 export interface MyOrg {
   orgId: number;
-  name: string;
-  logoImgUrl: string;
-  departmentName: string;
-  positionName: string;
+  name: string | null;
+  logoImgUrl: string | null;
+  departmentName: string | null;
+  positionName: string | null;
 }
 
 const getMyOrgList = async (

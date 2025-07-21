@@ -2,11 +2,15 @@ package com.ourhour.domain.member.controller;
 
 import com.ourhour.domain.member.dto.MemberOrgDetailResDTO;
 import com.ourhour.domain.member.dto.MemberOrgSummaryResDTO;
+import com.ourhour.domain.member.dto.MyMemberInfoReqDTO;
+import com.ourhour.domain.member.dto.MyMemberInfoResDTO;
 import com.ourhour.domain.member.service.MemberService;
 import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.exception.BusinessException;
+import com.ourhour.global.jwt.annotation.OrgAuth;
+import com.ourhour.global.jwt.annotation.OrgId;
 import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.common.dto.PageResponse;
@@ -21,6 +25,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,19 +58,23 @@ public class MemberController {
             throw BusinessException.unauthorized("인증 정보가 없습니다.");
         }
 
-        Long memberId = claims.getOrgAuthorityList().stream()
+        List<Long> memberIds = claims.getOrgAuthorityList().stream()
                                 .map(auth -> auth.getMemberId())
-                                .findFirst()
-                                .orElseThrow(() -> BusinessException.unauthorized("멤버 정보를 찾을 수 없습니다."));
+                                .collect(Collectors.toList());
 
-        PageResponse<MemberOrgSummaryResDTO> response = memberService.findOrgSummaryByMemberId(memberId, pageable);
+        if (memberIds.isEmpty()) {
+            throw BusinessException.unauthorized("멤버 정보를 찾을 수 없습니다.");
+        }
+
+        PageResponse<MemberOrgSummaryResDTO> response = memberService.findOrgSummaryByMemberIds(memberIds, pageable);
 
         return ResponseEntity.ok(ApiResponse.success(response, "현재 참여 중인 회사 목록 조회에 성공했습니다."));
     }
 
     // 본인이 속한 회사 상세 조회
+    @OrgAuth
     @GetMapping("/organizations/{orgId}")
-    public ResponseEntity<ApiResponse<MemberOrgDetailResDTO>> findOrgDetailByMemberIdAndOrgId(@PathVariable Long orgId) {
+    public ResponseEntity<ApiResponse<MemberOrgDetailResDTO>> findOrgDetailByMemberIdAndOrgId(@OrgId @PathVariable Long orgId) {
 
         Claims claims = UserContextHolder.get();
 
@@ -86,6 +96,32 @@ public class MemberController {
         MemberOrgDetailResDTO memberOrgDetailResDTO = memberService.findOrgDetailByMemberIdAndOrgId(memberId, orgEntity.getOrgId());
 
         return ResponseEntity.ok(ApiResponse.success(memberOrgDetailResDTO, "본인이 속한 회사 상세 조회에 성공했습니다."));
+    }
+
+    // 회사 내 개인 정보 조회
+    @OrgAuth
+    @GetMapping("/organizations/{orgId}/me")
+    public ResponseEntity<ApiResponse<MyMemberInfoResDTO>> findMyMemberInfoInOrg(@OrgId @PathVariable Long orgId) {
+
+        MyMemberInfoResDTO memberInfoResDTO = memberService.findMyMemberInfoInOrg(orgId);
+
+        ApiResponse<MyMemberInfoResDTO> apiResponse = ApiResponse.success(memberInfoResDTO, "회사 내 개인 정보 조회에 성공하였습니다.");
+
+        return ResponseEntity.ok(apiResponse);
+
+    }
+
+    // 회사 내 개인 정보 수정
+    @OrgAuth
+    @PostMapping("/organizations/{orgId}/me")
+    public ResponseEntity<ApiResponse<MyMemberInfoResDTO>> updateMyMemberInfoInOrg(@OrgId @PathVariable Long orgId, @RequestBody MyMemberInfoReqDTO myMemberInfoReqDTO) {
+
+        MyMemberInfoResDTO memberInfoResDTO = memberService.updateMyMemberInfoInOrg(orgId, myMemberInfoReqDTO);
+
+        ApiResponse<MyMemberInfoResDTO> apiResponse = ApiResponse.success(memberInfoResDTO, "회사 내 개인 정보 수정에 성공하였습니다.");
+
+        return ResponseEntity.ok(apiResponse);
+
     }
 
 

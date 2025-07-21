@@ -39,7 +39,15 @@ public class MemberEntity {
         this.email = email;
     }
 
-    public void anonymizeName(String suffix) {
-        this.name = "Anonymous_" + suffix;
+    public void anonymizeMember(String suffix) {
+        this.name = "Anonymous_Name" + suffix;
+        this.email = "Anonymous_Email" + suffix;
+    }
+
+    public void changeMyMemberInfo(String name, String phone, String email, String profileImgUrl) {
+        if (name != null && !name.isBlank()) this.name = name;
+        if (phone != null) this.phone = phone;
+        if (email != null) this.email = email;
+        if (profileImgUrl != null) this.profileImgUrl = profileImgUrl;
     }
 }

@@ -49,7 +49,13 @@ const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
     setEmailError(emailValidation.error);
     setPasswordError(passwordValidation.error);
 
-    if (!emailValidation.isValid || !passwordValidation.isValid) {
+    // 비밀번호 확인 검증 추가
+    if (passwordConfirm !== password) {
+      setPasswordConfirmError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    if (!emailValidation.isValid || !passwordValidation.isValid || passwordConfirm !== password) {
       return;
     }
 
@@ -69,6 +75,15 @@ const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
   const handlePasswordConfirmBlur = () => {
     if (passwordConfirm !== password) {
       setPasswordConfirmError('비밀번호가 일치하지 않습니다.');
+    } else {
+      setPasswordConfirmError('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
     }
   };
 
@@ -85,6 +100,7 @@ const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
           placeholder="이메일을 입력하세요"
           value={email}
           onChange={handleEmailChange}
+          onKeyPress={handleKeyPress}
           disabled={isLoading}
           className={emailError ? 'border-red-500' : ''}
         />
@@ -102,6 +118,7 @@ const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
           placeholder="비밀번호를 입력하세요"
           value={password}
           onChange={handlePasswordChange}
+          onKeyDown={handleKeyPress}
           disabled={isLoading}
           className={passwordError ? 'border-red-500' : ''}
         />
@@ -120,10 +137,11 @@ const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
           value={passwordConfirm}
           onChange={handlePasswordConfirmChange}
           onBlur={handlePasswordConfirmBlur}
+          onKeyDown={handleKeyPress}
           disabled={isLoading}
           className={passwordConfirmError ? 'border-red-500' : ''}
         />
-        {passwordConfirmError && <p className="text-sm text-red-600">{passwordConfirmError}</p>}
+        {passwordConfirmError && <div className="text-sm text-red-600">{passwordConfirmError}</div>}
       </div>
 
       <ButtonComponent

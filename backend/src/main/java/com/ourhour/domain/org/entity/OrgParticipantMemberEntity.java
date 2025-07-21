@@ -9,15 +9,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.cglib.core.Local;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "tbl_org_participant_member")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 public class OrgParticipantMemberEntity {
 
     @EmbeddedId
@@ -48,19 +48,9 @@ public class OrgParticipantMemberEntity {
     @Column(name = "status", nullable = false)
     private Status status = Status.ACTIVE;
 
-    private LocalDateTime joinedAt;
+    private LocalDate joinedAt;
 
-    private LocalDateTime leftAt;
-
-    @Builder
-    public OrgParticipantMemberEntity(OrgParticipantMemberId orgParticipantMemberId, OrgEntity orgEntity, MemberEntity memberEntity, DepartmentEntity departmentEntity, PositionEntity positionEntity, Role role) {
-        this.orgParticipantMemberId = new OrgParticipantMemberId();
-        this.orgEntity = orgEntity;
-        this.memberEntity = memberEntity;
-        this.departmentEntity = departmentEntity;
-        this.positionEntity = positionEntity;
-        this.role = role;
-    }
+    private LocalDate leftAt;
 
     public void changeRole(Role newRole) {
         this.role = newRole;
@@ -71,6 +61,6 @@ public class OrgParticipantMemberEntity {
     }
 
     public void markLeftNow() {
-        this.leftAt = LocalDateTime.now();
+        this.leftAt = LocalDate.now();
     }
 }

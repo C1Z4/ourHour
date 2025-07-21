@@ -28,4 +28,8 @@ public class OrgException extends BusinessException {
         return new OrgException(403, "자기 자신은 삭제할 수 없습니다. 다른 루트 관리자에게 삭제를 요청하세요.");
     }
 
+    public static OrgException invitationException(String message) {
+        return new OrgException(400, message);
+    }
+
 }

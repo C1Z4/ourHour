@@ -2,6 +2,7 @@ package com.ourhour.domain.org.repository;
 
 import com.ourhour.domain.member.dto.MemberInfoResDTO;
 import com.ourhour.domain.member.entity.MemberEntity;
+import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberId;
 
@@ -22,22 +23,18 @@ import java.util.Optional;
 public interface OrgParticipantMemberRepository
         extends JpaRepository<OrgParticipantMemberEntity, OrgParticipantMemberId> {
 
-    @Query("SELECT new com.ourhour.domain.member.dto.MemberInfoResDTO(" +
-            "m.memberId, m.name, m.email, m.phone, " +
-            "COALESCE(p.name, ''), COALESCE(d.name, ''), m.profileImgUrl) " +
+    @Query("SELECT opm " +
             "FROM OrgParticipantMemberEntity opm " +
             "JOIN opm.memberEntity m " +
             "LEFT JOIN opm.positionEntity p " +
             "LEFT JOIN opm.departmentEntity d " +
             "WHERE opm.orgEntity.orgId = :orgId " +
             "ORDER BY m.memberId ASC")
-    Page<MemberInfoResDTO> findByOrgId(@Param("orgId") Long orgId, Pageable pageable);
+    Page<OrgParticipantMemberEntity> findByOrgId(@Param("orgId") Long orgId, Pageable pageable);
 
     boolean existsByOrgEntity_OrgIdAndMemberEntity_MemberId(Long orgId, Long memberId);
 
-    @Query("SELECT new com.ourhour.domain.member.dto.MemberInfoResDTO(" +
-            "m.memberId, m.name, m.email, m.phone, " +
-            "COALESCE(p.name, ''), COALESCE(d.name, ''), m.profileImgUrl) " +
+    @Query("SELECT opm " +
             "FROM OrgParticipantMemberEntity opm " +
             "JOIN opm.memberEntity m " +
             "LEFT JOIN opm.positionEntity p " +
@@ -80,14 +77,16 @@ public interface OrgParticipantMemberRepository
     // 조직 내 활성 루트 관리자 수 조회
     int countByOrgEntity_OrgIdAndRoleAndStatus(Long orgId, Role role, Status status);
 
-    @Query("SELECT new com.ourhour.domain.member.dto.MemberInfoResDTO(" +
-            "m.memberId, m.name, m.email, m.phone, " +
-            "COALESCE(p.name, ''), COALESCE(d.name, ''), m.profileImgUrl) " +
+    boolean existsByOrgEntityAndMemberEntity(OrgEntity orgEntity, MemberEntity memberToJoin);
+
+    Optional<OrgParticipantMemberEntity> findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(Long orgId, Long userId, Status status);
+
+    @Query("SELECT opm " +
             "FROM OrgParticipantMemberEntity opm " +
             "JOIN opm.memberEntity m " +
             "LEFT JOIN opm.positionEntity p " +
             "LEFT JOIN opm.departmentEntity d " +
             "WHERE opm.orgEntity.orgId = :orgId " +
             "ORDER BY m.memberId ASC")
-   List<MemberInfoResDTO> findAllByOrgEntity_OrgId(Long orgId);
+   List<OrgParticipantMemberEntity> findAllByOrgEntity_OrgId(Long orgId);
 }

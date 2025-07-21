@@ -49,7 +49,7 @@ export const ProjectModal = ({
   const { data: orgMembersData } = useOrgMemberListQuery({
     orgId,
   });
-  const orgMembers = orgMembersData?.data.data.flat();
+  const orgMembers = Array.isArray(orgMembersData?.data) ? orgMembersData.data : [];
   const orgMemberTotalPages = orgMembersData?.data.totalPages;
 
   const parseDate = (dateString: string | undefined): Date | undefined => {

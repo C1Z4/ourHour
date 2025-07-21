@@ -14,7 +14,7 @@ interface UseProjectUpdateMutationParams {
 
 export const useProjectUpdateMutation = ({ orgId, projectId }: UseProjectUpdateMutationParams) =>
   useMutation({
-    mutationFn: (request: PutUpdateProjectRequest) => putUpdateProject(request),
+    mutationFn: (request: PutUpdateProjectRequest) => putUpdateProject({ ...request, orgId }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId],

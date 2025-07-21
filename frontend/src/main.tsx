@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { Provider } from 'react-redux';
 
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import ReactDOM from 'react-dom/client';
 import { ToastContainer } from 'react-toastify';
@@ -57,6 +58,7 @@ if (!rootElement.innerHTML) {
             pauseOnHover
             theme="light"
           />
+          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
         </QueryClientProvider>
       </Provider>
     </StrictMode>,

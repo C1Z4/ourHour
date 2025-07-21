@@ -3,7 +3,8 @@ package com.ourhour.domain.org.enums;
 public enum Role {
     ROOT_ADMIN("루트관리자", 3),
     ADMIN("관리자", 2),
-    MEMBER("일반회원", 1);
+    MEMBER("일반회원", 1),
+    GUEST("게스트", 0);
 
     private final String description;
     private final int level;
