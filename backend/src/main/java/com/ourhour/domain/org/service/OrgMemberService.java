@@ -2,6 +2,7 @@ package com.ourhour.domain.org.service;
 
 import com.ourhour.domain.member.dto.MemberInfoResDTO;
 import com.ourhour.domain.member.exceptions.MemberException;
+import com.ourhour.domain.org.dto.OrgDeptAndPositionReqDTO;
 import com.ourhour.domain.org.dto.OrgMemberRoleReqDTO;
 import com.ourhour.domain.org.dto.OrgMemberRoleResDTO;
 import com.ourhour.domain.org.entity.DepartmentEntity;
@@ -10,12 +11,15 @@ import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.mapper.OrgParticipantMemberMapper;
+import com.ourhour.domain.org.repository.OrgDepartmentRepository;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
+import com.ourhour.domain.org.repository.OrgPositionRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.domain.user.service.AnonymizeUserService;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.exception.BusinessException;
 import com.ourhour.global.jwt.util.UserContextHolder;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +39,8 @@ public class OrgMemberService {
     private final OrgParticipantMemberMapper orgParticipantMemberMapper;
     private final OrgRoleGuardService orgRoleGuardService;
     private final AnonymizeUserService anonymizeUserService;
+    private final OrgDepartmentRepository OrgDepartmentRepository;
+    private final OrgPositionRepository OrgPositionRepository;
 
     // 회사 구성원 목록 조회
     public PageResponse<MemberInfoResDTO> getOrgMembers(Long orgId, Pageable pageable) {
@@ -180,6 +186,31 @@ public class OrgMemberService {
                 .collect(Collectors.toList());
 
         return memberInfoResDTOList;
+    }
+
+    //구성원 부서 및 직책 변경 (단순 버전)
+    public void updateMemberDeptAndPosition(Long orgId, Long memberId, @Valid OrgDeptAndPositionReqDTO reqDTO) {
+    // 1. 수정할 구성원 조회
+        OrgParticipantMemberEntity participantMember = orgParticipantMemberRepository
+                .findByOrgEntity_OrgIdAndMemberEntity_MemberId(orgId, memberId);
+
+    // 2. 부서 정보 업데이트
+        if (reqDTO.getDepartmentId() != null) {
+            DepartmentEntity department = OrgDepartmentRepository.findById(reqDTO.getDepartmentId())
+                    .orElseThrow(() -> new BusinessException(404, "존재하지 않는 부서입니다."));
+            participantMember.changeDepartment(department);
+        } else {
+            participantMember.removeDepartment();
+        }
+
+    // 3. 직책 정보 업데이트
+        if (reqDTO.getPositionId() != null) {
+            PositionEntity position = OrgPositionRepository.findById(reqDTO.getPositionId())
+                    .orElseThrow(() -> new BusinessException(404, "존재하지 않는 직책입니다."));
+            participantMember.changePosition(position);
+        } else {
+            participantMember.removePosition();
+        }
     }
 
 }

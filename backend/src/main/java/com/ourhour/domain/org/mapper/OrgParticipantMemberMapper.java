@@ -60,4 +60,6 @@ public interface OrgParticipantMemberMapper {
     @Mapping(source = "opm.role", target="role")
     MyMemberInfoResDTO toMyMemberInfoResDTO(OrgParticipantMemberEntity opm);
 
+
+
 }

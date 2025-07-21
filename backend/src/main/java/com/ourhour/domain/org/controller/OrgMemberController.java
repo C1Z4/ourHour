@@ -1,6 +1,7 @@
 package com.ourhour.domain.org.controller;
 
 import com.ourhour.domain.member.dto.MemberInfoResDTO;
+import com.ourhour.domain.org.dto.OrgDeptAndPositionReqDTO;
 import com.ourhour.domain.org.dto.OrgMemberRoleReqDTO;
 import com.ourhour.domain.org.dto.OrgMemberRoleResDTO;
 import com.ourhour.domain.org.enums.Role;
@@ -9,6 +10,7 @@ import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -95,6 +97,19 @@ public class OrgMemberController {
 
         return ResponseEntity.ok(apiResponse);
 
+    }
+
+    // 구성원 부서 및 직책 수정 엔드포인트
+    @OrgAuth(accessLevel = Role.ADMIN) // 관리자 이상 권한
+    @PatchMapping("/{orgId}/members/{memberId}/details")
+    public ResponseEntity<ApiResponse<Void>> updateMemberDetails(
+            @OrgId @PathVariable Long orgId,
+            @PathVariable Long memberId,
+            @Valid @RequestBody OrgDeptAndPositionReqDTO reqDTO) {
+
+        orgMemberService.updateMemberDeptAndPosition(orgId, memberId, reqDTO);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "구성원 정보(부서/직책) 수정에 성공하였습니다."));
     }
 
 }
