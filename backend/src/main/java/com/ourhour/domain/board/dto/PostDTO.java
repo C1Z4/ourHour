@@ -2,6 +2,7 @@ package com.ourhour.domain.board.dto;
 
 
 import com.ourhour.domain.board.entity.PostEntity;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,8 +10,9 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Setter
 public class PostDTO {
 
     /* 게시글의 고유 식별자(ID).
