@@ -2,9 +2,7 @@ package com.ourhour.domain.board.entity;
 
 import com.ourhour.domain.member.entity.MemberEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -12,6 +10,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "tbl_post")
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PostEntity {
 
@@ -35,5 +35,10 @@ public class PostEntity {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 
 }

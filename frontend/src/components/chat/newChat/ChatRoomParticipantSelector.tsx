@@ -9,8 +9,7 @@ import {
   CommandList,
 } from '@/components/ui/command.tsx';
 import { Label } from '@/components/ui/label';
-import { useOrgMembersQuery } from '@/hooks/queries/org/useOrgMembersQueries';
-import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
+
 interface Props {
   members: Member[];
   selectedMembers: Member[];
