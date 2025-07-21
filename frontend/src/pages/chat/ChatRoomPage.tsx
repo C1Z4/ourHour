@@ -17,12 +17,12 @@ interface ChatRoomPageProps {
 
 export function ChatRoomPage({ messages, orgId, roomId }: ChatRoomPageProps) {
   const { sendMessage } = useChat(orgId, roomId);
-  const currentMemberId = getMemberIdFromToken();
+  const currentMemberId = getMemberIdFromToken(orgId);
 
   return (
     <SidebarProvider>
       <SidebarInset>
-        <div className="bg-gray-50 py-8 h-[calc(100vh-140px)]">
+        <div className=" py-8 h-[calc(100vh-140px)]">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
             <Card className="text-left h-full flex flex-col ">
               <CardHeader className="flex-row items-center justify-between">

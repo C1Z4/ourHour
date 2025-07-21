@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { useDispatch } from 'react-redux';
 
-import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
+import { createFileRoute, useRouter, useSearch } from '@tanstack/react-router';
 import { ChevronLeft, Plus } from 'lucide-react';
 
 import { PageResponse } from '@/types/apiTypes';
@@ -27,7 +27,8 @@ export const Route = createFileRoute('/start')({
 });
 
 function StartPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
+
   const dispatch = useDispatch();
   const search = useSearch({ from: '/start' });
 
@@ -47,7 +48,7 @@ function StartPage() {
     : (myOrgList?.data?.data ?? []);
 
   const handleBackClick = () => {
-    navigate({ to: '/' });
+    router.navigate({ to: '/' });
   };
 
   const handleCreateCompany = () => {
@@ -97,7 +98,7 @@ function StartPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    navigate({
+    router.navigate({
       to: '/start',
       search: { page },
     });
@@ -108,7 +109,7 @@ function StartPage() {
   };
 
   const handleOrgClick = (orgId: number) => {
-    navigate({
+    router.navigate({
       to: '/org/$orgId/project',
       params: { orgId: orgId.toString() },
       search: { currentPage: 1 },
@@ -123,7 +124,10 @@ function StartPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-white border-b border-gray-200 px-4 py-4">
         <div className="flex items-center justify-center">
-          <div className="flex items-center space-x-2">
+          <div
+            className="flex items-center space-x-2 cursor-pointer"
+            onClick={() => router.navigate({ to: '/' })}
+          >
             <img src={logo} alt="OurHour Logo" className="w-10 h-10" />
             <h1 className="text-xl font-bold text-[#467599]">OURHOUR</h1>
           </div>

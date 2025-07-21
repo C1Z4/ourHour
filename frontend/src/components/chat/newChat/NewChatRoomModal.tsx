@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { toast } from 'react-toastify';
 
@@ -37,10 +37,9 @@ export const NewChatRoomModal = ({ orgId }: Props) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!currentUser) {
-      toast('error');
-      return;
-    }
+    // if (!currentUser) {
+    //   return;
+    // }
 
     let savedName = inputName.trim();
     const savedMembers = [currentUser, ...selectedMembers];
@@ -49,7 +48,7 @@ export const NewChatRoomModal = ({ orgId }: Props) => {
       if (selectedMembers.length === 0) {
         savedName = '나만의 채팅방';
       } else {
-        savedName = savedMembers.map((member) => member.name).join(', ');
+        savedName = savedMembers.map((member) => member?.name).join(', ');
       }
     }
 
@@ -57,7 +56,7 @@ export const NewChatRoomModal = ({ orgId }: Props) => {
       {
         name: savedName,
         color: selectedColor,
-        memberIds: savedMembers.map((member) => member.memberId),
+        memberIds: savedMembers.map((member) => member?.memberId ?? 0),
       },
       {
         onSuccess: () => {

@@ -19,16 +19,16 @@ interface Props {
 }
 
 export const ChatRoomRow = ({ orgId, chatRoom }: Props) => {
-  const { data: messages = [], isLoading } = useChatMessagesQuery(Number(orgId), chatRoom.roomId);
+  const { data: messages = [], isLoading } = useChatMessagesQuery(Number(orgId), chatRoom?.roomId);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const latestMessage = messages[messages.length - 1]?.message ?? '메시지가 없습니다.';
-  const { mutate: updateColor } = useUpdateChatRoomQuery(orgId, chatRoom.roomId);
+  const { mutate: updateColor } = useUpdateChatRoomQuery(orgId, chatRoom?.roomId);
   const handleColorSelect = (e: React.MouseEvent, color: keyof typeof CHAT_COLORS) => {
     e.stopPropagation();
 
     updateColor({
-      name: chatRoom.name,
+      name: chatRoom?.name ?? '',
       color: color,
     });
     setIsPopoverOpen(false);
@@ -46,7 +46,7 @@ export const ChatRoomRow = ({ orgId, chatRoom }: Props) => {
                 setIsPopoverOpen(true);
               }}
               className="inline-flex h-6 w-6 justify-center rounded-full items-center"
-              style={{ backgroundColor: CHAT_COLORS[chatRoom.color] }}
+              style={{ backgroundColor: CHAT_COLORS[chatRoom?.color as keyof typeof CHAT_COLORS] }}
               aria-label="Change color"
             />
           </PopoverTrigger>
@@ -74,9 +74,9 @@ export const ChatRoomRow = ({ orgId, chatRoom }: Props) => {
       </TableCell>
       <Link
         to="/org/$orgId/chat/$roomId"
-        params={{ orgId: String(orgId), roomId: String(chatRoom.roomId) }}
+        params={{ orgId: String(orgId), roomId: String(chatRoom?.roomId) }}
       >
-        <TableCell className="flex item-center py-4">{chatRoom.name}</TableCell>
+        <TableCell className="flex item-center py-4">{chatRoom?.name}</TableCell>
       </Link>
       <TableCell>{isLoading ? '로딩 중...' : latestMessage}</TableCell>
       <TableCell>
@@ -86,7 +86,7 @@ export const ChatRoomRow = ({ orgId, chatRoom }: Props) => {
         {isModalOpen && (
           <ChatRoomDetailModal
             orgId={orgId}
-            roomId={chatRoom.roomId}
+            roomId={chatRoom?.roomId ?? 0}
             onClose={() => setIsModalOpen(false)}
           />
         )}

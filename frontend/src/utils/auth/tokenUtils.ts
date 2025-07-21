@@ -1,6 +1,12 @@
 import { login, logout as logoutAction, setAccessToken, setLoading } from '@/stores/authSlice';
 import { store } from '@/stores/store';
 
+interface OrgAuthority {
+  orgId: number;
+  memberId: number;
+  role: string;
+}
+
 export const setAccessTokenToStore = (token: string | null): void => {
   store.dispatch(setAccessToken(token));
 };
@@ -48,7 +54,7 @@ export const restoreAuthFromServer = async (): Promise<boolean> => {
   }
 };
 
-export const getMemberIdFromToken = (): number => {
+export const getMemberIdFromToken = (orgId: number): number => {
   const token = getAccessTokenFromStore();
   if (!token) {
     return 0;
@@ -57,7 +63,10 @@ export const getMemberIdFromToken = (): number => {
   try {
     const base64Payload = token.split('.')[1];
     const payload = JSON.parse(atob(base64Payload));
-    const memberId = Number(payload?.orgAuthorityList?.[0]?.memberId);
+    const memberId = Number(
+      payload?.orgAuthorityList?.find((authority: OrgAuthority) => authority.orgId === orgId)
+        ?.memberId,
+    );
 
     return typeof memberId === 'number' ? memberId : 0;
   } catch (error) {
