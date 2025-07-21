@@ -8,6 +8,7 @@ import com.ourhour.domain.member.exceptions.MemberException;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.dto.InviteInfoDTO;
 import com.ourhour.domain.org.dto.OrgInvReqDTO;
+import com.ourhour.domain.org.dto.OrgInvResDTO;
 import com.ourhour.domain.org.dto.OrgJoinReqDTO;
 import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.entity.OrgInvBatchEntity;
@@ -15,6 +16,7 @@ import com.ourhour.domain.org.entity.OrgInvEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.InvStatus;
 import com.ourhour.domain.org.enums.Status;
+import com.ourhour.domain.org.mapper.OrgInvMapper;
 import com.ourhour.domain.org.repository.OrgInvBatchRepository;
 import com.ourhour.domain.org.repository.OrgInvRepository;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
@@ -47,11 +49,12 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
     private final MemberRepository memberRepository;
     private final UserRepository userRepository;
     private final OrgRepository orgRepository;
+    private final OrgInvMapper orgInvMapper;
 
     @Value("${spring.service.base-url-email}")
     private String serviceBaseUrl;
 
-    public OrgInvService(EmailSenderService emailSenderService, OrgInvRepository orgInvRepository, OrgInvBatchRepository orgInvBatchRepository, OrgParticipantMemberRepository orgParticipantMemberRepository, MemberRepository memberRepository, UserRepository userRepository, OrgRepository orgRepository) {
+    public OrgInvService(EmailSenderService emailSenderService, OrgInvRepository orgInvRepository, OrgInvBatchRepository orgInvBatchRepository, OrgParticipantMemberRepository orgParticipantMemberRepository, MemberRepository memberRepository, UserRepository userRepository, OrgRepository orgRepository, OrgInvMapper orgInvMapper) {
         super(emailSenderService);
         this.orgInvRepository = orgInvRepository;
         this.orgParticipantMemberRepository = orgParticipantMemberRepository;
@@ -59,6 +62,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
         this.orgInvBatchRepository = orgInvBatchRepository;
         this.userRepository = userRepository;
         this.orgRepository = orgRepository;
+        this.orgInvMapper = orgInvMapper;
     }
 
     // 초대 링크 이메일 발송
@@ -257,6 +261,26 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
 
         // 초대 상태 ACCEPTED로 변경
         orgInvEntity.changeStatusToAccepted();
+    }
+
+    // 초대 목록 및 상태 조회
+    public List<OrgInvResDTO> getInvList(Long orgId) {
+
+        // 해당 회사의 초대 조회
+        List<OrgInvBatchEntity> orgInvBatchEntityList = orgInvBatchRepository.findAllByOrgId(orgId);
+        List<Long> batchIds = orgInvBatchEntityList.stream()
+                .map(OrgInvBatchEntity::getBatchId)
+                .toList();
+
+        List<OrgInvEntity> orgInvEntityList = orgInvRepository.findAllByBatchIds(batchIds);
+
+        // DTO 변환
+        List<OrgInvResDTO> orgInvResDTO = orgInvEntityList.stream()
+                .map(orgInvMapper::toOrgInvResDTO)
+                .toList();
+
+        return orgInvResDTO;
+
     }
 
     // 만료시간 스케쥴링
