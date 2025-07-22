@@ -45,12 +45,15 @@ export const AllPostsCard = ({ orgId }: Props) => {
             }
 
             return allPost.slice(0, 5).map((post) => (
-              <TableRow key={post.postId} className="cursor-pointer hover:bg-muted/50">
-                <TableCell className="font-medium truncate">{post.title}</TableCell>
-                <TableCell className="text-right text-sm text-muted-foreground w-[120px]">
-                  {post.createdAt.substring(0, 10)}
-                </TableCell>
-              </TableRow>
+              <>
+                <TableRow key={post.postId} className="cursor-pointer hover:bg-muted/50">
+                  <TableCell className="font-medium truncate">{post.title}</TableCell>
+                  <TableCell className="text-right text-sm text-muted-foreground w-[120px]">
+                    {post.createdAt.substring(0, 10)}
+                  </TableCell>
+                </TableRow>
+                <TableRow />
+              </>
             ));
           })()}
         </TableBody>

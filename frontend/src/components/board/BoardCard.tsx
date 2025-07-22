@@ -19,7 +19,7 @@ export const BoardCard = ({ orgId, boardId, board }: Props) => {
       <Table>
         <TableHeader className="bg-gray-100">
           <TableRow>
-            <TableHead className="font-semibold">{board.name}</TableHead>
+            <TableHead className="font-semibold text-gray-800">{board.name}</TableHead>
             <TableHead className="text-right">
               <ButtonComponent
                 variant="ghost"
@@ -54,12 +54,15 @@ export const BoardCard = ({ orgId, boardId, board }: Props) => {
             }
 
             return postList.slice(0, 5).map((post) => (
-              <TableRow key={post.postId} className="cursor-pointer hover:bg-muted/50">
-                <TableCell className="font-medium truncate">{post.title}</TableCell>
-                <TableCell className="text-right text-sm text-muted-foreground w-[120px]">
-                  {post.createdAt.substring(0, 10)}
-                </TableCell>
-              </TableRow>
+              <>
+                <TableRow key={post.postId} className="cursor-pointer hover:bg-muted/50">
+                  <TableCell className="font-medium truncate">{post.title}</TableCell>
+                  <TableCell className="text-right text-sm text-muted-foreground w-[120px]">
+                    {post.createdAt.substring(0, 10)}
+                  </TableCell>
+                </TableRow>
+                <TableRow />
+              </>
             ));
           })()}
         </TableBody>
