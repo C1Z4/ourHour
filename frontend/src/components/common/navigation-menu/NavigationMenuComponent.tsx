@@ -79,7 +79,7 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
                     게시판
                   </NavigationMenuLink>
                 </NavigationMenuItem>
-                <NavigationMenuItem>
+                {/* <NavigationMenuItem>
                   <NavigationMenuLink
                     className={`text-sm font-medium cursor-pointer px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
                       isActive === 'mail' ? 'text-black' : 'text-gray-500'
@@ -91,7 +91,7 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
                   >
                     메일
                   </NavigationMenuLink>
-                </NavigationMenuItem>
+                </NavigationMenuItem> */}
                 <NavigationMenuItem>
                   <NavigationMenuLink
                     className={`text-sm font-medium cursor-pointer px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${

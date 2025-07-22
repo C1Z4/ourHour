@@ -7,7 +7,7 @@ import {
   CircleUserRound,
   ClipboardList,
   FolderGit2,
-  Mail,
+  // Mail,
   MessageCircle,
   MoreHorizontal,
   Plus,
@@ -63,21 +63,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: `/org/${currentOrgId}/boards/${board.boardId === 0 ? 'all' : board.boardId}/posts`,
         })),
       },
-      {
-        title: '메일',
-        url: '#',
-        icon: Mail,
-        items: [
-          {
-            title: '보낸 메일함',
-            url: '#',
-          },
-          {
-            title: '받은 메일함',
-            url: '#',
-          },
-        ],
-      },
+      // {
+      //   title: '메일',
+      //   url: '#',
+      //   icon: Mail,
+      //   items: [
+      //     {
+      //       title: '보낸 메일함',
+      //       url: '#',
+      //     },
+      //     {
+      //       title: '받은 메일함',
+      //       url: '#',
+      //     },
+      //   ],
+      // },
       {
         title: '채팅',
         url: '#',
@@ -132,7 +132,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navMain} activeItemId={currentOrgId} />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
