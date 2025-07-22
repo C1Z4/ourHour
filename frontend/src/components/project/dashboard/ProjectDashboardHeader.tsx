@@ -77,7 +77,7 @@ export const ProjectDashboardHeader = ({
               <Plus className="h-4 w-4" />
               마일스톤 등록
             </ButtonComponent>
-            <ButtonComponent variant="danger" size="sm" onClick={handleCreateIssue}>
+            <ButtonComponent variant="primary" size="sm" onClick={handleCreateIssue}>
               <Plus className="h-4 w-4" />
               이슈 등록
             </ButtonComponent>

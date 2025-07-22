@@ -22,6 +22,8 @@ function ProjectListPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [isMyProjectsOnly, setIsMyProjectsOnly] = useState(false);
+
   const { mutate: createProject } = useProjectCreateMutation({
     orgId: Number(orgId),
   });
@@ -47,16 +49,26 @@ function ProjectListPage() {
             <p className="text-gray-600">생성된 모든 프로젝트를 확인하고 관리하세요</p>
           </div>
           <div className="flex gap-2">
-            <ButtonComponent variant="primary" size="sm">
-              전체보기
-            </ButtonComponent>
-            <ButtonComponent variant="primary" size="sm">
-              참여 중인 프로젝트만 보기
-            </ButtonComponent>
-            <ButtonComponent variant="danger" size="sm" onClick={() => setIsModalOpen(true)}>
+            <ButtonComponent variant="primary" size="sm" onClick={() => setIsModalOpen(true)}>
               <Plus size={16} />
               프로젝트 등록
             </ButtonComponent>
+            <div className="flex items-center bg-gray-100 rounded-lg">
+              <ButtonComponent
+                variant={!isMyProjectsOnly ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => setIsMyProjectsOnly(false)}
+              >
+                전체보기
+              </ButtonComponent>
+              <ButtonComponent
+                variant={isMyProjectsOnly ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => setIsMyProjectsOnly(true)}
+              >
+                참여 중인 프로젝트만 보기
+              </ButtonComponent>
+            </div>
           </div>
         </div>
 
