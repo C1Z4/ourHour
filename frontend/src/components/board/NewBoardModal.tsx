@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { ButtonComponent } from '@/components/common/ButtonComponent';
 import {
   Dialog,
   DialogTrigger,
@@ -10,10 +11,9 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { useBoardCreateMutation } from '@/hooks/queries/board/useBoardCreateMutation';
-
-import { ButtonComponent } from '../common/ButtonComponent';
-import { Input } from '../ui/input';
+import { showErrorToast } from '@/utils/toast';
 
 interface Props {
   orgId: number;
@@ -28,6 +28,11 @@ export const NewBoardModal = ({ orgId }: Props) => {
     e.preventDefault();
 
     const savedName = inputName.trim();
+
+    if (savedName === '') {
+      showErrorToast('게시판 이름을 입력해주세요.');
+      return;
+    }
 
     createBoard(
       { name: savedName },
