@@ -1,3 +1,4 @@
+import { ApiResponse, PageResponse } from '@/types/apiTypes';
 import { Post } from '@/types/postTypes';
 
 import axiosInstance from '../axiosConfig';
@@ -7,15 +8,26 @@ export interface PostCreateUpdatePayload {
 }
 
 // 전체 게시글 조회(게시판 구분 x)
-export const getAllPostList = async (orgId: number) => {
-  const response = await axiosInstance.get<Post[]>(`/api/organizations/${orgId}/boards/posts`);
+export const getAllPostList = async (
+  orgId: number,
+  page: number,
+  size: number,
+): Promise<ApiResponse<PageResponse<Post[]>>> => {
+  const response = await axiosInstance.get<ApiResponse<PageResponse<Post[]>>>(
+    `/api/organizations/${orgId}/boards/posts?page=${page}&size=${size}`,
+  );
   return response.data;
 };
 
 // 게시판 별 게시글 조회
-export const getPostList = async (orgId: number, boardId: number) => {
-  const response = await axiosInstance.get<Post[]>(
-    `/api/organizations/${orgId}/boards/${boardId}/posts`,
+export const getPostList = async (
+  orgId: number,
+  boardId: number,
+  page: number,
+  size: number,
+): Promise<ApiResponse<PageResponse<Post[]>>> => {
+  const response = await axiosInstance.get<ApiResponse<PageResponse<Post[]>>>(
+    `/api/organizations/${orgId}/boards/${boardId}/posts?page=${page}&size=${size}`,
   );
   return response.data;
 };
