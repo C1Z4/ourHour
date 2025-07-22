@@ -80,7 +80,7 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg min-h-[600px] shadow-sm">
+    <div className="bg-gray-50 border border-gray-200 rounded-lg min-h-[600px] shadow-sm">
       <div className="p-4">
         <div className="bg-white border border-gray-200 rounded-md p-3 mb-4 shadow-sm">
           <div className="flex items-center justify-between">
