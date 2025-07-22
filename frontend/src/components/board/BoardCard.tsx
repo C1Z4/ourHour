@@ -19,7 +19,7 @@ export const BoardCard = ({ orgId, boardId, board }: Props) => {
       <Table>
         <TableHeader className="bg-gray-100">
           <TableRow>
-            <TableHead className="font-semibold">{board.name}</TableHead>
+            <TableHead className="font-semibold text-gray-800">{board.name}</TableHead>
             <TableHead className="text-right">
               <ButtonComponent
                 variant="ghost"
