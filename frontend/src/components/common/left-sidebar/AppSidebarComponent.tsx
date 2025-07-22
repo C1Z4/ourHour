@@ -60,7 +60,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: ClipboardList,
         items: myBoardList?.map((board) => ({
           title: board.name,
-          url: `/org/${currentOrgId}/boards/${board.boardId}/posts`,
+          url: `/org/${currentOrgId}/boards/${board.boardId === 0 ? 'all' : board.boardId}/posts`,
         })),
       },
       {
