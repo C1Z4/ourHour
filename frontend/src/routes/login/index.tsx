@@ -63,7 +63,9 @@ function LoginPage() {
   };
 
   const handleForgotPasswordClick = () => {
-    console.log('비밀번호 찾기 페이지로 이동');
+    router.navigate({
+      to: '/auth/password/reset',
+    });
   };
 
   const handleSocialLogin = (platform: string) => {
