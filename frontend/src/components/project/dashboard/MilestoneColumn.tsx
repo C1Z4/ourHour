@@ -120,7 +120,7 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
         <ModalComponent
           isOpen={isEditMilestoneModalOpen}
           onClose={() => setIsEditMilestoneModalOpen(false)}
-          title="마일스톤 수정"
+          title="마일스톤명 수정"
           children={
             <Input
               type="text"
