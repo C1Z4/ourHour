@@ -17,6 +17,8 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui
 import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
 import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
 import { useSidebar } from '@/hooks/useSidebar';
+import { useAppDispatch } from '@/stores/hooks';
+import { setCurrentOrgId } from '@/stores/orgSlice';
 import { getImageUrl } from '@/utils/file/imageUtils';
 import { showSuccessToast } from '@/utils/toast';
 
@@ -24,7 +26,7 @@ export function TeamSwitcher() {
   const params = useParams({ strict: false });
   const orgId = params.orgId;
   const router = useRouter();
-
+  const dispatch = useAppDispatch();
   const { isMobile } = useSidebar();
 
   const { mutate: createOrg } = useOrgCreateMutation();
@@ -155,7 +157,10 @@ export function TeamSwitcher() {
             {currentOrgs.map((team) => (
               <DropdownMenuItem
                 key={team.orgId}
-                onClick={() => setActiveTeam(team)}
+                onClick={() => {
+                  setActiveTeam(team);
+                  dispatch(setCurrentOrgId(team.orgId));
+                }}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-md border">

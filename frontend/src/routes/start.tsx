@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
 import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
 import { setMemberName } from '@/stores/memberSlice';
+import { setCurrentOrgId } from '@/stores/orgSlice';
 import { getImageUrl } from '@/utils/file/imageUtils';
 import { showSuccessToast } from '@/utils/toast';
 
@@ -109,6 +110,7 @@ function StartPage() {
   };
 
   const handleOrgClick = (orgId: number) => {
+    dispatch(setCurrentOrgId(orgId));
     router.navigate({
       to: '/org/$orgId/project',
       params: { orgId: orgId.toString() },

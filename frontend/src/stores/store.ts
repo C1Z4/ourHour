@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import authReducer from '@/stores/authSlice';
 import memberReducer from '@/stores/memberSlice';
+import orgReducer from '@/stores/orgSlice';
 import projectReducer from '@/stores/projectSlice';
 
 export const store = configureStore({
@@ -9,6 +10,7 @@ export const store = configureStore({
     auth: authReducer,
     memberName: memberReducer,
     projectName: projectReducer,
+    activeOrgId: orgReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

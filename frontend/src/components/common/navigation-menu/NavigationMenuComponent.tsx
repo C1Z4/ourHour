@@ -12,10 +12,13 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from '@/components/ui/navigation-menu';
+import { useAppSelector } from '@/stores/hooks';
 
 export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean }) {
   const location = useLocation();
   const orgId = location.pathname.split('/')[2];
+
+  const currentOrgId = useAppSelector((state) => state.activeOrgId.currentOrgId);
 
   const [isActive, setIsActive] = useState('');
 
@@ -31,7 +34,17 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
         <div className="flex items-center justify-between">
           <div
             className="flex items-center space-x-2 cursor-pointer"
-            onClick={() => router.navigate({ to: '/start', search: { page: 1 } })}
+            onClick={() => {
+              if (!isInfoPage) {
+                router.navigate({ to: '/start', search: { page: 1 } });
+              } else {
+                router.navigate({
+                  to: '/org/$orgId/project',
+                  params: { orgId: currentOrgId?.toString() ?? '' },
+                  search: { currentPage: 1 },
+                });
+              }
+            }}
           >
             <img src={logo} alt="OurHour Logo" className="w-10 h-10" />
             <span className="text-xl font-bold text-[#467599]">OURHOUR</span>

@@ -10,6 +10,7 @@ import { OrgFormData, OrgModal } from '@/components/org/OrgModal';
 import { Sidebar, SidebarContent, SidebarRail } from '@/components/ui/sidebar';
 import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
 import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
+import { useAppSelector } from '@/stores/hooks';
 import { showSuccessToast } from '@/utils/toast';
 
 const PlusIcon = () => <Plus className="h-4 w-4" />;
@@ -18,7 +19,8 @@ const FileCogIcon = () => <FileCog className="h-4 w-4" />;
 
 export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [isCreateOrgModalOpen, setIsCreateOrgModalOpen] = useState(false);
-  const [activeOrgId, setActiveOrgId] = useState<number | null>(null);
+  const currentOrgId = useAppSelector((state) => state.activeOrgId.currentOrgId);
+  const [activeOrgId, setActiveOrgId] = useState<number | null>(currentOrgId);
 
   const { mutate: createOrg } = useOrgCreateMutation();
 

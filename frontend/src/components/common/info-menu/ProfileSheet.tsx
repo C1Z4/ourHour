@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import { MEMBER_ROLE_STYLES } from '@/constants/badges';
 import { useSignoutMutation } from '@/hooks/queries/auth/useAuthMutations';
 import useMyMemberInfoQuery from '@/hooks/queries/member/useMyMemberInfoQuery';
+import { useAppSelector } from '@/stores/hooks';
 import { getImageUrl } from '@/utils/file/imageUtils';
 
 interface ProfileSheetProps {
@@ -36,9 +37,10 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
     });
   };
 
+  const activeOrgId = useAppSelector((state) => state.activeOrgId.currentOrgId);
   const handleProfileManagement = () => {
     router.navigate({
-      to: '/info/password',
+      to: `/info/${activeOrgId}`,
     });
   };
 
