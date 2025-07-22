@@ -2,8 +2,8 @@ import { ChatMessage } from '@/types/chatTypes.ts';
 
 import { ChatMessageInput } from '@/components/chat/room/ChatMessageInput.tsx';
 import { ChatMessageList } from '@/components/chat/room/ChatMessageList.tsx';
+import { RenamePopover } from '@/components/chat/room/ChatRoomRenamePopover';
 import { ChatRoomSidebarContent } from '@/components/chat/room/ChatRoomSidebarContent';
-import { RenamePopover } from '@/components/chat/room/RenamePopover';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Sidebar, SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';

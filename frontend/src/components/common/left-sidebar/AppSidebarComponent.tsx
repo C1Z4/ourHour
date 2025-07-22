@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 import { ChatRoomDeleteAlert } from '@/components/chat/list/ChatRoomDeleteAlert';
-import { RenamePopover } from '@/components/chat/room/RenamePopover';
+import { RenamePopover } from '@/components/chat/room/ChatRoomRenamePopover';
 import { NavMain } from '@/components/common/left-sidebar/NavMain';
 import { TeamSwitcher } from '@/components/common/left-sidebar/TeamSwitcher';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
