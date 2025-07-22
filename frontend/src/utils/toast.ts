@@ -14,7 +14,7 @@ interface ToastOptions {
 }
 
 const defaultOptions: ToastOptions = {
-  autoClose: 3000,
+  autoClose: 1000,
   position: 'top-center',
 };
 

@@ -6,6 +6,7 @@ import postCreateOrg, { PostCreateOrgRequest } from '@/api/org/postCreateOrg';
 import { ORG_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
 import { handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const useOrgCreateMutation = () =>
   useMutation({
@@ -15,9 +16,11 @@ export const useOrgCreateMutation = () =>
         queryKey: [ORG_QUERY_KEYS.MY_ORG_LIST],
         exact: false,
       });
+      showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
     },
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
+      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
     },
   });

@@ -3,7 +3,6 @@ import { useNavigate } from '@tanstack/react-router';
 import { IssueDetail } from '@/api/project/getProjectIssueDetail';
 import useIssueDeleteMutation from '@/hooks/queries/project/useIssueDeleteMutation';
 import useProjectIssueDetailQuery from '@/hooks/queries/project/useProjectIssueDetailQuery';
-import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 import { CommentSection } from './CommentSection';
 import { IssueDetailContent } from './IssueDetailContent';
@@ -49,7 +48,6 @@ export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPagePr
   const handleDeleteIssue = () => {
     try {
       deleteIssue();
-      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
       navigate({
         to: '/org/$orgId/project/$projectId',
         params: { orgId, projectId },

@@ -9,7 +9,6 @@ import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ProjectModal } from '@/components/project/modal/ProjectModal';
 import { ProjectDataTable } from '@/components/project/project-list';
 import { useProjectCreateMutation } from '@/hooks/queries/project/useProjectCreateMutation';
-import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const Route = createFileRoute('/org/$orgId/project/')({
   component: ProjectListPage,
@@ -28,20 +27,14 @@ function ProjectListPage() {
   });
 
   const handleProjectSubmit = (data: Partial<ProjectBaseInfo>) => {
-    try {
-      createProject({
-        orgId: Number(orgId),
-        name: data.name || '',
-        description: data.description || '',
-        startAt: data.startAt || '',
-        endAt: data.endAt || '',
-        status: data.status,
-      } as unknown as PostCreateProjectRequest);
-      showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
-    } catch (error: unknown) {
-      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
-    }
-
+    createProject({
+      orgId: Number(orgId),
+      name: data.name || '',
+      description: data.description || '',
+      startAt: data.startAt || '',
+      endAt: data.endAt || '',
+      status: data.status,
+    } as unknown as PostCreateProjectRequest);
     setIsModalOpen(false);
   };
 

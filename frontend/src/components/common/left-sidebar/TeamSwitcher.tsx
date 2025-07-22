@@ -20,7 +20,6 @@ import { useSidebar } from '@/hooks/useSidebar';
 import { useAppDispatch } from '@/stores/hooks';
 import { setCurrentOrgId } from '@/stores/orgSlice';
 import { getImageUrl } from '@/utils/file/imageUtils';
-import { showSuccessToast } from '@/utils/toast';
 
 export function TeamSwitcher() {
   const params = useParams({ strict: false });
@@ -66,25 +65,20 @@ export function TeamSwitcher() {
   };
 
   const handleOrgModalSubmit = async (data: OrgFormData) => {
-    try {
-      await createOrg({
-        memberName: data.memberName,
-        name: data.name,
-        address: data.address === '' ? null : data.address,
-        email: data.email === '' ? null : data.email,
-        phone: data.phone === '' ? null : data.phone,
-        representativeName: data.representativeName === '' ? null : data.representativeName,
-        businessNumber: data.businessNumber === '' ? null : data.businessNumber,
-        logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl,
-      });
-      showSuccessToast('회사 생성 완료');
-      setIsOrgModalOpen(false);
+    await createOrg({
+      memberName: data.memberName,
+      name: data.name,
+      address: data.address === '' ? null : data.address,
+      email: data.email === '' ? null : data.email,
+      phone: data.phone === '' ? null : data.phone,
+      representativeName: data.representativeName === '' ? null : data.representativeName,
+      businessNumber: data.businessNumber === '' ? null : data.businessNumber,
+      logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl,
+    });
+    setIsOrgModalOpen(false);
 
-      // 페이지 새로고침(임시)
-      window.location.reload();
-    } catch (error) {
-      // 에러 토스트
-    }
+    // 페이지 새로고침(임시)
+    window.location.reload();
   };
 
   const handleImageError = (orgId: number) => {

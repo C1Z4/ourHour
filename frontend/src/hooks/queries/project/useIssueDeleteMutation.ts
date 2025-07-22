@@ -1,8 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
 
+import { AxiosError } from 'axios';
+
 import deleteIssue from '@/api/project/deleteIssue';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
+import { handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface UseIssueDeleteMutationParams {
   projectId: number;
@@ -25,6 +29,12 @@ const useIssueDeleteMutation = ({
         queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, projectId, milestoneId],
         exact: false,
       });
+      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
+    },
+    onError: (error: AxiosError) => {
+      logError(error);
+      handleHttpError(error);
+      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
     },
   });
 

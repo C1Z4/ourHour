@@ -6,6 +6,7 @@ import postCreateProject, { PostCreateProjectRequest } from '@/api/project/postC
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
 import { handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface UseProjectCreateMutationParams {
   orgId: number;
@@ -19,9 +20,11 @@ export const useProjectCreateMutation = ({ orgId }: UseProjectCreateMutationPara
         queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, orgId],
         exact: false,
       });
+      showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
     },
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
+      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
     },
   });

@@ -6,6 +6,7 @@ import postCreateMilestone, { PostCreateMilestoneRequest } from '@/api/project/p
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
 import { handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { showSuccessToast, TOAST_MESSAGES, showErrorToast } from '@/utils/toast';
 
 interface UseMilestoneCreateMutationParams {
   projectId: number;
@@ -19,9 +20,11 @@ export const useMilestoneCreateMutation = ({ projectId }: UseMilestoneCreateMuta
         queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
         exact: false,
       });
+      showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
     },
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
+      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
     },
   });

@@ -13,7 +13,6 @@ import { Progress } from '@/components/ui/progress';
 import useMilestoneDeleteMutation from '@/hooks/queries/project/useMilestoneDeleteMutation';
 import { useMilestoneUpdateMutation } from '@/hooks/queries/project/useMilestoneUpdateMutation';
 import useProjectIssueListQuery from '@/hooks/queries/project/useProjectIssueListQuery';
-import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface MilestoneColumnProps {
   milestone: ProjectMilestone | { milestoneId: number | null; name: string };
@@ -50,26 +49,16 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
   });
 
   const handleEditMilestone = () => {
-    try {
-      updateMilestone({
-        name: milestoneName,
-        milestoneId: milestone?.milestoneId || null,
-      });
-      showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
-      setIsEditMilestoneModalOpen(false);
-      setMilestoneName(milestoneName);
-    } catch (error) {
-      // 에러 토스트 띄워주기기
-    }
+    updateMilestone({
+      name: milestoneName,
+      milestoneId: milestone?.milestoneId || null,
+    });
+    setIsEditMilestoneModalOpen(false);
+    setMilestoneName(milestoneName);
   };
 
   const handleDeleteMilestone = () => {
-    try {
-      deleteMilestone();
-      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
-    } catch (error) {
-      // 에러 토스트 띄워주기기
-    }
+    deleteMilestone();
   };
 
   const handleCreateIssue = () => {

@@ -4,7 +4,6 @@ import logo from '@/assets/images/logo.png';
 import { useSignoutMutation } from '@/hooks/queries/auth/useAuthMutations';
 import { useAppSelector } from '@/stores/hooks';
 
-import { showSuccessToast, TOAST_MESSAGES } from '../../utils/toast';
 import { ButtonComponent } from '../common/ButtonComponent';
 
 const smoothScrollTo = (elementId: string) => {
@@ -22,15 +21,10 @@ export const Header = () => {
   const accessToken = useAppSelector((state) => state.auth.accessToken);
 
   const handleSignout = () => {
-    try {
-      signout();
-      showSuccessToast(TOAST_MESSAGES.AUTH.LOGOUT_SUCCESS);
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 1000);
-    } catch (error) {
-      // 에러 토스트
-    }
+    signout();
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 1000);
   };
 
   // 토큰 검증이 완료될 때까지 로딩 상태 표시

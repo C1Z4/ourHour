@@ -8,7 +8,6 @@ import { ModalComponent } from '@/components/common/ModalComponent';
 import { Input } from '@/components/ui/input';
 import { useMilestoneCreateMutation } from '@/hooks/queries/project/useMilestoneCreateMutation';
 import { useAppSelector } from '@/stores/hooks';
-import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface ProjectDashboardHeaderProps {
   isMyIssuesOnly: boolean;
@@ -34,15 +33,11 @@ export const ProjectDashboardHeader = ({
   });
 
   const handleCreateMilestone = () => {
-    try {
-      createMilestone({
-        name: milestoneName,
-        projectId: Number(projectId),
-      });
-      showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
-    } catch (error) {
-      // 에러 토스트 띄워주기
-    }
+    createMilestone({
+      name: milestoneName,
+      projectId: Number(projectId),
+    });
+
     setIsCreateMilestoneModalOpen(false);
     setMilestoneName('');
   };

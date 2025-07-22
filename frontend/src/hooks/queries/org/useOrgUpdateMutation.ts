@@ -7,6 +7,7 @@ import putUpdateOrg from '@/api/org/putUpdateOrg';
 import { ORG_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
 import { handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface UseOrgUpdateMutationParams {
   orgId: number;
@@ -19,9 +20,11 @@ export const useOrgUpdateMutation = ({ orgId }: UseOrgUpdateMutationParams) =>
       queryClient.invalidateQueries({
         queryKey: [ORG_QUERY_KEYS.ORG_INFO, orgId],
       });
+      showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
     },
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
+      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
     },
   });
