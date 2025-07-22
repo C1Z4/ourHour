@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteBoard } from '@/api/board/boardApi';
 import { showToast } from '@/utils/toast';
 
-export const useBoardCreateMutation = (orgId: number, boardId: number) => {
+export const useBoardDeleteMutation = (orgId: number, boardId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({

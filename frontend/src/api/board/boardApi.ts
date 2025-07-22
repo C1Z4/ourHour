@@ -7,7 +7,7 @@ export interface BoardCreatePayload {
 }
 
 export interface BoardUpdatePayload {
-  boardId: number;
+  name: string;
 }
 
 export const getBoardList = async (orgId: number) => {
