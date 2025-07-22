@@ -1,14 +1,28 @@
+import { useRouter } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 
+import { ButtonComponent } from '@/components/common/ButtonComponent';
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from '@/components/ui/table';
 import { useAllPostQuery } from '@/hooks/queries/board/useAllPostQuery';
+import { formatIsoToDate } from '@/utils/auth/dateUtils';
 
-import { ButtonComponent } from '../common/ButtonComponent';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
 interface Props {
   orgId: number;
 }
 export const AllPostsCard = ({ orgId }: Props) => {
-  const { data: allPost, isLoading } = useAllPostQuery(orgId);
+  const router = useRouter();
+
+  const { data: allPostData, isLoading } = useAllPostQuery(orgId, 1, 5);
+
+  const allPost = Array.isArray(allPostData?.data) ? allPostData.data : [];
+
   return (
     <div className="rounded-lg border border-gray-200 overflow-hidden min-h-[182.5px]">
       <Table>
@@ -16,7 +30,17 @@ export const AllPostsCard = ({ orgId }: Props) => {
           <TableRow>
             <TableHead className="font-semibold text-gray-800">전체 글 보기</TableHead>
             <TableHead className="text-right">
-              <ButtonComponent variant="ghost" size="sm" className="text-xs">
+              <ButtonComponent
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  router.navigate({
+                    to: '/org/$orgId/board/all',
+                    params: { orgId: orgId.toString() },
+                  });
+                }}
+              >
                 더보기 <ArrowRight className="w-3 h-3 ml-1" />
               </ButtonComponent>
             </TableHead>
@@ -44,12 +68,25 @@ export const AllPostsCard = ({ orgId }: Props) => {
               );
             }
 
-            return allPost.slice(0, 5).map((post) => (
+            return allPost.map((post) => (
               <>
-                <TableRow key={post.postId} className="cursor-pointer hover:bg-muted/50">
+                <TableRow
+                  key={post.postId}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => {
+                    router.navigate({
+                      to: '/org/$orgId/board/$boardId/post/$postId',
+                      params: {
+                        orgId: orgId.toString(),
+                        boardId: post.boardId.toString(),
+                        postId: post.postId.toString(),
+                      },
+                    });
+                  }}
+                >
                   <TableCell className="font-medium truncate">{post.title}</TableCell>
                   <TableCell className="text-right text-sm text-muted-foreground w-[120px]">
-                    {post.createdAt.substring(0, 10)}
+                    {formatIsoToDate(post.createdAt)}
                   </TableCell>
                 </TableRow>
                 <TableRow />

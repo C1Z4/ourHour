@@ -123,12 +123,6 @@ axiosInstance.interceptors.response.use(
 
     // 401 에러이고, 재시도한 요청이 아닐 때
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // 로그인 안 됐으면 refresh 시도 X
-      const hasToken = !!getAccessTokenFromStore();
-      if (!hasToken) {
-        return true;
-      }
-
       if (isRefreshing) {
         // 토큰 재발급이 이미 진행 중이라면, 이 요청은 대기열에 추가
         return new Promise<string>((resolve, reject) => {

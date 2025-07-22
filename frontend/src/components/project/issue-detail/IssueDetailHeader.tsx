@@ -10,6 +10,7 @@ import {
 import { useAppSelector } from '@/stores/hooks';
 
 interface IssueDetailHeaderProps {
+  type: 'board' | 'project';
   milestoneName: string;
   issueTitle: string;
   orgId: string;
@@ -17,6 +18,7 @@ interface IssueDetailHeaderProps {
 }
 
 export const IssueDetailHeader = ({
+  type,
   milestoneName,
   issueTitle,
   orgId,
@@ -31,9 +33,15 @@ export const IssueDetailHeader = ({
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link to="/org/$orgId/project/$projectId" params={{ orgId, projectId }}>
-                  {currentProjectName}
-                </Link>
+                {type === 'board' ? (
+                  <Link to="/org/$orgId/board" params={{ orgId }}>
+                    게시판 메인
+                  </Link>
+                ) : (
+                  <Link to="/org/$orgId/project/$projectId" params={{ orgId, projectId }}>
+                    {currentProjectName}
+                  </Link>
+                )}
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />

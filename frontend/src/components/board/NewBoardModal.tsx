@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
+import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { Input } from '@/components/ui/input';
 import { useBoardCreateMutation } from '@/hooks/queries/board/useBoardCreateMutation';
+import { showErrorToast } from '@/utils/toast';
 
 import { BoardModal } from './BoardModal';
-import { ButtonComponent } from '../common/ButtonComponent';
-import { Input } from '../ui/input';
 
 interface Props {
   orgId: number;
@@ -15,8 +16,15 @@ export const NewBoardModal = ({ orgId }: Props) => {
   const [inputName, setInputName] = useState('');
 
   const handleConfirm = () => {
+    const savedName = inputName.trim();
+
+    if (savedName === '') {
+      showErrorToast('게시판 이름을 입력해주세요.');
+      return;
+    }
+
     createBoard(
-      { name: inputName.trim() },
+      { name: savedName },
       {
         onSuccess: () => setInputName(''),
       },
