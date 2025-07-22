@@ -62,6 +62,7 @@ export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPagePr
   return (
     <div className="bg-white">
       <IssueDetailHeader
+        type="project"
         milestoneName={issue.milestoneName}
         issueTitle={issue.name}
         orgId={orgId}

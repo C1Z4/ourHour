@@ -20,16 +20,16 @@ import { usePostUpdateMutation } from '@/hooks/queries/board/usePostUpdateMutati
 
 interface PostFormPageProps {
   orgId: number;
-  boardId?: number;
+  boardId: number;
   postId?: number;
   initialData?: Post;
 }
-export const PostFormPage = ({ orgId, initialData }: PostFormPageProps) => {
+export const PostFormPage = ({ orgId, boardId, postId, initialData }: PostFormPageProps) => {
   const router = useRouter();
 
   const { mutate: createPost } = usePostCreateMutation(orgId);
 
-  const { mutate: updatePost } = usePostUpdateMutation(orgId);
+  const { mutate: updatePost } = usePostUpdateMutation(orgId, Number(boardId), Number(postId));
 
   const { data: boardList } = useBoardListQuery(orgId);
 
@@ -119,22 +119,25 @@ export const PostFormPage = ({ orgId, initialData }: PostFormPageProps) => {
       content: formData.content,
     };
 
-    updatePost(postData, {
-      onSuccess: () => {
-        router.navigate({
-          to: '/org/$orgId/board/$boardId/post/$postId',
-          params: {
-            orgId: orgId.toString(),
-            boardId: formData.boardId?.toString() || '',
-            postId: '',
-          },
-          search: {
-            boardName:
-              boardList?.find((board) => board.boardId === Number(formData.boardId))?.name || '',
-          },
-        });
+    updatePost(
+      { postId, ...postData },
+      {
+        onSuccess: () => {
+          router.navigate({
+            to: '/org/$orgId/board/$boardId/post/$postId',
+            params: {
+              orgId: orgId.toString(),
+              boardId: formData.boardId?.toString() || '',
+              postId: postId?.toString() || '',
+            },
+            search: {
+              boardName:
+                boardList?.find((board) => board.boardId === Number(formData.boardId))?.name || '',
+            },
+          });
+        },
       },
-    });
+    );
   };
 
   const handleCancel = () => {
