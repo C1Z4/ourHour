@@ -9,7 +9,7 @@ export const usePostListQuery = (
   size: number = 10,
 ) =>
   useQuery({
-    queryKey: ['postList', orgId, boardId],
+    queryKey: ['postList', orgId, boardId, page, size],
     queryFn: () => getPostList(orgId, boardId, page, size),
     enabled: !!orgId && !!boardId,
   });
