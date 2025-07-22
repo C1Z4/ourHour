@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react';
-
-import { toast } from 'react-toastify';
+import { useState } from 'react';
 
 import { Member } from '@/types/memberTypes';
 
@@ -19,7 +17,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog.tsx';
 import { useCreateChatRoomQuery } from '@/hooks/queries/chat/useCreateChatRoomQueries';
-import { useOrgMembersWithoutMe } from '@/hooks/queries/chat/useOrgMembersWithoutMe';
+import { useOrgMembersWithoutMe } from '@/hooks/queries/chat/useOrgMembersForChatQueries';
 import { CHAT_COLORS } from '@/styles/colors';
 interface Props {
   orgId: number;

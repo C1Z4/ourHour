@@ -1,7 +1,6 @@
 import { format } from 'date-fns';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -11,11 +10,12 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useChatRoomDetailQuery } from '@/hooks/queries/chat/useChatRoomDetailQueries';
-import { useChatRoomParticipantsQuery } from '@/hooks/queries/chat/useChatRoomParticipantsQueries';
 import { useDeleteChatRoomQuery } from '@/hooks/queries/chat/useDeleteChatRoomQueries';
+import { useOrgMembersChatParticipated } from '@/hooks/queries/chat/useOrgMembersForChatQueries';
 import { CHAT_COLORS } from '@/styles/colors';
 
 import { ChatRoomDeleteAlert } from './ChatRoomDeleteAlert';
+import { ParticipantList } from '../ParticipantList';
 interface Props {
   orgId: number;
   roomId: number;
@@ -24,9 +24,8 @@ interface Props {
 
 export const ChatRoomDetailModal = ({ orgId, roomId, onClose }: Props) => {
   const { data: chatRoom, isLoading } = useChatRoomDetailQuery(orgId, roomId);
-  const { data: chatRoomParticipants } = useChatRoomParticipantsQuery(orgId, roomId);
+  const { detailedParticipants } = useOrgMembersChatParticipated(orgId, roomId);
   const { mutate: deleteRoom, isPending } = useDeleteChatRoomQuery(orgId, roomId);
-
   const handleLeaveChatRoom = () => {
     deleteRoom(undefined, {
       onSuccess: () => {
@@ -59,20 +58,8 @@ export const ChatRoomDetailModal = ({ orgId, roomId, onClose }: Props) => {
           </p>
         </div>
         <div>
-          <p className="text-sm font-medium text-muted-foreground">
-            참여자 ({chatRoomParticipants?.length ?? 0}명)
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2 p-2 bg-muted rounded-md min-h-[60px]">
-            {isLoading ? (
-              <span className="text-sm text-muted-foreground">목록을 불러오는 중...</span>
-            ) : (
-              chatRoomParticipants?.map((participant) => (
-                <Badge key={participant.memberId} variant="secondary">
-                  {participant.memberName}
-                </Badge>
-              ))
-            )}
-          </div>
+          <ParticipantList members={detailedParticipants} isReadOnly={true} />
+          <div className="mt-2 flex flex-wrap gap-2 p-2 bg-muted rounded-md min-h-[60px]" />
         </div>
         <DialogFooter>
           <ChatRoomDeleteAlert onConfirm={handleLeaveChatRoom} isPending={isPending} />
