@@ -4,6 +4,26 @@ import { logError, handleHttpError } from '@/utils/auth/errorUtils';
 import { showLoading, hideLoading } from '@/utils/auth/loadingUtils';
 import { getAccessTokenFromStore, logout, setAccessTokenToStore } from '@/utils/auth/tokenUtils';
 
+// 공개 API 목록
+const PUBLIC_PATHS = [
+  '/api/auth/signup',
+  '/api/auth/check-email',
+  '/api/auth/email-verification',
+  '/api/auth/signin',
+];
+
+function isPublicRequest(url?: string): boolean {
+  if (!url) {
+    return false;
+  }
+  try {
+    const parsed = new URL(url, axiosInstance.defaults.baseURL);
+    return PUBLIC_PATHS.some((p) => parsed.pathname.startsWith(p));
+  } catch {
+    return PUBLIC_PATHS.some((p) => url.includes(p));
+  }
+}
+
 // Access Token을 재발급하는 함수
 const refreshAccessToken = async (): Promise<string | null> => {
   try {
@@ -50,9 +70,14 @@ axiosInstance.interceptors.request.use(
       showLoading();
     }
 
-    const token = getAccessTokenFromStore();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // 공개 API 인 경우 Authorization 헤더 제거
+    if (PUBLIC_PATHS.some((p) => config.url?.startsWith(p))) {
+      delete config.headers?.Authorization;
+    } else {
+      const token = getAccessTokenFromStore();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     return config;
@@ -67,6 +92,10 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     hideLoading();
+
+    if (isPublicRequest(response.config?.url)) {
+      return response;
+    }
 
     if (response.data && typeof response.data === 'object' && 'data' in response.data) {
       return {
@@ -86,10 +115,20 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    if (isPublicRequest(originalRequest.url)) {
+      return true;
+    }
+
     logError(error, originalRequest);
 
     // 401 에러이고, 재시도한 요청이 아닐 때
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // 로그인 안 됐으면 refresh 시도 X
+      const hasToken = !!getAccessTokenFromStore();
+      if (!hasToken) {
+        return true;
+      }
+
       if (isRefreshing) {
         // 토큰 재발급이 이미 진행 중이라면, 이 요청은 대기열에 추가
         return new Promise<string>((resolve, reject) => {
