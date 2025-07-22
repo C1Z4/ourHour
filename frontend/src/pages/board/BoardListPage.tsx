@@ -1,10 +1,8 @@
-import { Plus } from 'lucide-react';
-
 import { Board } from '@/types/boardTypes';
 
 import { AllPostsCard } from '@/components/board/AllPostsCard';
 import { BoardCard } from '@/components/board/BoardCard';
-import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { NewBoardModal } from '@/components/board/NewBoardModal';
 interface Props {
   orgId: number;
   boardList: Board[];
@@ -19,9 +17,10 @@ export const BoardListPage = ({ orgId, boardList }: Props) => (
           <p className="text-gray-600">모든 게시판과 게시글을 확인해보세요</p>
         </div>
         <div className="flex gap-2">
-          <ButtonComponent variant="danger" size="sm" onClick={() => {}}>
+          <NewBoardModal orgId={orgId} />
+          {/* <ButtonComponent variant="danger" size="sm" onClick={() => {}}>
             <Plus size={16} />새 게시판 등록
-          </ButtonComponent>
+          </ButtonComponent> */}
         </div>
       </div>
 

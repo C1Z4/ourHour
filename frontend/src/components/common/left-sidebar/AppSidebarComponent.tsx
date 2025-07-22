@@ -16,6 +16,7 @@ import {
 import { NavMain } from '@/components/common/left-sidebar/NavMain';
 import { TeamSwitcher } from '@/components/common/left-sidebar/TeamSwitcher';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
+import { useBoardListQuery } from '@/hooks/queries/board/useBoardListQuery';
 import useMyProjectListQuery from '@/hooks/queries/org/useMyProjectListQuery';
 import { CHAT_COLORS } from '@/styles/colors';
 
@@ -40,6 +41,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     orgId: currentOrgId,
   });
 
+  const { data: boardList = [] } = useBoardListQuery(currentOrgId);
+  const myBoardList = [{ boardId: 0, name: '전체 글 보기' }, ...boardList];
   const myProjectList = Array.isArray(myProjectListData) ? myProjectListData : [];
 
   const data = {
@@ -54,22 +57,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
       {
         title: '게시판',
-        url: '#',
         icon: ClipboardList,
-        items: [
-          {
-            title: '게시판1',
-            url: '#',
-          },
-          {
-            title: '게시판2',
-            url: '#',
-          },
-          {
-            title: '게시판3',
-            url: '#',
-          },
-        ],
+        items: myBoardList?.map((board) => ({
+          title: board.name,
+          url: `/org/${currentOrgId}/boards/${board.boardId}/posts`,
+        })),
       },
       {
         title: '메일',

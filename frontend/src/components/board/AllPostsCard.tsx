@@ -69,7 +69,8 @@ export const AllPostsCard = ({ orgId }: Props) => {
             }
 
             return allPost.map((post) => (
-              <TableRow
+              <>
+                <TableRow
                 key={post.postId}
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => {
@@ -83,11 +84,13 @@ export const AllPostsCard = ({ orgId }: Props) => {
                   });
                 }}
               >
-                <TableCell className="font-medium truncate">{post.title}</TableCell>
-                <TableCell className="text-right text-sm text-muted-foreground w-[120px]">
-                  {formatIsoToDate(post.createdAt)}
-                </TableCell>
-              </TableRow>
+                  <TableCell className="font-medium truncate">{post.title}</TableCell>
+                  <TableCell className="text-right text-sm text-muted-foreground w-[120px]">
+                    {formatIsoToDate(post.createdAt)}
+                  </TableCell>
+                </TableRow>
+                <TableRow />
+              </>
             ));
           })()}
         </TableBody>
