@@ -8,7 +8,7 @@ import { Post } from '@/types/postTypes';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
-// import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   Table,
   TableHeader,
@@ -63,10 +63,11 @@ export const AllPostListPage = ({ orgId }: AllPostListPageProps) => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
-                    <TableHead className="w-32 text-center">글제목</TableHead>
-                    <TableHead className="w-32 text-center">내용</TableHead>
-                    <TableHead className="w-24 text-center">게시일</TableHead>
-                    <TableHead className="w-24 text-center">작성자</TableHead>
+                    <TableHead className="w-24 text-left">게시판</TableHead>
+                    <TableHead className="w-24 text-left">글제목</TableHead>
+                    <TableHead className="w-48 text-left">내용</TableHead>
+                    <TableHead className="w-24 text-left">게시일</TableHead>
+                    <TableHead className="w-32 text-left">작성자</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -85,24 +86,29 @@ export const AllPostListPage = ({ orgId }: AllPostListPageProps) => {
                         });
                       }}
                     >
-                      <TableCell className="w-32">
-                        <div className="flex items-center gap-3">
-                          {/* <Avatar className="w-8 h-8">
-                      <AvatarImage src={post.authorProfileImgUrl} alt={post.authorName} />
-                      <AvatarFallback className="text-sm">
-                        {post.authorName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar> */}
-                          <span className="font-medium truncate">{post.title}</span>
-                        </div>
+                      <TableCell className="w-24">
+                        <span className="font-medium truncate">{post.boardName}</span>
                       </TableCell>
-                      <TableCell className="w-24 text-center truncate max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap">
+                      <TableCell className="w-24">
+                        <span className="font-medium truncate">{post.title}</span>
+                      </TableCell>
+                      <TableCell className="w-48 text-left truncate max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
                         {post.content}
                       </TableCell>
-                      <TableCell className="w-24 text-center truncate">
+                      <TableCell className="w-24 text-left truncate">
                         {formatIsoToDate(post.createdAt)}
                       </TableCell>
-                      <TableCell className="w-24 text-center truncate">{post.authorName}</TableCell>
+                      <TableCell className="w-32 text-left truncate">
+                        <div className="flex items-center justify-start gap-2">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={post.authorProfileImgUrl} alt={post.authorName} />
+                            <AvatarFallback className="text-sm">
+                              {post.authorName.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{post.authorName}</span>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
