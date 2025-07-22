@@ -10,7 +10,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 interface Props {
   onConfirm: () => void;
   isPending: boolean;
@@ -19,7 +18,7 @@ interface Props {
 export const ChatRoomDeleteAlert = ({ onConfirm, isPending }: Props) => (
   <AlertDialog>
     <AlertDialogTrigger>
-      <Button variant="destructive">나가기</Button>
+      <ButtonComponent variant="danger">나가기</ButtonComponent>
     </AlertDialogTrigger>
     <AlertDialogContent>
       <AlertDialogHeader>

@@ -11,7 +11,7 @@ export const useUpdateChatRoomQuery = (orgId: number, roomId: number) => {
 
     onSuccess: () => {
       showToast('success', '채팅방 정보가 성공적으로 수정되었습니다.');
-      queryClient.invalidateQueries({ queryKey: ['chatRooms', roomId] });
+      queryClient.invalidateQueries({ queryKey: ['chatRooms', orgId] });
       queryClient.invalidateQueries({ queryKey: ['chatRoom', roomId] });
     },
     onError: () => {

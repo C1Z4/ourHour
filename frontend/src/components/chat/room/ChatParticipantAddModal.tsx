@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 
 import { Member } from '@/types/memberTypes';
 
+import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -11,8 +12,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useAddChatRoomParticipantQuery } from '@/hooks/queries/chat/useAddChatParticipantQueries';
-import { useChatRoomParticipantsQuery } from '@/hooks/queries/chat/useChatRoomParticipantsQueries';
-import { useOrgMembersQuery } from '@/hooks/queries/org/useOrgMembersQueries';
+import { useOrgMembersWithoutChatParticipants } from '@/hooks/queries/chat/useOrgMembersForChatQueries';
 
 import { ChatRoomParticipantSelector } from '../newChat/ChatRoomParticipantSelector';
 
@@ -24,20 +24,10 @@ interface Props {
 }
 
 export const ChatParticipantAddModal = ({ orgId, roomId, isOpen, onClose }: Props) => {
-  const { data: allMembers } = useOrgMembersQuery(orgId);
-  const { data: currentParticipants } = useChatRoomParticipantsQuery(orgId, roomId);
+  const { availableMembersToInvite } = useOrgMembersWithoutChatParticipants(orgId, roomId);
   const { mutate: addParticipants, isPending } = useAddChatRoomParticipantQuery(orgId, roomId);
 
   const [selectedMembers, setSelectedMembers] = useState<Member[]>([]);
-
-  const membersToInvite = useMemo(() => {
-    if (!allMembers || !currentParticipants) {
-      return [];
-    }
-
-    const participantIds = new Set(currentParticipants.map((p) => p.memberId));
-    return allMembers.filter((member) => !participantIds.has(member.memberId));
-  }, [allMembers, currentParticipants]);
 
   const handleInvite = () => {
     if (selectedMembers.length === 0) {
@@ -63,18 +53,20 @@ export const ChatParticipantAddModal = ({ orgId, roomId, isOpen, onClose }: Prop
         </DialogHeader>
 
         <ChatRoomParticipantSelector
-          members={membersToInvite}
+          members={availableMembersToInvite}
           selectedMembers={selectedMembers}
           onChangeSelection={setSelectedMembers}
         />
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            취소
-          </Button>
-          <Button onClick={handleInvite} disabled={isPending || selectedMembers.length === 0}>
+          <ButtonComponent onClick={onClose}>취소</ButtonComponent>
+          <ButtonComponent
+            variant="danger"
+            onClick={handleInvite}
+            disabled={isPending || selectedMembers.length === 0}
+          >
             {isPending ? '초대 중...' : '초대하기'}
-          </Button>
+          </ButtonComponent>
         </DialogFooter>
       </DialogContent>
     </Dialog>

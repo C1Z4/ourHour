@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { ArrowUpIcon } from 'lucide-react';
 
+import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -44,14 +45,14 @@ export function ChatMessageInput({ onSendMessage }: ChatMessageInputProps) {
         onCompositionEnd={() => setIsComposing(false)}
         className="flex-1 pr-10"
       />
-      <Button
+      <ButtonComponent
         type="submit"
         size="icon"
         className="absolute right-2 top-1/2 -translate-y-1/2 size-6 rounded-full"
         disabled={!message.trim()}
       >
         <ArrowUpIcon className="size-3.5" />
-      </Button>
+      </ButtonComponent>
     </form>
   );
 }

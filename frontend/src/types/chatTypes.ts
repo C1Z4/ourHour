@@ -1,11 +1,11 @@
 import { CHAT_COLORS } from '@/styles/colors';
 export interface ChatMessage {
   chatRoomId: number;
-  chatMessageId?: number;
+  chatMessageId: number;
   senderId: number;
   senderName: string;
   message: string;
-  timestamp?: string;
+  timestamp: string;
 }
 export interface UseChatReturn {
   messages: ChatMessage[];
