@@ -1,11 +1,20 @@
+import { useRouter } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 
 import { Board } from '@/types/boardTypes';
 
+import { ButtonComponent } from '@/components/common/ButtonComponent';
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from '@/components/ui/table';
 import { usePostListQuery } from '@/hooks/queries/board/usePostListQuery';
+import { formatIsoToDate } from '@/utils/auth/dateUtils';
 
-import { ButtonComponent } from '../common/ButtonComponent';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
 interface Props {
   orgId: number;
   boardId: number;
@@ -13,7 +22,9 @@ interface Props {
 }
 
 export const BoardCard = ({ orgId, boardId, board }: Props) => {
-  const { data: postList, isLoading } = usePostListQuery(orgId, boardId);
+  const { data: postListData, isLoading } = usePostListQuery(orgId, boardId, 1, 5);
+  const postList = Array.isArray(postListData?.data) ? postListData.data : [];
+  const router = useRouter();
   return (
     <div className="rounded-lg border border-gray-200 overflow-hidden min-h-[182.5px]">
       <Table>
@@ -25,6 +36,13 @@ export const BoardCard = ({ orgId, boardId, board }: Props) => {
                 variant="ghost"
                 size="sm"
                 className="text-xs font-medium text-gray-600"
+                onClick={() => {
+                  router.navigate({
+                    to: '/org/$orgId/board/$boardId',
+                    params: { orgId: orgId.toString(), boardId: boardId.toString() },
+                    search: { boardName: board.name },
+                  });
+                }}
               >
                 더보기 <ArrowRight className="w-3 h-3 ml-1" />
               </ButtonComponent>
@@ -53,11 +71,24 @@ export const BoardCard = ({ orgId, boardId, board }: Props) => {
               );
             }
 
-            return postList.slice(0, 5).map((post) => (
-              <TableRow key={post.postId} className="cursor-pointer hover:bg-muted/50">
+            return postList.map((post) => (
+              <TableRow
+                key={post.postId}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => {
+                  router.navigate({
+                    to: '/org/$orgId/board/$boardId/post/$postId',
+                    params: {
+                      orgId: orgId.toString(),
+                      boardId: boardId.toString(),
+                      postId: post.postId.toString(),
+                    },
+                  });
+                }}
+              >
                 <TableCell className="font-medium truncate">{post.title}</TableCell>
-                <TableCell className="text-right text-sm text-muted-foreground w-[120px]">
-                  {post.createdAt.substring(0, 10)}
+                <TableCell className="text-right text-sm text-muted-foreground w-1/2">
+                  {formatIsoToDate(post.createdAt)}
                 </TableCell>
               </TableRow>
             ));
