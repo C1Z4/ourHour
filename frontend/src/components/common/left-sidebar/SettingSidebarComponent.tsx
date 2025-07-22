@@ -18,6 +18,7 @@ const FileCogIcon = () => <FileCog className="h-4 w-4" />;
 
 export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [isCreateOrgModalOpen, setIsCreateOrgModalOpen] = useState(false);
+  const [activeOrgId, setActiveOrgId] = useState<number | null>(null);
 
   const { mutate: createOrg } = useOrgCreateMutation();
 
@@ -67,10 +68,16 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
           {
             title: '비밀번호 변경',
             url: '/info/password',
+            onClick: () => {
+              setActiveOrgId(null);
+            },
           },
           {
             title: '계정 탈퇴',
             url: '/info/withdraw',
+            onClick: () => {
+              setActiveOrgId(null);
+            },
           },
         ],
       },
@@ -85,6 +92,7 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
             leftIcon: PlusIcon,
             onClick: () => {
               setIsCreateOrgModalOpen(true);
+              setActiveOrgId(null);
             },
           },
 
@@ -93,6 +101,9 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
             title: org.name,
             leftIcon: Contact,
             url: `/info/${org.orgId}`,
+            onClick: () => {
+              setActiveOrgId(org.orgId);
+            },
           })),
         ],
       },
@@ -103,7 +114,7 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
     <>
       <Sidebar collapsible="icon" className="mt-16" {...props}>
         <SidebarContent>
-          <NavMain items={data.navMain} />
+          <NavMain items={data.navMain} activeItemId={activeOrgId} />
         </SidebarContent>
         <SidebarRail />
       </Sidebar>
