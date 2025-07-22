@@ -71,19 +71,19 @@ export const AllPostsCard = ({ orgId }: Props) => {
             return allPost.map((post) => (
               <>
                 <TableRow
-                key={post.postId}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => {
-                  router.navigate({
-                    to: '/org/$orgId/board/$boardId/post/$postId',
-                    params: {
-                      orgId: orgId.toString(),
-                      boardId: post.boardId.toString(),
-                      postId: post.postId.toString(),
-                    },
-                  });
-                }}
-              >
+                  key={post.postId}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => {
+                    router.navigate({
+                      to: '/org/$orgId/board/$boardId/post/$postId',
+                      params: {
+                        orgId: orgId.toString(),
+                        boardId: post.boardId.toString(),
+                        postId: post.postId.toString(),
+                      },
+                    });
+                  }}
+                >
                   <TableCell className="font-medium truncate">{post.title}</TableCell>
                   <TableCell className="text-right text-sm text-muted-foreground w-[120px]">
                     {formatIsoToDate(post.createdAt)}
