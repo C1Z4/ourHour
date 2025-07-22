@@ -4,7 +4,7 @@ import { useRouter } from '@tanstack/react-router';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
-import { Route as FailRoute } from '@/routes/auth/fail';
+import { Route as FailRoute } from '@/routes/auth/password/fail';
 
 type FailReason = 'expired' | 'invalid' | 'server' | (string & {});
 
@@ -21,32 +21,31 @@ function getReasonContent(reason?: string): ReasonContent {
     case 'expired':
       return {
         title: '인증 링크 만료',
-        description:
-          '이메일 인증 링크가 만료되었습니다. 새로 가입하거나 인증 메일을 다시 받아주세요.',
-        primaryActionLabel: '회원가입으로 이동',
+        description: '이메일 인증 링크가 만료되었습니다. 인증 메일을 다시 받아주세요.',
+        primaryActionLabel: '비밀번호 재설정으로 이동',
       };
     case 'invalid':
       return {
         title: '잘못된 링크',
         description: '링크가 올바르지 않습니다. 다시 시도해주세요.',
-        primaryActionLabel: '회원가입으로 이동',
+        primaryActionLabel: '비밀번호 재설정으로 이동',
       };
     case 'server':
       return {
         title: '이메일 인증 실패',
-        description: '인증에 실패했습니다. 다시 시도하거나 새로 가입해주세요.',
-        primaryActionLabel: '회원가입으로 이동',
+        description: '인증에 실패했습니다. 다시 시도해주세요.',
+        primaryActionLabel: '비밀번호 재설정으로 이동',
       };
     default:
       return {
         title: '이메일 인증 실패',
-        description: '인증에 실패했습니다. 다시 시도하거나 새로 가입해주세요.',
-        primaryActionLabel: '회원가입으로 이동',
+        description: '인증에 실패했습니다. 다시 시도해주세요.',
+        primaryActionLabel: '비밀번호 재설정으로 이동',
       };
   }
 }
 
-export function EmailVerificationFail() {
+export function PwdResetVerificationFail() {
   const router = useRouter();
   const { reason } = FailRoute.useSearch();
 
@@ -57,7 +56,7 @@ export function EmailVerificationFail() {
 
   const goSignup = () => {
     router.navigate({
-      to: '/signup',
+      to: '/auth/password/reset',
     });
   };
 
@@ -92,8 +91,7 @@ export function EmailVerificationFail() {
 
         {showInfo && (
           <div className="text-xs text-muted-foreground bg-gray-50 border p-3 rounded-md text-gray-700">
-            이메일 인증 링크가 만료되었거나 잘못된 경우, 새로 가입 또는 인증 메일 재발송이
-            필요합니다.
+            이메일 인증 링크가 만료되었거나 잘못된 경우,인증 메일 재발송이 필요합니다.
             <br />
             해당 링크는 보안상 <b>15분간 유효</b>하며, 만료 시 재시도해야 합니다.
           </div>

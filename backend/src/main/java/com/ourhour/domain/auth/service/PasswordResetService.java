@@ -25,7 +25,7 @@ public class PasswordResetService extends AbstractVerificationService<PasswordRe
     private final PasswordChanger passwordChanger;
     private final UserRepository userRepository;
 
-    @Value("${spring.service.base-url-email}")
+    @Value("${spring.service.url.front}")
     private String serviceBaseUrl;
 
     public PasswordResetService(EmailSenderService emailSenderService, PasswordResetVerificationRepository passwordResetVerificationRepository, PasswordChanger passwordChanger, UserRepository userRepository) {
@@ -46,7 +46,7 @@ public class PasswordResetService extends AbstractVerificationService<PasswordRe
         String token = sendVerificationEmail(
                 email,
                 serviceBaseUrl,
-                "/api/auth/email-verification?token=",
+                "/auth/password/verify?token=",
                 subject,
                 contentTemplate,
                 linkName);

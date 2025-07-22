@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
   '/api/auth/check-email',
   '/api/auth/email-verification',
   '/api/auth/signin',
+  '/api/auth/password-reset',
 ];
 
 function isPublicRequest(url?: string): boolean {
