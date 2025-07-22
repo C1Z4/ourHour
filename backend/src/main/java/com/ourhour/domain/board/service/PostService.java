@@ -65,7 +65,7 @@ public class PostService {
     }
 
     @Transactional
-    public void createPost(Long orgId, Long boardId, PostCreateUpdateReqDTO request) {
+    public PostDTO createPost(Long orgId, Long boardId, PostCreateUpdateReqDTO request) {
 
         Long currentMemberId = UserContextHolder.get().getOrgAuthorityList().stream()
                 .filter(auth -> auth.getOrgId().equals(orgId))
@@ -87,6 +87,8 @@ public class PostService {
                 .build();
 
         postRepository.save(newPost);
+
+        return postMapper.toDTO(newPost);
     }
 
     @Transactional

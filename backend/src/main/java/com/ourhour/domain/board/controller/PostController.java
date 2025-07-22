@@ -71,14 +71,14 @@ public class PostController {
     // 게시글 등록
     @OrgAuth(accessLevel = Role.MEMBER)
     @PostMapping("/{orgId}/boards/{boardId}/posts")
-    public ResponseEntity<ApiResponse<Void>> registPost(
+    public ResponseEntity<ApiResponse<PostDTO>> registPost(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long boardId,
             @RequestBody PostCreateUpdateReqDTO request) {
 
-        postService.createPost(orgId, boardId, request);
+        PostDTO post = postService.createPost(orgId, boardId, request);
 
-        return ResponseEntity.ok(ApiResponse.success(null, "게시글 등록에 성공했습니다."));
+        return ResponseEntity.ok(ApiResponse.success(post, "게시글 등록에 성공했습니다."));
     }
 
     // 게시글 수정
