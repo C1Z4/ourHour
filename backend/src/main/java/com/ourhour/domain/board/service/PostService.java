@@ -9,15 +9,16 @@ import com.ourhour.domain.board.repository.BoardRepository;
 import com.ourhour.domain.board.repository.PostRepository;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
+import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.exception.BusinessException;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.jwt.util.UserContextHolder;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,18 +29,26 @@ public class PostService {
     private final MemberRepository memberRepository;
     private final PostMapper postMapper;
 
-    public List<PostDTO> getAllPosts(Long orgId) {
+    public PageResponse<PostDTO> getAllPosts(Long orgId, Pageable pageable) {
 
-        List<PostEntity> allPosts = postRepository.findAllByOrgId(orgId);
+        Page<PostEntity> postPage = postRepository.findAllByOrgId(orgId, pageable);
 
-        return allPosts.stream().map(postMapper::toDTO).collect(Collectors.toList());
+        if (postPage.isEmpty()) {
+            return PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize());
+        }
+
+        return PageResponse.of(postPage.map(postMapper::toDTO));
     }
 
-    public List<PostDTO> getPostsByBoardId(Long orgId, Long boardId) {
+    public PageResponse<PostDTO> getPostsByBoardId(Long orgId, Long boardId, Pageable pageable) {
 
-        List<PostEntity> posts = postRepository.findPostsByBoardAndOrg(boardId, orgId);
+        Page<PostEntity> postPage = postRepository.findPostsByBoardAndOrg(boardId, orgId, pageable);
 
-        return posts.stream().map(postMapper::toDTO).collect(Collectors.toList());
+        if (postPage.isEmpty()) {
+            return PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize());
+        }
+
+        return PageResponse.of(postPage.map(postMapper::toDTO));
     }
 
     public PostDTO getPostById(Long orgId, Long boardId, Long postId) {
@@ -47,7 +56,8 @@ public class PostService {
         PostEntity post = postRepository.findById(postId)
                 .orElseThrow(() -> BusinessException.notFound("게시글을 찾을 수 없습니다."));
 
-        if (!post.getBoardEntity().getBoardId().equals(boardId) || !post.getBoardEntity().getOrgEntity().getOrgId().equals(orgId)) {
+        if (!post.getBoardEntity().getBoardId().equals(boardId)
+                || !post.getBoardEntity().getOrgEntity().getOrgId().equals(orgId)) {
             throw BusinessException.forbidden("해당 게시글을 조회할 권한이 없습니다.");
         }
 
@@ -87,7 +97,8 @@ public class PostService {
         PostEntity postToUpdate = postRepository.findById(postId)
                 .orElseThrow(() -> BusinessException.notFound("수정할 게시글을 찾을 수 없습니다."));
 
-        if (!postToUpdate.getBoardEntity().getBoardId().equals(boardId) || !postToUpdate.getBoardEntity().getOrgEntity().getOrgId().equals(orgId)) {
+        if (!postToUpdate.getBoardEntity().getBoardId().equals(boardId)
+                || !postToUpdate.getBoardEntity().getOrgEntity().getOrgId().equals(orgId)) {
             throw BusinessException.forbidden("요청 경로가 올바르지 않습니다.");
         }
 
@@ -106,7 +117,8 @@ public class PostService {
         PostEntity postToDelete = postRepository.findById(postId)
                 .orElseThrow(() -> BusinessException.notFound("삭제할 게시글을 찾을 수 없습니다."));
 
-        if (!postToDelete.getBoardEntity().getBoardId().equals(boardId) || !postToDelete.getBoardEntity().getOrgEntity().getOrgId().equals(orgId)) {
+        if (!postToDelete.getBoardEntity().getBoardId().equals(boardId)
+                || !postToDelete.getBoardEntity().getOrgEntity().getOrgId().equals(orgId)) {
             throw BusinessException.forbidden("요청 경로가 올바르지 않습니다.");
         }
 
