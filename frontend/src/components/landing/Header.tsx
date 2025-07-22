@@ -18,9 +18,8 @@ const smoothScrollTo = (elementId: string) => {
 };
 
 export const Header = () => {
-  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
-
   const { mutate: signout } = useSignoutMutation();
+  const accessToken = useAppSelector((state) => state.auth.accessToken);
 
   const handleSignout = () => {
     try {
@@ -73,7 +72,7 @@ export const Header = () => {
           </nav>
 
           <div className="flex items-center space-x-4">
-            {isAuthenticated ? (
+            {accessToken ? (
               <ButtonComponent variant="ghost" asChild>
                 <Link to="/" onClick={handleSignout}>
                   로그아웃
