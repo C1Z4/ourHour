@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
-import { Plus } from 'lucide-react';
+import { ChevronLeft, Plus } from 'lucide-react';
 
 import { PageResponse } from '@/types/apiTypes';
 import { Post } from '@/types/postTypes';
@@ -48,7 +48,19 @@ export const PostListPage = ({ orgId, boardId, boardName }: PostListPageProps) =
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{boardName}</h1>
+              <div className="flex items-center gap-2">
+                <ChevronLeft
+                  size={24}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    router.navigate({
+                      to: '/org/$orgId/board',
+                      params: { orgId: orgId.toString() },
+                    });
+                  }}
+                />
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{boardName}</h1>
+              </div>
               <ButtonComponent
                 variant="danger"
                 size="sm"
