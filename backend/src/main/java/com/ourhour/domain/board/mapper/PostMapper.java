@@ -15,6 +15,7 @@ public interface PostMapper {
 
     // Entity -> DTO 매핑
     @Mapping(source = "authorEntity.name", target = "authorName")
+    @Mapping(source = "authorEntity.memberId", target = "authorId")
     @Mapping(source = "authorEntity.profileImgUrl", target = "authorProfileImgUrl")
     @Mapping(source = "boardEntity.boardId", target = "boardId")
     @Mapping(source = "boardEntity.name", target = "boardName")

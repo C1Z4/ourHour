@@ -33,6 +33,12 @@ public class PostDTO {
     private String boardName;
 
     /**
+     * 게시글 작성자의 ID.
+     * - 응답(Response) 시에만 사용됩니다.
+     */
+    private Long authorId;
+
+    /**
      * 게시글 작성자의 이름.
      * - 응답(Response) 시에만 사용됩니다.
      */
@@ -76,6 +82,9 @@ public class PostDTO {
             this.boardName = entity.getBoardEntity().getName();
         }
         // MemberEntity가 null이 아닐 경우에만 작성자 이름을 가져옵니다. (탈퇴한 회원 등)
+        if (entity.getAuthorEntity() != null) {
+            this.authorId = entity.getAuthorEntity().getMemberId();
+        }
         if (entity.getAuthorEntity() != null) {
             this.authorName = entity.getAuthorEntity().getName(); // MemberEntity에 getName() 메소드가 있다고 가정
         } else {
