@@ -13,7 +13,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { routeTree } from './routeTree.gen';
 import { store } from './stores/store';
 import './styles/index.css';
-import { restoreAuthFromServer } from './utils/auth/tokenUtils';
+// import { restoreAuthFromServer } from './utils/auth/tokenUtils';
 
 const router = createRouter({ routeTree });
 
@@ -39,7 +39,7 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
 
   // 앱 시작 시 인증 상태 초기화
-  restoreAuthFromServer();
+  // restoreAuthFromServer();
 
   root.render(
     <StrictMode>

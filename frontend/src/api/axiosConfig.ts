@@ -4,6 +4,26 @@ import { logError, handleHttpError } from '@/utils/auth/errorUtils';
 import { showLoading, hideLoading } from '@/utils/auth/loadingUtils';
 import { getAccessTokenFromStore, logout, setAccessTokenToStore } from '@/utils/auth/tokenUtils';
 
+// 공개 API 목록
+const PUBLIC_PATHS = [
+  '/api/auth/signup',
+  '/api/auth/check-email',
+  '/api/auth/email-verification',
+  '/api/auth/signin',
+];
+
+function isPublicRequest(url?: string): boolean {
+  if (!url) {
+    return false;
+  }
+  try {
+    const parsed = new URL(url, axiosInstance.defaults.baseURL);
+    return PUBLIC_PATHS.some((p) => parsed.pathname.startsWith(p));
+  } catch {
+    return PUBLIC_PATHS.some((p) => url.includes(p));
+  }
+}
+
 // Access Token을 재발급하는 함수
 const refreshAccessToken = async (): Promise<string | null> => {
   try {
@@ -50,9 +70,14 @@ axiosInstance.interceptors.request.use(
       showLoading();
     }
 
-    const token = getAccessTokenFromStore();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // 공개 API 인 경우 Authorization 헤더 제거
+    if (PUBLIC_PATHS.some((p) => config.url?.startsWith(p))) {
+      delete config.headers?.Authorization;
+    } else {
+      const token = getAccessTokenFromStore();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     return config;
@@ -67,6 +92,10 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     hideLoading();
+
+    if (isPublicRequest(response.config?.url)) {
+      return response;
+    }
 
     if (response.data && typeof response.data === 'object' && 'data' in response.data) {
       return {
@@ -84,6 +113,10 @@ axiosInstance.interceptors.response.use(
 
     if (!isAxiosError(error)) {
       return Promise.reject(error);
+    }
+
+    if (isPublicRequest(originalRequest.url)) {
+      return true;
     }
 
     logError(error, originalRequest);

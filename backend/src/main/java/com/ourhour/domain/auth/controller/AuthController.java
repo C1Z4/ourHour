@@ -6,14 +6,17 @@ import com.ourhour.domain.auth.service.AuthService;
 import com.ourhour.global.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -25,6 +28,15 @@ public class AuthController {
 
     @Value("${jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenValidityInSeconds;
+
+    @GetMapping("/check-email")
+    public ResponseEntity<ApiResponse<Boolean>> checkAvailEmail(@Email @RequestParam String email) {
+        boolean isAvailable = authService.checkAvailEmail(email);
+
+        ApiResponse<Boolean> response = ApiResponse.success(isAvailable, isAvailable ? "사용 가능한 이메일입니다." : "이미 사용중인 이메일입니다.");
+
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> signup(@Valid @RequestBody SignupReqDTO signupReqDTO) {
@@ -72,7 +84,6 @@ public class AuthController {
     @PostMapping("/signout")
     public ResponseEntity<ApiResponse<Void>> signout(HttpServletResponse response) {
 
-        System.out.println("잉??왜 안됨??");
         authService.signout();
 
         ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")

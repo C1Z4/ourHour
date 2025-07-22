@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { createFileRoute, useRouter, useSearch } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 
 import landingImage from '@/assets/images/landing-1.jpg';
@@ -34,15 +34,15 @@ function LoginPage() {
   }, [isAuthenticated, isLoading, router]);
 
   // 로딩 중이거나 이미 로그인된 상태면 로딩 화면 표시
-  if (isLoading || isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner />
-        </div>
-      </div>
-    );
-  }
+  // if (isLoading || isAuthenticated) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <div className="text-center">
+  //         <LoadingSpinner />
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   const handleLoginSubmit = (email: string, password: string) => {
     setLoginError('');

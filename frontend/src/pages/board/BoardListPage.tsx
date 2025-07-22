@@ -18,9 +18,6 @@ export const BoardListPage = ({ orgId, boardList }: Props) => (
         </div>
         <div className="flex gap-2">
           <NewBoardModal orgId={orgId} />
-          {/* <ButtonComponent variant="danger" size="sm" onClick={() => {}}>
-            <Plus size={16} />새 게시판 등록
-          </ButtonComponent> */}
         </div>
       </div>
 

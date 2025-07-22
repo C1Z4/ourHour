@@ -19,6 +19,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
 
     private static final Set<String> EXCLUDE_URI_PREFIXES = Set.of(
+            "/api/auth/check-email",
             "/api/auth/signup",
             "/api/auth/signin",
             "/api/auth/email-verification",

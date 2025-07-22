@@ -1,8 +1,10 @@
 import { useState } from 'react';
 
+import getCheckEmail from '@/api/auth/getCheckEmail';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { Input } from '@/components/ui/input';
+import { setPendingSignup } from '@/utils/auth/pendingSignupStorage';
 import { validateEmail, validatePassword } from '@/utils/validation/authValidation';
 
 interface SignupFormProps {
@@ -40,7 +42,7 @@ const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
   };
 
   // 이메일 인증 버튼 클릭 시
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const emailValidation = validateEmail(email);
@@ -58,6 +60,20 @@ const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
     if (!emailValidation.isValid || !passwordValidation.isValid || passwordConfirm !== password) {
       return;
     }
+
+    // 이메일 중복 확인
+    try {
+      const isAvailable = await getCheckEmail({ email });
+
+      if (!isAvailable.data) {
+        setEmailError('이미 사용중인 이메일입니다.');
+        return;
+      }
+    } catch (error) {
+      setEmailError('이메일 확인 중 오류가 발생했습니다.');
+    }
+
+    setPendingSignup({ email, password }); // 아이디, 비밀번호 임시저장
 
     onSubmit(email, password);
   };
