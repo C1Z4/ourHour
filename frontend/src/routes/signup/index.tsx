@@ -9,6 +9,7 @@ import ErrorMessage from '@/components/auth/ErrorMessage';
 import SignupForm from '@/components/auth/SignupForm';
 import { AUTH_MESSAGES } from '@/constants/messages';
 import { useSendEmailVerificationMutation } from '@/hooks/queries/auth/useAuthMutations';
+import { setPendingSignup } from '@/utils/auth/pendingSignupStorage';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const Route = createFileRoute('/signup/')({

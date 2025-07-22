@@ -38,14 +38,27 @@ public class AuthService {
     private final JwtClaimMapper jwtClaimMapper;
     private final PasswordEncoder passwordEncoder;
 
+    // 이메일 중복 확인
+    @Transactional(readOnly = true)
+    public boolean checkAvailEmail (String email) {
+
+        boolean alreadyHasEmail = userRepository.existsByEmailAndIsDeletedFalse(email);
+        if (alreadyHasEmail) {
+            return false;
+        }
+
+        return true;
+
+    }
+
     // 회원가입
     @Transactional
     public void signup(SignupReqDTO signupReqDTO) {
 
         // 이메일 중복 및 탈퇴된 이메일이 아닌지 확인
-        if (userRepository.existsByEmailAndIsDeletedFalse(signupReqDTO.getEmail())) {
+        if (!checkAvailEmail(signupReqDTO.getEmail())) {
             throw duplicateRequestException();
-        }
+        };
 
         boolean isVerified = emailVerificationRepository.existsByEmailAndIsUsedTrue(signupReqDTO.getEmail());
         if(!isVerified) {

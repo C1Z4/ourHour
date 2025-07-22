@@ -39,7 +39,7 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
 
   // 앱 시작 시 인증 상태 초기화
-  restoreAuthFromServer();
+  // restoreAuthFromServer();
 
   root.render(
     <StrictMode>

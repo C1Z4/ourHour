@@ -35,18 +35,18 @@ export const Header = () => {
   };
 
   // 토큰 검증이 완료될 때까지 로딩 상태 표시
-  if (isLoading) {
-    return (
-      <header className="border-b border-gray-200/50 bg-white/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="w-20 h-8 bg-gray-200 rounded animate-pulse" />
-            <div className="w-24 h-8 bg-gray-200 rounded animate-pulse" />
-          </div>
-        </div>
-      </header>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <header className="border-b border-gray-200/50 bg-white/80 backdrop-blur-sm">
+  //       <div className="container mx-auto px-4 py-4">
+  //         <div className="flex items-center justify-between">
+  //           <div className="w-20 h-8 bg-gray-200 rounded animate-pulse" />
+  //           <div className="w-24 h-8 bg-gray-200 rounded animate-pulse" />
+  //         </div>
+  //       </div>
+  //     </header>
+  //   );
+  // }
 
   return (
     <header className="border-b border-gray-200/50 bg-white/80 backdrop-blur-sm">
