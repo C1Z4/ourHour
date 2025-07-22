@@ -13,8 +13,6 @@ import {
   Plus,
 } from 'lucide-react';
 
-import { ChatRoomDeleteAlert } from '@/components/chat/list/ChatRoomDeleteAlert';
-import { RenamePopover } from '@/components/chat/room/ChatRoomRenamePopover';
 import { NavMain } from '@/components/common/left-sidebar/NavMain';
 import { TeamSwitcher } from '@/components/common/left-sidebar/TeamSwitcher';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
@@ -51,6 +49,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {
         title: '프로젝트',
         icon: FolderGit2,
+        isActive: true,
         items: myProjectList?.map((project) => ({
           title: project.name,
           url: `/org/${currentOrgId}/project/${project.projectId}`,
@@ -59,6 +58,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {
         title: '게시판',
         icon: ClipboardList,
+        isActive: true,
         items: myBoardList?.map((board) => ({
           title: board.name,
           url:
