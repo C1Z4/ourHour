@@ -51,7 +51,6 @@ export const PostDetailPage = ({ orgId, boardId, postId }: PostDetailPageProps) 
   const handleDeletePost = () => {
     try {
       deletePost();
-      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
       router.navigate({
         to: '/org/$orgId/board/$boardId',
         params: { orgId, boardId },
