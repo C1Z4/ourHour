@@ -15,10 +15,9 @@ import { useOrgDeleteMutation } from '@/hooks/queries/org/useOrgDeleteMutation';
 import useOrgInfoQuery from '@/hooks/queries/org/useOrgInfoQuery';
 import useOrgMemberListQuery from '@/hooks/queries/org/useOrgMemberListQuery';
 import { useOrgUpdateMutation } from '@/hooks/queries/org/useOrgUpdateMutation';
-import { usePatchMemberRoleMutation } from '@/hooks/queries/org/usePatchMemberRole';
+import { usePatchMemberRoleMutation } from '@/hooks/queries/org/usePatchMemberRoleMutation';
 import usePasswordVerificationMutation from '@/hooks/queries/user/usePasswordVerificationMutation';
 import { getImageUrl } from '@/utils/file/imageUtils';
-import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const Route = createFileRoute('/org/$orgId/info/')({
   component: OrgInfoPage,
@@ -83,56 +82,41 @@ function OrgInfoPage() {
 
   // 수정 버튼 클릭시
   const handleProjectSubmit = (data: Partial<OrgBaseInfo>) => {
-    try {
-      updateOrg({
-        orgId: Number(orgId),
-        name: data.name || '',
-        address: data.address || '',
-        email: data.email || '',
-        representativeName: data.representativeName || '',
-        phone: data.phone === '' ? null : data.phone || '',
-        businessNumber: data.businessNumber || '',
-        logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl || '',
-      });
-      showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
-      handleEditModalClose();
-    } catch (error) {
-      // 에러 토스트
-    }
+    updateOrg({
+      orgId: Number(orgId),
+      name: data.name || '',
+      address: data.address || '',
+      email: data.email || '',
+      representativeName: data.representativeName || '',
+      phone: data.phone === '' ? null : data.phone || '',
+      businessNumber: data.businessNumber || '',
+      logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl || '',
+    });
+    handleEditModalClose();
   };
 
   const handleMemberSelectionChange = (memberIds: number[]) => {
     setSelectedMemberIds(memberIds);
   };
 
+  // 선택한 구성원 삭제
   const handleDeleteSelectedMembers = () => {
-    try {
-      selectedMemberIds.forEach((memberId) => {
-        deleteMember({ orgId: Number(orgId), memberId });
-      });
-      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
-      setSelectedMemberIds([]);
-    } catch (error) {
-      // 에러 토스트
-    }
+    selectedMemberIds.forEach((memberId) => {
+      deleteMember({ orgId: Number(orgId), memberId });
+    });
+    setSelectedMemberIds([]);
   };
 
   const handleDeleteOrg = () => {
-    try {
-      passwordVerification({ password });
-      deleteOrg({ orgId: Number(orgId) });
-      setIsDeleteModalOpen(false);
-      router.navigate({
-        to: '/start',
-        search: { page: 1 },
-      });
-      setSelectedMemberIds([]);
-      setPassword('');
-      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
-    } catch (error) {
-      showErrorToast('비밀번호가 일치하지 않습니다.');
-      setPassword('');
-    }
+    passwordVerification({ password });
+    deleteOrg({ orgId: Number(orgId) });
+    setIsDeleteModalOpen(false);
+    router.navigate({
+      to: '/start',
+      search: { page: 1 },
+    });
+    setSelectedMemberIds([]);
+    setPassword('');
   };
 
   const openDeleteModal = () => {
@@ -158,23 +142,17 @@ function OrgInfoPage() {
       return;
     }
 
-    try {
-      passwordVerification({ password });
+    passwordVerification({ password });
 
-      patchMemberRole({
-        orgId: Number(orgId),
-        memberId: pendingRoleChange.memberId,
-        newRole: MEMBER_ROLE_KO_TO_ENG[pendingRoleChange.newRole],
-      });
+    patchMemberRole({
+      orgId: Number(orgId),
+      memberId: pendingRoleChange.memberId,
+      newRole: MEMBER_ROLE_KO_TO_ENG[pendingRoleChange.newRole],
+    });
 
-      setIsRoleChangeModalOpen(false);
-      setPassword('');
-      setPendingRoleChange(null);
-      showSuccessToast('권한이 변경되었습니다.');
-    } catch (error) {
-      showErrorToast('비밀번호가 일치하지 않습니다.');
-      setPassword('');
-    }
+    setIsRoleChangeModalOpen(false);
+    setPassword('');
+    setPendingRoleChange(null);
   };
 
   const handleRoleChangeModalClose = () => {

@@ -8,7 +8,6 @@ import { useUserDeleteMutation } from '@/hooks/queries/user/useUserDeleteMutatio
 import { logout } from '@/stores/authSlice';
 import { useAppDispatch } from '@/stores/hooks';
 import { getEmailFromToken } from '@/utils/auth/tokenUtils';
-import { showSuccessToast } from '@/utils/toast';
 
 export const Route = createFileRoute('/info/withdraw')({
   component: WithdrawPage,
@@ -33,12 +32,7 @@ function WithdrawPage() {
       {
         onSuccess: () => {
           dispatch(logout());
-          showSuccessToast('계정이 성공적으로 탈퇴되었습니다.');
           window.location.href = '/';
-        },
-        onError: () => {
-          // 에러 토스트
-          // showErrorToast('계정 탈퇴에 실패했습니다.');
         },
       },
     );
@@ -50,6 +44,7 @@ function WithdrawPage() {
 
   return (
     <div className="bg-white p-6">
+      <h1 className="text-2xl font-bold text-center mb-5">계정 탈퇴</h1>
       <div className="max-w-2xl mx-auto space-y-8">
         <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
           <span className="text-sm font-medium text-gray-700">탈퇴할 계정</span>

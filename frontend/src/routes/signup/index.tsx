@@ -9,8 +9,7 @@ import ErrorMessage from '@/components/auth/ErrorMessage';
 import SignupForm from '@/components/auth/SignupForm';
 import { AUTH_MESSAGES } from '@/constants/messages';
 import { useSendEmailVerificationMutation } from '@/hooks/queries/auth/useAuthMutations';
-import { setPendingSignup } from '@/utils/auth/pendingSignupStorage';
-import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
+import { showErrorToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const Route = createFileRoute('/signup/')({
   component: SignupPage,
@@ -31,7 +30,6 @@ function SignupPage() {
       { email, password },
       {
         onSuccess: () => {
-          showSuccessToast(TOAST_MESSAGES.AUTH.SIGNUP_EMAIL_VERIFICATION);
           navigate({ to: '/login' });
         },
         onError: (error: AxiosError) => {

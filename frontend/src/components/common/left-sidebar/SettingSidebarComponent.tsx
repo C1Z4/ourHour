@@ -10,7 +10,7 @@ import { OrgFormData, OrgModal } from '@/components/org/OrgModal';
 import { Sidebar, SidebarContent, SidebarRail } from '@/components/ui/sidebar';
 import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
 import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
-import { showSuccessToast } from '@/utils/toast';
+import { useAppSelector } from '@/stores/hooks';
 
 const PlusIcon = () => <Plus className="h-4 w-4" />;
 const ContactIcon = () => <Contact className="h-4 w-4" />;
@@ -18,6 +18,8 @@ const FileCogIcon = () => <FileCog className="h-4 w-4" />;
 
 export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [isCreateOrgModalOpen, setIsCreateOrgModalOpen] = useState(false);
+  const currentOrgId = useAppSelector((state) => state.activeOrgId.currentOrgId);
+  const [activeOrgId, setActiveOrgId] = useState<number | null>(currentOrgId);
 
   const { mutate: createOrg } = useOrgCreateMutation();
 
@@ -35,25 +37,20 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
   };
 
   const handleOrgModalSubmit = async (data: OrgFormData) => {
-    try {
-      await createOrg({
-        memberName: data.memberName,
-        name: data.name,
-        address: data.address === '' ? null : data.address,
-        email: data.email === '' ? null : data.email,
-        phone: data.phone === '' ? null : data.phone,
-        representativeName: data.representativeName === '' ? null : data.representativeName,
-        businessNumber: data.businessNumber === '' ? null : data.businessNumber,
-        logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl,
-      });
-      showSuccessToast('회사 생성 완료');
-      setIsCreateOrgModalOpen(false);
+    await createOrg({
+      memberName: data.memberName,
+      name: data.name,
+      address: data.address === '' ? null : data.address,
+      email: data.email === '' ? null : data.email,
+      phone: data.phone === '' ? null : data.phone,
+      representativeName: data.representativeName === '' ? null : data.representativeName,
+      businessNumber: data.businessNumber === '' ? null : data.businessNumber,
+      logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl,
+    });
+    setIsCreateOrgModalOpen(false);
 
-      // 페이지 새로고침(임시)
-      window.location.reload();
-    } catch (error) {
-      // 에러 토스트
-    }
+    // 페이지 새로고침(임시)
+    window.location.reload();
   };
 
   const data = {
@@ -67,10 +64,16 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
           {
             title: '비밀번호 변경',
             url: '/info/password',
+            onClick: () => {
+              setActiveOrgId(null);
+            },
           },
           {
             title: '계정 탈퇴',
             url: '/info/withdraw',
+            onClick: () => {
+              setActiveOrgId(null);
+            },
           },
         ],
       },
@@ -85,6 +88,7 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
             leftIcon: PlusIcon,
             onClick: () => {
               setIsCreateOrgModalOpen(true);
+              setActiveOrgId(null);
             },
           },
 
@@ -93,6 +97,9 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
             title: org.name,
             leftIcon: Contact,
             url: `/info/${org.orgId}`,
+            onClick: () => {
+              setActiveOrgId(org.orgId);
+            },
           })),
         ],
       },
@@ -103,7 +110,7 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
     <>
       <Sidebar collapsible="icon" className="mt-16" {...props}>
         <SidebarContent>
-          <NavMain items={data.navMain} />
+          <NavMain items={data.navMain} activeItemId={activeOrgId} />
         </SidebarContent>
         <SidebarRail />
       </Sidebar>

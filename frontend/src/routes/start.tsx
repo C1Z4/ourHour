@@ -16,8 +16,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
 import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
 import { setMemberName } from '@/stores/memberSlice';
+import { setCurrentOrgId } from '@/stores/orgSlice';
 import { getImageUrl } from '@/utils/file/imageUtils';
-import { showSuccessToast } from '@/utils/toast';
 
 export const Route = createFileRoute('/start')({
   component: StartPage,
@@ -73,7 +73,6 @@ function StartPage() {
       },
       {
         onSuccess: (result) => {
-          showSuccessToast('회사 생성 완료');
           setIsOrgModalOpen(false);
 
           // 회사 생성 성공 후 orgId와 memberName을 저장
@@ -88,9 +87,6 @@ function StartPage() {
 
           // 페이지 새로고침(임시)
           window.location.reload();
-        },
-        onError: (error) => {
-          // 에러 토스트
         },
       },
     );
@@ -109,6 +105,7 @@ function StartPage() {
   };
 
   const handleOrgClick = (orgId: number) => {
+    dispatch(setCurrentOrgId(orgId));
     router.navigate({
       to: '/org/$orgId/project',
       params: { orgId: orgId.toString() },

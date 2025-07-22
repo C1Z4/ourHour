@@ -68,21 +68,17 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
 
   // 수정 버튼 클릭시
   const handleProjectSubmit = (data: Partial<PutUpdateProjectRequest>) => {
-    try {
-      updateProject({
-        orgId: Number(orgId),
-        projectId: Number(projectId),
-        name: data.name || '',
-        description: data.description || '',
-        startAt: data.startAt || '',
-        endAt: data.endAt || '',
-        status: data.status || 'NOT_STARTED',
-        participantIds: selectedParticipantIds,
-      });
-      showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
-    } catch (error) {
-      // 에러 토스트
-    }
+    updateProject({
+      orgId: Number(orgId),
+      projectId: Number(projectId),
+      name: data.name || '',
+      description: data.description || '',
+      startAt: data.startAt || '',
+      endAt: data.endAt || '',
+      status: data.status || 'NOT_STARTED',
+      participantIds: selectedParticipantIds,
+    });
+    handleEditModalClose();
   };
 
   const handleMemberSelectionChange = (memberIds: number[]) => {

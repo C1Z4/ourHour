@@ -9,7 +9,6 @@ import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ProjectModal } from '@/components/project/modal/ProjectModal';
 import { ProjectDataTable } from '@/components/project/project-list';
 import { useProjectCreateMutation } from '@/hooks/queries/project/useProjectCreateMutation';
-import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const Route = createFileRoute('/org/$orgId/project/')({
   component: ProjectListPage,
@@ -23,25 +22,21 @@ function ProjectListPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [isMyProjectsOnly, setIsMyProjectsOnly] = useState(false);
+
   const { mutate: createProject } = useProjectCreateMutation({
     orgId: Number(orgId),
   });
 
   const handleProjectSubmit = (data: Partial<ProjectBaseInfo>) => {
-    try {
-      createProject({
-        orgId: Number(orgId),
-        name: data.name || '',
-        description: data.description || '',
-        startAt: data.startAt || '',
-        endAt: data.endAt || '',
-        status: data.status,
-      } as unknown as PostCreateProjectRequest);
-      showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
-    } catch (error: unknown) {
-      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
-    }
-
+    createProject({
+      orgId: Number(orgId),
+      name: data.name || '',
+      description: data.description || '',
+      startAt: data.startAt || '',
+      endAt: data.endAt || '',
+      status: data.status,
+    } as unknown as PostCreateProjectRequest);
     setIsModalOpen(false);
   };
 
@@ -54,16 +49,26 @@ function ProjectListPage() {
             <p className="text-gray-600">생성된 모든 프로젝트를 확인하고 관리하세요</p>
           </div>
           <div className="flex gap-2">
-            <ButtonComponent variant="primary" size="sm">
-              전체보기
-            </ButtonComponent>
-            <ButtonComponent variant="primary" size="sm">
-              참여 중인 프로젝트만 보기
-            </ButtonComponent>
-            <ButtonComponent variant="danger" size="sm" onClick={() => setIsModalOpen(true)}>
+            <ButtonComponent variant="primary" size="sm" onClick={() => setIsModalOpen(true)}>
               <Plus size={16} />
               프로젝트 등록
             </ButtonComponent>
+            <div className="flex items-center bg-gray-100 rounded-lg">
+              <ButtonComponent
+                variant={!isMyProjectsOnly ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => setIsMyProjectsOnly(false)}
+              >
+                전체보기
+              </ButtonComponent>
+              <ButtonComponent
+                variant={isMyProjectsOnly ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => setIsMyProjectsOnly(true)}
+              >
+                참여 중인 프로젝트만 보기
+              </ButtonComponent>
+            </div>
           </div>
         </div>
 

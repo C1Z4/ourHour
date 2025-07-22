@@ -148,7 +148,6 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
 
       createIssue(issueData, {
         onSuccess: async () => {
-          showSuccessToast(TOAST_MESSAGES.CRUD.CREATE_SUCCESS);
           router.navigate({
             to: '/org/$orgId/project/$projectId',
             params: { orgId, projectId },

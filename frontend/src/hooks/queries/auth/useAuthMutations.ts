@@ -9,13 +9,18 @@ import postSendEmailVerification, {
 import postSignin, { SigninRequest } from '@/api/auth/postSignin';
 import postSignup, { SignupRequest } from '@/api/auth/postSignup';
 import { handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { showSuccessToast, TOAST_MESSAGES, showErrorToast } from '@/utils/toast';
 
 export const useSigninMutation = () =>
   useMutation({
     mutationFn: (request: SigninRequest) => postSignin(request),
+    onSuccess: () => {
+      showSuccessToast(TOAST_MESSAGES.AUTH.LOGIN_SUCCESS);
+    },
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
+      showErrorToast(TOAST_MESSAGES.AUTH.LOGIN_FAILED);
     },
   });
 
@@ -31,9 +36,13 @@ export const useSignupMutation = () =>
 export const useSendEmailVerificationMutation = () =>
   useMutation({
     mutationFn: (request: SendEmailVerificationRequest) => postSendEmailVerification(request),
+    onSuccess: () => {
+      showSuccessToast(TOAST_MESSAGES.AUTH.SIGNUP_EMAIL_VERIFICATION);
+    },
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
+      showErrorToast(TOAST_MESSAGES.AUTH.SIGNUP_FAILED);
     },
   });
 

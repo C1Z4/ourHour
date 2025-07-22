@@ -6,6 +6,7 @@ import putUpdateIssue, { PutUpdateIssueRequest } from '@/api/project/putUpdateIs
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
 import { handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { showSuccessToast, TOAST_MESSAGES, showErrorToast } from '@/utils/toast';
 
 interface UseIssueUpdateMutationParams {
   milestoneId: number | null;
@@ -28,9 +29,11 @@ export const useIssueUpdateMutation = ({
         queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, projectId, milestoneId],
         exact: false,
       });
+      showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
     },
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
+      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
     },
   });

@@ -19,6 +19,7 @@ import {
 
 export function NavMain({
   items,
+  activeItemId,
 }: {
   items: {
     title: string;
@@ -36,6 +37,7 @@ export function NavMain({
       onDelete?: () => void;
     }[];
   }[];
+  activeItemId: number | null;
 }) {
   return (
     <SidebarGroup>
@@ -59,7 +61,15 @@ export function NavMain({
                 <SidebarMenuSub>
                   {item.items && item.items.length > 0 ? (
                     item.items.map((subItem) => (
-                      <SidebarMenu key={subItem.id} onClick={subItem.onClick}>
+                      <SidebarMenu
+                        key={subItem.id}
+                        onClick={subItem.onClick}
+                        className={
+                          activeItemId && activeItemId === subItem.id
+                            ? 'bg-gray-100 rounded-md font-bold'
+                            : ''
+                        }
+                      >
                         <div className="flex items-center w-full">
                           <SidebarMenuSubButton asChild className="flex-1">
                             <Link to={subItem.url ?? ''}>

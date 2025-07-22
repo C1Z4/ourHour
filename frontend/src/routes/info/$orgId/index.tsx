@@ -14,7 +14,7 @@ import { useMyMemberInfoUpdateMutation } from '@/hooks/queries/member/useMyMembe
 import { useQuitOrgMutation } from '@/hooks/queries/member/useQuitOrgMutation';
 import usePasswordVerificationMutation from '@/hooks/queries/user/usePasswordVerificationMutation';
 import { compressAndSaveImage, validateFileSize, validateFileType } from '@/utils/file/fileStorage';
-import { showErrorToast, showSuccessToast } from '@/utils/toast';
+import { showErrorToast } from '@/utils/toast';
 
 export const Route = createFileRoute('/info/$orgId/')({
   component: MemberInfoPage,
@@ -64,13 +64,8 @@ function MemberInfoPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      updateMyMemberInfo(formData);
-      showSuccessToast('정보가 저장되었습니다.');
-    } catch (error) {
-      // 에러 토스트
-      // showErrorToast('정보 저장 중 오류가 발생했습니다.');
-    }
+
+    updateMyMemberInfo(formData);
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -121,10 +116,6 @@ function MemberInfoPage() {
         onSuccess: () => {
           quitOrg({ orgId: Number(orgId) });
         },
-        onError: () => {
-          // 에러 토스트
-          // showErrorToast('비밀번호가 일치하지 않습니다.');
-        },
       },
     );
 
@@ -132,12 +123,7 @@ function MemberInfoPage() {
       { orgId: Number(orgId) },
       {
         onSuccess: () => {
-          showSuccessToast('회사를 나가셨습니다.');
           window.location.href = '/info/password';
-        },
-        onError: () => {
-          // 에러 토스트
-          // showErrorToast('회사 나가기에 실패했습니다.');
         },
       },
     );

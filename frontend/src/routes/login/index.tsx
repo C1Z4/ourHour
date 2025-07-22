@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react';
 
-import { createFileRoute, useRouter, useSearch } from '@tanstack/react-router';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 
 import landingImage from '@/assets/images/landing-1.jpg';
 import ErrorMessage from '@/components/auth/ErrorMessage';
 import LoginForm from '@/components/auth/LoginForm';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { AUTH_MESSAGES, PLATFORM_NAME } from '@/constants/messages';
 import { useSigninMutation } from '@/hooks/queries/auth/useAuthMutations';
 import { useAppSelector } from '@/stores/hooks';
-import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const Route = createFileRoute('/login/')({
   component: LoginPage,
@@ -51,12 +49,10 @@ function LoginPage() {
       { email, password, platform: PLATFORM_NAME },
       {
         onSuccess: () => {
-          showSuccessToast(TOAST_MESSAGES.AUTH.LOGIN_SUCCESS);
           router.navigate({ to: '/start', search: { page: 1 } });
         },
         onError: () => {
           setLoginError(AUTH_MESSAGES.LOGIN_FAILED);
-          showErrorToast(TOAST_MESSAGES.AUTH.LOGIN_FAILED);
         },
       },
     );

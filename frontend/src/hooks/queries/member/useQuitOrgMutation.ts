@@ -6,6 +6,7 @@ import deleteQuitOrg, { DeleteQuitOrgRequest } from '@/api/member/deleteQuitOrg'
 import { ORG_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
 import { handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { showErrorToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const useQuitOrgMutation = () =>
   useMutation({
@@ -19,5 +20,6 @@ export const useQuitOrgMutation = () =>
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
+      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
     },
   });
