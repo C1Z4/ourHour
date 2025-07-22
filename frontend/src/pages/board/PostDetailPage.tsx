@@ -9,7 +9,6 @@ import {
 } from '@/components/project/issue-detail';
 import { usePostDeleteMutation } from '@/hooks/queries/board/usePostDeleteMutation';
 import { usePostDetailQuery } from '@/hooks/queries/board/usePostDetailQuery';
-import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface PostDetailPageProps {
   orgId: string;
@@ -49,16 +48,12 @@ export const PostDetailPage = ({ orgId, boardId, postId }: PostDetailPageProps) 
   };
 
   const handleDeletePost = () => {
-    try {
-      deletePost();
-      router.navigate({
-        to: '/org/$orgId/board/$boardId',
-        params: { orgId, boardId },
-        search: { boardName: post.boardName },
-      });
-    } catch (error) {
-      // showErrorToast(TOAST_MESSAGES.CRUD.DELETE_ERROR);
-    }
+    deletePost();
+    router.navigate({
+      to: '/org/$orgId/board/$boardId',
+      params: { orgId, boardId },
+      search: { boardName: post.boardName },
+    });
   };
 
   return (
@@ -72,7 +67,7 @@ export const PostDetailPage = ({ orgId, boardId, postId }: PostDetailPageProps) 
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           <div className="lg:col-span-2">
             <div className="mt-8">
               <IssueDetailContent post={post} onEdit={handleEditPost} onDelete={handleDeletePost} />
