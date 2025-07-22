@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { Member } from '@/types/memberTypes';
 
+import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -58,12 +59,14 @@ export const ChatParticipantAddModal = ({ orgId, roomId, isOpen, onClose }: Prop
         />
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            취소
-          </Button>
-          <Button onClick={handleInvite} disabled={isPending || selectedMembers.length === 0}>
+          <ButtonComponent onClick={onClose}>취소</ButtonComponent>
+          <ButtonComponent
+            variant="danger"
+            onClick={handleInvite}
+            disabled={isPending || selectedMembers.length === 0}
+          >
             {isPending ? '초대 중...' : '초대하기'}
-          </Button>
+          </ButtonComponent>
         </DialogFooter>
       </DialogContent>
     </Dialog>

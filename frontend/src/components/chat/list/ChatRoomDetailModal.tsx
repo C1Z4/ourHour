@@ -59,7 +59,6 @@ export const ChatRoomDetailModal = ({ orgId, roomId, onClose }: Props) => {
         </div>
         <div>
           <ParticipantList members={detailedParticipants} isReadOnly={true} />
-          <div className="mt-2 flex flex-wrap gap-2 p-2 bg-muted rounded-md min-h-[60px]" />
         </div>
         <DialogFooter>
           <ChatRoomDeleteAlert onConfirm={handleLeaveChatRoom} isPending={isPending} />

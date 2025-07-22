@@ -5,7 +5,7 @@ import { Member } from '@/types/memberTypes';
 import { ChatRoomColorPicker } from '@/components/chat/newChat/ChatRoomColorPicker.tsx';
 import { ChatRoomNameInput } from '@/components/chat/newChat/ChatRoomNameInput.tsx';
 import { ChatRoomParticipantSelector } from '@/components/chat/newChat/ChatRoomParticipantSelector.tsx';
-import { Button } from '@/components/ui/button.tsx';
+import { ButtonComponent } from '@/components/common/ButtonComponent';
 import {
   Dialog,
   DialogClose,
@@ -70,7 +70,7 @@ export const NewChatRoomModal = ({ orgId }: Props) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">+ 새 채팅 만들기</Button>
+        <ButtonComponent>+ 새 채팅 만들기</ButtonComponent>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
@@ -94,11 +94,11 @@ export const NewChatRoomModal = ({ orgId }: Props) => {
           <DialogFooter>
             <DialogClose>
               {' '}
-              <Button variant="outline" onCanPlay={() => setIsOpen(false)}>
-                취소
-              </Button>
+              <ButtonComponent onCanPlay={() => setIsOpen(false)}>취소</ButtonComponent>
             </DialogClose>
-            <Button type="submit">만들기</Button>
+            <ButtonComponent variant="danger" type="submit">
+              만들기
+            </ButtonComponent>
           </DialogFooter>
         </form>
       </DialogContent>
