@@ -50,6 +50,7 @@ function WithdrawPage() {
 
   return (
     <div className="bg-white p-6">
+      <h1 className="text-2xl font-bold text-center mb-5">계정 탈퇴</h1>
       <div className="max-w-2xl mx-auto space-y-8">
         <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
           <span className="text-sm font-medium text-gray-700">탈퇴할 계정</span>
