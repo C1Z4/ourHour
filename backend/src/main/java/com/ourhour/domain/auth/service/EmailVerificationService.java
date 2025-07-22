@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -15,7 +14,7 @@ public class EmailVerificationService extends AbstractVerificationService<EmailV
 
     private final EmailVerificationRepository emailVerificationRepository;
 
-    @Value("${spring.service.base-url-email}")
+    @Value("${spring.service.url.front}")
     private String serviceBaseUrl;
 
     public EmailVerificationService(EmailSenderService emailSenderService, EmailVerificationRepository emailVerificationRepository) {
@@ -34,7 +33,7 @@ public class EmailVerificationService extends AbstractVerificationService<EmailV
         String token = sendVerificationEmail(
                 email,
                 serviceBaseUrl,
-                "/api/auth/email-verification?token=",
+                "/auth/email-verification?token=",
                 subject,
                 contentTemplate,
                 linkName);
