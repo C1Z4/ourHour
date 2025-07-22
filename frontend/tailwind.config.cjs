@@ -10,7 +10,8 @@ module.exports = {
   				'-apple-system',
   				'BlinkMacSystemFont',
   				'Segoe UI'
-  			]
+  			],
+  			nanum: ['NanumBarunGothic', 'sans-serif'],
   		},
   		colors: {
   			border: 'hsl(var(--border))',
