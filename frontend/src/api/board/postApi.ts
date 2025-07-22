@@ -3,8 +3,11 @@ import { Post } from '@/types/postTypes';
 
 import axiosInstance from '../axiosConfig';
 
-export interface PostCreateUpdatePayload {
-  name: string;
+export interface PostCreatePayload {
+  postId?: number;
+  boardId: number;
+  title: string;
+  content: string;
 }
 
 // 전체 게시글 조회(게시판 구분 x)
@@ -41,22 +44,29 @@ export const getPost = async (orgId: number, boardId: number, postId: number) =>
 };
 
 // 게시글 등록
-export const createPost = async (
-  orgId: number,
-  boardId: number,
-  payload: PostCreateUpdatePayload,
-) => {
-  await axiosInstance.post(`/api/organizations/${orgId}/boards/${boardId}/posts`, payload);
+export const createPost = async (orgId: number, payload: PostCreatePayload) => {
+  const payloadData = {
+    title: payload.title,
+    content: payload.content,
+  };
+  const response = await axiosInstance.post(
+    `/api/organizations/${orgId}/boards/${payload.boardId}/posts`,
+    payloadData,
+  );
+  return response.data;
 };
 
 // 게시글 수정
-export const updatePost = async (
-  orgId: number,
-  boardId: number,
-  postId: number,
-  payload: PostCreateUpdatePayload,
-) => {
-  await axiosInstance.put(`/api/organizations/${orgId}/boards/${boardId}/posts/${postId}`, payload);
+export const updatePost = async (orgId: number, postId: number, payload: PostCreatePayload) => {
+  const payloadData = {
+    boardId: payload.boardId,
+    title: payload.title,
+    content: payload.content,
+  };
+  await axiosInstance.put(
+    `/api/organizations/${orgId}/boards/${payload.boardId}/posts/${postId}`,
+    payloadData,
+  );
 };
 
 // 게시글 삭제

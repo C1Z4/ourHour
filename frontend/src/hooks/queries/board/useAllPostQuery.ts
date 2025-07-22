@@ -4,7 +4,7 @@ import { getAllPostList } from '@/api/board/postApi';
 
 export const useAllPostQuery = (orgId: number, page: number = 1, size: number = 10) =>
   useQuery({
-    queryKey: ['allPost', orgId],
+    queryKey: ['allPostList', orgId],
     queryFn: () => getAllPostList(orgId, page, size),
     enabled: !!orgId,
   });
