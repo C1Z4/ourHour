@@ -1,12 +1,11 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 
 import { updateBoard } from '@/api/board/boardApi';
+import { queryClient } from '@/main';
 import { showToast } from '@/utils/toast';
 
-export const useBoardUpdateMutation = (orgId: number, boardId: number) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+export const useBoardUpdateMutation = (orgId: number, boardId: number) =>
+  useMutation({
     mutationFn: (name: string) => updateBoard(orgId, boardId, { name }),
 
     onSuccess: () => {
@@ -18,4 +17,3 @@ export const useBoardUpdateMutation = (orgId: number, boardId: number) => {
       showToast('error', '게시판 수정에 실패하였습니다.');
     },
   });
-};
