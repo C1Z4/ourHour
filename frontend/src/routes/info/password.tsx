@@ -33,6 +33,11 @@ function PasswordPage() {
       newPassword: formData.newPassword,
       newPasswordCheck: formData.newPasswordCheck,
     });
+    setFormData({
+      currentPassword: '',
+      newPassword: '',
+      newPasswordCheck: '',
+    });
   };
 
   return (
