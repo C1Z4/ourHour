@@ -192,7 +192,15 @@ function OrgInfoPage() {
                 <ButtonComponent variant="secondary" onClick={handleEditProject}>
                   회사 정보 수정
                 </ButtonComponent>
-                <ButtonComponent variant="danger" onClick={openDeleteModal}>
+                <ButtonComponent
+                  variant="danger"
+                  onClick={openDeleteModal}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      openDeleteModal();
+                    }
+                  }}
+                >
                   회사 삭제
                 </ButtonComponent>
               </div>
@@ -276,6 +284,11 @@ function OrgInfoPage() {
                 placeholder="비밀번호를 입력해주세요."
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleRoleChangeConfirm();
+                  }
+                }}
               />
             </div>
           }

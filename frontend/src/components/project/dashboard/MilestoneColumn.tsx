@@ -132,7 +132,16 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
           }
           footer={
             <div className="">
-              <ButtonComponent variant="primary" size="sm" onClick={handleEditMilestone}>
+              <ButtonComponent
+                variant="primary"
+                size="sm"
+                onClick={handleEditMilestone}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleEditMilestone();
+                  }
+                }}
+              >
                 수정
               </ButtonComponent>
             </div>

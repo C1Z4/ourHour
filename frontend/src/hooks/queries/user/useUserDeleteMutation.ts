@@ -3,8 +3,8 @@ import { useMutation } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 import deleteUser, { DeleteUserRequest } from '@/api/user/deleteUser';
-import { handleHttpError, logError } from '@/utils/auth/errorUtils';
-import { showErrorToast, TOAST_MESSAGES } from '@/utils/toast';
+import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { showErrorToast } from '@/utils/toast';
 
 export const useUserDeleteMutation = () =>
   useMutation({
@@ -12,6 +12,6 @@ export const useUserDeleteMutation = () =>
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
-      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
+      showErrorToast(getErrorMessage(error));
     },
   });

@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import putUpdateMilestone, { PutUpdateMilestoneRequest } from '@/api/project/putUpdateMilestone';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
 import { showSuccessToast, TOAST_MESSAGES, showErrorToast } from '@/utils/toast';
 
 interface UseMilestoneUpdateMutationParams {
@@ -30,6 +30,6 @@ export const useMilestoneUpdateMutation = ({
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
-      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
+      showErrorToast(getErrorMessage(error));
     },
   });

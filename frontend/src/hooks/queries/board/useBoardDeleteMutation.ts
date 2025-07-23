@@ -1,8 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
 
+import { AxiosError } from 'axios';
+
 import { deleteBoard } from '@/api/board/boardApi';
 import { queryClient } from '@/main';
-import { showToast } from '@/utils/toast';
+import { getErrorMessage } from '@/utils/auth/errorUtils';
+import { showErrorToast, showToast } from '@/utils/toast';
 
 export const useBoardDeleteMutation = (orgId: number, boardId: number) =>
   useMutation({
@@ -13,7 +16,8 @@ export const useBoardDeleteMutation = (orgId: number, boardId: number) =>
       queryClient.invalidateQueries({ queryKey: ['boardList', orgId] });
     },
 
-    onError: () => {
+    onError: (error: AxiosError) => {
       showToast('error', '게시판 삭제에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });
