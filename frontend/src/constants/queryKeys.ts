@@ -17,3 +17,7 @@ export const ORG_QUERY_KEYS = {
 export const MEMBER_QUERY_KEYS = {
   MY_MEMBER_INFO: 'myMemberInfo',
 } as const;
+
+export const COMMENT_QUERY_KEYS = {
+  COMMENT_LIST: 'commentList',
+} as const;

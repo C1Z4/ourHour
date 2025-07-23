@@ -10,11 +10,13 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { ProjectMembersTable } from '@/components/project/info/ProjectMembersTable';
 import { ProjectModal } from '@/components/project/modal/ProjectModal';
 import { Input } from '@/components/ui/input';
+import { ORG_QUERY_KEYS } from '@/constants/queryKeys';
 import useProjectDeleteMutation from '@/hooks/queries/project/useProjectDeleteMutation';
 import useProjectInfoQuery from '@/hooks/queries/project/useProjectInfoQuery';
 import useProjectParticipantListQuery from '@/hooks/queries/project/useProjectParticipantListQuery';
 import { useProjectUpdateMutation } from '@/hooks/queries/project/useProjectUpdateMutation';
 import usePasswordVerificationMutation from '@/hooks/queries/user/usePasswordVerificationMutation';
+import { queryClient } from '@/main';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface ProjectInfoPageProps {
@@ -55,6 +57,7 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
   const { mutate: deleteProject } = useProjectDeleteMutation({
     orgId: Number(orgId),
   });
+
   const projectInfo = projectInfoData as ProjectBaseInfo | undefined;
   const projectMembers = Array.isArray(projectMembersData?.data) ? projectMembersData.data : [];
 
@@ -78,6 +81,10 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
       status: data.status || 'NOT_STARTED',
       participantIds: selectedParticipantIds,
     });
+
+    // 추후 본인이 추가되거나 삭제될 때 한정으로 쿼리 무효화 조건 추가
+    queryClient.invalidateQueries({ queryKey: [ORG_QUERY_KEYS.MY_PROJECT_LIST, Number(orgId)] });
+
     handleEditModalClose();
   };
 

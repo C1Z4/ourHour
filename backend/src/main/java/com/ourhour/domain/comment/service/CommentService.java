@@ -93,9 +93,9 @@ public class CommentService {
     // 최상위 댓글만 페이징
     private Page<CommentEntity> getParentComments(Long postId, Long issueId, int currentPage, int size) {
         if (postId != null) {
-            return commentRepository.findByPostIdAndParentCommentIdIsNull(postId, PageRequest.of(currentPage, size));
+            return commentRepository.findByPostIdAndParentCommentIdIsNull(postId, PageRequest.of(currentPage - 1, size));
         } else {
-            return commentRepository.findByIssueIdAndParentCommentIdIsNull(issueId, PageRequest.of(currentPage, size));
+            return commentRepository.findByIssueIdAndParentCommentIdIsNull(issueId, PageRequest.of(currentPage - 1, size));
         }
     }
 
@@ -112,8 +112,6 @@ public class CommentService {
     @Transactional
     public void createComment(CommentCreateReqDTO commentCreateReqDTO) {
         validateCreateCommentRequest(commentCreateReqDTO);
-
-        // 현재는 authorId값을 클라이언트에서 받음 -> 추후 토큰에서 memberId 추출 가능할 시 로직 변경 필요!
 
         // 작성자 조회
         MemberEntity authorEntity = memberRepository.findById(commentCreateReqDTO.getAuthorId())
@@ -176,7 +174,6 @@ public class CommentService {
         CommentEntity commentEntity = commentRepository.findById(commentId)
                 .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 댓글입니다."));
 
-        // 현재는 authorId값을 클라이언트에서 받음 -> 추후 토큰에서 memberId 추출 가능할 시 로직 변경 필요!
         commentMapper.updateCommentEntity(commentEntity, commentUpdateReqDTO);
 
         commentRepository.save(commentEntity);
@@ -201,13 +198,7 @@ public class CommentService {
     public void deleteComment(Long commentId) {
         CommentEntity commentEntity = commentRepository.findById(commentId)
                 .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 댓글입니다."));
-
-        // 현재는 authorId값을 클라이언트에서 받음 -> 추후 토큰에서 memberId 추출 가능할 시 로직 변경 필요!
-
-        if (commentEntity.getAuthorEntity().getMemberId() != commentEntity.getAuthorEntity().getMemberId()) {
-            throw BusinessException.badRequest("작성자 ID가 일치하지 않습니다.");
-        }
-
+        
         commentRepository.delete(commentEntity);
     }
 }

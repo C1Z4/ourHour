@@ -1,16 +1,16 @@
 import { useState } from 'react';
 
-import { Comment } from '@/types/issueTypes';
-
+import { Comment } from '@/api/comment/getCommentList';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
+import { getImageUrl } from '@/utils/file/imageUtils';
 
 interface CommentItemProps {
   comment: Comment;
-  onUpdate: (commentId: string, newContent: string) => void;
-  onDelete: (commentId: string) => void;
+  onUpdate: (commentId: number, newContent: string) => void;
+  onDelete: (commentId: number) => void;
 }
 
 export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) => {
@@ -23,7 +23,7 @@ export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) =
 
   const handleSave = () => {
     if (editContent.trim()) {
-      onUpdate(comment.id, editContent.trim());
+      onUpdate(comment.commentId, editContent.trim());
       setIsEditing(false);
     }
   };
@@ -34,7 +34,7 @@ export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) =
   };
 
   const handleDelete = () => {
-    onDelete(comment.id);
+    onDelete(comment.commentId);
   };
 
   const formatDate = (dateString: string) => {
@@ -51,15 +51,15 @@ export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) =
   return (
     <div className="group flex gap-2">
       <Avatar className="w-8 h-8 flex-shrink-0 mt-2">
-        <AvatarImage src={comment.author.profileImageUrl} alt={comment.author.name} />
-        <AvatarFallback className="text-xs">{comment.author.name.charAt(0)}</AvatarFallback>
+        <AvatarImage src={getImageUrl(comment.profileImgUrl)} alt={comment.name} />
+        <AvatarFallback className="text-xs">{comment.name.charAt(0)}</AvatarFallback>
       </Avatar>
 
       <div className="flex-1 min-w-0">
         <div className="bg-gray-50 rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-sm text-gray-900">{comment.author.name}</span>
+              <span className="font-medium text-sm text-gray-900">{comment.name}</span>
               <span className="text-xs text-gray-500">{formatDate(comment.createdAt)}</span>
             </div>
 
@@ -69,7 +69,6 @@ export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) =
               deleteLabel="댓글 삭제"
               onEdit={handleEdit}
               onDelete={handleDelete}
-              triggerClassName="opacity-0 group-hover:opacity-100 transition-opacity"
             />
           </div>
 
@@ -83,6 +82,9 @@ export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) =
                 placeholder="댓글을 입력하세요"
               />
               <div className="flex justify-end gap-2">
+                <ButtonComponent variant="danger" size="sm" onClick={handleCancel}>
+                  취소
+                </ButtonComponent>
                 <ButtonComponent
                   variant="primary"
                   size="sm"
@@ -90,9 +92,6 @@ export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) =
                   disabled={!editContent.trim()}
                 >
                   저장
-                </ButtonComponent>
-                <ButtonComponent variant="danger" size="sm" onClick={handleCancel}>
-                  취소
                 </ButtonComponent>
               </div>
             </div>

@@ -169,7 +169,6 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
 
     updateIssue(issueData, {
       onSuccess: () => {
-        showSuccessToast(TOAST_MESSAGES.CRUD.UPDATE_SUCCESS);
         router.navigate({
           to: '/org/$orgId/project/$projectId/issue/$issueId',
           params: { orgId, projectId, issueId },

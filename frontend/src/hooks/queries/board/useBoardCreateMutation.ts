@@ -1,12 +1,11 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 
 import { BoardCreatePayload, createBoard } from '@/api/board/boardApi';
+import { queryClient } from '@/main';
 import { showToast } from '@/utils/toast';
 
-export const useBoardCreateMutation = (orgId: number) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+export const useBoardCreateMutation = (orgId: number) =>
+  useMutation({
     mutationFn: (payload: BoardCreatePayload) => createBoard(orgId, payload),
 
     onSuccess: () => {
@@ -18,4 +17,3 @@ export const useBoardCreateMutation = (orgId: number) => {
       showToast('error', '새 게시판 등록에 실패하였습니다.');
     },
   });
-};

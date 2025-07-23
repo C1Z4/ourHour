@@ -1,12 +1,11 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 
 import { PostCreatePayload, updatePost } from '@/api/board/postApi';
+import { queryClient } from '@/main';
 import { showToast } from '@/utils/toast';
 
-export const usePostUpdateMutation = (orgId: number, boardId: number, postId: number) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+export const usePostUpdateMutation = (orgId: number, boardId: number, postId: number) =>
+  useMutation({
     mutationFn: (payload: PostCreatePayload) => updatePost(orgId, postId, payload),
 
     onSuccess: () => {
@@ -23,4 +22,3 @@ export const usePostUpdateMutation = (orgId: number, boardId: number, postId: nu
       showToast('error', '게시글 수정에 실패하였습니다.');
     },
   });
-};

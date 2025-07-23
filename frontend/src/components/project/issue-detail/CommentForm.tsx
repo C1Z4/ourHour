@@ -1,15 +1,22 @@
 import { useState } from 'react';
 
+import { MyMemberInfoDetail } from '@/api/member/getMyMemberInfo';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
+import useMyMemberInfoQuery from '@/hooks/queries/member/useMyMemberInfoQuery';
+import { getImageUrl } from '@/utils/file/imageUtils';
 
 interface CommentFormProps {
+  orgId: number;
   onSubmit: (content: string) => void;
 }
 
-export const CommentForm = ({ onSubmit }: CommentFormProps) => {
+export const CommentForm = ({ orgId, onSubmit }: CommentFormProps) => {
   const [content, setContent] = useState('');
+
+  const { data: memberData } = useMyMemberInfoQuery({ orgId });
+  const currentMember = memberData as unknown as MyMemberInfoDetail;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,9 +29,9 @@ export const CommentForm = ({ onSubmit }: CommentFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-3">
-      <Avatar className="w-8 h-8 flex-shrink-0">
-        <AvatarImage src="https://github.com/shadcn.png" alt="현재 사용자" />
-        <AvatarFallback className="text-xs">현</AvatarFallback>
+      <Avatar className="w-8 h-8 flex-shrink-0 mt-2">
+        <AvatarImage src={getImageUrl(currentMember.profileImgUrl)} alt={currentMember.name} />
+        <AvatarFallback className="text-xs">{currentMember.name.charAt(0)}</AvatarFallback>
       </Avatar>
 
       <div className="flex-1 min-w-0">

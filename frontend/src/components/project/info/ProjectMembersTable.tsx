@@ -114,6 +114,13 @@ export const ProjectMembersTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
+            {projectMembers?.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center text-gray-500">
+                  아직 프로젝트 참여자가 없습니다.
+                </TableCell>
+              </TableRow>
+            )}
             {projectMembers?.map((member) => (
               <TableRow key={member.memberId} className="hover:bg-gray-50">
                 <TableCell className="w-12">

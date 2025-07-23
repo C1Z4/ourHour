@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Member } from '@/types/memberTypes';
 import { PROJECT_STATUS_ENG_TO_KO, PROJECT_STATUS_KO_TO_ENG } from '@/types/projectTypes';
@@ -49,8 +49,12 @@ export const ProjectModal = ({
   const { data: orgMembersData } = useOrgMemberListQuery({
     orgId,
   });
-  const orgMembers = Array.isArray(orgMembersData?.data) ? orgMembersData.data : [];
-  const orgMemberTotalPages = orgMembersData?.data.totalPages;
+
+  const orgMembers = useMemo(
+    () => (Array.isArray(orgMembersData?.data) ? orgMembersData.data : []),
+    [orgMembersData],
+  );
+  const orgMemberTotalPages = useMemo(() => orgMembersData?.data.totalPages, [orgMembersData]);
 
   const parseDate = (dateString: string | undefined): Date | undefined => {
     if (!dateString) {
@@ -93,6 +97,7 @@ export const ProjectModal = ({
   });
 
   const handleMemberSelect = (memberId: number, checked: boolean) => {
+    console.log('Selecting member:', memberId, checked);
     if (checked) {
       setSelectedParticipantIds?.([...(selectedParticipantIds || []), memberId]);
     } else {
@@ -206,13 +211,14 @@ export const ProjectModal = ({
               </SelectContent>
             </Select>
           </div>
-
-          <MemberSelector
-            selectedMemberIds={selectedParticipantIds || []}
-            onMemberSelect={handleMemberSelect}
-            participantTotalPages={orgMemberTotalPages || 1}
-            initialMemberData={orgMembers}
-          />
+          {isEditing && (
+            <MemberSelector
+              selectedMemberIds={selectedParticipantIds || []}
+              onMemberSelect={handleMemberSelect}
+              participantTotalPages={orgMemberTotalPages || 1}
+              initialMemberData={orgMembers}
+            />
+          )}
         </div>
       }
       footer={

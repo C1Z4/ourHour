@@ -1,12 +1,11 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 
 import { deleteBoard } from '@/api/board/boardApi';
+import { queryClient } from '@/main';
 import { showToast } from '@/utils/toast';
 
-export const useBoardDeleteMutation = (orgId: number, boardId: number) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+export const useBoardDeleteMutation = (orgId: number, boardId: number) =>
+  useMutation({
     mutationFn: () => deleteBoard(orgId, boardId),
 
     onSuccess: () => {
@@ -18,4 +17,3 @@ export const useBoardDeleteMutation = (orgId: number, boardId: number) => {
       showToast('error', '게시판 삭제에 실패하였습니다.');
     },
   });
-};
