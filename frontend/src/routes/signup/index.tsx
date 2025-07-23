@@ -57,7 +57,7 @@ function SignupPage() {
         <img src={landingImage} alt="signup-background" className="w-full h-full" />
       </div>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+      <div className="w-full lg:w-1/3 flex items-center justify-center p-8 relative">
         <button
           onClick={handleGoBack}
           className="absolute top-5 left-5 flex items-center text-gray-600 hover:text-gray-900 transition-colors"
