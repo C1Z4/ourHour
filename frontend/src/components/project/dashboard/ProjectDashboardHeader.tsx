@@ -84,20 +84,20 @@ export const ProjectDashboardHeader = ({
           </div>
           <div className="flex items-center bg-gray-100 rounded-lg p-1">
             <ButtonComponent
-              variant={isMyIssuesOnly ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={onToggleViewMode}
-              className="px-3"
-            >
-              내 이슈만 보기
-            </ButtonComponent>
-            <ButtonComponent
               variant={!isMyIssuesOnly ? 'primary' : 'ghost'}
               size="sm"
               onClick={onToggleViewMode}
               className="px-3"
             >
               전체보기
+            </ButtonComponent>
+            <ButtonComponent
+              variant={isMyIssuesOnly ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={onToggleViewMode}
+              className="px-3"
+            >
+              내 이슈만 보기
             </ButtonComponent>
           </div>
         </div>
