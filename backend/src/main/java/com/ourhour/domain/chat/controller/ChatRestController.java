@@ -134,9 +134,9 @@ public class ChatRestController {
     public ResponseEntity<ApiResponse<Void>> deleteChatRoomParticipant(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId,
-            @PathVariable Long memberIdToDelete) {
+            @PathVariable Long memberId) {
 
-        chatService.deleteChatRoomParticipant(orgId, roomId, memberIdToDelete);
+        chatService.deleteChatRoomParticipant(orgId, roomId, memberId);
 
         return ResponseEntity.ok(ApiResponse.success(null, "참여자 삭제에 성공했습니다."));
     }
