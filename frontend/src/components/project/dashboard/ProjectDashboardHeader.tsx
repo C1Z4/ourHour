@@ -119,7 +119,16 @@ export const ProjectDashboardHeader = ({
           }
           footer={
             <div className="">
-              <ButtonComponent variant="primary" size="sm" onClick={handleCreateMilestone}>
+              <ButtonComponent
+                variant="primary"
+                size="sm"
+                onClick={handleCreateMilestone}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCreateMilestone();
+                  }
+                }}
+              >
                 등록
               </ButtonComponent>
             </div>
