@@ -52,12 +52,11 @@ public class OrgController {
     @OrgAuth(accessLevel = Role.ROOT_ADMIN)
     @PutMapping("/{orgId}")
     public ResponseEntity<ApiResponse<OrgDetailResDTO>> updateOrg(@OrgId @PathVariable Long orgId,
-                                                                  @Valid @RequestBody OrgDetailReqDTO orgDetailReqDTO) {
+            @Valid @RequestBody OrgDetailReqDTO orgDetailReqDTO) {
         OrgDetailResDTO orgDetailResDTO = orgService.updateOrg(orgId, orgDetailReqDTO);
 
         return ResponseEntity.ok(ApiResponse.success(orgDetailResDTO, "팀 수정에 성공하였습니다."));
     }
-
 
     // 회사 삭제
     @OrgAuth(accessLevel = Role.ROOT_ADMIN)
@@ -78,12 +77,13 @@ public class OrgController {
             throw BusinessException.unauthorized("인증 정보가 없습니다.");
         }
 
-        List<Long> memberIdList = claims.getOrgAuthorityList().stream()
+        Long memberId = claims.getOrgAuthorityList().stream()
                 .filter(authority -> authority.getOrgId().equals(orgId))
                 .map(OrgAuthority::getMemberId)
-                .collect(Collectors.toList());
+                .findFirst()
+                .orElseThrow(() -> BusinessException.notFound("팀에 참여하지 않은 사용자입니다."));
 
-        List<ProjectNameResDTO> response = orgService.getMyProjects(memberIdList);
+        List<ProjectNameResDTO> response = orgService.getMyProjects(memberId, orgId);
 
         return ResponseEntity.ok(ApiResponse.success(response, "본인이 참여 중인 프로젝트 이름 목록 조회에 성공하였습니다."));
     }
