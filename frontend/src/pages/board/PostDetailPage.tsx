@@ -2,11 +2,8 @@ import { useRouter } from '@tanstack/react-router';
 
 import { Post } from '@/types/postTypes';
 
-import {
-  CommentSection,
-  IssueDetailContent,
-  IssueDetailHeader,
-} from '@/components/project/issue-detail';
+import { CommentSection } from '@/components/board/CommentSection';
+import { IssueDetailContent, IssueDetailHeader } from '@/components/project/issue-detail';
 import { usePostDeleteMutation } from '@/hooks/queries/board/usePostDeleteMutation';
 import { usePostDetailQuery } from '@/hooks/queries/board/usePostDetailQuery';
 
