@@ -20,9 +20,9 @@ export const ChatRoomList = ({ orgId, chatRooms }: ListProps) => (
     <TableHeader>
       <TableRow>
         <TableHead className="w-[100px]">태그</TableHead>
-        <TableHead className="w-[300px]">이름</TableHead>
-        <TableHead className="w-[400px]">최근 메시지</TableHead>
-        <TableHead>정보</TableHead>
+        <TableHead className="w-[200px]">이름</TableHead>
+        <TableHead className="w-[800px]">최근 메시지</TableHead>
+        <TableHead className="w-[100px]">더보기</TableHead>
       </TableRow>
     </TableHeader>
     <TableBody>

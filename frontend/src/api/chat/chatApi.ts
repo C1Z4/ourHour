@@ -56,6 +56,10 @@ export const updateChatRoom = async (
   await axiosInstance.put(`/api/orgs/${orgId}/chat-rooms/${roomId}`, payload);
 };
 
+export const deleteChatParticipant = async (orgId: number, roomId: number, memberId: number) => {
+  await axiosInstance.delete(`api/orgs/${orgId}/chat-rooms/${roomId}/participants/${memberId}`);
+};
+
 export const deleteChatRoom = async (orgId: number, roomId: number) => {
   await axiosInstance.delete(`/api/orgs/${orgId}/chat-rooms/${roomId}`);
 };
