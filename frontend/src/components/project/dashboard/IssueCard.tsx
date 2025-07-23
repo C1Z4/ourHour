@@ -1,11 +1,14 @@
+import { useState } from 'react';
+
 import { useNavigate } from '@tanstack/react-router';
 
 import { ProjectIssueSummary } from '@/api/project/getProjectIssueList';
+import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { ModalComponent } from '@/components/common/ModalComponent';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import useIssueDeleteMutation from '@/hooks/queries/project/useIssueDeleteMutation';
-import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface IssueCardProps {
   issue: ProjectIssueSummary;
@@ -15,6 +18,7 @@ interface IssueCardProps {
 
 export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
   const navigate = useNavigate();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const { mutate: deleteIssue } = useIssueDeleteMutation({
     projectId: Number(projectId),
@@ -37,12 +41,7 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
   };
 
   const handleDeleteIssue = () => {
-    try {
-      deleteIssue();
-      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
-    } catch (error) {
-      // showErrorToast(TOAST_MESSAGES.CRUD.DELETE_ERROR);
-    }
+    setIsDeleteModalOpen(true);
   };
 
   const handlePopoverClick = (e: React.MouseEvent) => {
@@ -84,6 +83,44 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
         </div>
         <StatusBadge type="issue" status={issue.status} />
       </div>
+
+      {isDeleteModalOpen && (
+        <ModalComponent
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          title="이슈 삭제 확인"
+          children={
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                정말 &apos;<span className="font-bold">{issue.name}</span>&apos; 이슈를
+                삭제하시겠습니까?
+              </p>
+            </div>
+          }
+          footer={
+            <div className="flex flex-row items-center justify-center gap-2">
+              <ButtonComponent
+                variant="danger"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDeleteModalOpen(false);
+                }}
+              >
+                취소
+              </ButtonComponent>
+              <ButtonComponent
+                variant="primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteIssue();
+                }}
+              >
+                삭제
+              </ButtonComponent>
+            </div>
+          }
+        />
+      )}
     </div>
   );
 };

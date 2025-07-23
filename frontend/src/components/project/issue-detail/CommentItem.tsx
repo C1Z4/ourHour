@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { Comment } from '@/api/comment/getCommentList';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { ModalComponent } from '@/components/common/ModalComponent';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +17,7 @@ interface CommentItemProps {
 export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
-
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const handleEdit = () => {
     setIsEditing(true);
   };
@@ -34,7 +35,7 @@ export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) =
   };
 
   const handleDelete = () => {
-    onDelete(comment.commentId);
+    setIsDeleteModalOpen(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -100,6 +101,40 @@ export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) =
           )}
         </div>
       </div>
+
+      {isDeleteModalOpen && (
+        <ModalComponent
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          title="댓글 삭제 확인"
+          children={
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">정말 댓글을 삭제하시겠습니까?</p>
+            </div>
+          }
+          footer={
+            <div className="flex flex-row items-center justify-center gap-2">
+              <ButtonComponent
+                variant="danger"
+                size="sm"
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
+                취소
+              </ButtonComponent>
+              <ButtonComponent
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  onDelete(comment.commentId);
+                  setIsDeleteModalOpen(false);
+                }}
+              >
+                삭제
+              </ButtonComponent>
+            </div>
+          }
+        />
+      )}
     </div>
   );
 };

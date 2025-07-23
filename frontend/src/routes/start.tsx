@@ -194,7 +194,7 @@ function StartPage() {
                 className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3"
               >
                 <Plus className="w-5 h-5 mr-2" />
-                회사 생성
+                회사 등록
               </ButtonComponent>
             </div>
           </CardContent>

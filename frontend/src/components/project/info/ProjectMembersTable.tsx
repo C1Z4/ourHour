@@ -1,8 +1,11 @@
+import { useState } from 'react';
+
 import { Trash2 } from 'lucide-react';
 
 import { Member, MemberRoleKo } from '@/types/memberTypes';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { ModalComponent } from '@/components/common/ModalComponent';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -33,6 +36,7 @@ interface ProjectMembersTableProps {
   participantTotalPages: number;
   currentPage: number;
   setCurrentPage: (page: number) => void;
+  onDelete: () => void;
 }
 
 export const ProjectMembersTable = ({
@@ -45,7 +49,12 @@ export const ProjectMembersTable = ({
   participantTotalPages,
   currentPage,
   setCurrentPage,
+  onDelete,
 }: ProjectMembersTableProps) => {
+  const [isParticipantDeleteModalOpen, setIsParticipantDeleteModalOpen] = useState(false);
+  const handleParticipantDeleteModalClose = () => {
+    setIsParticipantDeleteModalOpen(false);
+  };
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       onSelectionChange(projectMembers?.map((member) => member.memberId) || []);
@@ -186,6 +195,25 @@ export const ProjectMembersTable = ({
           onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
         />
       </div>
+
+      {isParticipantDeleteModalOpen && (
+        <ModalComponent
+          isOpen={isParticipantDeleteModalOpen}
+          onClose={handleParticipantDeleteModalClose}
+        >
+          <div className="flex flex-col items-center justify-center mb-4">
+            <h4 className="text-sm text-gray-700">정말 삭제하시겠습니까?</h4>
+          </div>
+          <div className="flex flex-row items-center justify-center gap-2">
+            <ButtonComponent variant="danger" onClick={handleParticipantDeleteModalClose}>
+              취소
+            </ButtonComponent>
+            <ButtonComponent variant="primary" onClick={onDelete}>
+              삭제
+            </ButtonComponent>
+          </div>
+        </ModalComponent>
+      )}
     </div>
   );
 };
