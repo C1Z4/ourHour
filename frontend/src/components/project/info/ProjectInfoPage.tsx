@@ -162,6 +162,7 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
             participantTotalPages={projectMembersData?.data.totalPages || 1}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
+            onDelete={handleDeleteProject}
           />
         </div>
       </div>

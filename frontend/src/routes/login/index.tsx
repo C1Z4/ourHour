@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 
-import landingImage from '@/assets/images/landing-1.jpg';
+import landingImage from '@/assets/images/landing-2.jpg';
 import ErrorMessage from '@/components/auth/ErrorMessage';
 import LoginForm from '@/components/auth/LoginForm';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
@@ -79,7 +79,7 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      <div className="hidden lg:block lg:w-2/3">
+      <div className="hidden lg:block lg:w-5/6">
         <img src={landingImage} alt="login-background" className="w-full h-full" />
       </div>
 
