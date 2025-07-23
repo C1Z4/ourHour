@@ -18,7 +18,9 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { useAllPostQuery } from '@/hooks/queries/board/useAllPostQuery';
+import { useBoardListQuery } from '@/hooks/queries/board/useBoardListQuery';
 import { formatIsoToDate } from '@/utils/auth/dateUtils';
+import { showErrorToast } from '@/utils/toast';
 
 interface AllPostListPageProps {
   orgId: number;
@@ -30,10 +32,18 @@ export const AllPostListPage = ({ orgId }: AllPostListPageProps) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: postListData } = useAllPostQuery(orgId, currentPage, 10);
+
+  const { data: boardListData } = useBoardListQuery(orgId);
+
   const totalPages = (postListData as unknown as PageResponse<Post[]>)?.totalPages ?? 1;
   const postList = Array.isArray(postListData?.data) ? postListData.data : [];
 
   const handleCreatePost = () => {
+    if (boardListData?.length === 0) {
+      showErrorToast('게시판을 최소 1개 이상 만들어주세요.');
+      return;
+    }
+
     router.navigate({
       to: '/org/$orgId/board/create',
       params: { orgId: orgId.toString() },
