@@ -40,7 +40,8 @@ public interface ProjectParticipantRepository extends JpaRepository<ProjectParti
                 "proj.projectId, proj.name) " +
                 "FROM ProjectParticipantEntity pp " +
                 "JOIN pp.projectEntity proj " +
-                "WHERE pp.projectParticipantId.memberId IN :memberIdList " +
+                "WHERE pp.projectParticipantId.memberId = :memberId " +
+                "AND proj.orgEntity.orgId = :orgId " +
                 "ORDER BY proj.projectId ASC")
-        List<ProjectNameResDTO> findMemberProjectsByOrg(@Param("memberIdList") List<Long> memberIdList);
+        List<ProjectNameResDTO> findMemberProjectsByOrg(@Param("memberId") Long memberId, @Param("orgId") Long orgId);
 }

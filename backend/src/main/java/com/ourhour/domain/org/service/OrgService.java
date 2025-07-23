@@ -165,9 +165,9 @@ public class OrgService {
     }
 
     // 본인이 참여 중인 프로젝트 이름 목록 조회(좌측 사이드바)
-    public List<ProjectNameResDTO> getMyProjects(List<Long> memberIdList) {
+    public List<ProjectNameResDTO> getMyProjects(Long memberId, Long orgId) {
 
-        List<ProjectNameResDTO> projectNameList = projectParticipantRepository.findMemberProjectsByOrg(memberIdList);
+        List<ProjectNameResDTO> projectNameList = projectParticipantRepository.findMemberProjectsByOrg(memberId, orgId);
 
         return projectNameList;
     }
