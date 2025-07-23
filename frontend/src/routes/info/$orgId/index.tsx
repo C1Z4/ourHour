@@ -110,14 +110,7 @@ function MemberInfoPage() {
       return;
     }
 
-    checkPassword(
-      { password },
-      {
-        onSuccess: () => {
-          quitOrg({ orgId: Number(orgId) });
-        },
-      },
-    );
+    checkPassword({ password });
 
     quitOrg(
       { orgId: Number(orgId) },
