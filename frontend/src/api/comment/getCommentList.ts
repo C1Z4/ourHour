@@ -56,7 +56,6 @@ const getCommentList = async (
     }
 
     const response = await axiosInstance.get(`/api/comments?${params.toString()}`);
-    console.log(response);
 
     return response.data;
   } catch (error: unknown) {
