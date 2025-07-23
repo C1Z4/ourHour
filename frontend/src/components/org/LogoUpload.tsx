@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { Upload } from 'lucide-react';
 
 import { getImageUrl } from '@/utils/file/imageUtils';
@@ -15,19 +17,22 @@ export function LogoUpload({
   onLogoUpload,
   onFileSelect,
 }: LogoUploadProps) {
+  const [imageError, setImageError] = useState(false);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       onFileSelect?.(file);
     }
     onLogoUpload(event);
+    setImageError(false);
   };
 
   return (
     <div className="flex justify-center">
       <div className="relative">
         <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center overflow-hidden border border-gray-200">
-          {logoPreview || logoImgUrl ? (
+          {(logoPreview || logoImgUrl) && !imageError ? (
             <img
               src={logoPreview || getImageUrl(logoImgUrl)}
               alt="회사 로고 혹은 프로필 이미지"
@@ -35,6 +40,8 @@ export function LogoUpload({
               style={{
                 backgroundColor: 'white',
               }}
+              onError={() => setImageError(true)}
+              onLoad={() => setImageError(false)}
             />
           ) : (
             <Upload className="w-8 h-8 text-gray-400" />
