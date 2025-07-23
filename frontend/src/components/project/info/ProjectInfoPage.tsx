@@ -98,20 +98,29 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
   };
 
   const handleDeleteProject = () => {
-    try {
-      passwordVerification({ password });
-      deleteProject({ orgId: Number(orgId), projectId: Number(projectId) });
-      setIsDeleteModalOpen(false);
-      router.navigate({
-        to: '/org/$orgId/project',
-        params: { orgId },
-        search: { currentPage: 1 },
-      });
-      showSuccessToast(TOAST_MESSAGES.CRUD.DELETE_SUCCESS);
-    } catch (error) {
-      showErrorToast('비밀번호가 일치하지 않습니다.');
-      setPassword('');
-    }
+    passwordVerification(
+      { password },
+      {
+        onSuccess: () => {
+          deleteProject(
+            { orgId: Number(orgId), projectId: Number(projectId) },
+            {
+              onSuccess: () => {
+                setIsDeleteModalOpen(false);
+                router.navigate({
+                  to: '/org/$orgId/project',
+                  params: { orgId },
+                  search: { currentPage: 1 },
+                });
+              },
+            },
+          );
+        },
+        onError: () => {
+          setPassword('');
+        },
+      },
+    );
   };
 
   const openDeleteModal = () => {

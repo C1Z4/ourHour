@@ -121,15 +121,28 @@ function OrgInfoPage() {
 
   // 회사 실제 삭제
   const handleDeleteOrg = () => {
-    passwordVerification({ password });
-    deleteOrg({ orgId: Number(orgId) });
-    setIsDeleteOrgModalOpen(false);
-    router.navigate({
-      to: '/start',
-      search: { page: 1 },
-    });
-    setSelectedMemberIds([]);
-    setPassword('');
+    passwordVerification(
+      { password },
+      {
+        onSuccess: () => {
+          deleteOrg(
+            { orgId: Number(orgId) },
+            {
+              onSuccess: () => {
+                setIsDeleteOrgModalOpen(false);
+                router.navigate({
+                  to: '/start',
+                  search: { page: 1 },
+                });
+              },
+            },
+          );
+        },
+        onError: () => {
+          setPassword('');
+        },
+      },
+    );
   };
 
   const handleDeleteMemberModalClose = () => {
@@ -156,17 +169,24 @@ function OrgInfoPage() {
       return;
     }
 
-    passwordVerification({ password });
-
-    patchMemberRole({
-      orgId: Number(orgId),
-      memberId: pendingRoleChange.memberId,
-      newRole: MEMBER_ROLE_KO_TO_ENG[pendingRoleChange.newRole],
-    });
-
-    setIsRoleChangeModalOpen(false);
-    setPassword('');
-    setPendingRoleChange(null);
+    passwordVerification(
+      { password },
+      {
+        onSuccess: () => {
+          patchMemberRole({
+            orgId: Number(orgId),
+            memberId: pendingRoleChange.memberId,
+            newRole: MEMBER_ROLE_KO_TO_ENG[pendingRoleChange.newRole],
+          });
+          setIsRoleChangeModalOpen(false);
+          setPassword('');
+          setPendingRoleChange(null);
+        },
+        onError: () => {
+          setPassword('');
+        },
+      },
+    );
   };
 
   const handleRoleChangeModalClose = () => {

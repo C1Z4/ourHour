@@ -110,13 +110,21 @@ function MemberInfoPage() {
       return;
     }
 
-    checkPassword({ password });
-
-    quitOrg(
-      { orgId: Number(orgId) },
+    checkPassword(
+      { password },
       {
         onSuccess: () => {
-          window.location.href = '/info/password';
+          quitOrg(
+            { orgId: Number(orgId) },
+            {
+              onSuccess: () => {
+                window.location.href = '/info/password';
+              },
+            },
+          );
+        },
+        onError: () => {
+          setPassword('');
         },
       },
     );
