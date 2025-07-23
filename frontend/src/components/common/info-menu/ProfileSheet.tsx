@@ -19,7 +19,7 @@ interface ProfileSheetProps {
 export function ProfileSheet({ children }: ProfileSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-
+  const [imageError, setImageError] = useState(false);
   const location = useLocation();
   const orgId = location.pathname.split('/')[2];
 
@@ -52,7 +52,7 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
         <div className="flex flex-col h-full">
           <div className="flex-1 p-6">
             <div className="flex flex-col items-center space-y-4">
-              {myMemberInfo?.profileImgUrl ? (
+              {myMemberInfo?.profileImgUrl && !imageError ? (
                 <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
                   <img
                     src={getImageUrl(myMemberInfo.profileImgUrl)}
@@ -60,6 +60,7 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
                     width={32}
                     height={32}
                     className="w-full h-full object-contain bg-white rounded-full"
+                    onError={() => setImageError(true)}
                   />
                 </div>
               ) : (
