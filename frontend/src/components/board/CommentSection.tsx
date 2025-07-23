@@ -19,9 +19,9 @@ export const CommentSection = () => {
   const comments = (commentsData as unknown as CommentPageResponse)?.comments;
   const totalElements = (commentsData as unknown as CommentPageResponse)?.totalElements;
 
-  const { mutate: createComment } = useCreateCommentMutation(null, Number(postId));
-  const { mutate: updateComment } = useUpdateCommentMutation(null, Number(postId));
-  const { mutate: deleteComment } = useDeleteCommentMutation(null, Number(postId));
+  const { mutate: createComment } = useCreateCommentMutation(Number(postId), null);
+  const { mutate: updateComment } = useUpdateCommentMutation(Number(postId), null);
+  const { mutate: deleteComment } = useDeleteCommentMutation(Number(postId), null);
 
   const memberId = getMemberIdFromToken(Number(orgId));
 
