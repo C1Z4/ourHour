@@ -14,7 +14,6 @@ import { useDeleteChatRoomQuery } from '@/hooks/queries/chat/useDeleteChatRoomQu
 import { useOrgMembersChatParticipated } from '@/hooks/queries/chat/useOrgMembersForChatQueries';
 import { CHAT_COLORS } from '@/styles/colors';
 
-import { ChatRoomDeleteAlert } from './ChatRoomDeleteAlert';
 import { ParticipantList } from '../ParticipantList';
 interface Props {
   orgId: number;
@@ -58,10 +57,12 @@ export const ChatRoomDetailModal = ({ orgId, roomId, onClose }: Props) => {
           </p>
         </div>
         <div>
+          <h4 className="mb-2 text-sm font-medium text-muted-foreground">
+            참여자: {detailedParticipants?.length ?? 0}명
+          </h4>
           <ParticipantList members={detailedParticipants} isReadOnly={true} />
         </div>
         <DialogFooter>
-          <ChatRoomDeleteAlert onConfirm={handleLeaveChatRoom} isPending={isPending} />
           <ButtonComponent variant="primary" onClick={onClose}>
             닫기
           </ButtonComponent>

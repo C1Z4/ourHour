@@ -5,9 +5,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { SidebarContent, SidebarHeader, SidebarFooter } from '@/components/ui/sidebar';
 import { useChatRoomParticipantsQuery } from '@/hooks/queries/chat/useChatRoomParticipantsQueries';
+import { useDeleteChatParticipantQuery } from '@/hooks/queries/chat/useDeleteChatParticipantMutation';
+import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 
 import { ChatParticipantAddModal } from './ChatParticipantAddModal';
-import { ChatRoomDeleteAlert } from '../list/ChatRoomDeleteAlert';
+
 interface Props {
   orgId: number;
   roomId: number;
@@ -17,6 +19,9 @@ interface Props {
 export const ChatRoomSidebarContent = ({ orgId, roomId, onClose }: Props) => {
   const { data: participants, isLoading } = useChatRoomParticipantsQuery(orgId, roomId);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
+  const memberId = getMemberIdFromToken(orgId);
+  const { mutate: exitRoom, isPending } = useDeleteChatParticipantQuery(orgId, roomId, memberId);
 
   return (
     <>
@@ -59,7 +64,6 @@ export const ChatRoomSidebarContent = ({ orgId, roomId, onClose }: Props) => {
         >
           참여자 초대
         </ButtonComponent>
-        <ChatRoomDeleteAlert orgId={orgId} roomId={roomId} onSuccess={onClose} />
       </SidebarFooter>
 
       {isInviteModalOpen && (

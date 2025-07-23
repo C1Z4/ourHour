@@ -8,18 +8,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+
 interface Props {
+  isOpen: boolean;
+  onClose: () => void;
   onConfirm: () => void;
   isPending: boolean;
 }
 
-export const ChatRoomDeleteAlert = ({ onConfirm, isPending }: Props) => (
-  <AlertDialog>
-    <AlertDialogTrigger>
-      <ButtonComponent variant="danger">나가기</ButtonComponent>
-    </AlertDialogTrigger>
+export const ChatRoomExitAlert = ({ isOpen, onClose, onConfirm, isPending }: Props) => (
+  <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
     <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>정말 나가시겠습니까?</AlertDialogTitle>
