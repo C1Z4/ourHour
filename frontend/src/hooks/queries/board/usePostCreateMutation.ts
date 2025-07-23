@@ -1,8 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
 
+import { AxiosError } from 'axios';
+
 import { PostCreatePayload, createPost } from '@/api/board/postApi';
 import { queryClient } from '@/main';
-import { showToast } from '@/utils/toast';
+import { getErrorMessage } from '@/utils/auth/errorUtils';
+import { showErrorToast, showToast } from '@/utils/toast';
 
 export const usePostCreateMutation = (orgId: number) =>
   useMutation({
@@ -17,7 +20,8 @@ export const usePostCreateMutation = (orgId: number) =>
       queryClient.invalidateQueries({ queryKey: ['allPostList', orgId], exact: false });
     },
 
-    onError: () => {
+    onError: (error: AxiosError) => {
       showToast('error', '새 게시글 등록에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });

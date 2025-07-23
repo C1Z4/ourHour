@@ -1,8 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
 
+import { AxiosError } from 'axios';
+
 import { PostCreatePayload, updatePost } from '@/api/board/postApi';
 import { queryClient } from '@/main';
-import { showToast } from '@/utils/toast';
+import { getErrorMessage } from '@/utils/auth/errorUtils';
+import { showErrorToast, showToast } from '@/utils/toast';
 
 export const usePostUpdateMutation = (orgId: number, boardId: number, postId: number) =>
   useMutation({
@@ -18,7 +21,8 @@ export const usePostUpdateMutation = (orgId: number, boardId: number, postId: nu
       });
     },
 
-    onError: () => {
+    onError: (error: AxiosError) => {
       showToast('error', '게시글 수정에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });

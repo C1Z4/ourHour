@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import postPasswordVerification, {
   PostPasswordVerificationRequest,
 } from '@/api/user/postPasswordVerification';
-import { handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
 import { showErrorToast } from '@/utils/toast';
 
 const usePasswordVerificationMutation = () =>
@@ -14,7 +14,7 @@ const usePasswordVerificationMutation = () =>
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
-      showErrorToast('비밀번호가 일치하지 않습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });
 

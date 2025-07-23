@@ -5,8 +5,8 @@ import { AxiosError } from 'axios';
 import deleteComment, { DeleteCommentRequest } from '@/api/comment/deleteComment';
 import { COMMENT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { logError } from '@/utils/auth/errorUtils';
-import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
+import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
+import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const useDeleteCommentMutation = (postId?: number | null, issueId?: number | null) =>
   useMutation({
@@ -20,5 +20,6 @@ export const useDeleteCommentMutation = (postId?: number | null, issueId?: numbe
     },
     onError: (error: AxiosError) => {
       logError(error);
+      showErrorToast(getErrorMessage(error));
     },
   });

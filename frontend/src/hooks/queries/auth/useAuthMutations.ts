@@ -8,8 +8,8 @@ import postSendEmailVerification, {
 } from '@/api/auth/postSendEmailVerification';
 import postSignin, { SigninRequest } from '@/api/auth/postSignin';
 import postSignup, { SignupRequest } from '@/api/auth/postSignup';
-import { handleHttpError, logError } from '@/utils/auth/errorUtils';
-import { showSuccessToast, TOAST_MESSAGES, showErrorToast } from '@/utils/toast';
+import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const useSigninMutation = () =>
   useMutation({
@@ -20,7 +20,7 @@ export const useSigninMutation = () =>
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
-      showErrorToast(TOAST_MESSAGES.AUTH.LOGIN_FAILED);
+      showErrorToast(getErrorMessage(error));
     },
   });
 
@@ -30,6 +30,7 @@ export const useSignupMutation = () =>
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
+      showErrorToast(getErrorMessage(error));
     },
   });
 
@@ -42,7 +43,7 @@ export const useSendEmailVerificationMutation = () =>
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
-      showErrorToast(TOAST_MESSAGES.AUTH.SIGNUP_FAILED);
+      showErrorToast(getErrorMessage(error));
     },
   });
 
@@ -52,5 +53,6 @@ export const useSignoutMutation = () =>
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
+      showErrorToast(getErrorMessage(error));
     },
   });

@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import putUpdateMyMemberInfo, { MemberInfoBase } from '@/api/member/putUpdateMyMemberInfo';
 import { MEMBER_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface UseMyMemberInfoUpdateMutationParams {
@@ -24,6 +24,6 @@ export const useMyMemberInfoUpdateMutation = ({ orgId }: UseMyMemberInfoUpdateMu
     onError: (error: AxiosError) => {
       logError(error);
       handleHttpError(error);
-      showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
+      showErrorToast(getErrorMessage(error));
     },
   });
