@@ -17,9 +17,17 @@ export const useCommentListQuery = ({
   currentPage = 1,
   size = 10,
   enabled = true,
-}: UseCommentListParams) =>
-  useQuery({
-    queryKey: [COMMENT_QUERY_KEYS.COMMENT_LIST, postId ?? null, issueId ?? null, currentPage, size],
+}: UseCommentListParams) => {
+  const queryKey = [
+    COMMENT_QUERY_KEYS.COMMENT_LIST,
+    postId ?? null,
+    issueId ?? null,
+    currentPage,
+    size,
+  ];
+
+  return useQuery({
+    queryKey,
     queryFn: () =>
       getCommentList({
         postId,
@@ -29,3 +37,4 @@ export const useCommentListQuery = ({
       }),
     enabled: enabled && (!!postId || !!issueId),
   });
+};
