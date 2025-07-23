@@ -36,7 +36,8 @@ function OrgInfoPage() {
   const [password, setPassword] = useState('');
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleteMemberModalOpen, setIsDeleteMemberModalOpen] = useState(false);
+  const [isDeleteOrgModalOpen, setIsDeleteOrgModalOpen] = useState(false);
   const [isRoleChangeModalOpen, setIsRoleChangeModalOpen] = useState(false);
 
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
@@ -99,18 +100,30 @@ function OrgInfoPage() {
     setSelectedMemberIds(memberIds);
   };
 
-  // 선택한 구성원 삭제
+  // 구성원 삭제 모달 오픈
   const handleDeleteSelectedMembers = () => {
+    setIsDeleteMemberModalOpen(true);
+  };
+
+  // 구성원 실제 삭제
+  const handleDeleteMembers = () => {
     selectedMemberIds.forEach((memberId) => {
       deleteMember({ orgId: Number(orgId), memberId });
     });
+    setIsDeleteMemberModalOpen(false);
     setSelectedMemberIds([]);
   };
 
+  // 회사 삭제 모달 오픈
+  const openDeleteOrgModal = () => {
+    setIsDeleteOrgModalOpen(true);
+  };
+
+  // 회사 실제 삭제
   const handleDeleteOrg = () => {
     passwordVerification({ password });
     deleteOrg({ orgId: Number(orgId) });
-    setIsDeleteModalOpen(false);
+    setIsDeleteOrgModalOpen(false);
     router.navigate({
       to: '/start',
       search: { page: 1 },
@@ -119,12 +132,13 @@ function OrgInfoPage() {
     setPassword('');
   };
 
-  const openDeleteModal = () => {
-    setIsDeleteModalOpen(true);
+  const handleDeleteMemberModalClose = () => {
+    setIsDeleteMemberModalOpen(false);
   };
 
-  const handleDeleteModalClose = () => {
-    setIsDeleteModalOpen(false);
+  const handleDeleteOrgModalClose = () => {
+    setIsDeleteOrgModalOpen(false);
+    setPassword('');
   };
 
   const handleImageError = (orgId: number) => {
@@ -194,10 +208,10 @@ function OrgInfoPage() {
                 </ButtonComponent>
                 <ButtonComponent
                   variant="danger"
-                  onClick={openDeleteModal}
+                  onClick={openDeleteOrgModal}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
-                      openDeleteModal();
+                      openDeleteOrgModal();
                     }
                   }}
                 >
@@ -230,6 +244,7 @@ function OrgInfoPage() {
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
             onRoleChange={handleRoleChange}
+            onDelete={handleDeleteMembers}
           />
         </div>
       </div>
@@ -243,10 +258,35 @@ function OrgInfoPage() {
         />
       )}
 
-      {isDeleteModalOpen && (
+      {/* 구성원 삭제 모달 */}
+      {isDeleteMemberModalOpen && (
         <ModalComponent
-          isOpen={isDeleteModalOpen}
-          onClose={handleDeleteModalClose}
+          isOpen={isDeleteMemberModalOpen}
+          onClose={handleDeleteMemberModalClose}
+          title="구성원 삭제 확인"
+          children={
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">선택한 구성원을 정말 삭제하시겠습니까?</p>
+            </div>
+          }
+          footer={
+            <div className="flex flex-row items-center justify-center gap-2">
+              <ButtonComponent variant="danger" onClick={handleDeleteMemberModalClose}>
+                취소
+              </ButtonComponent>
+              <ButtonComponent variant="primary" onClick={handleDeleteMembers}>
+                삭제
+              </ButtonComponent>
+            </div>
+          }
+        />
+      )}
+
+      {/* 회사 삭제 모달 */}
+      {isDeleteOrgModalOpen && (
+        <ModalComponent
+          isOpen={isDeleteOrgModalOpen}
+          onClose={handleDeleteOrgModalClose}
           title="비밀번호 확인"
           children={
             <div className="space-y-4">
