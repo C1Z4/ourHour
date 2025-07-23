@@ -1,10 +1,10 @@
-import { StrictMode } from 'react';
+// import { StrictMode } from 'react';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { Provider } from 'react-redux';
 
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+// import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import ReactDOM from 'react-dom/client';
 import { ToastContainer } from 'react-toastify';
@@ -42,25 +42,25 @@ if (!rootElement.innerHTML) {
   // restoreAuthFromServer();
 
   root.render(
-    <StrictMode>
-      <Provider store={store}>
-        <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-          />
-          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-        </QueryClientProvider>
-      </Provider>
-    </StrictMode>,
+    // <StrictMode>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+        {/* {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />} */}
+      </QueryClientProvider>
+    </Provider>,
+    // </StrictMode>,
   );
 }
