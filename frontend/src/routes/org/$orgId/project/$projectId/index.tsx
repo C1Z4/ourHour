@@ -13,7 +13,7 @@ export const Route = createFileRoute('/org/$orgId/project/$projectId/')({
 function ProjectDashboard() {
   const { orgId, projectId } = Route.useParams();
 
-  const [isMyIssuesOnly, setIsMyIssuesOnly] = useState(true);
+  const [isMyIssuesOnly, setIsMyIssuesOnly] = useState(false);
 
   const { data: milestoneList } = useProjectMilestoneListQuery({
     projectId: Number(projectId),
