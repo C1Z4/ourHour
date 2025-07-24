@@ -3,6 +3,7 @@ package com.ourhour.domain.comment.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class CommentService {
-    
+
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final MemberRepository memberRepository;
@@ -38,7 +39,7 @@ public class CommentService {
 
     @Cacheable(value = "comments", key = "#postId + '_' + #issueId + '_' + #currentPage + '_' + #size")
     public CommentPageResDTO getComments(Long postId, Long issueId, int currentPage, int size) {
-        
+
         validateParameters(postId, issueId);
 
         // 최상위 댓글만 페이징
@@ -57,16 +58,15 @@ public class CommentService {
         List<CommentEntity> relevantComments = getRelevantComments(postId, issueId, parentCommentIds);
 
         CommentResDTO commentResDTO = commentMapper.toCommentResDTO(relevantComments, postId, issueId);
-        
+
         CommentPageResDTO result = CommentPageResDTO.of(
-            commentResDTO,
-            parentCommentPage.getNumber(),
-            parentCommentPage.getSize(),
-            parentCommentPage.getTotalPages(),
-            parentCommentPage.getTotalElements(),
-            parentCommentPage.hasNext(),
-            parentCommentPage.hasPrevious()
-        );
+                commentResDTO,
+                parentCommentPage.getNumber(),
+                parentCommentPage.getSize(),
+                parentCommentPage.getTotalPages(),
+                parentCommentPage.getTotalElements(),
+                parentCommentPage.hasNext(),
+                parentCommentPage.hasPrevious());
 
         return result;
     }
@@ -80,7 +80,7 @@ public class CommentService {
         if (issueId != null && issueId < 0) {
             throw BusinessException.badRequest("issueId는 0 이상이어야 합니다.");
         }
-        
+
         if (postId == null && issueId == null) {
             throw BusinessException.badRequest("postId 또는 issueId 중 하나는 필수입니다.");
         }
@@ -93,9 +93,11 @@ public class CommentService {
     // 최상위 댓글만 페이징
     private Page<CommentEntity> getParentComments(Long postId, Long issueId, int currentPage, int size) {
         if (postId != null) {
-            return commentRepository.findByPostIdAndParentCommentIdIsNull(postId, PageRequest.of(currentPage - 1, size));
+            return commentRepository.findByPostIdAndParentCommentIdIsNull(postId,
+                    PageRequest.of(currentPage - 1, size));
         } else {
-            return commentRepository.findByIssueIdAndParentCommentIdIsNull(issueId, PageRequest.of(currentPage - 1, size));
+            return commentRepository.findByIssueIdAndParentCommentIdIsNull(issueId,
+                    PageRequest.of(currentPage - 1, size));
         }
     }
 
@@ -109,6 +111,7 @@ public class CommentService {
     }
 
     // 댓글 등록
+    @CacheEvict(value = "comments", key = "#commentCreateReqDTO.postId + '_' + #commentCreateReqDTO.issueId", allEntries = true)
     @Transactional
     public void createComment(CommentCreateReqDTO commentCreateReqDTO) {
         validateCreateCommentRequest(commentCreateReqDTO);
@@ -140,7 +143,7 @@ public class CommentService {
                 .build();
 
         commentRepository.save(commentEntity);
-        
+
     }
 
     // 댓글 생성 요청 검증
@@ -167,6 +170,7 @@ public class CommentService {
     }
 
     // 댓글 수정
+    @CacheEvict(value = "comments", key = "#commentId", allEntries = true)
     @Transactional
     public void updateComment(Long commentId, CommentUpdateReqDTO commentUpdateReqDTO) {
         validateUpdateCommentRequest(commentId, commentUpdateReqDTO);
@@ -179,10 +183,9 @@ public class CommentService {
         commentRepository.save(commentEntity);
     }
 
-    // 댓글 수정 요청 검증      
+    // 댓글 수정 요청 검증
     private void validateUpdateCommentRequest(Long commentId, CommentUpdateReqDTO request) {
 
-        
         if (request.getContent() == null || request.getContent().trim().isEmpty()) {
             throw BusinessException.badRequest("댓글 내용은 필수입니다.");
         }
@@ -194,11 +197,12 @@ public class CommentService {
     }
 
     // 댓글 삭제
+    @CacheEvict(value = "comments", key = "#commentId", allEntries = true)
     @Transactional
     public void deleteComment(Long commentId) {
         CommentEntity commentEntity = commentRepository.findById(commentId)
                 .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 댓글입니다."));
-        
+
         commentRepository.delete(commentEntity);
     }
 }
