@@ -105,15 +105,6 @@ function OrgInfoPage() {
     setIsDeleteMemberModalOpen(true);
   };
 
-  // 구성원 실제 삭제
-  const handleDeleteMembers = () => {
-    selectedMemberIds.forEach((memberId) => {
-      deleteMember({ orgId: Number(orgId), memberId });
-    });
-    setIsDeleteMemberModalOpen(false);
-    setSelectedMemberIds([]);
-  };
-
   // 회사 삭제 모달 오픈
   const openDeleteOrgModal = () => {
     setIsDeleteOrgModalOpen(true);
@@ -145,8 +136,35 @@ function OrgInfoPage() {
     );
   };
 
+  // 구성원 실제 삭제 (비밀번호 검증 추가)
+  const handleDeleteMembers = () => {
+    if (selectedMemberIds.length === 0) {
+      setIsDeleteMemberModalOpen(false);
+      return;
+    }
+
+    passwordVerification(
+      { password },
+      {
+        onSuccess: () => {
+          selectedMemberIds.forEach((memberId) => {
+            deleteMember({ orgId: Number(orgId), memberId });
+          });
+          setIsDeleteMemberModalOpen(false);
+          setSelectedMemberIds([]);
+          setPassword('');
+        },
+        onError: () => {
+          // 비밀번호 실패 시 비워주고 유지
+          setPassword('');
+        },
+      },
+    );
+  };
+
   const handleDeleteMemberModalClose = () => {
     setIsDeleteMemberModalOpen(false);
+    setPassword('');
   };
 
   const handleDeleteOrgModalClose = () => {
@@ -268,7 +286,6 @@ function OrgInfoPage() {
           />
         </div>
       </div>
-
       {isEditModalOpen && (
         <OrgModal
           isOpen={isEditModalOpen}
@@ -277,7 +294,6 @@ function OrgInfoPage() {
           onSubmit={handleProjectSubmit}
         />
       )}
-
       {/* 구성원 삭제 모달 */}
       {isDeleteMemberModalOpen && (
         <ModalComponent
@@ -301,7 +317,6 @@ function OrgInfoPage() {
           }
         />
       )}
-
       {/* 회사 삭제 모달 */}
       {isDeleteOrgModalOpen && (
         <ModalComponent
@@ -328,7 +343,6 @@ function OrgInfoPage() {
           }
         />
       )}
-
       {isRoleChangeModalOpen && (
         <ModalComponent
           isOpen={isRoleChangeModalOpen}
@@ -356,6 +370,39 @@ function OrgInfoPage() {
             <ButtonComponent variant="primary" onClick={handleRoleChangeConfirm}>
               권한 변경
             </ButtonComponent>
+          }
+        />
+      )}
+      {isDeleteMemberModalOpen && (
+        <ModalComponent
+          isOpen={isDeleteMemberModalOpen}
+          onClose={handleDeleteMemberModalClose}
+          title="구성원 삭제 확인"
+          children={
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">선택한 구성원을 정말 삭제하시겠습니까?</p>
+              <Input
+                type="password"
+                placeholder="비밀번호를 입력해주세요."
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleDeleteMembers(); // 비밀번호 검증 포함된 새 로직
+                  }
+                }}
+              />
+            </div>
+          }
+          footer={
+            <div className="flex flex-row items-center justify-center gap-2">
+              <ButtonComponent variant="danger" onClick={handleDeleteMemberModalClose}>
+                취소
+              </ButtonComponent>
+              <ButtonComponent variant="primary" onClick={handleDeleteMembers}>
+                삭제
+              </ButtonComponent>
+            </div>
           }
         />
       )}
