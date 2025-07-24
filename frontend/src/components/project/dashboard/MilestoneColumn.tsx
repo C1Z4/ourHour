@@ -35,7 +35,7 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
   const issueList = Array.isArray(issueListData?.data) ? issueListData.data : [];
 
   const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
-
+  const [isDeleteMilestoneModalOpen, setIsDeleteMilestoneModalOpen] = useState(false);
   const [milestoneName, setMilestoneName] = useState(milestone.name);
 
   const { mutate: updateMilestone } = useMilestoneUpdateMutation({
@@ -59,6 +59,7 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
 
   const handleDeleteMilestone = () => {
     deleteMilestone();
+    setIsDeleteMilestoneModalOpen(false);
   };
 
   const handleCreateIssue = () => {
@@ -80,7 +81,7 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
                 editLabel="마일스톤명 수정"
                 deleteLabel="마일스톤 삭제"
                 onEdit={() => setIsEditMilestoneModalOpen(true)}
-                onDelete={handleDeleteMilestone}
+                onDelete={() => setIsDeleteMilestoneModalOpen(true)}
               />
             )}
           </div>
@@ -143,6 +144,33 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
                 }}
               >
                 수정
+              </ButtonComponent>
+            </div>
+          }
+        />
+      )}
+
+      {isDeleteMilestoneModalOpen && (
+        <ModalComponent
+          isOpen={isDeleteMilestoneModalOpen}
+          onClose={() => setIsDeleteMilestoneModalOpen(false)}
+          title="마일스톤 삭제"
+          children={
+            <div className="flex flex-col items-center justify-center mb-4">
+              <h4 className="text-sm text-gray-700">정말 삭제하시겠습니까?</h4>
+            </div>
+          }
+          footer={
+            <div className="flex flex-row items-center justify-center gap-2">
+              <ButtonComponent
+                variant="danger"
+                size="sm"
+                onClick={() => setIsDeleteMilestoneModalOpen(false)}
+              >
+                취소
+              </ButtonComponent>
+              <ButtonComponent variant="primary" size="sm" onClick={handleDeleteMilestone}>
+                삭제
               </ButtonComponent>
             </div>
           }
