@@ -8,6 +8,7 @@ import { logError } from '@/utils/auth/errorUtils';
 
 export interface PutUpdateIssueRequest {
   issueId: number;
+  projectId: number | null;
   milestoneId: number | null;
   assigneeId: number | null;
   name: string;
@@ -17,8 +18,11 @@ export interface PutUpdateIssueRequest {
 
 const putUpdateIssue = async (request: PutUpdateIssueRequest): Promise<ApiResponse<void>> => {
   try {
-    const { issueId, ...requestBody } = request;
-    const response = await axiosInstance.put(`/api/projects/issues/${issueId}`, requestBody);
+    const { issueId, projectId, ...requestBody } = request;
+    const response = await axiosInstance.put(
+      `/api/projects/${projectId}/issues/${issueId}`,
+      requestBody,
+    );
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);

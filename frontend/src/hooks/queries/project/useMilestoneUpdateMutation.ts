@@ -19,7 +19,7 @@ export const useMilestoneUpdateMutation = ({
 }: UseMilestoneUpdateMutationParams) =>
   useMutation({
     mutationFn: (request: PutUpdateMilestoneRequest) =>
-      putUpdateMilestone({ ...request, milestoneId }),
+      putUpdateMilestone({ ...request, projectId, milestoneId }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
