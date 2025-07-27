@@ -173,8 +173,9 @@ public class ProjectController {
 
         // 마일스톤 수정(마일스톤 이름)
         @ProjectParticipantOnly
-        @PutMapping("/milestones/{milestoneId}")
+        @PutMapping("/{projectId}/milestones/{milestoneId}")
         public ResponseEntity<ApiResponse<Void>> updateMilestone(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @PathVariable @Min(value = 1, message = "마일스톤 ID는 1 이상이어야 합니다.") Long milestoneId,
                         @Valid @RequestBody MilestoneReqDTO milestoneReqDTO) {
 
@@ -221,8 +222,9 @@ public class ProjectController {
 
         // 이슈 수정
         @ProjectParticipantOnly
-        @PutMapping("/issues/{issueId}")
+        @PutMapping("/{projectId}/issues/{issueId}")
         public ResponseEntity<ApiResponse<IssueDetailDTO>> updateIssue(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId,
                         @Valid @RequestBody IssueReqDTO issueReqDTO) {
 

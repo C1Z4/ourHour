@@ -20,7 +20,8 @@ export const useIssueUpdateMutation = ({
   projectId,
 }: UseIssueUpdateMutationParams) =>
   useMutation({
-    mutationFn: (request: PutUpdateIssueRequest) => putUpdateIssue(request),
+    mutationFn: (request: PutUpdateIssueRequest) =>
+      putUpdateIssue({ ...request, projectId, issueId }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.ISSUE_DETAIL, issueId],

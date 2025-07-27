@@ -7,6 +7,7 @@ import { logError } from '@/utils/auth/errorUtils';
 
 export interface PutUpdateMilestoneRequest {
   milestoneId: number | null;
+  projectId: number | null;
   name: string;
 }
 
@@ -14,9 +15,9 @@ const putUpdateMilestone = async (
   request: PutUpdateMilestoneRequest,
 ): Promise<ApiResponse<void>> => {
   try {
-    const { milestoneId, ...requestBody } = request;
+    const { milestoneId, projectId, ...requestBody } = request;
     const response = await axiosInstance.put(
-      `/api/projects/milestones/${milestoneId}`,
+      `/api/projects/${projectId}/milestones/${milestoneId}`,
       requestBody,
     );
     return response.data;
