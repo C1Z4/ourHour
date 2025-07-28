@@ -42,7 +42,6 @@ import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.exception.BusinessException;
 
-
 @RestController
 @RequestMapping("/api/projects")
 @RequiredArgsConstructor
@@ -72,6 +71,18 @@ public class ProjectController {
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @Valid @RequestBody ProjecUpdateReqDTO projectReqDTO) {
                 ApiResponse<Void> response = projectService.updateProject(projectId, projectReqDTO);
+                return ResponseEntity.ok(response);
+        }
+
+        // 프로젝트 참가자 삭제
+        @OrgAuth(accessLevel = Role.ADMIN)
+        @DeleteMapping("/{orgId}/{projectId}/participants/{memberId}")
+        public ResponseEntity<ApiResponse<Void>> deleteProjectParticipant(
+                        @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "멤버 ID는 1 이상이어야 합니다.") Long memberId) {
+
+                ApiResponse<Void> response = projectParticipantService.deleteProjectParticipant(projectId, memberId);
                 return ResponseEntity.ok(response);
         }
 
@@ -187,11 +198,11 @@ public class ProjectController {
         // 마일스톤 삭제
         @DeleteMapping("/milestones/{milestoneId}")
         public ResponseEntity<ApiResponse<Void>> deleteMilestone(
-                @PathVariable Long milestoneId) {
+                        @PathVariable Long milestoneId) {
 
                 Claims claims = UserContextHolder.get();
                 if (claims == null) {
-                    throw BusinessException.unauthorized("인증 정보가 없습니다.");
+                        throw BusinessException.unauthorized("인증 정보가 없습니다.");
                 }
 
                 ApiResponse<Void> response = milestoneService.deleteMilestone(milestoneId, claims);
@@ -230,7 +241,7 @@ public class ProjectController {
 
                 Claims claims = UserContextHolder.get();
                 if (claims == null) {
-                    throw BusinessException.unauthorized("인증 정보가 없습니다.");
+                        throw BusinessException.unauthorized("인증 정보가 없습니다.");
                 }
 
                 ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO, claims);
@@ -245,7 +256,7 @@ public class ProjectController {
 
                 Claims claims = UserContextHolder.get();
                 if (claims == null) {
-                    throw BusinessException.unauthorized("인증 정보가 없습니다.");
+                        throw BusinessException.unauthorized("인증 정보가 없습니다.");
                 }
 
                 ApiResponse<Void> response = issueService.deleteIssue(issueId, claims);

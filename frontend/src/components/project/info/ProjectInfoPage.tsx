@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { ORG_QUERY_KEYS } from '@/constants/queryKeys';
 import useProjectDeleteMutation from '@/hooks/queries/project/useProjectDeleteMutation';
 import useProjectInfoQuery from '@/hooks/queries/project/useProjectInfoQuery';
+import useProjectParticipantDeleteMutation from '@/hooks/queries/project/useProjectParticipantDeleteMutation';
 import useProjectParticipantListQuery from '@/hooks/queries/project/useProjectParticipantListQuery';
 import { useProjectUpdateMutation } from '@/hooks/queries/project/useProjectUpdateMutation';
 import usePasswordVerificationMutation from '@/hooks/queries/user/usePasswordVerificationMutation';
@@ -38,6 +39,7 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleteMembersModalOpen, setIsDeleteMembersModalOpen] = useState(false);
 
   const { data: projectInfoData } = useProjectInfoQuery({
     projectId: Number(projectId),
@@ -56,6 +58,11 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
   });
   const { mutate: deleteProject } = useProjectDeleteMutation({
     orgId: Number(orgId),
+  });
+
+  const { mutate: deleteProjectParticipant } = useProjectParticipantDeleteMutation({
+    orgId: Number(orgId),
+    projectId: Number(projectId),
   });
 
   const projectInfo = projectInfoData as ProjectBaseInfo | undefined;
@@ -93,8 +100,21 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
   };
 
   const handleDeleteSelectedMembers = () => {
-    console.log('선택된 구성원 삭제:', selectedMemberIds);
-    setSelectedMemberIds([]);
+    setIsDeleteMembersModalOpen(true);
+  };
+
+  const confirmDeleteSelectedMembers = () => {
+    selectedMemberIds.forEach((memberId) => {
+      deleteProjectParticipant(
+        { orgId: Number(orgId), projectId: Number(projectId), memberId },
+        {
+          onSuccess: () => {
+            setSelectedMemberIds([]);
+          },
+        },
+      );
+    });
+    setIsDeleteMembersModalOpen(false);
   };
 
   const handleDeleteProject = () => {
@@ -129,6 +149,10 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
 
   const handleDeleteModalClose = () => {
     setIsDeleteModalOpen(false);
+  };
+
+  const handleDeleteMembersModalClose = () => {
+    setIsDeleteMembersModalOpen(false);
   };
 
   return (
@@ -207,6 +231,31 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
             <ButtonComponent variant="danger" onClick={handleDeleteProject}>
               프로젝트 삭제
             </ButtonComponent>
+          }
+        />
+      )}
+
+      {isDeleteMembersModalOpen && (
+        <ModalComponent
+          isOpen={isDeleteMembersModalOpen}
+          onClose={handleDeleteMembersModalClose}
+          title="구성원 삭제 확인"
+          children={
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                선택된 {selectedMemberIds.length}명의 구성원을 프로젝트에서 삭제하시겠습니까?
+              </p>
+            </div>
+          }
+          footer={
+            <div className="flex flex-row items-center justify-center gap-2">
+              <ButtonComponent variant="danger" size="sm" onClick={handleDeleteMembersModalClose}>
+                취소
+              </ButtonComponent>
+              <ButtonComponent variant="primary" size="sm" onClick={confirmDeleteSelectedMembers}>
+                삭제
+              </ButtonComponent>
+            </div>
           }
         />
       )}
