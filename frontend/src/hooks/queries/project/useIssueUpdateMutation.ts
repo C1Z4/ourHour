@@ -25,6 +25,11 @@ export const useIssueUpdateMutation = ({
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.ISSUE_DETAIL, issueId],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
+        exact: false,
       });
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, projectId, milestoneId],
