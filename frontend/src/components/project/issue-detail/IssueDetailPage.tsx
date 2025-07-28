@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 
 import { IssueDetail } from '@/api/project/getProjectIssueDetail';
 import useIssueDeleteMutation from '@/hooks/queries/project/useIssueDeleteMutation';
@@ -16,7 +16,7 @@ interface IssueDetailPageProps {
 }
 
 export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPageProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { data: issueData } = useProjectIssueDetailQuery({ issueId: Number(issueId) });
 
   const issue = issueData as IssueDetail | undefined;
@@ -39,7 +39,7 @@ export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPagePr
   }
 
   const handleEditIssue = () => {
-    navigate({
+    router.navigate({
       to: '/org/$orgId/project/$projectId/issue/edit/$issueId',
       params: { orgId, projectId, issueId },
     });
@@ -48,7 +48,7 @@ export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPagePr
   const handleDeleteIssue = () => {
     try {
       deleteIssue();
-      navigate({
+      router.navigate({
         to: '/org/$orgId/project/$projectId',
         params: { orgId, projectId },
       });

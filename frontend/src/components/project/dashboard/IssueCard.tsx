@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useNavigate } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 
 import { ProjectIssueSummary } from '@/api/project/getProjectIssueList';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
@@ -17,7 +17,7 @@ interface IssueCardProps {
 }
 
 export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const { mutate: deleteIssue } = useIssueDeleteMutation({
@@ -27,14 +27,14 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
   });
 
   const handleIssueClick = () => {
-    navigate({
+    router.navigate({
       to: '/org/$orgId/project/$projectId/issue/$issueId',
       params: { orgId, projectId, issueId: issue.issueId.toString() },
     });
   };
 
   const handleEditIssue = () => {
-    navigate({
+    router.navigate({
       to: '/org/$orgId/project/$projectId/issue/edit/$issueId',
       params: { orgId, projectId, issueId: issue.issueId.toString() },
     });

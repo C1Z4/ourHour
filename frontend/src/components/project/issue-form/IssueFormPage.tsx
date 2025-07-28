@@ -167,14 +167,17 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
       status: formData.status as IssueStatusEng,
     };
 
-    updateIssue(issueData, {
-      onSuccess: () => {
-        router.navigate({
-          to: '/org/$orgId/project/$projectId/issue/$issueId',
-          params: { orgId, projectId, issueId },
-        });
+    updateIssue(
+      { ...issueData, projectId: Number(projectId) },
+      {
+        onSuccess: () => {
+          router.navigate({
+            to: '/org/$orgId/project/$projectId/issue/$issueId',
+            params: { orgId, projectId, issueId },
+          });
+        },
       },
-    });
+    );
   };
 
   const handleCancel = () => {
