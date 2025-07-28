@@ -77,4 +77,20 @@ public class ProjectParticipantService {
         return projectParticipantRepository.existsById(projectParticipantId);
     }
 
+    // 프로젝트 참가자 삭제
+    public ApiResponse<Void> deleteProjectParticipant(Long projectId, Long memberId) {
+        if (projectId <= 0 || memberId <= 0) {
+            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID 또는 멤버 ID입니다.");
+        }
+
+        if (!projectRepository.existsById(projectId)) {
+            throw BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다.");
+        }
+
+        ProjectParticipantId projectParticipantId = new ProjectParticipantId(projectId, memberId);
+        projectParticipantRepository.deleteById(projectParticipantId);
+
+        return ApiResponse.success(null, "프로젝트 참가자 삭제에 성공했습니다.");
+    }
+
 }
