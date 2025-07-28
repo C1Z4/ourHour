@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { useNavigate } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 
 import { ProjectMilestone } from '@/api/project/getProjectMilestoneList';
@@ -21,7 +21,7 @@ interface MilestoneColumnProps {
 }
 
 export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumnProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const { data: issueListData, refetch: refetchIssueList } = useProjectIssueListQuery({
     projectId: Number(projectId),
@@ -52,6 +52,7 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
     updateMilestone({
       name: milestoneName,
       milestoneId: milestone?.milestoneId || null,
+      projectId: Number(projectId),
     });
     setIsEditMilestoneModalOpen(false);
     setMilestoneName(milestoneName);
@@ -63,7 +64,7 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
   };
 
   const handleCreateIssue = () => {
-    navigate({
+    router.navigate({
       to: '/org/$orgId/project/$projectId/issue/create',
       params: { orgId, projectId },
     });

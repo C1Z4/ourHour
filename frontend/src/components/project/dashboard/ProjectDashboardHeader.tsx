@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useNavigate } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 import { Info, Plus } from 'lucide-react';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
@@ -22,7 +22,7 @@ export const ProjectDashboardHeader = ({
   orgId,
   projectId,
 }: ProjectDashboardHeaderProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const currentProjectName = useAppSelector((state) => state.projectName.currentProjectName);
   const [isCreateMilestoneModalOpen, setIsCreateMilestoneModalOpen] = useState(false);
 
@@ -43,14 +43,14 @@ export const ProjectDashboardHeader = ({
   };
 
   const handleCreateIssue = () => {
-    navigate({
+    router.navigate({
       to: '/org/$orgId/project/$projectId/issue/create',
       params: { orgId, projectId },
     });
   };
 
   const handleProjectInfo = () => {
-    navigate({
+    router.navigate({
       to: '/org/$orgId/project/$projectId/info',
       params: { orgId, projectId },
     });

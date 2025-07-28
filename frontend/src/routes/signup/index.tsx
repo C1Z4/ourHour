@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { AxiosError } from 'axios';
 import { ChevronLeft } from 'lucide-react';
 
@@ -18,7 +18,7 @@ export const Route = createFileRoute('/signup/')({
 function SignupPage() {
   const [signupError, setSignupError] = useState('');
 
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const sendEmailVerificationMutation = useSendEmailVerificationMutation();
   const isLoading = sendEmailVerificationMutation.isPending;
@@ -30,7 +30,7 @@ function SignupPage() {
       { email, password },
       {
         onSuccess: () => {
-          navigate({ to: '/login' });
+          router.navigate({ to: '/login' });
         },
         onError: (error: AxiosError) => {
           const axiosError = error;
@@ -48,7 +48,7 @@ function SignupPage() {
   };
 
   const handleGoBack = () => {
-    navigate({ to: '/login' });
+    router.navigate({ to: '/login' });
   };
 
   return (

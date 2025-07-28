@@ -18,6 +18,7 @@ export const useIssueCreateMutation = ({ projectId }: UseIssueCreateMutationPara
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
+        exact: false,
       });
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, projectId, variables.milestoneId ?? null],
