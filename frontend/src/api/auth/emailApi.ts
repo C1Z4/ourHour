@@ -1,14 +1,35 @@
 import { AxiosError } from 'axios';
 
-import type { ApiResponse } from '@/types/apiTypes';
+import { ApiResponse } from '@/types/apiTypes';
+import { FailReason } from '@/types/authTypes';
 
-import axiosInstance from '@/api/axiosConfig';
+import { axiosInstance } from '@/api/axiosConfig';
+import { logError } from '@/utils/auth/errorUtils';
 
+// ======== 이메일 중복 확인 ========
+export interface CheckDupEmailRequest {
+  email: string;
+}
+
+export const getCheckEmail = async (
+  request: CheckDupEmailRequest,
+): Promise<ApiResponse<boolean>> => {
+  try {
+    const response = await axiosInstance.get('/api/auth/check-email', {
+      params: { email: request.email },
+    });
+
+    return response.data;
+  } catch (error) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 이메일 인증 ========
 export interface GetEmailVerificationRequest {
   token: string;
 }
-
-export type FailReason = 'expired' | 'invalid' | 'already' | 'server';
 
 export type EmailVerificationResult =
   | { ok: true; status: number; message: string }
@@ -30,9 +51,9 @@ function mapErrorToReason(err: AxiosError<ApiResponse<void>>): FailReason {
   return 'server';
 }
 
-export async function getEmailVerification({
+export const getEmailVerification = async ({
   token,
-}: GetEmailVerificationRequest): Promise<EmailVerificationResult> {
+}: GetEmailVerificationRequest): Promise<EmailVerificationResult> => {
   try {
     const resp = await axiosInstance.get<ApiResponse<void>>('/api/auth/email-verification', {
       params: { token },
@@ -53,4 +74,23 @@ export async function getEmailVerification({
 
     return { ok: false, status, reason, message };
   }
+};
+
+// ======== 이메일 인증 요청 ========
+export interface SendEmailVerificationRequest {
+  email: string;
+  password: string;
 }
+
+export const postSendEmailVerification = async (
+  request: SendEmailVerificationRequest,
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.post('/api/auth/email-verification', request);
+
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};

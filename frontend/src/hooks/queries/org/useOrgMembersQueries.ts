@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchAllOrgMembers } from '@/api/org/orgApi';
+import { fetchAllOrgMembers } from '@/api/org/orgMemberApi';
 
 export const useOrgMembersQuery = (orgId: number) =>
   useQuery({

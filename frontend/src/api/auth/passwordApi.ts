@@ -3,7 +3,9 @@ import { AxiosError } from 'axios';
 import type { ApiResponse } from '@/types/apiTypes';
 
 import axiosInstance from '@/api/axiosConfig';
+import { logError } from '@/utils/auth/errorUtils';
 
+// ======== 비밀번호 재설정 인증 ========
 export interface GetPwdResetVerification {
   token: string;
 }
@@ -57,3 +59,39 @@ export async function getPwdResetVerification({
     return { ok: false, status, reason, message };
   }
 }
+
+// ======== 비밀번호 재설정 ========
+export interface PatchPasswordReset {
+  token: string;
+  newPassword: string;
+  newPasswordCheck: string;
+}
+
+export const patchPasswordReset = async (
+  request: PatchPasswordReset,
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.patch('/api/auth/password-reset', request);
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 비밀번호 재설정 인증 요청 ========
+export interface PostPasswordVerificationRequest {
+  email: string;
+}
+
+export const postPasswordVerification = async (
+  request: PostPasswordVerificationRequest,
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.post('/api/auth/password-reset/verification', request);
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
