@@ -7,12 +7,13 @@ import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 export const useProjectIssueListQuery = (
   orgId: number,
   projectId: number,
+  milestoneId: number | null,
   currentPage: number = 1,
   size: number = 10,
 ) =>
   useQuery({
-    queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, orgId, projectId, currentPage, size],
-    queryFn: () => getProjectIssueList({ projectId, currentPage, size }),
+    queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, orgId, projectId, milestoneId, currentPage, size],
+    queryFn: () => getProjectIssueList({ projectId, milestoneId, currentPage, size }),
     enabled: !!orgId && !!projectId,
   });
 

@@ -4,7 +4,7 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { PasswordChangeForm } from '@/components/member/PasswordChangeForm';
-import { usePasswordUpdateMutation } from '@/hooks/queries/member/usePasswordUpdateMutation';
+import { usePasswordUpdateMutation } from '@/hooks/queries/member/useMemberMutations';
 
 export const Route = createFileRoute('/info/password')({
   component: PasswordPage,

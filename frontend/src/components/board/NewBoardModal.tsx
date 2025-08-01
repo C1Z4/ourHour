@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Input } from '@/components/ui/input';
-import { useBoardCreateMutation } from '@/hooks/queries/board/useBoardCreateMutation';
+import { useBoardCreateMutation } from '@/hooks/queries/board/useBoardMutations';
 import { showErrorToast } from '@/utils/toast';
 
 import { BoardModal } from './BoardModal';

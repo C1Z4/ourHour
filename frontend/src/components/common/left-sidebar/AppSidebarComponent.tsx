@@ -16,9 +16,9 @@ import {
 import { NavMain } from '@/components/common/left-sidebar/NavMain';
 import { TeamSwitcher } from '@/components/common/left-sidebar/TeamSwitcher';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
-import { useBoardListQuery } from '@/hooks/queries/board/useBoardListQuery';
+import { useBoardListQuery } from '@/hooks/queries/board/useBoardQueries';
 import { useChatRoomListQuery } from '@/hooks/queries/chat/useChatRoomListQueries';
-import useMyProjectListQuery from '@/hooks/queries/org/useMyProjectListQuery';
+import { useMyProjectListQuery } from '@/hooks/queries/org/useOrgQueries';
 import { CHAT_COLORS } from '@/styles/colors';
 
 const ColoredCircle = ({ color }: { color: string }) => (
@@ -34,9 +34,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const currentOrgId = Number(params.orgId);
 
-  const { data: myProjectListData } = useMyProjectListQuery({
-    orgId: currentOrgId,
-  });
+  const { data: myProjectListData } = useMyProjectListQuery(currentOrgId);
 
   const { data: boardList = [] } = useBoardListQuery(currentOrgId);
   const myBoardList = [{ boardId: 0, name: '전체 글 보기' }, ...boardList];

@@ -2,13 +2,13 @@ import { useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
 
-import { ProjectIssueSummary } from '@/api/project/getProjectIssueList';
+import { ProjectIssueSummary } from '@/api/project/issueApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import useIssueDeleteMutation from '@/hooks/queries/project/useIssueDeleteMutation';
+import { useIssueDeleteMutation } from '@/hooks/queries/project/useIssueMutations';
 
 interface IssueCardProps {
   issue: ProjectIssueSummary;
@@ -20,11 +20,11 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
   const router = useRouter();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  const { mutate: deleteIssue } = useIssueDeleteMutation({
-    projectId: Number(projectId),
-    milestoneId: issue.milestoneId || null,
-    issueId: issue.issueId,
-  });
+  const { mutate: deleteIssue } = useIssueDeleteMutation(
+    issue.issueId,
+    Number(orgId),
+    Number(projectId),
+  );
 
   const handleIssueClick = () => {
     router.navigate({
@@ -113,6 +113,7 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
                 onClick={(e) => {
                   e.stopPropagation();
                   deleteIssue();
+                  setIsDeleteModalOpen(false);
                 }}
               >
                 삭제

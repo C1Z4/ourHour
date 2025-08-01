@@ -2,8 +2,7 @@ import { useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
 
-import { ProjectBaseInfo } from '@/api/project/getProjectInfo';
-import { PutUpdateProjectRequest } from '@/api/project/putUpdateProject';
+import { ProjectBaseInfo, PutUpdateProjectRequest } from '@/api/project/projectApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { StatusBadge } from '@/components/common/StatusBadge';
@@ -11,14 +10,17 @@ import { ProjectMembersTable } from '@/components/project/info/ProjectMembersTab
 import { ProjectModal } from '@/components/project/modal/ProjectModal';
 import { Input } from '@/components/ui/input';
 import { ORG_QUERY_KEYS } from '@/constants/queryKeys';
-import useProjectDeleteMutation from '@/hooks/queries/project/useProjectDeleteMutation';
-import useProjectInfoQuery from '@/hooks/queries/project/useProjectInfoQuery';
-import useProjectParticipantDeleteMutation from '@/hooks/queries/project/useProjectParticipantDeleteMutation';
-import useProjectParticipantListQuery from '@/hooks/queries/project/useProjectParticipantListQuery';
-import { useProjectUpdateMutation } from '@/hooks/queries/project/useProjectUpdateMutation';
-import usePasswordVerificationMutation from '@/hooks/queries/user/usePasswordVerificationMutation';
+import {
+  useProjectDeleteMutation,
+  useProjectParticipantDeleteMutation,
+  useProjectUpdateMutation,
+} from '@/hooks/queries/project/useProjectMutations';
+import {
+  useProjectInfoQuery,
+  useProjectParticipantListQuery,
+} from '@/hooks/queries/project/useProjectQueries';
+import { usePasswordVerificationMutation } from '@/hooks/queries/user/useUserMutations';
 import { queryClient } from '@/main';
-import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface ProjectInfoPageProps {
   projectId: string;
@@ -41,29 +43,22 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleteMembersModalOpen, setIsDeleteMembersModalOpen] = useState(false);
 
-  const { data: projectInfoData } = useProjectInfoQuery({
-    projectId: Number(projectId),
-  });
+  const { data: projectInfoData } = useProjectInfoQuery(Number(projectId));
 
-  const { data: projectMembersData } = useProjectParticipantListQuery({
-    projectId: Number(projectId),
-    orgId: Number(orgId),
+  const { data: projectMembersData } = useProjectParticipantListQuery(
+    Number(projectId),
+    Number(orgId),
     currentPage,
-  });
+  );
 
   const { mutate: passwordVerification } = usePasswordVerificationMutation();
-  const { mutate: updateProject } = useProjectUpdateMutation({
-    orgId: Number(orgId),
-    projectId: Number(projectId),
-  });
-  const { mutate: deleteProject } = useProjectDeleteMutation({
-    orgId: Number(orgId),
-  });
+  const { mutate: updateProject } = useProjectUpdateMutation(Number(projectId), Number(orgId));
+  const { mutate: deleteProject } = useProjectDeleteMutation(Number(orgId), Number(projectId));
 
-  const { mutate: deleteProjectParticipant } = useProjectParticipantDeleteMutation({
-    orgId: Number(orgId),
-    projectId: Number(projectId),
-  });
+  const { mutate: deleteProjectParticipant } = useProjectParticipantDeleteMutation(
+    Number(projectId),
+    Number(orgId),
+  );
 
   const projectInfo = projectInfoData as ProjectBaseInfo | undefined;
   const projectMembers = Array.isArray(projectMembersData?.data) ? projectMembersData.data : [];
@@ -105,14 +100,11 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
 
   const confirmDeleteSelectedMembers = () => {
     selectedMemberIds.forEach((memberId) => {
-      deleteProjectParticipant(
-        { orgId: Number(orgId), projectId: Number(projectId), memberId },
-        {
-          onSuccess: () => {
-            setSelectedMemberIds([]);
-          },
+      deleteProjectParticipant(memberId, {
+        onSuccess: () => {
+          setSelectedMemberIds([]);
         },
-      );
+      });
     });
     setIsDeleteMembersModalOpen(false);
   };
@@ -122,19 +114,16 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
       { password },
       {
         onSuccess: () => {
-          deleteProject(
-            { orgId: Number(orgId), projectId: Number(projectId) },
-            {
-              onSuccess: () => {
-                setIsDeleteModalOpen(false);
-                router.navigate({
-                  to: '/org/$orgId/project',
-                  params: { orgId },
-                  search: { currentPage: 1 },
-                });
-              },
+          deleteProject(undefined, {
+            onSuccess: () => {
+              setIsDeleteModalOpen(false);
+              router.navigate({
+                to: '/org/$orgId/project',
+                params: { orgId },
+                search: { currentPage: 1 },
+              });
             },
-          );
+          });
         },
         onError: () => {
           setPassword('');

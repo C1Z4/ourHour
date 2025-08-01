@@ -14,14 +14,14 @@ import { queryClient } from '@/main';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 // ======== 이슈 생성 ========
-export const useIssueCreateMutation = () =>
+export const useIssueCreateMutation = (orgId: number, projectId: number) =>
   useMutation({
     mutationFn: (request: PostCreateIssueRequest) => postCreateIssue(request),
 
     onSuccess: () => {
       showSuccessToast('새 이슈 생성에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST],
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, projectId, orgId],
         exact: false,
       });
     },
@@ -32,18 +32,19 @@ export const useIssueCreateMutation = () =>
   });
 
 // ======== 이슈 수정 ========
-export const useIssueUpdateMutation = (issueId: number) =>
+export const useIssueUpdateMutation = (issueId: number, orgId: number, projectId: number) =>
   useMutation({
     mutationFn: (request: PutUpdateIssueRequest) => putUpdateIssue(request),
 
     onSuccess: () => {
       showSuccessToast('이슈 수정에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, issueId],
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, orgId, projectId],
         exact: false,
       });
       queryClient.invalidateQueries({
         queryKey: [PROJECT_QUERY_KEYS.ISSUE_DETAIL, issueId],
+        exact: false,
       });
     },
 
@@ -53,14 +54,18 @@ export const useIssueUpdateMutation = (issueId: number) =>
   });
 
 // ======== 이슈 삭제 ========
-export const useIssueDeleteMutation = (issueId: number) =>
+export const useIssueDeleteMutation = (issueId: number, orgId: number, projectId: number) =>
   useMutation({
     mutationFn: () => deleteIssue({ issueId }),
 
     onSuccess: () => {
       showSuccessToast('이슈 삭제에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, issueId],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, orgId, projectId],
         exact: false,
       });
     },

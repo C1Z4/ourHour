@@ -38,14 +38,18 @@ export const useProjectCreateMutation = (orgId: number) =>
   });
 
 // ======== 프로젝트 수정 ========
-export const useProjectUpdateMutation = (orgId: number, projectId: number) =>
+export const useProjectUpdateMutation = (projectId: number, orgId: number) =>
   useMutation({
     mutationFn: (request: PutUpdateProjectRequest) => putUpdateProject(request),
 
     onSuccess: () => {
       showSuccessToast('프로젝트 수정에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.PROJECT_INFO, orgId, projectId],
+        queryKey: [PROJECT_QUERY_KEYS.PROJECT_INFO, projectId],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, projectId, orgId],
         exact: false,
       });
       queryClient.invalidateQueries({
@@ -82,14 +86,14 @@ export const useProjectDeleteMutation = (orgId: number, projectId: number) =>
   });
 
 // ======== 프로젝트 참여자 삭제 ========
-export const useProjectParticipantDeleteMutation = (orgId: number, projectId: number) =>
+export const useProjectParticipantDeleteMutation = (projectId: number, orgId: number) =>
   useMutation({
     mutationFn: (memberId: number) => deleteProjectParticipant({ orgId, projectId, memberId }),
 
     onSuccess: () => {
       showSuccessToast('프로젝트 참여자 삭제에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, orgId, projectId],
+        queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, projectId, orgId],
         exact: false,
       });
     },

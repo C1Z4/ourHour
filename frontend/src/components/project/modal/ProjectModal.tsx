@@ -3,8 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Member } from '@/types/memberTypes';
 import { PROJECT_STATUS_ENG_TO_KO, PROJECT_STATUS_KO_TO_ENG } from '@/types/projectTypes';
 
-import { ProjectBaseInfo } from '@/api/project/getProjectInfo';
-import { PostCreateProjectRequest } from '@/api/project/postCreateProject';
+import { ProjectBaseInfo, PostCreateProjectRequest } from '@/api/project/projectApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { StatusBadge } from '@/components/common/StatusBadge';
@@ -18,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import useOrgMemberListQuery from '@/hooks/queries/org/useOrgMemberListQuery';
+import { useOrgMemberListQuery } from '@/hooks/queries/org/useOrgQueries';
 
 import { MemberSelector } from './MemberSelector';
 
@@ -46,9 +45,7 @@ export const ProjectModal = ({
 }: ProjectModalProps) => {
   const isEditing = !!initialInfoData; // 프로젝트 수정 컴포넌트 여부
 
-  const { data: orgMembersData } = useOrgMemberListQuery({
-    orgId,
-  });
+  const { data: orgMembersData } = useOrgMemberListQuery(Number(orgId));
 
   const orgMembers = useMemo(
     () => (Array.isArray(orgMembersData?.data) ? orgMembersData.data : []),

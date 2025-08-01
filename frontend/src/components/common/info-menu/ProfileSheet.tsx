@@ -1,14 +1,14 @@
 import { useState } from 'react';
 
 import { useLocation, useRouter } from '@tanstack/react-router';
-import { User, LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings } from 'lucide-react';
 
-import { MyMemberInfoDetail } from '@/api/member/getMyMemberInfo';
+import { MyMemberInfoDetail } from '@/api/member/memberApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { MEMBER_ROLE_STYLES } from '@/constants/badges';
 import { useSignoutMutation } from '@/hooks/queries/auth/useAuthMutations';
-import useMyMemberInfoQuery from '@/hooks/queries/member/useMyMemberInfoQuery';
+import { useMyMemberInfoQuery } from '@/hooks/queries/member/useMemberQueries';
 import { useAppSelector } from '@/stores/hooks';
 import { getImageUrl } from '@/utils/file/imageUtils';
 
@@ -23,7 +23,7 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
   const location = useLocation();
   const orgId = location.pathname.split('/')[2];
 
-  const { data: myMemberInfoData } = useMyMemberInfoQuery({ orgId: Number(orgId) });
+  const { data: myMemberInfoData } = useMyMemberInfoQuery(Number(orgId));
   const myMemberInfo = myMemberInfoData as unknown as MyMemberInfoDetail;
 
   const { mutate: logout } = useSignoutMutation();

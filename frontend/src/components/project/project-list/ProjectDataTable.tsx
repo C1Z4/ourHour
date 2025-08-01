@@ -13,7 +13,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
-import { ProjectSummary } from '@/api/project/getProjectSummaryList';
+import { ProjectSummary } from '@/api/project/projectApi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
 import {
@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import useProjectSummaryListQuery from '@/hooks/queries/project/useProjectSummaryListQuery';
+import { useProjectSummaryListQuery } from '@/hooks/queries/project/useProjectQueries';
 import { setCurrentProjectName } from '@/stores/projectSlice';
 
 import { ProjectColumns } from './ProjectColumns';
@@ -39,11 +39,10 @@ export function ProjectDataTable() {
 
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const { data: projectSummaryList, isLoading } = useProjectSummaryListQuery({
-    orgId: Number(orgId),
-    enabled: !!orgId,
+  const { data: projectSummaryList, isLoading } = useProjectSummaryListQuery(
+    Number(orgId),
     currentPage,
-  });
+  );
 
   const tableData = useMemo(
     () => (Array.isArray(projectSummaryList?.data) ? projectSummaryList.data : []),

@@ -14,14 +14,14 @@ import { queryClient } from '@/main';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 // ======== 마일스톤 생성 ========
-export const useMilestoneCreateMutation = () =>
+export const useMilestoneCreateMutation = (projectId: number) =>
   useMutation({
     mutationFn: (request: PostCreateMilestoneRequest) => postCreateMilestone(request),
 
     onSuccess: () => {
       showSuccessToast('새 마일스톤 생성에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
         exact: false,
       });
     },
@@ -32,14 +32,14 @@ export const useMilestoneCreateMutation = () =>
   });
 
 // ======== 마일스톤 수정 ========
-export const useMilestoneUpdateMutation = (milestoneId: number) =>
+export const useMilestoneUpdateMutation = (projectId: number) =>
   useMutation({
     mutationFn: (request: PutUpdateMilestoneRequest) => putUpdateMilestone(request),
 
     onSuccess: () => {
       showSuccessToast('마일스톤 수정에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, milestoneId],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
         exact: false,
       });
     },
@@ -50,14 +50,14 @@ export const useMilestoneUpdateMutation = (milestoneId: number) =>
   });
 
 // ======== 마일스톤 삭제 ========
-export const useMilestoneDeleteMutation = (milestoneId: number) =>
+export const useMilestoneDeleteMutation = (milestoneId: number | null, projectId: number) =>
   useMutation({
     mutationFn: () => deleteMilestone({ milestoneId }),
 
     onSuccess: () => {
       showSuccessToast('마일스톤 삭제에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, milestoneId],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
         exact: false,
       });
     },

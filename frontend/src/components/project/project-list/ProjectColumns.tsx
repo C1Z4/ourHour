@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table';
 
-import { ProjectSummary } from '@/api/project/getProjectSummaryList';
+import { ProjectSummary } from '@/api/project/projectApi';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { ParticipantsList } from '@/components/project/project-list/ParticipantsList';
 import { SortableHeader } from '@/components/project/project-list/SortableHeader';

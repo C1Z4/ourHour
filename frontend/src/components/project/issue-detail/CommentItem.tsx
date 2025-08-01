@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Comment } from '@/api/comment/getCommentList';
+import { Comment } from '@/api/comment/commentApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';

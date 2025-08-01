@@ -4,7 +4,7 @@ import { Edit, Trash2 } from 'lucide-react';
 
 import { Post } from '@/types/postTypes';
 
-import { IssueDetail } from '@/api/project/getProjectIssueDetail';
+import { IssueDetail } from '@/api/project/issueApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 

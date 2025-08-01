@@ -3,16 +3,18 @@ import { useEffect, useState } from 'react';
 import { useRouter } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 
-import { ProjectMilestone } from '@/api/project/getProjectMilestoneList';
+import { ProjectMilestone } from '@/api/project/milestoneApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { IssueCard } from '@/components/project/dashboard/IssueCard';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import useMilestoneDeleteMutation from '@/hooks/queries/project/useMilestoneDeleteMutation';
-import { useMilestoneUpdateMutation } from '@/hooks/queries/project/useMilestoneUpdateMutation';
-import useProjectIssueListQuery from '@/hooks/queries/project/useProjectIssueListQuery';
+import { useProjectIssueListQuery } from '@/hooks/queries/project/useIssueQueries';
+import {
+  useMilestoneDeleteMutation,
+  useMilestoneUpdateMutation,
+} from '@/hooks/queries/project/useMilestoneMutations';
 
 interface MilestoneColumnProps {
   milestone: ProjectMilestone | { milestoneId: number | null; name: string };
@@ -23,10 +25,11 @@ interface MilestoneColumnProps {
 export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumnProps) => {
   const router = useRouter();
 
-  const { data: issueListData, refetch: refetchIssueList } = useProjectIssueListQuery({
-    projectId: Number(projectId),
-    milestoneId: milestone.milestoneId || null,
-  });
+  const { data: issueListData, refetch: refetchIssueList } = useProjectIssueListQuery(
+    Number(orgId),
+    Number(projectId),
+    milestone.milestoneId || null,
+  );
 
   useEffect(() => {
     refetchIssueList();
@@ -38,20 +41,17 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
   const [isDeleteMilestoneModalOpen, setIsDeleteMilestoneModalOpen] = useState(false);
   const [milestoneName, setMilestoneName] = useState(milestone.name);
 
-  const { mutate: updateMilestone } = useMilestoneUpdateMutation({
-    projectId: Number(projectId),
-    milestoneId: milestone?.milestoneId || null,
-  });
+  const { mutate: updateMilestone } = useMilestoneUpdateMutation(Number(projectId));
 
-  const { mutate: deleteMilestone } = useMilestoneDeleteMutation({
-    projectId: Number(projectId),
-    milestoneId: milestone?.milestoneId || null,
-  });
+  const { mutate: deleteMilestone } = useMilestoneDeleteMutation(
+    milestone.milestoneId || null,
+    Number(projectId),
+  );
 
   const handleEditMilestone = () => {
     updateMilestone({
       name: milestoneName,
-      milestoneId: milestone?.milestoneId || null,
+      milestoneId: milestone.milestoneId || null,
       projectId: Number(projectId),
     });
     setIsEditMilestoneModalOpen(false);

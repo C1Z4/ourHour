@@ -4,19 +4,20 @@ import { createFileRoute, useRouter } from '@tanstack/react-router';
 
 import { MEMBER_ROLE_KO_TO_ENG, MemberRoleKo } from '@/types/memberTypes';
 
-import { OrgBaseInfo } from '@/api/org/getOrgInfo';
+import { OrgBaseInfo } from '@/api/org/orgApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { OrgModal } from '@/components/org/OrgModal';
 import { ProjectMembersTable } from '@/components/project/info/ProjectMembersTable';
 import { Input } from '@/components/ui/input';
-import { useMemberDeleteMutation } from '@/hooks/queries/org/useMemberDeleteMutation';
-import { useOrgDeleteMutation } from '@/hooks/queries/org/useOrgDeleteMutation';
-import useOrgInfoQuery from '@/hooks/queries/org/useOrgInfoQuery';
-import useOrgMemberListQuery from '@/hooks/queries/org/useOrgMemberListQuery';
-import { useOrgUpdateMutation } from '@/hooks/queries/org/useOrgUpdateMutation';
-import { usePatchMemberRoleMutation } from '@/hooks/queries/org/usePatchMemberRoleMutation';
-import usePasswordVerificationMutation from '@/hooks/queries/user/usePasswordVerificationMutation';
+import {
+  useMemberDeleteMutation,
+  useOrgDeleteMutation,
+  useOrgUpdateMutation,
+  usePatchMemberRoleMutation,
+} from '@/hooks/queries/org/useOrgMutations';
+import { useOrgInfoQuery, useOrgMemberListQuery } from '@/hooks/queries/org/useOrgQueries';
+import { usePasswordVerificationMutation } from '@/hooks/queries/user/useUserMutations';
 import { getImageUrl } from '@/utils/file/imageUtils';
 
 export const Route = createFileRoute('/org/$orgId/info/')({
@@ -48,30 +49,23 @@ function OrgInfoPage() {
     newRole: MemberRoleKo;
   } | null>(null);
 
-  const { data: orgInfoData } = useOrgInfoQuery({ orgId: Number(orgId) });
+  const { data: orgInfoData } = useOrgInfoQuery(Number(orgId));
 
   const orgInfo = orgInfoData as OrgBaseInfo | undefined;
 
-  const { data: orgMembersData } = useOrgMemberListQuery({
-    orgId: Number(orgId),
-    currentPage,
-  });
+  const { data: orgMembersData } = useOrgMemberListQuery(Number(orgId), currentPage);
 
   const orgMembers = Array.isArray(orgMembersData?.data) ? orgMembersData.data : [];
 
   const { mutate: passwordVerification } = usePasswordVerificationMutation();
 
-  const { mutate: updateOrg } = useOrgUpdateMutation({
-    orgId: Number(orgId),
-  });
+  const { mutate: updateOrg } = useOrgUpdateMutation(Number(orgId));
 
-  const { mutate: deleteOrg } = useOrgDeleteMutation();
+  const { mutate: deleteOrg } = useOrgDeleteMutation(Number(orgId));
 
-  const { mutate: deleteMember } = useMemberDeleteMutation();
+  const { mutate: deleteMember } = useMemberDeleteMutation(Number(orgId));
 
-  const { mutate: patchMemberRole } = usePatchMemberRoleMutation({
-    orgId: Number(orgId),
-  });
+  const { mutate: patchMemberRole } = usePatchMemberRoleMutation(Number(orgId));
 
   const handleEditProject = () => {
     setIsEditModalOpen(true);
@@ -116,18 +110,12 @@ function OrgInfoPage() {
       { password },
       {
         onSuccess: () => {
-          deleteOrg(
-            { orgId: Number(orgId) },
-            {
-              onSuccess: () => {
-                setIsDeleteOrgModalOpen(false);
-                router.navigate({
-                  to: '/start',
-                  search: { page: 1 },
-                });
-              },
-            },
-          );
+          deleteOrg();
+          setIsDeleteOrgModalOpen(false);
+          router.navigate({
+            to: '/start',
+            search: { page: 1 },
+          });
         },
         onError: () => {
           setPassword('');
@@ -147,9 +135,7 @@ function OrgInfoPage() {
       { password },
       {
         onSuccess: () => {
-          selectedMemberIds.forEach((memberId) => {
-            deleteMember({ orgId: Number(orgId), memberId });
-          });
+          selectedMemberIds.forEach((memberId) => deleteMember(memberId));
           setIsDeleteMemberModalOpen(false);
           setSelectedMemberIds([]);
           setPassword('');

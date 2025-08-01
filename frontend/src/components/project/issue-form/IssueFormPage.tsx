@@ -9,7 +9,7 @@ import {
   IssueStatusKo,
 } from '@/types/issueTypes';
 
-import { IssueDetail } from '@/api/project/getProjectIssueDetail';
+import { IssueDetail } from '@/api/project/issueApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,11 +23,12 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { FORM_MESSAGES, ISSUE_TAGS } from '@/constants/issueConstants';
-import { useIssueCreateMutation } from '@/hooks/queries/project/useIssueCreateMutation';
-import { useIssueUpdateMutation } from '@/hooks/queries/project/useIssueUpdateMutation';
-import useProjectMilestoneListQuery from '@/hooks/queries/project/useProjectMilestoneListQuery';
-import useProjectParticipantListQuery from '@/hooks/queries/project/useProjectParticipantListQuery';
-import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
+import {
+  useIssueCreateMutation,
+  useIssueUpdateMutation,
+} from '@/hooks/queries/project/useIssueMutations';
+import { useProjectMilestoneListQuery } from '@/hooks/queries/project/useMilestoneQueries';
+import { useProjectParticipantListQuery } from '@/hooks/queries/project/useProjectQueries';
 
 interface IssueFormPageProps {
   orgId: string;
@@ -39,24 +40,20 @@ interface IssueFormPageProps {
 export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueFormPageProps) => {
   const router = useRouter();
 
-  const { mutate: createIssue } = useIssueCreateMutation({
-    projectId: Number(projectId),
-  });
+  const { mutate: createIssue } = useIssueCreateMutation(Number(orgId), Number(projectId));
 
-  const { mutate: updateIssue } = useIssueUpdateMutation({
-    projectId: Number(projectId),
-    milestoneId: initialData?.milestoneId || null,
-    issueId: Number(issueId),
-  });
+  const { mutate: updateIssue } = useIssueUpdateMutation(
+    Number(issueId),
+    Number(orgId),
+    Number(projectId),
+  );
 
-  const { data: milestoneList } = useProjectMilestoneListQuery({
-    projectId: Number(projectId),
-  });
+  const { data: milestoneList } = useProjectMilestoneListQuery(Number(projectId));
 
-  const { data: projectParticipantListData } = useProjectParticipantListQuery({
-    projectId: Number(projectId),
-    orgId: Number(orgId),
-  });
+  const { data: projectParticipantListData } = useProjectParticipantListQuery(
+    Number(projectId),
+    Number(orgId),
+  );
 
   const participants = Array.isArray(projectParticipantListData?.data)
     ? projectParticipantListData.data

@@ -31,9 +31,10 @@ export const getProjectIssueList = async (
   try {
     const params = new URLSearchParams();
 
-    if (request.milestoneId !== null && request.milestoneId !== undefined) {
+    if (request.milestoneId) {
       params.append('milestoneId', request.milestoneId.toString());
     }
+
     if (request.currentPage) {
       params.append('currentPage', request.currentPage.toString());
     }

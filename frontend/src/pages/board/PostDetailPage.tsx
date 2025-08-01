@@ -4,8 +4,8 @@ import { Post } from '@/types/postTypes';
 
 import { CommentSection } from '@/components/board/CommentSection';
 import { IssueDetailContent, IssueDetailHeader } from '@/components/project/issue-detail';
-import { usePostDeleteMutation } from '@/hooks/queries/board/usePostDeleteMutation';
-import { usePostDetailQuery } from '@/hooks/queries/board/usePostDetailQuery';
+import { usePostDeleteMutation } from '@/hooks/queries/board/usePostMutations';
+import { usePostDetailQuery } from '@/hooks/queries/board/usePostQueries';
 
 interface PostDetailPageProps {
   orgId: string;

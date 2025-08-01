@@ -2,17 +2,18 @@ import { useEffect, useState } from 'react';
 
 import { createFileRoute, useParams } from '@tanstack/react-router';
 
-import { MyMemberInfoDetail } from '@/api/member/getMyMemberInfo';
-import { MemberInfoBase } from '@/api/member/putUpdateMyMemberInfo';
+import { MyMemberInfoDetail, MemberInfoBase } from '@/api/member/memberApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { MemberInfoForm } from '@/components/member/MemberInfoForm';
 import { LogoUpload } from '@/components/org/LogoUpload';
 import { Input } from '@/components/ui/input';
-import useMyMemberInfoQuery from '@/hooks/queries/member/useMyMemberInfoQuery';
-import { useMyMemberInfoUpdateMutation } from '@/hooks/queries/member/useMyMemberInfoUpdateMutation';
-import { useQuitOrgMutation } from '@/hooks/queries/member/useQuitOrgMutation';
-import usePasswordVerificationMutation from '@/hooks/queries/user/usePasswordVerificationMutation';
+import {
+  useMyMemberInfoUpdateMutation,
+  useQuitOrgMutation,
+} from '@/hooks/queries/member/useMemberMutations';
+import { useMyMemberInfoQuery } from '@/hooks/queries/member/useMemberQueries';
+import { usePasswordVerificationMutation } from '@/hooks/queries/user/useUserMutations';
 import { compressAndSaveImage, validateFileSize, validateFileType } from '@/utils/file/fileStorage';
 import { showErrorToast } from '@/utils/toast';
 
@@ -24,15 +25,13 @@ function MemberInfoPage() {
   const params = useParams({ strict: false });
   const orgId = params.orgId;
 
-  const { data: myMemberInfoData } = useMyMemberInfoQuery({ orgId: Number(orgId) });
+  const { data: myMemberInfoData } = useMyMemberInfoQuery(Number(orgId));
 
-  const { mutate: updateMyMemberInfo } = useMyMemberInfoUpdateMutation({
-    orgId: Number(orgId),
-  });
+  const { mutate: updateMyMemberInfo } = useMyMemberInfoUpdateMutation(Number(orgId));
 
   const { mutate: checkPassword } = usePasswordVerificationMutation();
 
-  const { mutate: quitOrg } = useQuitOrgMutation();
+  const { mutate: quitOrg } = useQuitOrgMutation(Number(orgId));
 
   const myMemberInfo = myMemberInfoData as unknown as MyMemberInfoDetail;
 
@@ -65,7 +64,7 @@ function MemberInfoPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    updateMyMemberInfo(formData);
+    updateMyMemberInfo({ ...formData, orgId: Number(orgId) });
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -114,14 +113,8 @@ function MemberInfoPage() {
       { password },
       {
         onSuccess: () => {
-          quitOrg(
-            { orgId: Number(orgId) },
-            {
-              onSuccess: () => {
-                window.location.href = '/info/password';
-              },
-            },
-          );
+          quitOrg();
+          window.location.href = '/info/password';
         },
         onError: () => {
           setPassword('');

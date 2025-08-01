@@ -18,8 +18,8 @@ import {
   TableBody,
   TableCell,
 } from '@/components/ui/table';
-import { useBoardDeleteMutation } from '@/hooks/queries/board/useBoardDeleteMutation';
-import { usePostListQuery } from '@/hooks/queries/board/usePostListQuery';
+import { useBoardDeleteMutation } from '@/hooks/queries/board/useBoardMutations';
+import { usePostListQuery } from '@/hooks/queries/board/usePostQueries';
 import { formatIsoToDate } from '@/utils/auth/dateUtils';
 
 interface PostListPageProps {
@@ -34,7 +34,7 @@ export const PostListPage = ({ orgId, boardId, boardName }: PostListPageProps) =
   const [currentPage, setCurrentPage] = useState(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const { data: postListData } = usePostListQuery(orgId, boardId, currentPage, 10);
-  const { mutate: deleteBoard } = useBoardDeleteMutation(orgId, boardId);
+  const { mutate: deleteBoard, isPending } = useBoardDeleteMutation(orgId, boardId);
   const totalPages = (postListData as unknown as PageResponse<Post[]>)?.totalPages ?? 1;
   const postList = Array.isArray(postListData?.data) ? postListData.data : [];
 
@@ -159,19 +159,26 @@ export const PostListPage = ({ orgId, boardId, boardName }: PostListPageProps) =
         </div>
       </div>
       {isDeleteModalOpen && (
-        <ModalComponent isOpen={isDeleteModalOpen} onClose={handleDeleteModalClose}>
-          <div className="flex flex-col items-center justify-center mb-4">
-            <h4 className="text-sm text-gray-700">정말 삭제하시겠습니까?</h4>
-          </div>
-          <div className="flex flex-row items-center justify-center gap-2">
-            <ButtonComponent variant="danger" onClick={handleDeleteModalClose}>
-              취소
-            </ButtonComponent>
-            <ButtonComponent variant="primary" onClick={handleDeleteBoard}>
-              삭제
-            </ButtonComponent>
-          </div>
-        </ModalComponent>
+        <ModalComponent
+          isOpen={isDeleteModalOpen}
+          onClose={handleDeleteModalClose}
+          title="게시판 삭제"
+          children={
+            <div className="flex flex-col items-center justify-center mb-4">
+              <h4 className="text-sm text-gray-700">정말 삭제하시겠습니까?</h4>
+            </div>
+          }
+          footer={
+            <div className="flex flex-row items-center justify-center gap-2">
+              <ButtonComponent variant="danger" onClick={() => setIsDeleteModalOpen(false)}>
+                취소
+              </ButtonComponent>
+              <ButtonComponent variant="primary" onClick={handleDeleteBoard}>
+                삭제
+              </ButtonComponent>
+            </div>
+          }
+        />
       )}
     </div>
   );

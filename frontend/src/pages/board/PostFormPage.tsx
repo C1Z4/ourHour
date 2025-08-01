@@ -14,13 +14,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useBoardListQuery } from '@/hooks/queries/board/useBoardListQuery';
-import { usePostCreateMutation } from '@/hooks/queries/board/usePostCreateMutation';
-import { usePostUpdateMutation } from '@/hooks/queries/board/usePostUpdateMutation';
+import { useBoardListQuery } from '@/hooks/queries/board/useBoardQueries';
+import {
+  usePostCreateMutation,
+  usePostUpdateMutation,
+} from '@/hooks/queries/board/usePostMutations';
 
 interface PostFormPageProps {
   orgId: number;
-  boardId: number;
+  boardId?: number;
   postId?: number;
   initialData?: Post;
 }

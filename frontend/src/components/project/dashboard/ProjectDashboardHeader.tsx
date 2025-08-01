@@ -6,7 +6,7 @@ import { Info, Plus } from 'lucide-react';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { Input } from '@/components/ui/input';
-import { useMilestoneCreateMutation } from '@/hooks/queries/project/useMilestoneCreateMutation';
+import { useMilestoneCreateMutation } from '@/hooks/queries/project/useMilestoneMutations';
 import { useAppSelector } from '@/stores/hooks';
 
 interface ProjectDashboardHeaderProps {
@@ -28,9 +28,7 @@ export const ProjectDashboardHeader = ({
 
   const [milestoneName, setMilestoneName] = useState('');
 
-  const { mutate: createMilestone } = useMilestoneCreateMutation({
-    projectId: Number(projectId),
-  });
+  const { mutate: createMilestone } = useMilestoneCreateMutation(Number(projectId));
 
   const handleCreateMilestone = () => {
     createMilestone({

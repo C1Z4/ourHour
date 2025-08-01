@@ -12,9 +12,9 @@ import { getErrorMessage } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 // ======== 사용자 삭제 ========
-export const useUserDeleteMutation = (request: DeleteUserRequest) =>
+export const useUserDeleteMutation = () =>
   useMutation({
-    mutationFn: () => deleteUser(request),
+    mutationFn: (request: DeleteUserRequest) => deleteUser(request),
 
     onSuccess: () => {
       showSuccessToast('회원 탈퇴에 성공하였습니다.');
@@ -29,7 +29,6 @@ export const useUserDeleteMutation = (request: DeleteUserRequest) =>
 export const usePasswordVerificationMutation = () =>
   useMutation({
     mutationFn: (request: PostVerifyPwdRequest) => postVerifyPwd(request),
-
     onError: (error: AxiosError) => {
       showErrorToast(getErrorMessage(error));
     },
