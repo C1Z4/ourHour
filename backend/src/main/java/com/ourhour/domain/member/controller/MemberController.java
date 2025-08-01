@@ -5,13 +5,12 @@ import com.ourhour.domain.member.dto.MemberOrgSummaryResDTO;
 import com.ourhour.domain.member.dto.MyMemberInfoReqDTO;
 import com.ourhour.domain.member.dto.MyMemberInfoResDTO;
 import com.ourhour.domain.member.exception.MemberException;
-import com.ourhour.domain.member.exception.MemberOrgException;
 import com.ourhour.domain.member.service.MemberService;
 import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.global.common.dto.ApiResponse;
+import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.auth.exception.AuthException;
-import com.ourhour.global.exception.BusinessException;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
 import com.ourhour.global.jwt.util.UserContextHolder;
@@ -88,7 +87,7 @@ public class MemberController {
 
         // 삭제된 회사나 없는 회사를 조회할 때
         OrgEntity orgEntity = orgRepository.findById(orgId)
-                .orElseThrow(() -> MemberOrgException.orgNotFoundException());
+                .orElseThrow(() -> OrgException.orgNotFoundException());
 
         MemberOrgDetailResDTO memberOrgDetailResDTO = memberService.findOrgDetailByMemberIdAndOrgId(memberId,
                 orgEntity.getOrgId());

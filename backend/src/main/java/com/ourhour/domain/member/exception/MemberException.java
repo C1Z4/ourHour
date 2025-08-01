@@ -25,10 +25,6 @@ public class MemberException extends BusinessException {
         return new MemberException(ErrorCode.MEMBER_ALREADY_EXISTS);
     }
 
-    public static MemberException orgNotFoundException() {
-        return new MemberException(ErrorCode.ORG_NOT_FOUND);
-    }
-
     public static MemberException orgAccessDeniedException() {
         return new MemberException(ErrorCode.ORG_ACCESS_DENIED);
     }

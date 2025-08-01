@@ -26,7 +26,7 @@ public class AuthException extends BusinessException {
     }
 
     public static AuthException invalidPasswordException() {
-        return new AuthException(ErrorCode.INVALID_PASSWORD);
+        return new AuthException(ErrorCode.PASSWORD_NOT_MATCH);
     }
 
     public static AuthException tokenNotFoundException() {
