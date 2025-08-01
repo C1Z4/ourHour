@@ -31,7 +31,7 @@ export const getMyMemberInfo = async (
 };
 
 // ======== 내 정보 수정 ========
-interface PutUpdateMyMemberInfoRequest extends MemberInfoBase {
+export interface PutUpdateMyMemberInfoRequest extends MemberInfoBase {
   orgId: number;
 }
 

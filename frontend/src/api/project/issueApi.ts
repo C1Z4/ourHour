@@ -7,7 +7,7 @@ import { axiosInstance } from '@/api/axiosConfig';
 import { logError } from '@/utils/auth/errorUtils';
 
 // ======== 프로젝트 이슈 목록 조회 ========
-interface GetProjectIssueListRequest {
+export interface GetProjectIssueListRequest {
   projectId: number;
   milestoneId?: number | null;
   currentPage?: number;
@@ -118,6 +118,21 @@ export const putUpdateIssue = async (
       `/api/projects/${projectId}/issues/${issueId}`,
       requestBody,
     );
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 프로젝트 이슈 삭제 ========
+export interface DeleteIssueRequest {
+  issueId: number;
+}
+
+export const deleteIssue = async (request: DeleteIssueRequest): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.delete(`/api/projects/issues/${request.issueId}`);
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);

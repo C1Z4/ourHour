@@ -38,6 +38,29 @@ export const getProjectSummaryList = async (
   }
 };
 
+// ======== 내 프로젝트 목록 조회 ========
+interface GetMyProjectListRequest {
+  orgId: number;
+}
+
+export interface MyProject {
+  projectId: number;
+  name: string;
+}
+
+export const getMyProjectList = async (
+  request: GetMyProjectListRequest,
+): Promise<ApiResponse<MyProject[]>> => {
+  try {
+    const response = await axiosInstance.get(`/api/organizations/${request.orgId}/projects`);
+
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
 // ======== 프로젝트 정보 조회 ========
 interface GetProjectInfoRequest {
   projectId: number;

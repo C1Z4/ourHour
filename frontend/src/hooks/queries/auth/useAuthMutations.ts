@@ -2,15 +2,18 @@ import { useMutation } from '@tanstack/react-query';
 
 import { AxiosError } from 'axios';
 
-import deleteSignout from '@/api/auth/deleteSignout';
-import postSendEmailVerification, {
-  SendEmailVerificationRequest,
-} from '@/api/auth/postSendEmailVerification';
-import postSignin, { SigninRequest } from '@/api/auth/postSignin';
-import postSignup, { SignupRequest } from '@/api/auth/postSignup';
+import { postSendEmailVerification, SendEmailVerificationRequest } from '@/api/auth/emailApi';
+import {
+  postSignin,
+  postSignout,
+  postSignup,
+  SigninRequest,
+  SignupRequest,
+} from '@/api/auth/signApi';
 import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
+// ======== 로그인 ========
 export const useSigninMutation = () =>
   useMutation({
     mutationFn: (request: SigninRequest) => postSignin(request),
@@ -23,6 +26,7 @@ export const useSigninMutation = () =>
     },
   });
 
+// ======== 회원가입 ========
 export const useSignupMutation = () =>
   useMutation({
     mutationFn: (request: SignupRequest) => postSignup(request),
@@ -32,6 +36,7 @@ export const useSignupMutation = () =>
     },
   });
 
+// ======== 이메일 인증 메일 전송 ========
 export const useSendEmailVerificationMutation = () =>
   useMutation({
     mutationFn: (request: SendEmailVerificationRequest) => postSendEmailVerification(request),
@@ -44,9 +49,10 @@ export const useSendEmailVerificationMutation = () =>
     },
   });
 
+// ======== 로그아웃 ========
 export const useSignoutMutation = () =>
   useMutation({
-    mutationFn: () => deleteSignout(),
+    mutationFn: () => postSignout(),
     onError: (error: AxiosError) => {
       logError(error);
       showErrorToast(getErrorMessage(error));

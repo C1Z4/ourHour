@@ -6,7 +6,7 @@ import { axiosInstance } from '@/api/axiosConfig';
 import { logError } from '@/utils/auth/errorUtils';
 
 // ======== 프로젝트 마일스톤 목록 조회 ========
-interface GetProjectMilestoneListRequest {
+export interface GetProjectMilestoneListRequest {
   projectId: number;
   currentPage?: number;
   size?: number;
@@ -56,6 +56,29 @@ export const postCreateMilestone = async (
 };
 
 // ======== 프로젝트 마일스톤 수정 ========
+export interface PutUpdateMilestoneRequest {
+  milestoneId: number | null;
+  projectId: number | null;
+  name: string;
+}
+
+export const putUpdateMilestone = async (
+  request: PutUpdateMilestoneRequest,
+): Promise<ApiResponse<void>> => {
+  try {
+    const { milestoneId, projectId, ...requestBody } = request;
+    const response = await axiosInstance.put(
+      `/api/projects/${projectId}/milestones/${milestoneId}`,
+      requestBody,
+    );
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 프로젝트 마일스톤 삭제제 ========
 export interface DeleteMilestoneRequest {
   milestoneId: number | null;
 }

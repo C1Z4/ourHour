@@ -33,9 +33,9 @@ export const getOrgInfo = async (request: GetOrgInfoRequest): Promise<ApiRespons
 };
 
 // ======== 내 회사 목록 조회 ========
-interface GetOrgMemberListRequest {
-  currentPage?: number;
-  size?: number;
+export interface GetOrgMemberListRequest {
+  currentPage: number;
+  size: number;
 }
 
 export interface MyOrg {

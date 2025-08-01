@@ -21,3 +21,15 @@ export const MEMBER_QUERY_KEYS = {
 export const COMMENT_QUERY_KEYS = {
   COMMENT_LIST: 'commentList',
 } as const;
+
+export const BOARD_QUERY_KEYS = {
+  BOARD_LIST: 'boardList',
+  ALL_POST_LIST: 'allPostList',
+  POST_LIST: 'postList',
+  POST_DETAIL: 'postDetail',
+} as const;
+
+export const CHAT_QUERY_KEYS = {
+  CHAT_LIST: 'chatList',
+  CHAT_DETAIL: 'chatDetail',
+} as const;
