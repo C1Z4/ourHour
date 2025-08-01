@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
 
-import { getPwdResetVerification } from '@/api/auth/getPwdVerification';
+import { getPwdResetVerification } from '@/api/auth/passwordApi';
 import { Route as pwdResetVerifyRoute } from '@/routes/auth/password/verify';
 import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 

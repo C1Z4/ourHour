@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-import getCheckEmail from '@/api/auth/getCheckEmail';
-import postPasswordVerification from '@/api/auth/postPwdVerification';
+import { getCheckEmail } from '@/api/auth/emailApi';
+import { postPasswordVerification } from '@/api/auth/passwordApi';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 import { PwdResetSendVerification } from './PwdResetSendVerification';
