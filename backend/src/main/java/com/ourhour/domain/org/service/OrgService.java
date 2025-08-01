@@ -8,7 +8,6 @@ import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.dto.OrgDetailReqDTO;
 import com.ourhour.domain.org.dto.OrgDetailResDTO;
-
 import com.ourhour.domain.org.dto.OrgReqDTO;
 import com.ourhour.domain.org.dto.OrgResDTO;
 import com.ourhour.domain.org.entity.OrgEntity;
@@ -16,6 +15,7 @@ import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberId;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
+import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.org.mapper.OrgMapper;
 import com.ourhour.domain.org.mapper.OrgParticipantMemberMapper;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
@@ -26,7 +26,6 @@ import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.domain.user.repository.UserRepository;
 
 import com.ourhour.domain.user.service.AnonymizeUserService;
-import com.ourhour.global.exception.BusinessException;
 
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.jwt.util.UserContextHolder;
@@ -35,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 @Service
 @RequiredArgsConstructor
@@ -92,7 +90,8 @@ public class OrgService {
         memberRepository.save(memberEntity);
 
         // 해당 회사의 루트 관리자 권한 부여
-        OrgParticipantMemberId orgParticipantMemberId = new OrgParticipantMemberId(orgEntity.getOrgId(), memberEntity.getMemberId());
+        OrgParticipantMemberId orgParticipantMemberId = new OrgParticipantMemberId(orgEntity.getOrgId(),
+                memberEntity.getMemberId());
         OrgParticipantMemberEntity orgParticipantMemberEntity = OrgParticipantMemberEntity.builder()
                 .orgParticipantMemberId(orgParticipantMemberId)
                 .orgEntity(orgEntity)
@@ -104,7 +103,8 @@ public class OrgService {
         orgParticipantMemberRepository.save(orgParticipantMemberEntity);
 
         // 응답 DTO로 변환
-        OrgResDTO orgResDTO = orgParticipantMemberMapper.toOrgResDTO(orgEntity, memberEntity, orgParticipantMemberEntity);
+        OrgResDTO orgResDTO = orgParticipantMemberMapper.toOrgResDTO(orgEntity, memberEntity,
+                orgParticipantMemberEntity);
 
         return orgResDTO;
 
@@ -114,11 +114,11 @@ public class OrgService {
     public OrgDetailResDTO getOrgInfo(Long orgId) {
 
         if (orgId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 회사 ID입니다.");
+            throw OrgException.orgNotFoundException();
         }
 
         OrgEntity orgEntity = orgRepository.findById(orgId)
-                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 회사 ID 입니다: " + orgId));
+                .orElseThrow(() -> OrgException.orgNotFoundException());
 
         OrgDetailResDTO orgDetailResDTO = orgMapper.toOrgDetailResDTO(orgEntity);
 
@@ -130,11 +130,11 @@ public class OrgService {
     public OrgDetailResDTO updateOrg(Long orgId, OrgDetailReqDTO orgDetailReqDTO) {
 
         if (orgId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 회사 ID입니다.");
+            throw OrgException.orgNotFoundException();
         }
 
         OrgEntity orgEntity = orgRepository.findById(orgId)
-                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 회사 ID 입니다: " + orgId));
+                .orElseThrow(() -> OrgException.orgNotFoundException());
 
         // 이미지 처리
         String logoUrl = orgDetailReqDTO.getLogoImgUrl();

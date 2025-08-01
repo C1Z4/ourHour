@@ -1,16 +1,18 @@
 package com.ourhour.domain.board.service;
 
+import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.board.dto.PostCreateUpdateReqDTO;
 import com.ourhour.domain.board.dto.PostDTO;
 import com.ourhour.domain.board.entity.BoardEntity;
 import com.ourhour.domain.board.entity.PostEntity;
+import com.ourhour.domain.board.exception.BoardException;
+import com.ourhour.domain.board.exception.PostException;
 import com.ourhour.domain.board.mapper.PostMapper;
 import com.ourhour.domain.board.repository.BoardRepository;
 import com.ourhour.domain.board.repository.PostRepository;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.global.common.dto.PageResponse;
-import com.ourhour.global.exception.BusinessException;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.jwt.util.UserContextHolder;
 import lombok.RequiredArgsConstructor;
@@ -54,11 +56,11 @@ public class PostService {
     public PostDTO getPostById(Long orgId, Long boardId, Long postId) {
 
         PostEntity post = postRepository.findById(postId)
-                .orElseThrow(() -> BusinessException.notFound("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> PostException.postNotFoundException());
 
         if (!post.getBoardEntity().getBoardId().equals(boardId)
                 || !post.getBoardEntity().getOrgEntity().getOrgId().equals(orgId)) {
-            throw BusinessException.forbidden("해당 게시글을 조회할 권한이 없습니다.");
+            throw PostException.postAccessDeniedException();
         }
 
         return postMapper.toDTO(post);
@@ -71,13 +73,13 @@ public class PostService {
                 .filter(auth -> auth.getOrgId().equals(orgId))
                 .map(auth -> auth.getMemberId())
                 .findFirst()
-                .orElseThrow(() -> BusinessException.unauthorized("작성자 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> PostException.postAuthorNotFoundException());
 
         MemberEntity author = memberRepository.findById(currentMemberId)
-                .orElseThrow(() -> BusinessException.notFound("작성자를 멤버 목록에서 찾을 수 없습니다."));
+                .orElseThrow(() -> PostException.postAuthorNotFoundException());
 
         BoardEntity board = boardRepository.findById(boardId)
-                .orElseThrow(() -> BusinessException.notFound("게시판을 찾을 수 없습니다."));
+                .orElseThrow(() -> BoardException.boardNotFoundException());
 
         PostEntity newPost = PostEntity.builder()
                 .title(request.getTitle())
@@ -97,15 +99,15 @@ public class PostService {
         Long currentMemberId = getCurrentMemberId(orgId);
 
         PostEntity postToUpdate = postRepository.findById(postId)
-                .orElseThrow(() -> BusinessException.notFound("수정할 게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> PostException.postNotFoundException());
 
         if (!postToUpdate.getBoardEntity().getBoardId().equals(boardId)
                 || !postToUpdate.getBoardEntity().getOrgEntity().getOrgId().equals(orgId)) {
-            throw BusinessException.forbidden("요청 경로가 올바르지 않습니다.");
+            throw PostException.postAccessDeniedException();
         }
 
         if (!postToUpdate.getAuthorEntity().getMemberId().equals(currentMemberId)) {
-            throw BusinessException.forbidden("게시글을 수정할 권한이 없습니다.");
+            throw PostException.postUpdateAccessDeniedException();
         }
 
         postToUpdate.update(request.getTitle(), request.getContent());
@@ -117,15 +119,15 @@ public class PostService {
         Long currentMemberId = getCurrentMemberId(orgId);
 
         PostEntity postToDelete = postRepository.findById(postId)
-                .orElseThrow(() -> BusinessException.notFound("삭제할 게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> PostException.postNotFoundException());
 
         if (!postToDelete.getBoardEntity().getBoardId().equals(boardId)
                 || !postToDelete.getBoardEntity().getOrgEntity().getOrgId().equals(orgId)) {
-            throw BusinessException.forbidden("요청 경로가 올바르지 않습니다.");
+            throw PostException.postAuthorAccessDeniedException();
         }
 
         if (!postToDelete.getAuthorEntity().getMemberId().equals(currentMemberId)) {
-            throw BusinessException.forbidden("게시글을 삭제할 권한이 없습니다.");
+            throw PostException.postAuthorAccessDeniedException();
         }
 
         postRepository.delete(postToDelete);
@@ -134,13 +136,13 @@ public class PostService {
     private Long getCurrentMemberId(Long orgId) {
         Claims claims = UserContextHolder.get();
         if (claims == null) {
-            throw BusinessException.unauthorized("인증 정보를 찾을 수 없습니다.");
+            throw AuthException.unauthorizedException();
         }
 
         return claims.getOrgAuthorityList().stream()
                 .filter(auth -> auth.getOrgId().equals(orgId))
                 .map(auth -> auth.getMemberId())
                 .findFirst()
-                .orElseThrow(() -> BusinessException.forbidden("멤버 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> PostException.postAuthorNotFoundException());
     }
 }

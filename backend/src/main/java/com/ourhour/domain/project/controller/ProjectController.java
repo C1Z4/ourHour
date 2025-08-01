@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.exception.BusinessException;
+import com.ourhour.domain.auth.exception.AuthException;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -202,7 +202,7 @@ public class ProjectController {
 
                 Claims claims = UserContextHolder.get();
                 if (claims == null) {
-                        throw BusinessException.unauthorized("인증 정보가 없습니다.");
+                        throw AuthException.unauthorizedException();
                 }
 
                 ApiResponse<Void> response = milestoneService.deleteMilestone(milestoneId, claims);
@@ -241,7 +241,7 @@ public class ProjectController {
 
                 Claims claims = UserContextHolder.get();
                 if (claims == null) {
-                        throw BusinessException.unauthorized("인증 정보가 없습니다.");
+                        throw AuthException.unauthorizedException();
                 }
 
                 ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO, claims);
@@ -256,7 +256,7 @@ public class ProjectController {
 
                 Claims claims = UserContextHolder.get();
                 if (claims == null) {
-                        throw BusinessException.unauthorized("인증 정보가 없습니다.");
+                        throw AuthException.unauthorizedException();
                 }
 
                 ApiResponse<Void> response = issueService.deleteIssue(issueId, claims);

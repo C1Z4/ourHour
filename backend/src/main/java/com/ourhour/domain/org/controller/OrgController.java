@@ -1,7 +1,6 @@
 package com.ourhour.domain.org.controller;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,12 +13,13 @@ import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.service.OrgService;
 import com.ourhour.domain.project.dto.ProjectNameResDTO;
 import com.ourhour.global.common.dto.ApiResponse;
+import com.ourhour.domain.auth.exception.AuthException;
+import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.jwt.dto.OrgAuthority;
 import com.ourhour.global.jwt.util.UserContextHolder;
-import com.ourhour.global.exception.BusinessException;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -74,14 +74,14 @@ public class OrgController {
 
         Claims claims = UserContextHolder.get();
         if (claims == null) {
-            throw BusinessException.unauthorized("인증 정보가 없습니다.");
+            throw AuthException.unauthorizedException();
         }
 
         Long memberId = claims.getOrgAuthorityList().stream()
                 .filter(authority -> authority.getOrgId().equals(orgId))
                 .map(OrgAuthority::getMemberId)
                 .findFirst()
-                .orElseThrow(() -> BusinessException.notFound("팀에 참여하지 않은 사용자입니다."));
+                .orElseThrow(() -> MemberException.memberAccessDeniedException());
 
         List<ProjectNameResDTO> response = orgService.getMyProjects(memberId, orgId);
 

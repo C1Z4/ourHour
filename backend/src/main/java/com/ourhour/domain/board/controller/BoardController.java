@@ -4,7 +4,6 @@ import com.ourhour.domain.board.dto.BoardDTO;
 import com.ourhour.domain.board.dto.BoardResponseDTO;
 import com.ourhour.domain.board.service.BoardService;
 import com.ourhour.global.common.dto.ApiResponse;
-import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

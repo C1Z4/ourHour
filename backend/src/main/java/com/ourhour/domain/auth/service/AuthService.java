@@ -40,7 +40,7 @@ public class AuthService {
 
     // 이메일 중복 확인
     @Transactional(readOnly = true)
-    public boolean checkAvailEmail (String email) {
+    public boolean checkAvailEmail(String email) {
 
         boolean alreadyHasEmail = userRepository.existsByEmailAndIsDeletedFalse(email);
         if (alreadyHasEmail) {
@@ -58,16 +58,17 @@ public class AuthService {
         // 이메일 중복 및 탈퇴된 이메일이 아닌지 확인
         if (!checkAvailEmail(signupReqDTO.getEmail())) {
             throw duplicateRequestException();
-        };
+        }
+        ;
 
         boolean isVerified = emailVerificationRepository.existsByEmailAndIsUsedTrue(signupReqDTO.getEmail());
-        if(!isVerified) {
-            throw emailVerificationException("이메일 인증 먼저 해주세요.");
+        if (!isVerified) {
+            throw emailVerificationRequiredException();
         }
 
         // UserEntity 저장
         String hashedPassword = passwordEncoder.encode(signupReqDTO.getPassword());
-        UserEntity userEntity = userMapper.toUserEntity(signupReqDTO, hashedPassword , LocalDateTime.now());
+        UserEntity userEntity = userMapper.toUserEntity(signupReqDTO, hashedPassword, LocalDateTime.now());
 
         userRepository.save(userEntity);
 
@@ -75,14 +76,14 @@ public class AuthService {
 
     // 로그인
     @Transactional
-    public SigninResDTO signin (SignupReqDTO signupReqDTO) {
+    public SigninResDTO signin(SignupReqDTO signupReqDTO) {
 
         // 이메일로 사용자 조회
         UserEntity userEntity = userRepository.findByEmailAndIsDeletedFalse(signupReqDTO.getEmail())
                 .orElseThrow(AuthException::emailNotFoundException);
 
         // 사용자 탈퇴 여부 확인
-        if(userEntity.isDeleted()) {
+        if (userEntity.isDeleted()) {
             throw deactivatedAccountException();
         }
 
@@ -95,7 +96,7 @@ public class AuthService {
         String accessToken = jwtTokenProvider.generateAccessToken(createClaims(userEntity));
         String refreshToken = jwtTokenProvider.generateRefreshToken(createClaims(userEntity));
 
-        // refresh token  DB 저장
+        // refresh token DB 저장
         saveRefreshToken(userEntity, refreshToken);
 
         // access token 반환
@@ -128,7 +129,7 @@ public class AuthService {
         // 기존 refresh token 있다면 삭제
         refreshTokenRepository.findByUserEntity(userEntity).ifPresent(refreshTokenRepository::delete);
 
-        // refresh token  DB 저장
+        // refresh token DB 저장
         LocalDateTime createdAt = jwtTokenProvider.getIatFromToken(refreshToken);
         LocalDateTime expiredAt = jwtTokenProvider.getExpFromToken(refreshToken);
         RefreshTokenEntity refreshTokenEntity = RefreshTokenEntity.builder()
