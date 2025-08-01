@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { getOrgInfo } from '@/api/org/orgApi';
-import { getOrgMemberList } from '@/api/org/orgMemberApi';
+import { fetchAllOrgMembers, getOrgMemberList } from '@/api/org/orgMemberApi';
 import { getMyProjectList } from '@/api/project/projectApi';
 import { ORG_QUERY_KEYS } from '@/constants/queryKeys';
 
@@ -18,6 +18,14 @@ export const useOrgMemberListQuery = (orgId: number, currentPage: number = 1, si
   useQuery({
     queryKey: [ORG_QUERY_KEYS.MEMBER_LIST, orgId, currentPage, size],
     queryFn: () => getOrgMemberList({ orgId, currentPage, size }),
+    enabled: !!orgId,
+  });
+
+// ======== 조직 멤버 목록 조회(페이지네이션 x) ========
+export const useOrgMemberListAllQuery = (orgId: number) =>
+  useQuery({
+    queryKey: [ORG_QUERY_KEYS.MEMBER_LIST_ALL, orgId],
+    queryFn: () => fetchAllOrgMembers(orgId),
     enabled: !!orgId,
   });
 
