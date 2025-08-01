@@ -20,8 +20,8 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(BusinessException.class)
         public ResponseEntity<ApiResponse<Object>> handleBusinessException(BusinessException e) {
                 log.warn("Business Exception: {}", e.getMessage());
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body(ApiResponse.fail(HttpStatus.BAD_REQUEST, e.getErrorCode().getStatusCode(),
+                return ResponseEntity.status(e.getErrorCode().getStatus())
+                                .body(ApiResponse.fail(e.getErrorCode().getStatus(), e.getErrorCode().getStatusCode(),
                                                 e.getErrorCode().getMessage()));
         }
 

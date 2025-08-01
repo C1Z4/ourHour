@@ -63,11 +63,11 @@ public enum ErrorCode {
     PROJECT_PARTICIPANT_OR_ADMIN_OR_ROOT_ADMIN("프로젝트 참여자이거나 ADMIN 이상 권한이 있어야 합니다", 4004, HttpStatus.BAD_REQUEST),
     PROJECT_ID_REQUIRED("프로젝트 ID는 필수입니다", 4005, HttpStatus.BAD_REQUEST),
 
-    // 마일스톤 관련 
+    // 마일스톤 관련
     MILESTONE_NOT_FOUND("마일스톤을 찾을 수 없습니다", 4006, HttpStatus.NOT_FOUND),
     MILESTONE_NAME_DUPLICATE("이미 존재하는 마일스톤 이름입니다", 4007, HttpStatus.BAD_REQUEST),
 
-    // 이슈 관련 
+    // 이슈 관련
     ISSUE_NOT_FOUND("이슈를 찾을 수 없습니다", 4008, HttpStatus.NOT_FOUND),
 
     // ========== 게시판 관련 (5000~5999) ==========
@@ -114,5 +114,9 @@ public enum ErrorCode {
 
     public int getStatusCode() {
         return statusCode;
+    }
+
+    public HttpStatus getStatus() {
+        return status;
     }
 }
