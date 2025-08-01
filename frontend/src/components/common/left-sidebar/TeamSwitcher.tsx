@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from '@tanstack/react-router';
 import { ChevronsUpDown, Info, Plus } from 'lucide-react';
 
-import { MyOrg } from '@/api/org/getMyOrgList';
+import { MyOrg } from '@/api/org/orgApi';
 import { OrgFormData, OrgModal } from '@/components/org/OrgModal';
 import {
   DropdownMenu,
@@ -14,8 +14,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
-import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
+import { useMyOrgListQuery } from '@/hooks/queries/member/useMemberQueries';
+import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgMutations';
 import { useSidebar } from '@/hooks/useSidebar';
 import { useAppDispatch } from '@/stores/hooks';
 import { setCurrentOrgId } from '@/stores/orgSlice';
@@ -33,10 +33,7 @@ export function TeamSwitcher() {
   const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
-  const { data: myOrgList } = useMyOrgListQuery({
-    currentPage: 1,
-    size: 100,
-  });
+  const { data: myOrgList } = useMyOrgListQuery(1, 100);
 
   const currentOrgs = Array.isArray(myOrgList?.data)
     ? myOrgList.data

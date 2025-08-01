@@ -1,4 +1,4 @@
-import { ParticipantSummary } from '@/api/project/getProjectSummaryList';
+import { ParticipantSummary } from '@/api/project/projectApi';
 
 interface ParticipantsListProps {
   participants: ParticipantSummary[];

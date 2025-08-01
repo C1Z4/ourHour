@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { useSelector } from 'react-redux';
 
-import { OrgBaseInfo } from '@/api/org/getOrgInfo';
+import { OrgBaseInfo } from '@/api/org/orgApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { LogoUpload } from '@/components/org/LogoUpload';

@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
 
-import patchPwdReset from '@/api/auth/patchPwdReset';
+import { patchPasswordReset } from '@/api/auth/passwordApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Route as successRoute } from '@/routes/auth/password/success';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
@@ -46,7 +46,11 @@ export function PwdResetForm() {
     try {
       setLoading(true);
       setErr('');
-      await patchPwdReset({ token: token ?? '', newPassword: pwd, newPasswordCheck: pwdCheck });
+      await patchPasswordReset({
+        token: token ?? '',
+        newPassword: pwd,
+        newPasswordCheck: pwdCheck,
+      });
       showSuccessToast('비밀번호가 변경되었습니다.');
       router.navigate({ to: '/login' });
     } catch {

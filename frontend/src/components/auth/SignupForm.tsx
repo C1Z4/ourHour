@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import getCheckEmail from '@/api/auth/getCheckEmail';
+import { getCheckEmail } from '@/api/auth/emailApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { Input } from '@/components/ui/input';

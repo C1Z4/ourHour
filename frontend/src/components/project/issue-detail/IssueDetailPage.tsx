@@ -1,8 +1,8 @@
 import { useRouter } from '@tanstack/react-router';
 
-import { IssueDetail } from '@/api/project/getProjectIssueDetail';
-import useIssueDeleteMutation from '@/hooks/queries/project/useIssueDeleteMutation';
-import useProjectIssueDetailQuery from '@/hooks/queries/project/useProjectIssueDetailQuery';
+import { IssueDetail } from '@/api/project/issueApi';
+import { useIssueDeleteMutation } from '@/hooks/queries/project/useIssueMutations';
+import { useProjectIssueDetailQuery } from '@/hooks/queries/project/useIssueQueries';
 
 import { CommentSection } from './CommentSection';
 import { IssueDetailContent } from './IssueDetailContent';
@@ -17,15 +17,15 @@ interface IssueDetailPageProps {
 
 export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPageProps) => {
   const router = useRouter();
-  const { data: issueData } = useProjectIssueDetailQuery({ issueId: Number(issueId) });
+  const { data: issueData } = useProjectIssueDetailQuery(Number(issueId));
 
   const issue = issueData as IssueDetail | undefined;
 
-  const { mutate: deleteIssue } = useIssueDeleteMutation({
-    projectId: Number(projectId),
-    milestoneId: issue?.milestoneId || null,
-    issueId: Number(issueId),
-  });
+  const { mutate: deleteIssue } = useIssueDeleteMutation(
+    Number(issueId),
+    Number(orgId),
+    Number(projectId),
+  );
 
   if (!issue) {
     return (

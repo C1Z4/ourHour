@@ -1,4 +1,4 @@
-import { IssueDetail } from '@/api/project/getProjectIssueDetail';
+import { IssueDetail } from '@/api/project/issueApi';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';

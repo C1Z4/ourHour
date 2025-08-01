@@ -2,10 +2,10 @@ import { useEffect, useRef } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
 
-import { getEmailVerification } from '@/api/auth/getEmailVerification';
-import postSignup from '@/api/auth/postSignup';
+import { getEmailVerification } from '@/api/auth/emailApi';
+import { postSignup } from '@/api/auth/signApi';
 import { Route as emailVerifyRoute } from '@/routes/auth/email-verification';
-import { getPendingSignup, clearPendingSignup } from '@/utils/auth/pendingSignupStorage';
+import { clearPendingSignup, getPendingSignup } from '@/utils/auth/pendingSignupStorage';
 import { showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export function EmailVerification() {

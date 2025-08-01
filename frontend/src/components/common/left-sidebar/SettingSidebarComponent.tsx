@@ -8,8 +8,8 @@ import { Plus, Contact, FileCog } from 'lucide-react';
 import { NavMain } from '@/components/common/left-sidebar/NavMain';
 import { OrgFormData, OrgModal } from '@/components/org/OrgModal';
 import { Sidebar, SidebarContent, SidebarRail } from '@/components/ui/sidebar';
-import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
-import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
+import { useMyOrgListQuery } from '@/hooks/queries/member/useMemberQueries';
+import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgMutations';
 import { useAppSelector } from '@/stores/hooks';
 
 const PlusIcon = () => <Plus className="h-4 w-4" />;
@@ -23,10 +23,7 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
 
   const { mutate: createOrg } = useOrgCreateMutation();
 
-  const { data: myOrgList } = useMyOrgListQuery({
-    currentPage: 1,
-    size: 100,
-  });
+  const { data: myOrgList } = useMyOrgListQuery(1, 100);
 
   const currentOrgs = Array.isArray(myOrgList?.data)
     ? myOrgList.data

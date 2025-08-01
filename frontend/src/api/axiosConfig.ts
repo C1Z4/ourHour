@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig, isAxiosError } from 'axios';
 
-import { logError, handleHttpError } from '@/utils/auth/errorUtils';
+import { logError } from '@/utils/auth/errorUtils';
 import { showLoading, hideLoading } from '@/utils/auth/loadingUtils';
 import { getAccessTokenFromStore, logout, setAccessTokenToStore } from '@/utils/auth/tokenUtils';
 
@@ -159,7 +159,6 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    handleHttpError(error);
     return Promise.reject(error);
   },
 );

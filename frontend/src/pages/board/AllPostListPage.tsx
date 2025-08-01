@@ -17,8 +17,8 @@ import {
   TableBody,
   TableCell,
 } from '@/components/ui/table';
-import { useAllPostQuery } from '@/hooks/queries/board/useAllPostQuery';
-import { useBoardListQuery } from '@/hooks/queries/board/useBoardListQuery';
+import { useBoardListQuery } from '@/hooks/queries/board/useBoardQueries';
+import { useAllPostQuery } from '@/hooks/queries/board/usePostQueries';
 import { formatIsoToDate } from '@/utils/auth/dateUtils';
 import { showErrorToast } from '@/utils/toast';
 

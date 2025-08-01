@@ -7,14 +7,14 @@ import { ChevronLeft, Plus } from 'lucide-react';
 
 import { PageResponse } from '@/types/apiTypes';
 
-import { MyOrg } from '@/api/org/getMyOrgList';
+import { MyOrg } from '@/api/org/orgApi';
 import logo from '@/assets/images/logo.png';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
 import { OrgFormData, OrgModal } from '@/components/org/OrgModal';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import useMyOrgListQuery from '@/hooks/queries/member/useMyOrgListQuery';
-import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgCreateMutation';
+import { useMyOrgListQuery } from '@/hooks/queries/member/useMemberQueries';
+import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgMutations';
 import { setMemberName } from '@/stores/memberSlice';
 import { setCurrentOrgId } from '@/stores/orgSlice';
 import { getImageUrl } from '@/utils/file/imageUtils';
@@ -38,9 +38,7 @@ function StartPage() {
 
   const { mutate: createOrg } = useOrgCreateMutation();
 
-  const { data: myOrgList } = useMyOrgListQuery({
-    currentPage,
-  });
+  const { data: myOrgList } = useMyOrgListQuery(currentPage);
   const totalPages = (myOrgList as unknown as PageResponse<MyOrg[]>)?.totalPages ?? 1;
 
   const currentOrgs = Array.isArray(myOrgList?.data)

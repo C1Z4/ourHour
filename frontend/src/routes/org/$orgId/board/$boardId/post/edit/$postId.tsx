@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { usePostDetailQuery } from '@/hooks/queries/board/usePostDetailQuery';
+import { usePostDetailQuery } from '@/hooks/queries/board/usePostQueries';
 import { PostFormPage } from '@/pages/board/PostFormPage';
 
 export const Route = createFileRoute('/org/$orgId/board/$boardId/post/edit/$postId')({

@@ -1,12 +1,14 @@
 import { useParams } from '@tanstack/react-router';
 
-import { CommentPageResponse } from '@/api/comment/getCommentList';
+import { CommentPageResponse } from '@/api/comment/commentApi';
 import { CommentForm } from '@/components/project/issue-detail/CommentForm';
 import { CommentItem } from '@/components/project/issue-detail/CommentItem';
-import { useCommentListQuery } from '@/hooks/queries/comment/useCommentListQuery';
-import { useCreateCommentMutation } from '@/hooks/queries/comment/useCreateCommentMutation';
-import { useDeleteCommentMutation } from '@/hooks/queries/comment/useDeleteCommentMutation';
-import { useUpdateCommentMutation } from '@/hooks/queries/comment/useUpdateCommentMutation';
+import {
+  useCreateCommentMutation,
+  useDeleteCommentMutation,
+  useUpdateCommentMutation,
+} from '@/hooks/queries/comment/useCommentMutations';
+import { useCommentListQuery } from '@/hooks/queries/comment/useCommentQueries';
 import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 
 export const CommentSection = () => {
@@ -42,9 +44,7 @@ export const CommentSection = () => {
   };
 
   const handleDeleteComment = (commentId: number) => {
-    deleteComment({
-      commentId,
-    });
+    deleteComment(commentId);
   };
 
   return (

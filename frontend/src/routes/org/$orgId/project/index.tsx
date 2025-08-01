@@ -3,12 +3,11 @@ import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 
-import { ProjectBaseInfo } from '@/api/project/getProjectInfo';
-import { PostCreateProjectRequest } from '@/api/project/postCreateProject';
+import { ProjectBaseInfo, PostCreateProjectRequest } from '@/api/project/projectApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ProjectModal } from '@/components/project/modal/ProjectModal';
 import { ProjectDataTable } from '@/components/project/project-list';
-import { useProjectCreateMutation } from '@/hooks/queries/project/useProjectCreateMutation';
+import { useProjectCreateMutation } from '@/hooks/queries/project/useProjectMutations';
 
 export const Route = createFileRoute('/org/$orgId/project/')({
   component: ProjectListPage,
@@ -24,9 +23,7 @@ function ProjectListPage() {
 
   const [isMyProjectsOnly, setIsMyProjectsOnly] = useState(false);
 
-  const { mutate: createProject } = useProjectCreateMutation({
-    orgId: Number(orgId),
-  });
+  const { mutate: createProject } = useProjectCreateMutation(Number(orgId));
 
   const handleProjectSubmit = (data: Partial<ProjectBaseInfo>) => {
     createProject({

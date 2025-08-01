@@ -4,7 +4,7 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { WithdrawConfirmModal } from '@/components/member/WithdrawConfirmModal';
-import { useUserDeleteMutation } from '@/hooks/queries/user/useUserDeleteMutation';
+import { useUserDeleteMutation } from '@/hooks/queries/user/useUserMutations';
 import { logout } from '@/stores/authSlice';
 import { useAppDispatch } from '@/stores/hooks';
 import { getEmailFromToken } from '@/utils/auth/tokenUtils';

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
-import { MyMemberInfoDetail } from '@/api/member/getMyMemberInfo';
+import { MyMemberInfoDetail } from '@/api/member/memberApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
-import useMyMemberInfoQuery from '@/hooks/queries/member/useMyMemberInfoQuery';
+import { useMyMemberInfoQuery } from '@/hooks/queries/member/useMemberQueries';
 import { getImageUrl } from '@/utils/file/imageUtils';
 
 interface CommentFormProps {
@@ -15,7 +15,7 @@ interface CommentFormProps {
 export const CommentForm = ({ orgId, onSubmit }: CommentFormProps) => {
   const [content, setContent] = useState('');
 
-  const { data: memberData } = useMyMemberInfoQuery({ orgId });
+  const { data: memberData } = useMyMemberInfoQuery(Number(orgId));
   const currentMember = memberData as unknown as MyMemberInfoDetail;
 
   const handleSubmit = (e: React.FormEvent) => {

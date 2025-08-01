@@ -10,7 +10,7 @@ import {
   TableBody,
   TableCell,
 } from '@/components/ui/table';
-import { useAllPostQuery } from '@/hooks/queries/board/useAllPostQuery';
+import { useAllPostQuery } from '@/hooks/queries/board/usePostQueries';
 import { formatIsoToDate } from '@/utils/auth/dateUtils';
 
 interface Props {

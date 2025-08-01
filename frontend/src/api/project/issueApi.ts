@@ -1,0 +1,142 @@
+import { AxiosError } from 'axios';
+
+import { ApiResponse, PageResponse } from '@/types/apiTypes';
+import { IssueStatusEng, IssueStatusKo } from '@/types/issueTypes';
+
+import { axiosInstance } from '@/api/axiosConfig';
+import { logError } from '@/utils/auth/errorUtils';
+
+// ======== 프로젝트 이슈 목록 조회 ========
+export interface GetProjectIssueListRequest {
+  projectId: number;
+  milestoneId?: number | null;
+  currentPage?: number;
+  size?: number;
+}
+
+export interface ProjectIssueSummary {
+  issueId: number;
+  name: string;
+  tag: string | null;
+  status: IssueStatusKo;
+  milestoneId: number | null;
+  assigneeId: number | null;
+  assigneeName: string | null;
+  assigneeProfileImgUrl: string | null;
+}
+
+export const getProjectIssueList = async (
+  request: GetProjectIssueListRequest,
+): Promise<ApiResponse<PageResponse<ProjectIssueSummary[]>>> => {
+  try {
+    const params = new URLSearchParams();
+
+    if (request.milestoneId) {
+      params.append('milestoneId', request.milestoneId.toString());
+    }
+
+    if (request.currentPage) {
+      params.append('currentPage', request.currentPage.toString());
+    }
+    if (request.size) {
+      params.append('size', request.size.toString());
+    }
+
+    const response = await axiosInstance.get(
+      `/api/projects/${request.projectId}/issues?${params.toString()}`,
+    );
+
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 프로젝트 이슈 상세 조회 ========
+interface GetIssueDetailRequest {
+  issueId: number;
+}
+
+export interface IssueDetail extends ProjectIssueSummary {
+  content: string;
+  milestoneName: string;
+}
+
+export const getProjectIssueDetail = async (
+  request: GetIssueDetailRequest,
+): Promise<ApiResponse<IssueDetail>> => {
+  try {
+    const response = await axiosInstance.get(`/api/projects/issues/${request.issueId}`);
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 프로젝트 이슈 생성 ========
+export interface PostCreateIssueRequest {
+  projectId: number;
+  milestoneId: number | null;
+  assigneeId: number | null;
+  name: string;
+  content: string;
+  status: IssueStatusEng | null;
+}
+
+export const postCreateIssue = async (
+  request: PostCreateIssueRequest,
+): Promise<ApiResponse<void>> => {
+  try {
+    const { projectId, ...requestBody } = request;
+    const response = await axiosInstance.post(`/api/projects/${projectId}/issues`, requestBody);
+
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 프로젝트 이슈 수정 ========
+export interface PutUpdateIssueRequest {
+  issueId: number;
+  projectId: number | null;
+  milestoneId: number | null;
+  assigneeId: number | null;
+  name: string;
+  content: string;
+  status: IssueStatusEng | null;
+}
+
+export const putUpdateIssue = async (
+  request: PutUpdateIssueRequest,
+): Promise<ApiResponse<void>> => {
+  try {
+    const { issueId, projectId, ...requestBody } = request;
+    const response = await axiosInstance.put(
+      `/api/projects/${projectId}/issues/${issueId}`,
+      requestBody,
+    );
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 프로젝트 이슈 삭제 ========
+export interface DeleteIssueRequest {
+  issueId: number;
+}
+
+export const deleteIssue = async (request: DeleteIssueRequest): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.delete(`/api/projects/issues/${request.issueId}`);
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};

@@ -2,9 +2,9 @@ import { useState } from 'react';
 
 import { createFileRoute } from '@tanstack/react-router';
 
-import { ProjectMilestone } from '@/api/project/getProjectMilestoneList';
+import { ProjectMilestone } from '@/api/project/milestoneApi';
 import { MilestoneColumn, ProjectDashboardHeader } from '@/components/project/dashboard';
-import useProjectMilestoneListQuery from '@/hooks/queries/project/useProjectMilestoneListQuery';
+import { useProjectMilestoneListQuery } from '@/hooks/queries/project/useMilestoneQueries';
 
 export const Route = createFileRoute('/org/$orgId/project/$projectId/')({
   component: ProjectDashboard,
@@ -15,9 +15,7 @@ function ProjectDashboard() {
 
   const [isMyIssuesOnly, setIsMyIssuesOnly] = useState(false);
 
-  const { data: milestoneList } = useProjectMilestoneListQuery({
-    projectId: Number(projectId),
-  });
+  const { data: milestoneList } = useProjectMilestoneListQuery(Number(projectId));
 
   const handleToggleViewMode = () => {
     setIsMyIssuesOnly(!isMyIssuesOnly);

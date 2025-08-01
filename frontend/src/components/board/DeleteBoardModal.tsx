@@ -1,7 +1,6 @@
-import { useBoardDeleteMutation } from '@/hooks/queries/board/useBoardDeleteMutation';
-
-import { BoardModal } from './BoardModal';
-import { ButtonComponent } from '../common/ButtonComponent';
+import { BoardModal } from '@/components/board/BoardModal';
+import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { useBoardDeleteMutation } from '@/hooks/queries/board/useBoardMutations';
 
 interface Props {
   orgId: number;

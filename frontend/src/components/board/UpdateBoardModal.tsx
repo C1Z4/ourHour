@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
-import { useBoardUpdateMutation } from '@/hooks/queries/board/useBoardUpdateMutation';
+import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { Input } from '@/components/ui/input';
+import { useBoardUpdateMutation } from '@/hooks/queries/board/useBoardMutations';
 
 import { BoardModal } from './BoardModal';
-import { ButtonComponent } from '../common/ButtonComponent';
-import { Input } from '../ui/input';
 
 interface Props {
   orgId: number;

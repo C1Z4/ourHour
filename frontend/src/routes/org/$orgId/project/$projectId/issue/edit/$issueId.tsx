@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { IssueDetail } from '@/api/project/getProjectIssueDetail';
+import { IssueDetail } from '@/api/project/issueApi';
 import { IssueFormPage } from '@/components/project/issue-form/IssueFormPage';
-import useProjectIssueDetailQuery from '@/hooks/queries/project/useProjectIssueDetailQuery';
+import { useProjectIssueDetailQuery } from '@/hooks/queries/project/useIssueQueries';
 
 export const Route = createFileRoute('/org/$orgId/project/$projectId/issue/edit/$issueId')({
   component: IssueEdit,
@@ -11,7 +11,7 @@ export const Route = createFileRoute('/org/$orgId/project/$projectId/issue/edit/
 function IssueEdit() {
   const { orgId, projectId, issueId } = Route.useParams();
 
-  const { data: issueData } = useProjectIssueDetailQuery({ issueId: Number(issueId) });
+  const { data: issueData } = useProjectIssueDetailQuery(Number(issueId));
 
   const issue = issueData as IssueDetail | undefined;
 
