@@ -17,7 +17,6 @@ import com.ourhour.domain.project.repository.ProjectParticipantRepository;
 import com.ourhour.domain.project.repository.ProjectRepository;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
-import com.ourhour.global.exception.BusinessException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +27,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.ourhour.domain.org.entity.OrgEntity;
+import com.ourhour.domain.org.exception.OrgException;
+import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.ProjectParticipantId;
 import com.ourhour.domain.project.enums.IssueStatus;
+import com.ourhour.domain.project.exception.ProjectException;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,16 +55,16 @@ public class ProjectService {
             Pageable pageable) {
 
         if (orgId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 회사 ID입니다.");
+            throw OrgException.orgNotFoundException();
         }
 
         if (participantLimit <= 0) {
-            throw BusinessException.badRequest("참여자 제한 수는 1 이상이어야 합니다.");
+            throw ProjectException.projectParticipantLimitInvalidException();
         }
 
         // 회사 존재 여부 확인
         if (!orgRepository.existsById(orgId)) {
-            throw BusinessException.badRequest("존재하지 않는 회사 ID입니다.");
+            throw OrgException.orgNotFoundException();
         }
 
         Page<ProjectEntity> projectPage = projectRepository.findByOrgEntity_OrgId(orgId, pageable);
@@ -93,11 +95,11 @@ public class ProjectService {
     // 프로젝트 정보 조회
     public ApiResponse<ProjectInfoDTO> getProjectInfo(Long projectId) {
         if (projectId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
+            throw ProjectException.projectNotFoundException();
         }
 
         ProjectEntity project = projectRepository.findById(projectId)
-                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다."));
+                .orElseThrow(() -> ProjectException.projectNotFoundException());
 
         ProjectInfoDTO projectInfo = projectMapper.toProjectInfoDTO(project);
 
@@ -108,14 +110,14 @@ public class ProjectService {
     @Transactional
     public ApiResponse<Void> createProject(Long orgId, ProjectReqDTO projectReqDTO) {
         if (orgId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 조직 ID입니다.");
+            throw OrgException.orgNotFoundException();
         }
 
         OrgEntity orgEntity = orgRepository.findById(orgId)
-                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 조직 ID입니다."));
+                .orElseThrow(() -> OrgException.orgNotFoundException());
 
         if (orgEntity == null) {
-            throw BusinessException.badRequest("조직 정보를 찾을 수 없습니다.");
+            throw OrgException.orgNotFoundException();
         }
 
         ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
@@ -129,11 +131,11 @@ public class ProjectService {
     @Transactional
     public ApiResponse<Void> updateProject(Long projectId, ProjecUpdateReqDTO projectUpdateReqDTO) {
         if (projectId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
+            throw ProjectException.projectNotFoundException();
         }
 
         ProjectEntity projectEntity = projectRepository.findById(projectId)
-                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다."));
+                .orElseThrow(() -> ProjectException.projectNotFoundException());
 
         projectMapper.updateProjectEntity(projectEntity, projectUpdateReqDTO);
         ProjectEntity savedProject = projectRepository.save(projectEntity);
@@ -147,7 +149,7 @@ public class ProjectService {
                 List<ProjectParticipantEntity> newParticipants = projectUpdateReqDTO.getParticipantIds().stream()
                         .map(memberId -> {
                             if (!memberRepository.existsById(memberId)) {
-                                throw BusinessException.badRequest("존재하지 않는 멤버 ID입니다: " + memberId);
+                                throw MemberException.memberNotFoundException();
                             }
 
                             ProjectParticipantId participantId = new ProjectParticipantId(projectId, memberId);
@@ -177,12 +179,12 @@ public class ProjectService {
     // 특정 프로젝트의 마일스톤 목록 조회
     public ApiResponse<PageResponse<MileStoneInfoDTO>> getProjectMilestones(Long projectId, Pageable pageable) {
         if (projectId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
+            throw ProjectException.projectNotFoundException();
         }
 
         // 프로젝트 존재 여부 확인
         if (!projectRepository.existsById(projectId)) {
-            throw BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다.");
+            throw ProjectException.projectNotFoundException();
         }
 
         Page<MilestoneEntity> milestonePage = milestoneRepository.findByProjectEntity_ProjectId(projectId, pageable);

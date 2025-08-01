@@ -9,8 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import static com.ourhour.domain.auth.exception.AuthException.unauthorizedException;
-import static com.ourhour.domain.user.exception.UserException.invalidPwd;
+import static com.ourhour.domain.user.exception.UserException.passwordNotMatch;
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +30,7 @@ public class PasswordVerifier {
         // 예외 발생: 현재 비밀번호 불일치
         boolean isMatched = passwordEncoder.matches(currentPwd, userEntity.getPassword());
         if (!isMatched) {
-            throw invalidPwd();
+            throw passwordNotMatch();
         }
 
         return userEntity;

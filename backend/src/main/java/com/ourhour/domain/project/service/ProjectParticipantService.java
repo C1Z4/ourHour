@@ -5,9 +5,9 @@ import com.ourhour.domain.project.entity.ProjectParticipantId;
 import com.ourhour.domain.project.mapper.ProjectParticipantMapper;
 import com.ourhour.domain.project.repository.ProjectParticipantRepository;
 import com.ourhour.domain.project.repository.ProjectRepository;
+import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.global.common.dto.PageResponse;
-import com.ourhour.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.ourhour.domain.project.dto.ProjectParticipantDTO;
+import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.global.common.dto.ApiResponse;
 
 @Slf4j
@@ -31,17 +32,17 @@ public class ProjectParticipantService {
     public ApiResponse<PageResponse<ProjectParticipantDTO>> getProjectParticipants(Long projectId, Long orgId,
             Pageable pageable) {
         if (projectId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID입니다.");
+            throw ProjectException.projectNotFoundException();
         }
 
         // 프로젝트 존재 여부 확인
         if (!projectRepository.existsById(projectId)) {
-            throw BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다.");
+            throw ProjectException.projectNotFoundException();
         }
 
         // 회사 존재 여부 확인
         if (!orgRepository.existsById(orgId)) {
-            throw BusinessException.badRequest("존재하지 않는 회사 ID입니다.");
+            throw OrgException.orgNotFoundException();
         }
 
         Page<ProjectParticipantEntity> participantPage = projectParticipantRepository
@@ -61,7 +62,7 @@ public class ProjectParticipantService {
     // 프로젝트 참여 여부 확인
     public ApiResponse<Boolean> checkProjectParticipant(Long projectId, Long memberId) {
         if (projectId <= 0 || memberId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID 또는 멤버 ID입니다.");
+            throw ProjectException.projectNotFoundException();
         }
 
         ProjectParticipantId projectParticipantId = new ProjectParticipantId(projectId, memberId);
@@ -80,11 +81,11 @@ public class ProjectParticipantService {
     // 프로젝트 참가자 삭제
     public ApiResponse<Void> deleteProjectParticipant(Long projectId, Long memberId) {
         if (projectId <= 0 || memberId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 프로젝트 ID 또는 멤버 ID입니다.");
+            throw ProjectException.projectNotFoundException();
         }
 
         if (!projectRepository.existsById(projectId)) {
-            throw BusinessException.badRequest("존재하지 않는 프로젝트 ID입니다.");
+            throw ProjectException.projectNotFoundException();
         }
 
         ProjectParticipantId projectParticipantId = new ProjectParticipantId(projectId, memberId);

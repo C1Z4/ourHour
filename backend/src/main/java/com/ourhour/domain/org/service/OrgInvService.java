@@ -4,7 +4,7 @@ import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.auth.service.AbstractVerificationService;
 import com.ourhour.domain.auth.service.EmailSenderService;
 import com.ourhour.domain.member.entity.MemberEntity;
-import com.ourhour.domain.member.exceptions.MemberException;
+import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.dto.InviteInfoDTO;
 import com.ourhour.domain.org.dto.OrgInvReqDTO;
@@ -16,6 +16,7 @@ import com.ourhour.domain.org.entity.OrgInvEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.InvStatus;
 import com.ourhour.domain.org.enums.Status;
+import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.org.mapper.OrgInvMapper;
 import com.ourhour.domain.org.repository.OrgInvBatchRepository;
 import com.ourhour.domain.org.repository.OrgInvRepository;
@@ -35,10 +36,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.ourhour.domain.auth.exception.AuthException.emailVerificationException;
-import static com.ourhour.domain.member.exceptions.MemberOrgException.orgNotFoundException;
-import static com.ourhour.domain.org.exceptions.OrgException.invitationException;
-
 @Service
 @Slf4j
 public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
@@ -54,7 +51,10 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
     @Value("${spring.service.base-url-email}")
     private String serviceBaseUrl;
 
-    public OrgInvService(EmailSenderService emailSenderService, OrgInvRepository orgInvRepository, OrgInvBatchRepository orgInvBatchRepository, OrgParticipantMemberRepository orgParticipantMemberRepository, MemberRepository memberRepository, UserRepository userRepository, OrgRepository orgRepository, OrgInvMapper orgInvMapper) {
+    public OrgInvService(EmailSenderService emailSenderService, OrgInvRepository orgInvRepository,
+            OrgInvBatchRepository orgInvBatchRepository, OrgParticipantMemberRepository orgParticipantMemberRepository,
+            MemberRepository memberRepository, UserRepository userRepository, OrgRepository orgRepository,
+            OrgInvMapper orgInvMapper) {
         super(emailSenderService);
         this.orgInvRepository = orgInvRepository;
         this.orgParticipantMemberRepository = orgParticipantMemberRepository;
@@ -69,7 +69,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
     // STATUS = PENDING, isUsed = false
     // TODO : 비동기 처리하기
     @Transactional
-    public void sendInvLink(Long orgId,OrgInvReqDTO orgInvReqDTO) {
+    public void sendInvLink(Long orgId, OrgInvReqDTO orgInvReqDTO) {
 
         // 해당 userId가 orgId의 어떤 memberEntity인지 확인
         Long userId = UserContextHolder.get().getUserId();
@@ -95,7 +95,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
         List<InviteInfoDTO> inviteInfoDTOList = orgInvReqDTO
                 .getInviteInfoDTOList();
 
-        for (InviteInfoDTO inviteInfoDTO:inviteInfoDTOList) {
+        for (InviteInfoDTO inviteInfoDTO : inviteInfoDTOList) {
             String email = inviteInfoDTO.getEmail();
             String token = sendVerificationEmail(
                     email,
@@ -111,8 +111,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
                     token,
                     email,
                     inviteInfoDTO.getRole(),
-                    LocalDateTime.now().plusMinutes(15)
-            );
+                    LocalDateTime.now().plusMinutes(15));
             orgInvEntityList.add(orgInvEntity);
         }
 
@@ -126,14 +125,14 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
     public void verifyInvEmail(String token) {
 
         OrgInvEntity inv = orgInvRepository.findByToken(token)
-                .orElseThrow(() -> emailVerificationException("유효하지 않은 초대링크입니다."));
+                .orElseThrow(() -> AuthException.invalidEmailVerificationTokenException());
 
         // 만료 검사 & 상태 전이
         if (inv.getExpiredAt() != null && inv.getExpiredAt().isBefore(LocalDateTime.now())) {
             if (inv.getStatus() != InvStatus.EXPIRED) {
                 inv.changeStatusToExpired();
             }
-            throw emailVerificationException("초대 링크가 만료되었습니다.");
+            throw AuthException.emailVerificationExpiredException();
         }
 
         // 이미 참여
@@ -155,17 +154,17 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
 
         // 토큰 조회
         OrgInvEntity orgInvEntity = orgInvRepository.findByToken(orgJoinReqDTO.getToken())
-                .orElseThrow(() -> emailVerificationException("유효하지 않은 초대링크입니다."));
+                .orElseThrow(() -> AuthException.invalidEmailVerificationTokenException());
 
         // 이미 인증되었는지 확인
         boolean isVerified = orgInvEntity.isUsed();
-        if(!isVerified) {
-            throw emailVerificationException("아직 인증되지 않았습니다. 이메일 인증을 먼저 해주세요.");
+        if (!isVerified) {
+            throw AuthException.emailVerificationRequiredException();
         }
 
         // 이미 수락되었는지 확인
         if (orgInvEntity.getStatus() == InvStatus.ACCEPTED) {
-            throw invitationException("이미 참여가 완료된 이메일 링크입니다.");
+            throw AuthException.emailAlreadyAcceptedException();
         }
 
         // 이미 완료되었는지 확인
@@ -173,7 +172,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
             if (orgInvEntity.getStatus() != InvStatus.EXPIRED) {
                 orgInvEntity.changeStatusToExpired();
             }
-            throw invitationException("만료된 초대 링크입니다.");
+            throw AuthException.emailVerificationExpiredException();
         }
 
         // 초대된 이메일
@@ -197,29 +196,28 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
             List<MemberEntity> memberEntityList = memberRepository.findByUserEntity_UserId(userEntity.getUserId());
             // 멤버 정보의 이메일과 초대 이메일 일치 여부
             boolean isEqualInvEmailAndMemEmail = memberEntityList.stream().anyMatch(
-                    member -> member.getEmail().equals(invitedEmail)
-            );
+                    member -> member.getEmail().equals(invitedEmail));
 
             if (!isEqualInvEmailAndMemEmail) {
-                throw invitationException("로그인된 계정의 이메일과 초대받은 이메일이 일치하지 않습니다."
+                throw AuthException.emailNotMatchException("로그인된 계정의 이메일과 초대받은 이메일이 일치하지 않습니다."
                         + "현재 계정에 [" + invitedEmail + "] 이메일을 멤버에 등록 후 다시 시도하거나, "
-                        + "[" + invitedEmail + "] 이메일로 로그인해주세요."
-                        );
+                        + "[" + invitedEmail + "] 이메일로 로그인해주세요.");
             }
 
         }
 
-        /* ***************************************************************
+        /*
+         * ***************************************************************
          * 이 지점에 도달하면, 초대 이메일이 현재 로그인된 계정의 메인 이메일이거나,
          * 현재 계정과 연결된 MemberEntity 중 하나의 이메일임이 확인된 상태
-         * ***************************************************************/
+         ***************************************************************/
 
         // 현재 등록하려는 회사 조회
         Long batchId = orgInvEntity.getOrgInvBatchEntity().getBatchId();
         Long orgId = orgInvBatchRepository.findOrgIdByBatchId(batchId);
         OrgEntity orgEntity = orgRepository.findByOrgId(orgId);
         if (orgEntity == null) {
-            throw orgNotFoundException();
+            throw OrgException.orgNotFoundException();
         }
 
         MemberEntity memberToJoin = null;
@@ -228,12 +226,12 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
 
             memberToJoin = memberRepository.findByUserEntity_UserIdAndEmail(userId, invitedEmail)
                     .orElseGet(() -> {
-                       MemberEntity newMember = MemberEntity.builder()
-                               .userEntity(userEntity)
-                               .name(" ")
-                               .email(invitedEmail)
-                               .build();
-                       return memberRepository.save(newMember);
+                        MemberEntity newMember = MemberEntity.builder()
+                                .userEntity(userEntity)
+                                .name(" ")
+                                .email(invitedEmail)
+                                .build();
+                        return memberRepository.save(newMember);
                     });
         } else {
             memberToJoin = memberRepository.findByUserEntity_UserIdAndEmail(userId, invitedEmail)
@@ -242,7 +240,8 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
         }
 
         // 이미 조직에 참여 중인지 확인
-        boolean alreadyParticipant = orgParticipantMemberRepository.existsByOrgEntityAndMemberEntity(orgEntity, memberToJoin);
+        boolean alreadyParticipant = orgParticipantMemberRepository.existsByOrgEntityAndMemberEntity(orgEntity,
+                memberToJoin);
         if (alreadyParticipant) {
             // 의미 없는 초대이므로 상태값만 바꾸고 메소드 종료
             orgInvEntity.changeStatusToAccepted();
@@ -294,12 +293,12 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
         List<OrgInvEntity> expiredInvitationList = orgInvRepository
                 .findByStatusAndExpiredAtBefore(InvStatus.PENDING, LocalDateTime.now());
 
-        if(expiredInvitationList.isEmpty()) {
+        if (expiredInvitationList.isEmpty()) {
             log.info("만료된 초대 링크가 없습니다.");
             return;
         }
 
-        for (OrgInvEntity orgInvEntity:expiredInvitationList) {
+        for (OrgInvEntity orgInvEntity : expiredInvitationList) {
             orgInvEntity.changeStatusToExpired();
             log.debug("초대링크 만료처리 : token={}, email={}", orgInvEntity.getToken(), orgInvEntity.getEmail());
         }
@@ -307,9 +306,9 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
         log.info("{}개의 초대링크 만료처리 완료", expiredInvitationList.size());
     }
 
-
     @Override
-    protected OrgInvEntity buildVerificationEntity(String token, String email, LocalDateTime createdAt, LocalDateTime expiredAt, boolean isUsed) {
+    protected OrgInvEntity buildVerificationEntity(String token, String email, LocalDateTime createdAt,
+            LocalDateTime expiredAt, boolean isUsed) {
         return OrgInvEntity.builder()
                 .token(token)
                 .email(email)

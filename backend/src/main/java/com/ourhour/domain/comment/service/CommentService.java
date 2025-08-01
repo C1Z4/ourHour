@@ -17,13 +17,18 @@ import com.ourhour.domain.comment.dto.CommentPageResDTO;
 import com.ourhour.domain.comment.dto.CommentResDTO;
 import com.ourhour.domain.comment.dto.CommentUpdateReqDTO;
 import com.ourhour.domain.comment.repository.CommentRepository;
+import com.ourhour.domain.comment.exception.CommentException;
 import com.ourhour.domain.board.entity.PostEntity;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.repository.IssueRepository;
 import com.ourhour.domain.board.repository.PostRepository;
+import com.ourhour.domain.member.exception.MemberException;
+import com.ourhour.domain.board.exception.PostException;
+import com.ourhour.domain.project.exception.IssueException;
 import com.ourhour.global.exception.BusinessException;
+import com.ourhour.global.exception.ErrorCode;
 
 import lombok.RequiredArgsConstructor;
 
@@ -74,19 +79,19 @@ public class CommentService {
     // 유효성 검사
     private void validateParameters(Long postId, Long issueId) {
         if (postId != null && postId < 0) {
-            throw BusinessException.badRequest("postId는 0 이상이어야 합니다.");
+            throw BusinessException.of(ErrorCode.INVALID_REQUEST, "postId는 0 이상이어야 합니다.");
         }
 
         if (issueId != null && issueId < 0) {
-            throw BusinessException.badRequest("issueId는 0 이상이어야 합니다.");
+            throw BusinessException.of(ErrorCode.INVALID_REQUEST, "issueId는 0 이상이어야 합니다.");
         }
 
         if (postId == null && issueId == null) {
-            throw BusinessException.badRequest("postId 또는 issueId 중 하나는 필수입니다.");
+            throw CommentException.commentTargetRequiredException();
         }
 
         if (postId != null && issueId != null) {
-            throw BusinessException.badRequest("postId 또는 issueId 중 하나만 입력해주세요.");
+            throw CommentException.commentTargetConflictException();
         }
     }
 
@@ -111,14 +116,14 @@ public class CommentService {
     }
 
     // 댓글 등록
-    @CacheEvict(value = "comments", key = "#commentCreateReqDTO.postId + '_' + #commentCreateReqDTO.issueId", allEntries = true)
+    @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void createComment(CommentCreateReqDTO commentCreateReqDTO) {
         validateCreateCommentRequest(commentCreateReqDTO);
 
         // 작성자 조회
         MemberEntity authorEntity = memberRepository.findById(commentCreateReqDTO.getAuthorId())
-                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> MemberException.memberNotFoundException());
 
         PostEntity postEntity = null;
         IssueEntity issueEntity = null;
@@ -126,12 +131,12 @@ public class CommentService {
         // postId 또는 issueId 중 하나만 조회
         if (commentCreateReqDTO.getPostId() != null) {
             postEntity = postRepository.findById(commentCreateReqDTO.getPostId())
-                    .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 게시글입니다."));
+                    .orElseThrow(() -> PostException.postNotFoundException());
         }
 
         if (commentCreateReqDTO.getIssueId() != null) {
             issueEntity = issueRepository.findById(commentCreateReqDTO.getIssueId())
-                    .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 이슈입니다."));
+                    .orElseThrow(() -> IssueException.issueNotFoundException());
         }
 
         CommentEntity commentEntity = CommentEntity.builder()
@@ -149,34 +154,34 @@ public class CommentService {
     // 댓글 생성 요청 검증
     private void validateCreateCommentRequest(CommentCreateReqDTO request) {
         if (request.getPostId() == null && request.getIssueId() == null) {
-            throw BusinessException.badRequest("postId 또는 issueId 중 하나는 필수입니다.");
+            throw CommentException.commentTargetRequiredException();
         }
 
         if (request.getPostId() != null && request.getIssueId() != null) {
-            throw BusinessException.badRequest("postId 또는 issueId 중 하나만 입력해주세요.");
+            throw CommentException.commentTargetConflictException();
         }
 
         if (request.getAuthorId() == null) {
-            throw BusinessException.badRequest("작성자 ID는 필수입니다.");
+            throw CommentException.commentAuthorRequiredException();
         }
 
         if (request.getContent() == null || request.getContent().trim().isEmpty()) {
-            throw BusinessException.badRequest("댓글 내용은 필수입니다.");
+            throw CommentException.commentContentRequiredException();
         }
 
         if (request.getContent().length() > 1000) {
-            throw BusinessException.badRequest("댓글 내용은 1000자를 초과할 수 없습니다.");
+            throw CommentException.commentContentTooLongException();
         }
     }
 
     // 댓글 수정
-    @CacheEvict(value = "comments", key = "#commentId", allEntries = true)
+    @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void updateComment(Long commentId, CommentUpdateReqDTO commentUpdateReqDTO) {
         validateUpdateCommentRequest(commentId, commentUpdateReqDTO);
 
         CommentEntity commentEntity = commentRepository.findById(commentId)
-                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 댓글입니다."));
+                .orElseThrow(() -> CommentException.commentNotFoundException());
 
         commentMapper.updateCommentEntity(commentEntity, commentUpdateReqDTO);
 
@@ -187,21 +192,21 @@ public class CommentService {
     private void validateUpdateCommentRequest(Long commentId, CommentUpdateReqDTO request) {
 
         if (request.getContent() == null || request.getContent().trim().isEmpty()) {
-            throw BusinessException.badRequest("댓글 내용은 필수입니다.");
+            throw CommentException.commentContentRequiredException();
         }
 
         if (request.getAuthorId() == null) {
-            throw BusinessException.badRequest("작성자 ID는 필수입니다.");
+            throw CommentException.commentAuthorRequiredException();
         }
 
     }
 
     // 댓글 삭제
-    @CacheEvict(value = "comments", key = "#commentId", allEntries = true)
+    @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void deleteComment(Long commentId) {
         CommentEntity commentEntity = commentRepository.findById(commentId)
-                .orElseThrow(() -> BusinessException.badRequest("존재하지 않는 댓글입니다."));
+                .orElseThrow(() -> CommentException.commentNotFoundException());
 
         commentRepository.delete(commentEntity);
     }

@@ -1,51 +1,83 @@
 package com.ourhour.domain.auth.exception;
 
 import com.ourhour.global.exception.BusinessException;
+import com.ourhour.global.exception.ErrorCode;
 
 public class AuthException extends BusinessException {
 
-    public AuthException(String message) {
-        super(message);
+    public AuthException(ErrorCode errorCode) {
+        super(errorCode);
     }
 
-    public AuthException(int status, String message) {
-        super(status, message);
-    }
-
-    public static AuthException duplicateRequestException() {
-        return new AuthException(400, "이미 존재하는 이메일입니다.");
-    }
-
-    public static AuthException emailNotFoundException() {
-        return new AuthException(404, "이메일이 존재하지 않습니다.");
-    }
-
-    public static AuthException invalidPasswordException() {
-        return new AuthException(401, "비밀번호가 일치하지 않습니다.");
-    }
-
-    public static AuthException invalidTokenException() {
-        return new AuthException(401, "토큰이 유효하지 않습니다.");
-    }
-
-    public static AuthException tokenNotFoundException() {
-        return new AuthException(404, "토큰이 존재하지 않습니다.");
-    }
-
-    public static AuthException userNotFoundException() {
-        return new AuthException(404, "해당 유저가 존재하지 않습니다.");
+    public AuthException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
     }
 
     public static AuthException unauthorizedException() {
-        return new AuthException(401, "인증되지 않은 사용자입니다.");
+        return new AuthException(ErrorCode.UNAUTHORIZED);
+    }
+
+    public static AuthException duplicateRequestException() {
+        return new AuthException(ErrorCode.EMAIL_ALREADY_EXISTS);
+    }
+
+    public static AuthException emailNotFoundException() {
+        return new AuthException(ErrorCode.EMAIL_NOT_FOUND);
+    }
+
+    public static AuthException invalidPasswordException() {
+        return new AuthException(ErrorCode.PASSWORD_NOT_MATCH);
+    }
+
+    public static AuthException tokenNotFoundException() {
+        return new AuthException(ErrorCode.TOKEN_NOT_FOUND);
+    }
+
+    public static AuthException invalidTokenException() {
+        return new AuthException(ErrorCode.INVALID_TOKEN);
     }
 
     public static AuthException deactivatedAccountException() {
-        return new AuthException(403, "탈퇴처리된 계정입니다.");
+        return new AuthException(ErrorCode.DEACTIVATED_ACCOUNT);
     }
 
-    public static AuthException emailVerificationException(String message) {
-        return new AuthException(message);
+    public static AuthException emailSendFailedException() {
+        return new AuthException(ErrorCode.EMAIL_SEND_FAILED);
     }
 
+    public static AuthException userNotFoundException() {
+        return new AuthException(ErrorCode.USER_NOT_FOUND);
+    }
+
+    public static AuthException userNotAuthorizedException() {
+        return new AuthException(ErrorCode.USER_NOT_AUTHORIZED);
+    }
+
+    public static AuthException emailVerificationExpiredException() {
+        return new AuthException(ErrorCode.EMAIL_VERIFICATION_EXPIRED);
+    }
+
+    public static AuthException emailAlreadyVerifiedException() {
+        return new AuthException(ErrorCode.EMAIL_ALREADY_VERIFIED);
+    }
+
+    public static AuthException invalidEmailVerificationTokenException() {
+        return new AuthException(ErrorCode.INVALID_EMAIL_VERIFICATION_TOKEN);
+    }
+
+    public static AuthException emailVerificationRequiredException() {
+        return new AuthException(ErrorCode.EMAIL_VERIFICATION_REQUIRED);
+    }
+
+    public static AuthException emailAlreadyAcceptedException() {
+        return new AuthException(ErrorCode.EMAIL_ALREADY_ACCEPTED);
+    }
+
+    public static AuthException emailNotMatchException(String message) {
+        return new AuthException(ErrorCode.EMAIL_NOT_MATCH, message);
+    }
+
+    public static AuthException deleteUserException(String message) {
+        return new AuthException(ErrorCode.LAST_ROOT_ADMIN_CANNOT_LEAVE, message);
+    }
 }

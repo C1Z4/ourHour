@@ -1,6 +1,7 @@
 package com.ourhour.global.jwt.aspect;
 
-import com.ourhour.global.exception.BusinessException;
+import com.ourhour.domain.auth.exception.AuthException;
+import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
 import com.ourhour.global.jwt.dto.Claims;
@@ -13,7 +14,6 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
-import java.nio.file.AccessDeniedException;
 
 @Aspect
 @Component
@@ -26,18 +26,18 @@ public class JwtOrgAuthorizationAspect {
         Claims currentUserClaims = UserContextHolder.get();
 
         if (currentUserClaims == null || currentUserClaims.getUserId() == null) {
-            throw BusinessException.forbidden("로그인이 필요합니다.");
+            throw AuthException.unauthorizedException();
         }
 
         // 메소드의 인자에서 @OrgId 어노테이션이 붙은 값을 찾기
         Long orgId = getOrgIdAnnoFromMethod(joinPoint);
         if (orgId == null) {
-            throw BusinessException.forbidden("해당 회사의 소속이 아니거나 회사 아이디의 값이 잘못되었습니다.");
+            throw OrgException.orgIdNotMatchException();
         }
 
         // false: 해당 회사에 대해 가지고 있는 권한이 접근 권한보다 높지 않은 경우
         if (!AuthorizationUtil.isHigherThan(currentUserClaims, orgId, orgAuth.accessLevel())) {
-            throw BusinessException.forbidden("접근 권한이 없습니다.");
+            throw OrgException.orgAccessDeniedException();
         }
 
         // 모든 조건을 통과하면 해당 메소드 실행
@@ -62,7 +62,8 @@ public class JwtOrgAuthorizationAspect {
                     }
                 }
             }
-            if (orgId != null) break; // 외부 for 문
+            if (orgId != null)
+                break; // 외부 for 문
         }
 
         return orgId;

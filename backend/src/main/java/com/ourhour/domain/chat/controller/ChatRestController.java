@@ -2,9 +2,9 @@ package com.ourhour.domain.chat.controller;
 
 import com.ourhour.domain.chat.dto.*;
 import com.ourhour.domain.chat.service.ChatService;
+import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.global.common.dto.ApiResponse;
-import com.ourhour.global.exception.BusinessException;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
 import com.ourhour.global.jwt.dto.Claims;
@@ -34,7 +34,7 @@ public class ChatRestController {
                 .filter(auth -> auth.getOrgId().equals(orgId))
                 .map(auth -> auth.getMemberId())
                 .findFirst()
-                .orElseThrow(() -> BusinessException.forbidden("해당 조직의 멤버가 아닙니다."));
+                .orElseThrow(() -> MemberException.memberAccessDeniedException());
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
@@ -53,8 +53,7 @@ public class ChatRestController {
     @GetMapping("/{roomId}")
     public ResponseEntity<ApiResponse<ChatRoomDetailResDTO>> getChatRoom(
             @OrgId @PathVariable Long orgId,
-            @PathVariable Long roomId
-    ) {
+            @PathVariable Long roomId) {
 
         ChatRoomDetailResDTO chatRoom = chatService.findChatRoom(orgId, roomId);
 

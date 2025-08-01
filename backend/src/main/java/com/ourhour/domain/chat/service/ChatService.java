@@ -4,17 +4,18 @@ import com.ourhour.domain.chat.dto.*;
 import com.ourhour.domain.chat.entity.ChatMessageEntity;
 import com.ourhour.domain.chat.entity.ChatParticipantEntity;
 import com.ourhour.domain.chat.entity.ChatRoomEntity;
-import com.ourhour.domain.chat.exceptions.ChatException;
+import com.ourhour.domain.chat.exception.ChatException;
 import com.ourhour.domain.chat.mapper.ChatMapper;
 import com.ourhour.domain.chat.repository.ChatMessageRepository;
 import com.ourhour.domain.chat.repository.ChatParticipantRepository;
 import com.ourhour.domain.chat.repository.ChatRoomRepository;
 import com.ourhour.domain.member.entity.MemberEntity;
+import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.entity.OrgEntity;
+import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
-import com.ourhour.global.exception.BusinessException;
 import com.ourhour.global.jwt.dto.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,8 @@ public class ChatService {
 
     public List<ChatRoomListResDTO> findAllChatRooms(Long orgId, Long memberId) {
 
-        List<ChatParticipantEntity> participants = chatParticipantRepository.findChatRoomsByOrgAndMember(orgId, memberId);
+        List<ChatParticipantEntity> participants = chatParticipantRepository.findChatRoomsByOrgAndMember(orgId,
+                memberId);
 
         return participants.stream()
                 .map(chatMapper::toChatRoomListResDTO)
@@ -49,7 +51,7 @@ public class ChatService {
     public ChatRoomDetailResDTO findChatRoom(Long orgId, Long roomId) {
 
         ChatRoomEntity chatRoomEntity = chatRoomRepository.findByOrgEntity_OrgIdAndRoomId(orgId, roomId)
-                .orElseThrow(ChatException::chatRoomNotFound);
+                .orElseThrow(ChatException::chatRoomNotFoundException);
 
         return chatMapper.toChatRoomResDTO(chatRoomEntity);
     }
@@ -57,7 +59,8 @@ public class ChatService {
     @Transactional
     public void registerChatRoom(Long orgId, ChatRoomCreateReqDTO request) {
 
-        OrgEntity orgEntity = orgRepository.findById(orgId).orElseThrow(() -> BusinessException.notFound("존재하지 않는 회사입니다."));
+        OrgEntity orgEntity = orgRepository.findById(orgId)
+                .orElseThrow(() -> OrgException.orgNotFoundException());
 
         ChatRoomEntity newChatRoom = ChatRoomEntity.builder()
                 .name(request.getName())
@@ -78,7 +81,7 @@ public class ChatService {
     public void modifyChatRoom(Long orgId, Long roomId, ChatRoomUpdateReqDTO request) {
 
         ChatRoomEntity targetChatRoom = chatRoomRepository.findByOrgEntity_OrgIdAndRoomId(orgId, roomId).orElseThrow(
-                ChatException::chatRoomNotFound);
+                ChatException::chatRoomNotFoundException);
         targetChatRoom.update(request.getName(), request.getColor());
     }
 
@@ -95,7 +98,8 @@ public class ChatService {
 
     public List<ChatParticipantResDTO> findAllParticipants(Long orgId, Long roomId) {
 
-        List<ChatParticipantEntity> participants = chatParticipantRepository.findParticipantsByOrgAndRoom(orgId, roomId);
+        List<ChatParticipantEntity> participants = chatParticipantRepository.findParticipantsByOrgAndRoom(orgId,
+                roomId);
 
         return participants.stream()
                 .map(chatMapper::toChatParticipantResDTO)
@@ -106,16 +110,17 @@ public class ChatService {
     public void addChatRoomParticipants(Long orgId, Long roomId, List<Long> memberIds) {
 
         ChatRoomEntity chatRoom = chatRoomRepository.findByOrgEntity_OrgIdAndRoomId(orgId, roomId)
-                .orElseThrow(ChatException::chatRoomNotFound);
+                .orElseThrow(ChatException::chatRoomNotFoundException);
 
         memberIds.forEach(memberId -> {
-            boolean isOrgMember = orgParticipantMemberRepository.existsByOrgEntity_OrgIdAndMemberEntity_MemberId(orgId, memberId);
+            boolean isOrgMember = orgParticipantMemberRepository.existsByOrgEntity_OrgIdAndMemberEntity_MemberId(orgId,
+                    memberId);
             if (!isOrgMember) {
-                throw BusinessException.forbidden("해당 회사의 멤버가 아닙니다.");
+                throw MemberException.memberAccessDeniedException();
             }
 
             MemberEntity member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> BusinessException.badRequest("해당 멤버를 찾을 수 없습니다."));
+                    .orElseThrow(() -> MemberException.memberNotFoundException());
 
             ChatParticipantEntity newParticipant = ChatParticipantEntity.createParticipant(chatRoom, member);
             chatParticipantRepository.save(newParticipant);
@@ -125,8 +130,9 @@ public class ChatService {
     @Transactional
     public void deleteChatRoomParticipant(Long orgId, Long roomId, Long memberId) {
 
-        ChatParticipantEntity participantToDelete = chatParticipantRepository.findParticipantToDelete(orgId, roomId, memberId)
-                .orElseThrow(ChatException::notParticipated);
+        ChatParticipantEntity participantToDelete = chatParticipantRepository
+                .findParticipantToDelete(orgId, roomId, memberId)
+                .orElseThrow(ChatException::chatNotParticipantException);
 
         chatParticipantRepository.delete(participantToDelete);
     }
@@ -134,17 +140,17 @@ public class ChatService {
     @Transactional
     public ChatMessageResDTO saveAndConvertMessage(ChatMessageReqDTO chatMessageReqDTO, Claims claims) {
         ChatRoomEntity chatRoom = chatRoomRepository.findById(chatMessageReqDTO.getChatRoomId())
-                .orElseThrow(ChatException::chatRoomNotFound);
+                .orElseThrow(ChatException::chatRoomNotFoundException);
 
         Long orgId = chatRoom.getOrgEntity().getOrgId();
         Long memberId = claims.getOrgAuthorityList().stream()
                 .filter(auth -> auth.getOrgId().equals(orgId))
                 .map(auth -> auth.getMemberId())
                 .findFirst()
-                .orElseThrow(() -> BusinessException.forbidden("해당 회사의 멤버가 아닙니다."));
+                .orElseThrow(() -> MemberException.memberAccessDeniedException());
 
         MemberEntity sender = memberRepository.findById(memberId)
-                .orElseThrow(() -> BusinessException.notFound("메시지를 보낼 사용자 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> MemberException.memberNotFoundException());
 
         ChatMessageEntity newMessage = ChatMessageEntity.builder()
                 .chatRoomEntity(chatRoom)

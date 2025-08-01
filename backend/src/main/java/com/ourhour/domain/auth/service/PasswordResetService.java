@@ -1,7 +1,6 @@
 package com.ourhour.domain.auth.service;
 
 import com.ourhour.domain.auth.dto.PwdResetReqDTO;
-import com.ourhour.domain.auth.entity.EmailVerificationEntity;
 import com.ourhour.domain.auth.entity.PasswordResetVerificationEntity;
 import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.auth.repository.PasswordResetVerificationRepository;
@@ -15,8 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static com.ourhour.domain.auth.exception.AuthException.unauthorizedException;
-
 @Service
 
 public class PasswordResetService extends AbstractVerificationService<PasswordResetVerificationEntity> {
@@ -28,7 +25,9 @@ public class PasswordResetService extends AbstractVerificationService<PasswordRe
     @Value("${spring.service.url.front}")
     private String serviceBaseUrl;
 
-    public PasswordResetService(EmailSenderService emailSenderService, PasswordResetVerificationRepository passwordResetVerificationRepository, PasswordChanger passwordChanger, UserRepository userRepository) {
+    public PasswordResetService(EmailSenderService emailSenderService,
+            PasswordResetVerificationRepository passwordResetVerificationRepository, PasswordChanger passwordChanger,
+            UserRepository userRepository) {
         super(emailSenderService);
         this.passwordResetVerificationRepository = passwordResetVerificationRepository;
         this.passwordChanger = passwordChanger;
@@ -53,8 +52,7 @@ public class PasswordResetService extends AbstractVerificationService<PasswordRe
 
         // DB 저장
         PasswordResetVerificationEntity passwordResetVerificationEntity = buildVerificationEntity(
-                token, email, LocalDateTime.now(), LocalDateTime.now().plusMinutes(15), false
-        );
+                token, email, LocalDateTime.now(), LocalDateTime.now().plusMinutes(15), false);
         passwordResetVerificationRepository.save(passwordResetVerificationEntity);
 
     }
@@ -63,7 +61,8 @@ public class PasswordResetService extends AbstractVerificationService<PasswordRe
     @Transactional
     public void verifyPwdResetEmail(String token) {
 
-        Optional<PasswordResetVerificationEntity> passwordResetVerificationEntity = passwordResetVerificationRepository.findByToken(token);
+        Optional<PasswordResetVerificationEntity> passwordResetVerificationEntity = passwordResetVerificationRepository
+                .findByToken(token);
 
         verifyEmail(token, passwordResetVerificationEntity);
 
@@ -77,17 +76,18 @@ public class PasswordResetService extends AbstractVerificationService<PasswordRe
         String newPwd = pwdResetReqDTO.getNewPassword();
         String newPwdCheck = pwdResetReqDTO.getNewPasswordCheck();
 
-        Optional<PasswordResetVerificationEntity> passwordResetVerificationEntity = passwordResetVerificationRepository.findByToken(token);
+        Optional<PasswordResetVerificationEntity> passwordResetVerificationEntity = passwordResetVerificationRepository
+                .findByToken(token);
 
         // 예외 발생: 인증되지 않은 사용자가 재설정 하려는 경우
         if (!passwordResetVerificationEntity.get().isUsed()) {
-            throw unauthorizedException();
+            throw AuthException.unauthorizedException();
         }
 
         // 인증된 사용자의 이메일을 통해 계정 조회
         String userEmail = passwordResetVerificationEntity.get().getEmail();
         UserEntity userEntity = userRepository.findByEmailAndIsDeletedFalse(userEmail)
-                .orElseThrow(AuthException::userNotFoundException);
+                .orElseThrow(() -> AuthException.userNotFoundException());
 
         // 비밀번호 재설정
         passwordChanger.changePassword(userEntity, newPwd, newPwdCheck);
@@ -95,7 +95,8 @@ public class PasswordResetService extends AbstractVerificationService<PasswordRe
     }
 
     @Override
-    protected PasswordResetVerificationEntity buildVerificationEntity(String token, String email, LocalDateTime createdAt, LocalDateTime expiredAt, boolean isUsed) {
+    protected PasswordResetVerificationEntity buildVerificationEntity(String token, String email,
+            LocalDateTime createdAt, LocalDateTime expiredAt, boolean isUsed) {
         return PasswordResetVerificationEntity.builder()
                 .token(token)
                 .email(email)

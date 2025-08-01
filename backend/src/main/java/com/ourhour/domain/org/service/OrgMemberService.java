@@ -1,7 +1,7 @@
 package com.ourhour.domain.org.service;
 
 import com.ourhour.domain.member.dto.MemberInfoResDTO;
-import com.ourhour.domain.member.exceptions.MemberException;
+import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.org.dto.OrgMemberRoleReqDTO;
 import com.ourhour.domain.org.dto.OrgMemberRoleResDTO;
 import com.ourhour.domain.org.entity.DepartmentEntity;
@@ -9,18 +9,19 @@ import com.ourhour.domain.org.entity.PositionEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
+import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.org.mapper.OrgParticipantMemberMapper;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.domain.user.service.AnonymizeUserService;
 import com.ourhour.global.common.dto.PageResponse;
-import com.ourhour.global.exception.BusinessException;
 import com.ourhour.global.jwt.util.UserContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -40,12 +41,12 @@ public class OrgMemberService {
     public PageResponse<MemberInfoResDTO> getOrgMembers(Long orgId, Pageable pageable) {
 
         if (orgId == null || orgId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 회사 ID입니다.");
+            throw OrgException.orgNotFoundException();
         }
 
         // 회사 존재 여부 확인
         if (!orgRepository.existsById(orgId)) {
-            throw BusinessException.badRequest("존재하지 않는 회사 ID 입니다: " + orgId);
+            throw OrgException.orgNotFoundException();
         }
 
         Page<OrgParticipantMemberEntity> page = orgParticipantMemberRepository.findByOrgId(orgId, pageable);
@@ -56,8 +57,10 @@ public class OrgMemberService {
             dto.setName(entity.getMemberEntity().getName());
             dto.setEmail(entity.getMemberEntity().getEmail());
             dto.setPhone(entity.getMemberEntity().getPhone());
-            dto.setPositionName(Optional.ofNullable(entity.getPositionEntity()).map(PositionEntity::getName).orElse(null));
-            dto.setDeptName(Optional.ofNullable(entity.getDepartmentEntity()).map(DepartmentEntity::getName).orElse(null));
+            dto.setPositionName(
+                    Optional.ofNullable(entity.getPositionEntity()).map(PositionEntity::getName).orElse(null));
+            dto.setDeptName(
+                    Optional.ofNullable(entity.getDepartmentEntity()).map(DepartmentEntity::getName).orElse(null));
             dto.setProfileImgUrl(entity.getMemberEntity().getProfileImgUrl());
             dto.setRole(entity.getRole().getDescription());
             return dto;
@@ -69,7 +72,8 @@ public class OrgMemberService {
     // 회사 구성원 상세 조회
     public MemberInfoResDTO getOrgMember(Long orgId, Long memberId) {
 
-        OrgParticipantMemberEntity orgParticipantMemberEntity = orgParticipantMemberRepository.findByOrgEntity_OrgIdAndMemberEntity_MemberId(orgId, memberId);  
+        OrgParticipantMemberEntity orgParticipantMemberEntity = orgParticipantMemberRepository
+                .findByOrgEntity_OrgIdAndMemberEntity_MemberId(orgId, memberId);
 
         MemberInfoResDTO memberInfoResDTO = orgParticipantMemberMapper.toMemberInfoResDTO(orgParticipantMemberEntity);
 
@@ -92,7 +96,8 @@ public class OrgMemberService {
 
         // 동일 권한 변경일 경우 early return(정책 위반 아님)
         if (oldRole == newRole) {
-            return orgParticipantMemberMapper.toOrgMemberRoleResDTO(orgParticipantMemberEntity, oldRole, currentRootAdminCount);
+            return orgParticipantMemberMapper.toOrgMemberRoleResDTO(orgParticipantMemberEntity, oldRole,
+                    currentRootAdminCount);
         }
 
         // 루트 관리자 정책 검사
@@ -103,10 +108,11 @@ public class OrgMemberService {
 
         int afterRootAdminCount = currentRootAdminCount
                 + (oldRole == Role.ROOT_ADMIN ? -1 : 0)
-                + (newRole == Role.ROOT_ADMIN ?  1 : 0);
+                + (newRole == Role.ROOT_ADMIN ? 1 : 0);
 
         // 엔티티 -> DTO 변환
-        OrgMemberRoleResDTO orgMemberRoleResDTO = orgParticipantMemberMapper.toOrgMemberRoleResDTO(orgParticipantMemberEntity, oldRole, afterRootAdminCount);
+        OrgMemberRoleResDTO orgMemberRoleResDTO = orgParticipantMemberMapper
+                .toOrgMemberRoleResDTO(orgParticipantMemberEntity, oldRole, afterRootAdminCount);
 
         return orgMemberRoleResDTO;
 
@@ -139,7 +145,7 @@ public class OrgMemberService {
     // 회사 나가기
     // TODO: 비밀번호 확인 API와 연동하여 삭제 요청 전에 재인증 로직 추가 필요
     @Transactional
-    public void exitOrg (Long orgId) {
+    public void exitOrg(Long orgId) {
 
         // 현재 사용자 ID
         Long userId = UserContextHolder.get().getUserId();
@@ -147,7 +153,7 @@ public class OrgMemberService {
         // 해당 회사에 속한 멤버 엔티티 찾기
         OrgParticipantMemberEntity opm = orgParticipantMemberRepository
                 .findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(orgId, userId, Status.ACTIVE)
-                .orElseThrow(() -> new RuntimeException("해당 회사에 소속된 멤버를 찾을 수 없습니다."));
+                .orElseThrow(() -> OrgException.orgMemberNotFoundException());
 
         // 루트 관리자 정책 확인
         orgRoleGuardService.assertNotLastRootAdminInOrg(opm);
@@ -166,15 +172,16 @@ public class OrgMemberService {
     public List<MemberInfoResDTO> getAllOrgMembers(Long orgId) {
 
         if (orgId == null || orgId <= 0) {
-            throw BusinessException.badRequest("유효하지 않은 회사 ID입니다.");
+            throw OrgException.orgNotFoundException();
         }
 
         // 회사 존재 여부 확인
         if (!orgRepository.existsById(orgId)) {
-            throw BusinessException.badRequest("존재하지 않는 회사 ID 입니다: " + orgId);
+            throw OrgException.orgNotFoundException();
         }
 
-        List<OrgParticipantMemberEntity> orgParticipantMemberEntityList = orgParticipantMemberRepository.findAllByOrgEntity_OrgId(orgId);
+        List<OrgParticipantMemberEntity> orgParticipantMemberEntityList = orgParticipantMemberRepository
+                .findAllByOrgEntity_OrgId(orgId);
         List<MemberInfoResDTO> memberInfoResDTOList = orgParticipantMemberEntityList.stream()
                 .map(orgParticipantMemberMapper::toMemberInfoResDTO)
                 .collect(Collectors.toList());

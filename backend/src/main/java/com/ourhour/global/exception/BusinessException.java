@@ -4,35 +4,42 @@ import lombok.Getter;
 
 @Getter
 public class BusinessException extends RuntimeException {
-    
-    private final int status;
-    private final String message;
-    
-    public BusinessException(int status, String message) {
+    private final ErrorCode errorCode;
+
+    public BusinessException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
+    }
+
+    public BusinessException(ErrorCode errorCode, Throwable cause) {
+        super(errorCode.getMessage(), cause);
+        this.errorCode = errorCode;
+    }
+
+    public BusinessException(ErrorCode errorCode, String message) {
         super(message);
-        this.status = status;
-        this.message = message;
+        this.errorCode = errorCode;
     }
-    
-    public BusinessException(String message) {
-        super(message);
-        this.status = 400;
-        this.message = message;
+
+    public BusinessException(ErrorCode errorCode, String message, Throwable cause) {
+        super(message, cause);
+        this.errorCode = errorCode;
     }
-    
-    public static BusinessException notFound(String message) {
-        return new BusinessException(404, message);
+
+    // ErrorCode 기반 정적 팩토리 메서드들
+    public static BusinessException of(ErrorCode errorCode) {
+        return new BusinessException(errorCode);
     }
-    
-    public static BusinessException badRequest(String message) {
-        return new BusinessException(400, message);
+
+    public static BusinessException of(ErrorCode errorCode, String message) {
+        return new BusinessException(errorCode, message);
     }
-    
-    public static BusinessException unauthorized(String message) {
-        return new BusinessException(401, message);
+
+    public static BusinessException of(ErrorCode errorCode, Throwable cause) {
+        return new BusinessException(errorCode, cause);
     }
-    
-    public static BusinessException forbidden(String message) {
-        return new BusinessException(403, message);
+
+    public ErrorCode getErrorCode() {
+        return errorCode;
     }
-} 
+}

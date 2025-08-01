@@ -1,25 +1,24 @@
 package com.ourhour.domain.auth.service;
 
 import com.ourhour.domain.auth.entity.AbstractVerificationEntity;
+import com.ourhour.domain.auth.exception.AuthException;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
-
-import static com.ourhour.domain.auth.exception.AuthException.emailVerificationException;
 
 @RequiredArgsConstructor
 public abstract class AbstractVerificationService<T extends AbstractVerificationEntity> {
 
     private final EmailSenderService emailSenderService;
     private static final String EMAIL_TEMPLATE = """
-    <p>안녕하세요. OURHOUR입니다.</p><br/>
-    %s
-    <p>이 링크는 15분 동안 유효합니다.</p>
-    <br/><p>감사합니다.<br/>OURHOUR 팀 드림</p>
-    """;
+            <p>안녕하세요. OURHOUR입니다.</p><br/>
+            %s
+            <p>이 링크는 15분 동안 유효합니다.</p>
+            <br/><p>감사합니다.<br/>OURHOUR 팀 드림</p>
+            """;
 
     protected String sendVerificationEmail(
             String email,
@@ -27,8 +26,7 @@ public abstract class AbstractVerificationService<T extends AbstractVerification
             String endpoint,
             String subject,
             String contentTemplate,
-            String linkName
-    ) {
+            String linkName) {
 
         // 토큰 생성
         String token = UUID.randomUUID().toString();
@@ -36,9 +34,9 @@ public abstract class AbstractVerificationService<T extends AbstractVerification
         // 이메일 내용 구성
         String link = serviceBaseUrl + endpoint + token;
         String bodyContent = String.format("""
-            %s
-            <p><a href="%s" style="color:#1a73e8; text-decoration:none;"><strong>%s</strong></a></p>
-            """, contentTemplate, link, linkName);
+                %s
+                <p><a href="%s" style="color:#1a73e8; text-decoration:none;"><strong>%s</strong></a></p>
+                """, contentTemplate, link, linkName);
         String content = String.format(EMAIL_TEMPLATE, bodyContent);
 
         emailSenderService.sendEmail(email, subject, content);
@@ -49,21 +47,20 @@ public abstract class AbstractVerificationService<T extends AbstractVerification
 
     protected void verifyEmail(
             String token,
-            Optional<T> entityOptional
-    ) {
+            Optional<T> entityOptional) {
 
         // 토큰 유효성 검사
         // 1. 토큰 조회
-        T entity = entityOptional.orElseThrow(() -> emailVerificationException("유효하지 않은 초대링크입니다."));
+        T entity = entityOptional.orElseThrow(() -> AuthException.invalidEmailVerificationTokenException());
 
         // 2. 만료 시간 확인
         if (entity.getExpiredAt().isBefore(LocalDateTime.now())) {
-            throw emailVerificationException("이메일 인증 링크가 만료되었습니다.");
+            throw AuthException.emailVerificationExpiredException();
         }
 
         // 3. 토큰 사용 여부 확인 (default(인증 안됐을 시) : isUsed = false)
-        if(Boolean.TRUE.equals(entity.isUsed())) {
-            throw emailVerificationException("이미 인증된 이메일 인증 링크 입니다.");
+        if (Boolean.TRUE.equals(entity.isUsed())) {
+            throw AuthException.emailAlreadyVerifiedException();
         }
 
         // 4. 토큰 유효 처리
@@ -71,5 +68,6 @@ public abstract class AbstractVerificationService<T extends AbstractVerification
 
     }
 
-    protected abstract T buildVerificationEntity(String token, String email, LocalDateTime createdAt, LocalDateTime expiredAt, boolean isUsed);
+    protected abstract T buildVerificationEntity(String token, String email, LocalDateTime createdAt,
+            LocalDateTime expiredAt, boolean isUsed);
 }
