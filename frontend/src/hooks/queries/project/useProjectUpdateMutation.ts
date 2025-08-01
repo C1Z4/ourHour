@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import putUpdateProject, { PutUpdateProjectRequest } from '@/api/project/putUpdateProject';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface UseProjectUpdateMutationParams {
@@ -32,7 +32,6 @@ export const useProjectUpdateMutation = ({ orgId, projectId }: UseProjectUpdateM
     },
     onError: (error: AxiosError) => {
       logError(error);
-      handleHttpError(error);
       showErrorToast(getErrorMessage(error));
     },
   });

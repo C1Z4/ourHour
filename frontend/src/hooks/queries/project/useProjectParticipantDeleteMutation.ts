@@ -7,7 +7,7 @@ import deleteProjectParticipant, {
 } from '@/api/project/deleteProjectParticipant';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface UseProjectParticipantDeleteMutationParams {
@@ -35,7 +35,6 @@ const useProjectParticipantDeleteMutation = ({
     },
     onError: (error: AxiosError) => {
       logError(error);
-      handleHttpError(error);
       showErrorToast(getErrorMessage(error));
     },
   });

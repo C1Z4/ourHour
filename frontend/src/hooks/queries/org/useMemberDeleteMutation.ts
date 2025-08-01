@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import deleteMember, { DeleteMemberRequest } from '@/api/org/deleteMember';
 import { ORG_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { getErrorCode, getErrorMessage, logError } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const useMemberDeleteMutation = () =>
@@ -20,7 +20,8 @@ export const useMemberDeleteMutation = () =>
     },
     onError: (error: AxiosError) => {
       logError(error);
-      handleHttpError(error);
-      showErrorToast(getErrorMessage(error));
+      if (getErrorCode(error) === 10003) {
+        showErrorToast(getErrorMessage(error));
+      }
     },
   });

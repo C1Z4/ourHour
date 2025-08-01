@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import deleteMilestone from '@/api/project/deleteMilestone';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface UseMilestoneDeleteMutationParams {
@@ -25,7 +25,6 @@ const useMilestoneDeleteMutation = ({ projectId, milestoneId }: UseMilestoneDele
     },
     onError: (error: AxiosError) => {
       logError(error);
-      handleHttpError(error);
       showErrorToast(getErrorMessage(error));
     },
   });

@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import postCreateIssue, { PostCreateIssueRequest } from '@/api/project/postCreateIssue';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface UseIssueCreateMutationParams {
@@ -28,7 +28,6 @@ export const useIssueCreateMutation = ({ projectId }: UseIssueCreateMutationPara
     },
     onError: (error: AxiosError) => {
       logError(error);
-      handleHttpError(error);
       showErrorToast(getErrorMessage(error));
     },
   });

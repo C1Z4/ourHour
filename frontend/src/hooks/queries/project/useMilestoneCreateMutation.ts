@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import postCreateMilestone, { PostCreateMilestoneRequest } from '@/api/project/postCreateMilestone';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
 import { showSuccessToast, TOAST_MESSAGES, showErrorToast } from '@/utils/toast';
 
 interface UseMilestoneCreateMutationParams {
@@ -24,7 +24,6 @@ export const useMilestoneCreateMutation = ({ projectId }: UseMilestoneCreateMuta
     },
     onError: (error: AxiosError) => {
       logError(error);
-      handleHttpError(error);
       showErrorToast(getErrorMessage(error));
     },
   });

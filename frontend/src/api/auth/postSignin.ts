@@ -22,6 +22,7 @@ const postSignin = async (request: SigninRequest): Promise<ApiResponse<SigninRes
     const accessToken = response.data.data.accessToken;
 
     if (accessToken) {
+      console.log(accessToken);
       loginUser(accessToken);
     }
 

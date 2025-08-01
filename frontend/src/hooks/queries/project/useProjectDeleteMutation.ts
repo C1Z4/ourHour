@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import deleteProject, { DeleteProjectRequest } from '@/api/project/deleteProject';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface UseProjectDeleteMutationParams {
@@ -24,7 +24,6 @@ const useProjectDeleteMutation = ({ orgId }: UseProjectDeleteMutationParams) =>
     },
     onError: (error: AxiosError) => {
       logError(error);
-      handleHttpError(error);
       showErrorToast(getErrorMessage(error));
     },
   });

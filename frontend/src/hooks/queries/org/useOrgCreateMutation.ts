@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import postCreateOrg, { PostCreateOrgRequest } from '@/api/org/postCreateOrg';
 import { ORG_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const useOrgCreateMutation = () =>
@@ -20,7 +20,6 @@ export const useOrgCreateMutation = () =>
     },
     onError: (error: AxiosError) => {
       logError(error);
-      handleHttpError(error);
       showErrorToast(getErrorMessage(error));
     },
   });

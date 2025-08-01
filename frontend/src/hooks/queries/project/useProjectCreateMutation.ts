@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import postCreateProject, { PostCreateProjectRequest } from '@/api/project/postCreateProject';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
+import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 interface UseProjectCreateMutationParams {
@@ -24,7 +24,6 @@ export const useProjectCreateMutation = ({ orgId }: UseProjectCreateMutationPara
     },
     onError: (error: AxiosError) => {
       logError(error);
-      handleHttpError(error);
       showErrorToast(getErrorMessage(error));
     },
   });

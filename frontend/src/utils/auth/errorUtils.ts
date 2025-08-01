@@ -1,7 +1,5 @@
 import { AxiosError } from 'axios';
 
-// import { showErrorToast, TOAST_MESSAGES } from '@/utils/toast';
-
 // 에러 메시지 추출 함수
 export const getErrorMessage = (error: AxiosError): string => {
   if (error.response?.data && typeof error.response.data === 'object') {
@@ -20,6 +18,16 @@ export const getErrorMessage = (error: AxiosError): string => {
   return error.message || '알 수 없는 오류가 발생했습니다.';
 };
 
+// 에러 코드 추출 함수
+export const getErrorCode = (error: AxiosError): number => {
+  if (error.response?.data && typeof error.response.data === 'object') {
+    const data = error.response.data as { errorCode?: number };
+    return data.errorCode || 0;
+  }
+
+  return 0;
+};
+
 // 에러 로그 출력 함수
 export const logError = (
   error: AxiosError,
@@ -31,30 +39,5 @@ export const logError = (
       message: getErrorMessage(error),
       data: error.response?.data,
     });
-  }
-};
-
-// HTTP 상태 코드별 에러 처리
-export const handleHttpError = (error: AxiosError): void => {
-  const status = error.response?.status;
-
-  switch (status) {
-    case 403:
-      // showErrorToast(TOAST_MESSAGES.ERROR.PERMISSION_DENIED);
-      break;
-    case 404:
-      // console.warn('요청한 리소스를 찾을 수 없습니다.');
-      break;
-    case 500:
-    case 502:
-    case 503:
-    case 504:
-      // showErrorToast(TOAST_MESSAGES.ERROR.SERVER_ERROR);
-      break;
-    default:
-      // if (!error.response) {
-      //   showErrorToast(TOAST_MESSAGES.ERROR.NETWORK_ERROR);
-      // }
-      break;
   }
 };

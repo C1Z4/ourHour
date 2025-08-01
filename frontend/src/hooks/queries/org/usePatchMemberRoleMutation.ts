@@ -5,8 +5,8 @@ import { AxiosError } from 'axios';
 import patchMemberRole, { PatchMemberRoleRequest } from '@/api/org/patchMemberRole';
 import { ORG_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
-import { getErrorMessage, handleHttpError, logError } from '@/utils/auth/errorUtils';
-import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
+import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
+import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 interface UsePatchMemberRoleMutationParams {
   orgId: number;
@@ -23,7 +23,6 @@ export const usePatchMemberRoleMutation = ({ orgId }: UsePatchMemberRoleMutation
     },
     onError: (error: AxiosError) => {
       logError(error);
-      handleHttpError(error);
       showErrorToast(getErrorMessage(error));
     },
   });
