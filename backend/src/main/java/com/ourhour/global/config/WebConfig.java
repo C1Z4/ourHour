@@ -48,6 +48,15 @@ public class WebConfig implements WebMvcConfigurer {
         return source;
     }
 
+     @Override
+     public void addCorsMappings(CorsRegistry registry) {
+	     registry.addMapping("/**")
+            .allowedOrigins("https://www.ourhour.cloud")
+            .allowedMethods("*")
+            .allowCredentials(true);
+     }
+	
+
     // 인증 필터 등록
     @Bean
     public FilterRegistrationBean<JwtAuthenticationFilter> authenticationFilter() {
