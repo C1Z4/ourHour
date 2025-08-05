@@ -82,4 +82,7 @@ HELP.md
 /frontend/yarn-error.log*
 /frontend/pnpm-debug.log*
 
-
+###########################
+# ✅ Docker 로컬 설정 #
+###########################
+docker-compose.override.yml
