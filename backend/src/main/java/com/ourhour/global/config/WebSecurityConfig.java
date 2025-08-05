@@ -28,6 +28,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // WebSocket STOMP 연결 테스트를 위한 구문
                         .requestMatchers("/ws-stomp/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().permitAll()
                 );
 
