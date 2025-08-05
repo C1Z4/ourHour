@@ -37,4 +37,8 @@ export default defineConfig({
   define: {
     global: 'window',
   },
+  // Vercel 배포 설정
+  build: {
+    outDir: 'dist',
+  },
 });
