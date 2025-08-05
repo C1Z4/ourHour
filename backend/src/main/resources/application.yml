@@ -35,3 +35,12 @@ logging:
     org.springframework.web: DEBUG # 웹 요청 로그
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "prometheus, health"
+  endpoint:
+    health:
+      show-details: always
