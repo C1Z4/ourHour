@@ -80,3 +80,11 @@ jwt:
   access-token-validity-in-seconds: ${jwt.access-token}
   refresh-token-validity-in-seconds: ${jwt.refresh-token}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "prometheus, health"
+  endpoint:
+    health:
+      show-details: always
