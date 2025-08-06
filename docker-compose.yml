@@ -21,3 +21,13 @@ services:
     depends_on:
       - prometheus
     restart: always
+
+  # backend
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+
+

@@ -1,0 +1,28 @@
+services:
+
+  # backend
+  backend:
+    container_name: dev-backend
+    env_file:
+      - ./backend/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
+      - db
+
+  # db
+  db:
+    image: mysql:8
+    container_name: dev-db
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./mysql/data:/db/mysql
+    env_file:
+      - ./backend/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}

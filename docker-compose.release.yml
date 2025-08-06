@@ -1,0 +1,7 @@
+services:
+
+  # backend
+  backend:
+    container_name: release-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: release
