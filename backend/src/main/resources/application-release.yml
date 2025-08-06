@@ -1,0 +1,48 @@
+spring:
+
+  config:
+    import:
+      - aws-parameterstore:/ourhour/
+
+  # DB 관련 설정
+  datasource:
+    url: ${db.url}
+    username: ${db.username}
+    password: ${db.password}
+
+  # 메일 관련 설정
+  mail:
+    from: ${mail.from}
+    host: smtp.gmail.com
+    port: 587
+    username: ${mail.username}
+    password: ${mail.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # 프론트엔드 관련 설정
+  service:
+    url:
+      front: ${url.front}
+    base-url-email: http://localhost:8080
+
+# JWT 관련 설정
+jwt:
+  secret: ${jwt.secret}
+  access-token-validity-in-seconds: ${jwt.access-token}
+  refresh-token-validity-in-seconds: ${jwt.refresh-token}
+
+
+# AWS 설정 (지역 및 인증 프로파일)
+cloud:
+  aws:
+    region:
+      static: ap-northeast-2
+    credentials:
+      profile:
+        name: default
+
