@@ -1,16 +1,6 @@
-# import external config
-# 외부 환경 변수 로드
 spring:
-  config:
-    import:
-      - aws-parameterstore:/ourhour/
 
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${db.url}
-    username: ${db.username}
-    password: ${db.password}
-
+  # JPA 관련 설정
   jpa:
     hibernate:
       ddl-auto: validate
@@ -22,38 +12,10 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
 
+  # flywqy 관련 설정
   flyway:
     enabled: true
     baseline-on-migrate: true
-
-  # 메일 설정
-  mail:
-    from: ${mail.from}
-    host: smtp.gmail.com
-    port: 587
-    username: ${mail.username}
-    password: ${mail.password}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
-  service:
-    url:
-      front: ${url.front}
-    base-url-email: http://localhost:8080
-
-# AWS 설정 (지역 및 인증 프로파일)
-cloud:
-  aws:
-    region:
-      static: ap-northeast-2
-    credentials:
-      profile:
-        name: default 
-
 
 # 이미지 업로드 설정
 app:
@@ -74,12 +36,7 @@ logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
-# JWT 관련 설정
-jwt:
-  secret: ${jwt.secret} 
-  access-token-validity-in-seconds: ${jwt.access-token}
-  refresh-token-validity-in-seconds: ${jwt.refresh-token}
-
+# 프로메테우스 관련 설정
 management:
   endpoints:
     web:

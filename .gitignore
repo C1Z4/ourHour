@@ -12,6 +12,9 @@ build/
 #.yml 관련
 **/src/main/resources/*secret*.yml
 
+# 환경 변수 관련
+/backend/.env
+
 # IntelliJ IDEA
 .idea/
 *.iml
