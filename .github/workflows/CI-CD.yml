@@ -2,9 +2,8 @@ name: CI-CD
 
 on:
   push:
-    branches: ["main", "develop"] # main, develop 브랜치에 푸시될 때 동작
-  pull_request:
-    branches: ["main", "develop"] # PR 생성/업데이트 시 동작
+    branches: ["main", "develop", "release"] 
+    branches: ["main", "develop", "release"] 
 
 jobs:
   build-test:
@@ -151,7 +150,7 @@ jobs:
   deploy-aws-dev:
     needs: [build-test, build-docker]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
     environment: development
 
     steps:
@@ -236,7 +235,7 @@ jobs:
   deploy-docker-dev:
     needs: [build-test, build-docker]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
     environment: development
 
     steps:
