@@ -1,5 +1,4 @@
 services:
-
   # prometheus
   prometheus:
     image: prom/prometheus
@@ -27,6 +26,6 @@ services:
     build: ./backend
     ports:
       - "8080:8080"
-
-
-
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    restart: unless-stopped

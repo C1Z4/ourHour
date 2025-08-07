@@ -1,16 +1,36 @@
 services:
-
   # backend
   backend:
+    image: ${BACKEND_IMAGE:-ourhour-backend:dev}
     container_name: dev-backend
+    ports:
+      - "8080:8080"
     volumes:
       - ./backend:/app
     env_file:
       - ./backend/.env
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: db
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE:-ourhour_dev}
+      DB_URL: ${DB_URL}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      FRONTEND_URL: ${FRONTEND_URL}
+      BASE_URL_EMAIL: ${BASE_URL_EMAIL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS: ${JWT_ACCESS}
+      JWT_REFRESH: ${JWT_REFRESH}
+      ENCRYPTION_SECRET_KEY: ${ENCRYPTION_SECRET_KEY}
+      APPLICATION_GITHUB_CLIENT_ID: ${APPLICATION_GITHUB_CLIENT_ID}
+      APPLICATION_GITHUB_CLIENT_SECRET: ${APPLICATION_GITHUB_CLIENT_SECRET}
+      APPLICATION_GITHUB_REDIRECT_URI: ${APPLICATION_GITHUB_REDIRECT_URI}
     depends_on:
       - db
+    restart: unless-stopped
 
   # db
   db:
@@ -28,3 +48,4 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    restart: unless-stopped
