@@ -2,6 +2,7 @@ services:
 
   # backend
   backend:
+    build: ./backend
     container_name: dev-backend
     volumes:
       - ./backend:/app
@@ -10,7 +11,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   # db
   db:
@@ -24,7 +26,7 @@ services:
       - ./backend/.env
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
