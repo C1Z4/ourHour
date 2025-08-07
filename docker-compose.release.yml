@@ -2,6 +2,7 @@ services:
   # backend
   backend:
     image: ${BACKEND_IMAGE:-ourhour-backend:prod}
+    build: ./backend
     container_name: release-backend
     env_file:
       - .env
