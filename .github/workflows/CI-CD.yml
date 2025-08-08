@@ -143,7 +143,7 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/${{ steps.image-tags.outputs.backend }}
+          tags: ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps.image-tags.outputs.backend)) || format('myuser/{0}', steps.image-tags.outputs.backend) }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
