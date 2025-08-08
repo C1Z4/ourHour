@@ -161,8 +161,8 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           port: 22
-          timeout: 5m
-          command_timeout: 30m
+          timeout: 15m
+          command_timeout: 40m
           script: |
             # 기존 프로세스 종료
             sudo pkill -f "java.*ourhour" || true
@@ -171,7 +171,7 @@ jobs:
             cd /home/ubuntu/ourhour
 
             # Git 최신 코드 가져오기
-            git fetch --all && git checkout <branch> && git reset --hard origin/<branch>
+            git fetch --all && git checkout release && git reset --hard origin/release
 
             # 환경변수 파일 생성 (개발환경 - GitHub Secrets 사용)
             echo "SPRING_PROFILES_ACTIVE=dev" > .env
@@ -204,7 +204,7 @@ jobs:
   deploy-aws-prod:
     needs: [build-test, build-docker]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
     environment: production
 
     steps:
@@ -215,6 +215,8 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           port: 22
+          timeout: 15m
+          command_timeout: 40m
           script: |
             # 기존 프로세스 종료
             sudo pkill -f "java.*ourhour" || true
@@ -223,7 +225,7 @@ jobs:
             cd /home/ubuntu/ourhour
 
             # Git 최신 코드 가져오기
-            git pull origin main
+            git pull origin release
 
             # 백엔드 빌드 및 실행 (프로덕션 - AWS Parameter Store 사용)
             cd backend
@@ -284,7 +286,7 @@ jobs:
   deploy-docker-prod:
     needs: [build-test, build-docker]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
     environment: production
 
     steps:
