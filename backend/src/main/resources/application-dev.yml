@@ -40,4 +40,4 @@ github:
   client-id: ${APPLICATION_GITHUB_CLIENT_ID}
   client-secret: ${APPLICATION_GITHUB_CLIENT_SECRET}
   redirect-uri: ${APPLICATION_GITHUB_REDIRECT_URI}
-  scope: repo,read:user,user:email
+  scope: ${APPLICATION_GITHUB_SCOPE}
