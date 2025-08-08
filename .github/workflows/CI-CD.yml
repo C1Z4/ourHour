@@ -10,7 +10,7 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     outputs:
-      backend_tag: ${{ steps.image-tags.outputs.backend }}
+      backend_tag: ${{ steps['image-tags'].outputs.backend }}
 
     steps:
       - name: Checkout source code
@@ -135,7 +135,7 @@ jobs:
         if: github.event_name == 'push'
         run: |
           test -n "${{ secrets.DOCKER_USERNAME }}" || { echo "DOCKER_USERNAME missing"; exit 1; };
-          test -n "${{ needs.build-test.outputs.backend_tag }}" || { echo "image tag missing"; exit 1; }
+          test -n "${{ needs['build-test'].outputs.backend_tag }}" || { echo "image tag missing"; exit 1; }
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -151,7 +151,7 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, needs.build-test.outputs.backend_tag)) || format('myuser/{0}', needs.build-test.outputs.backend_tag) }}
+          tags: ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, needs['build-test'].outputs.backend_tag)) || format('myuser/{0}', needs['build-test'].outputs.backend_tag) }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
