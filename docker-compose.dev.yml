@@ -1,32 +1,37 @@
 services:
-
-  # backend
   backend:
-    build: ./backend
+    image: gradle:8.8-jdk17
     container_name: dev-backend
-    volumes:
-      - ./backend:/app
+    working_dir: /app
+    command: sh -c "gradle classes --continuous -x test & ./gradlew bootRun -x test --no-daemon"
     env_file:
       - ./backend/.env
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      JAVA_TOOL_OPTIONS: "-Dspring.devtools.restart.poll-interval=2s -Dspring.devtools.restart.quiet-period=1s"
+    volumes:
+      - ./backend:/app
+      - gradle-cache:/home/gradle/.gradle
     depends_on:
       db:
         condition: service_healthy
 
-  # db
   db:
     image: mysql:8
     container_name: dev-db
     ports:
       - "3307:3306"
-    volumes:
-      - ./mysql/data:/db/mysql
     env_file:
       - ./backend/.env
     environment:
       SPRING_PROFILES_ACTIVE: dev
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  gradle-cache:
+  mysql-data:

@@ -1,5 +1,4 @@
 spring:
-
   # DB 관련 설정
   datasource:
     url: ${DB_URL}
@@ -31,3 +30,14 @@ jwt:
   secret: ${JWT_SECRET}
   access-token-validity-in-seconds: ${JWT_ACCESS}
   refresh-token-validity-in-seconds: ${JWT_REFRESH}
+
+# 암호화 설정
+encryption:
+  secret-key: ${ENCRYPTION_SECRET_KEY}
+
+# GitHub OAuth 설정
+github:
+  client-id: ${APPLICATION_GITHUB_CLIENT_ID}
+  client-secret: ${APPLICATION_GITHUB_CLIENT_SECRET}
+  redirect-uri: ${APPLICATION_GITHUB_REDIRECT_URI}
+  scope: repo,read:user,user:email
