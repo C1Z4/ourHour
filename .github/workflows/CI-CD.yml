@@ -138,6 +138,12 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Validate env for docker
+        if: github.event_name == 'push'
+        run:
+          test -n "${{ secrets.DOCKER_USERNAME }}" || { echo "DOCKER_USERNAME missing"; exit 1; }
+          test -n "${{ steps.image-tags.outputs.backend }}" || { echo "image tag missing"; exit 1; }
+
       - name: Build and push Backend Docker image
         uses: docker/build-push-action@v5
         with:
