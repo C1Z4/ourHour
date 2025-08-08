@@ -9,8 +9,6 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
-    outputs:
-      backend_tag: ${{ steps['image-tags'].outputs.backend }}
 
     steps:
       - name: Checkout source code
@@ -111,16 +109,6 @@ jobs:
         run: npm run coverage
         working-directory: ./frontend
 
-      # Docker 이미지 태그 생성
-      - name: Generate image tags
-        id: image-tags
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "backend=ourhour-backend:prod-${{ github.sha }}" >> $GITHUB_OUTPUT
-          else
-            echo "backend=ourhour-backend:dev-${{ github.sha }}" >> $GITHUB_OUTPUT
-          fi
-
   # Docker 이미지 빌드 및 푸시
   build-docker:
     needs: build-test
@@ -173,6 +161,8 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           port: 22
+          timeout: 5m
+          command_timeout: 30m
           script: |
             # 기존 프로세스 종료
             sudo pkill -f "java.*ourhour" || true
@@ -181,7 +171,7 @@ jobs:
             cd /home/ubuntu/ourhour
 
             # Git 최신 코드 가져오기
-            git pull origin develop
+            git fetch --all && git checkout <branch> && git reset --hard origin/<branch>
 
             # 환경변수 파일 생성 (개발환경 - GitHub Secrets 사용)
             echo "SPRING_PROFILES_ACTIVE=dev" > .env
