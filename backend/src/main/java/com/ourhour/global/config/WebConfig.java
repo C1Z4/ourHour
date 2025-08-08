@@ -2,10 +2,12 @@ package com.ourhour.global.config;
 
 import com.ourhour.global.jwt.filter.JwtAuthenticationFilter;
 import jakarta.servlet.FilterRegistration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -48,14 +50,18 @@ public class WebConfig implements WebMvcConfigurer {
         return source;
     }
 
-     @Override
-     public void addCorsMappings(CorsRegistry registry) {
-	     registry.addMapping("/**")
-            .allowedOrigins("https://www.ourhour.cloud")
-            .allowedMethods("*")
-            .allowCredentials(true);
-     }
-	
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("https://www.ourhour.cloud")
+                .allowedMethods("*")
+                .allowCredentials(true);
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     // 인증 필터 등록
     @Bean
@@ -66,7 +72,7 @@ public class WebConfig implements WebMvcConfigurer {
         registrationBean.addUrlPatterns("/api/*");
         registrationBean.setOrder(1);
 
-        return  registrationBean;
+        return registrationBean;
     }
 
 }

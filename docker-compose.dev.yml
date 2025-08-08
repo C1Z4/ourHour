@@ -1,4 +1,6 @@
 services:
+
+  # backend
   backend:
     image: gradle:8.8-jdk17
     container_name: dev-backend
@@ -27,7 +29,7 @@ services:
       SPRING_PROFILES_ACTIVE: dev
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
+      timeout: 60s
       retries: 10
     volumes:
       - mysql-data:/var/lib/mysql
