@@ -1,5 +1,4 @@
 services:
-
   # backend
   backend:
     build: ./backend
@@ -25,6 +24,6 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      timeout: 20s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 60s
       retries: 10

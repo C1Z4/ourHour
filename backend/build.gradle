@@ -67,6 +67,9 @@ dependencies {
 
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // GitHub API 의존성
+    implementation 'org.kohsuke:github-api:1.315'
 }
 
 tasks.named('test') {
