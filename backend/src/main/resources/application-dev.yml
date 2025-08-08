@@ -1,0 +1,44 @@
+spring:
+
+  # DB 관련 설정
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  # 메일 관련 설정
+  mail:
+    from: ${MAIL_FROM}
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # 프론트엔드 관련 설정
+  service:
+    url:
+      front: ${FRONTEND_URL}
+    base-url-email: ${BASE_URL_EMAIL}
+
+# JWT 관련 설정
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-validity-in-seconds: ${JWT_ACCESS}
+  refresh-token-validity-in-seconds: ${JWT_REFRESH}
+
+# 암호화 관련 설정
+encryption:
+  secret-key: ${ENCRYPTION_SECRET_KEY}
+
+# GitHub OAuth 설정
+github:
+  client-id: ${APPLICATION_GITHUB_CLIENT_ID}
+  client-secret: ${APPLICATION_GITHUB_CLIENT_SECRET}
+  redirect-uri: ${APPLICATION_GITHUB_REDIRECT_URI}
+  scope: repo,user

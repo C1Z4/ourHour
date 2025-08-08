@@ -1,0 +1,29 @@
+services:
+  # backend
+  backend:
+    build: ./backend
+    container_name: dev-backend
+    env_file:
+      - ./backend/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # db
+  db:
+    image: mysql:8
+    container_name: dev-db
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./mysql/data:/db/mysql
+    env_file:
+      - ./backend/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 60s
+      retries: 10
