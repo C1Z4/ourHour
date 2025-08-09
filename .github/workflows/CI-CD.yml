@@ -203,14 +203,14 @@ jobs:
       - name: Check SSH exit code
         if: always()
         run: |
-          exit_code=${{ steps.ssh-deploy.outcome == 'success' ? 0 : 1 }}  # SSH 스텝의 결과 확인
-        if [ $exit_code -eq 143 ]; then
-          echo "Exited with 143 (SIGTERM) - treating as success"
-          exit 0  # 143만 성공으로 변환
-        elif [ $exit_code -ne 0 ]; then
-          echo "SSH failed with code $exit_code - not 143"
-          exit 1  # 다른 오류는 실패
-        fi
+          exit_code=${{ steps.ssh-deploy.outcome == 'success' ? 0 : 1 }}
+          if [ $exit_code -eq 143 ]; then
+            echo "Exited with 143 (SIGTERM) - treating as success"
+            exit 0  # 143만 성공으로 변환
+          elif [ $exit_code -ne 0 ]; then
+            echo "SSH failed with code $exit_code - not 143"
+            exit 1  # 다른 오류는 실패
+          fi
   # AWS EC2 배포 (프로덕션)
   deploy-aws-prod:
     needs: [build-test, build-docker]
