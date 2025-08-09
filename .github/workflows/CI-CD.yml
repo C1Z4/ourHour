@@ -200,6 +200,17 @@ jobs:
             # 백그라운드에서 애플리케이션 실행
             nohup java -jar -Dspring.profiles.active=dev build/libs/*.jar > ../app.log 2>&1 &
 
+      - name: Check SSH exit code
+        if: always()
+        run: |
+          exit_code=${{ steps.ssh-deploy.outcome == 'success' ? 0 : 1 }}  # SSH 스텝의 결과 확인
+        if [ $exit_code -eq 143 ]; then
+          echo "Exited with 143 (SIGTERM) - treating as success"
+          exit 0  # 143만 성공으로 변환
+        elif [ $exit_code -ne 0 ]; then
+          echo "SSH failed with code $exit_code - not 143"
+          exit 1  # 다른 오류는 실패
+        fi
   # AWS EC2 배포 (프로덕션)
   deploy-aws-prod:
     needs: [build-test, build-docker]
@@ -310,7 +321,7 @@ jobs:
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
 
             # 새 컨테이너 시작 (AWS Parameter Store에서 환경변수 자동 로드)
-            docker-compose -f docker-compose.release.yml up -d
+            docker compose -f docker-compose.yml -f docker-compose.release.yml up -d
 
             # 불필요한 이미지 정리
             docker image prune -f
