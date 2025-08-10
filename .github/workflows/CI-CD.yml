@@ -169,7 +169,7 @@ jobs:
             sudo pkill -f "java.*ourhour" || true
 
             # 애플리케이션 디렉토리로 이동
-            cd /home/ubuntu/ourhour
+            cd /home/ubuntu/ourHour
 
             # Git 최신 코드 가져오기
             git fetch --all && git checkout release && git reset --hard origin/release
@@ -224,10 +224,10 @@ jobs:
             sudo pkill -f "java.*ourhour" || true
 
             # 애플리케이션 디렉토리로 이동
-            cd /home/ubuntu/ourhour
+            cd /home/ubuntu/ourHour
 
             # Git 최신 코드 가져오기
-            git pull origin release
+            git fetch --all && git checkout release && git reset --hard origin/release
 
             # 백엔드 빌드 및 실행 (프로덕션 - AWS Parameter Store 사용)
             cd backend
@@ -256,7 +256,7 @@ jobs:
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
             # 기존 컨테이너 중지 및 제거
-            docker-compose -f docker-compose.dev.yml down || true
+            docker compose -f docker-compose.yml -f docker-compose.dev.yml down || true
 
             # 최신 이미지 풀
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:dev-${{ github.sha }}
@@ -279,7 +279,7 @@ jobs:
             export APPLICATION_GITHUB_REDIRECT_URI=${{ secrets.APPLICATION_GITHUB_REDIRECT_URI }}
 
             # 새 컨테이너 시작
-            docker-compose -f docker-compose.dev.yml up -d
+            docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
             # 불필요한 이미지 정리
             docker image prune -f
@@ -303,7 +303,7 @@ jobs:
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
             # 기존 컨테이너 중지 및 제거
-            docker-compose -f docker-compose.release.yml down || true
+            docker compose -f docker-compose.yml -f docker-compose.release.yml down || true
 
             # 최신 이미지 풀
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
