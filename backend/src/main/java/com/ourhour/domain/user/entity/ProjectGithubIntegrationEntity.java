@@ -45,6 +45,10 @@ public class ProjectGithubIntegrationEntity extends GitHubSyncableEntity {
         this.githubRepository = githubRepository;
     }
 
+    public void updateAccessToken(String encryptedGithubAccessToken) {
+        this.githubAccessToken = encryptedGithubAccessToken;
+    }
+
     @Override
     public Long getId() {
         return integrationId;

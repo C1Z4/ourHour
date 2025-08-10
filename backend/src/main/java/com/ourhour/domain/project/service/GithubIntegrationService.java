@@ -309,25 +309,65 @@ public class GithubIntegrationService {
         // 기존 연동 정보가 있으면 업데이트, 없으면 생성
         ProjectGithubIntegrationEntity integration = projectGithubIntegrationRepository
                 .findByProjectEntity_ProjectIdAndMemberEntity_MemberId(projectId, memberId)
-                .orElse(ProjectGithubIntegrationEntity.builder()
-                        .projectEntity(projectRepository.findById(projectId)
-                                .orElseThrow(() -> ProjectException.projectNotFoundException()))
-                        .memberEntity(memberRepository.findById(memberId)
-                                .orElseThrow(() -> MemberException.memberNotFoundException()))
-                        .githubRepository(gitHubSyncTokenDTO.getGithubRepository())
-                        .githubAccessToken(encryptionUtil.encrypt(gitHubSyncTokenDTO.getGithubAccessToken()))
-                        .build());
+                .orElse(null);
 
-        if (integration.getIsActive()) {
-            throw GithubException.githubRepositoryAlreadyConnectedException();
-        }
-
-        if (integration.getGithubId() != null) {
-            integration.updateRepository(gitHubSyncTokenDTO.getGithubRepository());
+        // 동일 레포지토리 연동 여부 확인 (이미 동일 레포 연결 시 토큰만 갱신하고 종료할지, 에러로 할지 정책)
+        if (integration != null && integration.getGithubRepository().equals(gitHubSyncTokenDTO.getGithubRepository())) {
+            // 동일 레포지토리: 토큰 갱신만 수행
+            integration.updateAccessToken(encryptionUtil.encrypt(gitHubSyncTokenDTO.getGithubAccessToken()));
             integration.markAsSynced(integration.getGithubId());
+            projectGithubIntegrationRepository.save(integration);
+            return ApiResponse.success(null, "GitHub 연동이 갱신되었습니다.");
         }
 
-        projectGithubIntegrationRepository.save(integration);
+        // 다른 레포지토리로 연동 업데이트
+        if (integration != null) {
+            try {
+                GitHub gitHub = new GitHubBuilder()
+                        .withOAuthToken(gitHubSyncTokenDTO.getGithubAccessToken())
+                        .build();
+
+                Long newRepoId = gitHub.getRepository(gitHubSyncTokenDTO.getGithubRepository()).getId();
+                integration.setGithubId(newRepoId);
+                integration.updateRepository(gitHubSyncTokenDTO.getGithubRepository());
+                integration.updateAccessToken(encryptionUtil.encrypt(gitHubSyncTokenDTO.getGithubAccessToken()));
+                integration.markAsSynced(newRepoId);
+
+                projectGithubIntegrationRepository.save(integration);
+                return ApiResponse.success(null, "GitHub 연동이 업데이트되었습니다.");
+            } catch (IOException e) {
+                log.error("GitHub 레포지토리 접근 권한 없음: {}", gitHubSyncTokenDTO.getGithubRepository(), e);
+                throw GithubException.githubRepositoryAccessDeniedException();
+            }
+        }
+
+        // 새로운 레포지토리 연동 생성
+        ProjectGithubIntegrationEntity newIntegration = ProjectGithubIntegrationEntity.builder()
+                .projectEntity(projectRepository.findById(projectId)
+                        .orElseThrow(() -> ProjectException.projectNotFoundException()))
+                .memberEntity(memberRepository.findById(memberId)
+                        .orElseThrow(() -> MemberException.memberNotFoundException()))
+                .githubRepository(gitHubSyncTokenDTO.getGithubRepository())
+                .githubAccessToken(encryptionUtil.encrypt(gitHubSyncTokenDTO.getGithubAccessToken()))
+                .isActive(true)
+                .build();
+
+        try {
+            GitHub gitHub = new GitHubBuilder()
+                    .withOAuthToken(gitHubSyncTokenDTO.getGithubAccessToken())
+                    .build();
+
+            Long repoId = gitHub.getRepository(gitHubSyncTokenDTO.getGithubRepository()).getId();
+            newIntegration.setGithubId(repoId);
+            newIntegration.markAsSynced(repoId);
+        } catch (IOException e) {
+            log.error("GitHub 레포지토리 접근 권한 없음: {}", gitHubSyncTokenDTO.getGithubRepository(), e);
+            throw GithubException.githubRepositoryAccessDeniedException();
+        }
+
+        newIntegration.markAsSynced(newIntegration.getGithubId());
+
+        projectGithubIntegrationRepository.save(newIntegration);
         return ApiResponse.success(null, "GitHub 연동이 완료되었습니다.");
     }
 
