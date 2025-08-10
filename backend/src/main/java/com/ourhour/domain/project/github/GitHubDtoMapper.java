@@ -1,13 +1,17 @@
 package com.ourhour.domain.project.github;
 
 import java.io.IOException;
+import java.time.ZoneId;
+import java.util.List;
 
 import org.kohsuke.github.GHIssue;
+import org.kohsuke.github.GHIssueComment;
 import org.kohsuke.github.GHMilestone;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GHUser;
 import org.springframework.stereotype.Component;
 
+import com.ourhour.domain.comment.dto.CommentDTO;
 import com.ourhour.domain.user.dto.GitHubRepositoryResDTO;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
@@ -78,5 +82,36 @@ public class GitHubDtoMapper {
         dto.setAssigneeProfileImgUrl(assigneeProfileImgUrl);
         dto.setContent(content);
         return dto;
+    }
+
+    // GHIssueComment -> CommentDTO
+    public CommentDTO toComment(GHIssueComment comment) {
+        Long authorId = null;
+        String name = null;
+        String profileImgUrl = null;
+        try {
+            GHUser user = comment.getUser();
+            if (user != null) {
+                authorId = user.getId();
+                name = user.getLogin();
+                profileImgUrl = user.getAvatarUrl();
+            }
+        } catch (IOException e) {
+            log.warn("Failed to fetch comment user for comment #{}: {}", comment.getId(), e.getMessage());
+        }
+
+        try {
+            return new CommentDTO(
+                    (long) comment.getId(),
+                    authorId,
+                    name,
+                    profileImgUrl,
+                    comment.getBody(),
+                    comment.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                    List.of());
+        } catch (IOException e) {
+            log.error("GitHub 댓글 변환 중 오류 발생", e);
+            throw new RuntimeException(e);
+        }
     }
 }

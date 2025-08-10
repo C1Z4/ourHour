@@ -36,6 +36,7 @@ import com.ourhour.domain.user.dto.GitHubSyncTokenDTO;
 import com.ourhour.domain.project.dto.SyncStatusDTO;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
+import com.ourhour.domain.comment.dto.CommentDTO;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.domain.auth.exception.AuthException;
@@ -433,7 +434,7 @@ public class GithubIntegrationService {
     }
 
     // GitHub 레포지토리 이슈 댓글 조회
-    public ApiResponse<PageResponse<GHIssueComment>> getGitHubRepositoryIssueComments(String repositoryName,
+    public ApiResponse<PageResponse<CommentDTO>> getGitHubRepositoryIssueComments(String repositoryName,
             int issueNumber, Long memberId, int currentPage, int size) {
         try {
             Claims claims = UserContextHolder.get();
@@ -451,22 +452,8 @@ public class GithubIntegrationService {
             GHIssue issue = repository.getIssue(issueNumber);
             PagedIterable<GHIssueComment> pagedIterable = issue.listComments();
 
-            int totalCount = pagedIterable.toList().size();
-            List<GHIssueComment> comments = pagedIterable.toList();
-            int totalPages = (int) Math.ceil((double) totalCount / size);
-            int startIndex = (currentPage - 1) * size;
-            int endIndex = Math.min(startIndex + size, comments.size());
-            List<GHIssueComment> pagedComments = comments.subList(startIndex, endIndex);
-
-            PageResponse<GHIssueComment> pageResponse = PageResponse.<GHIssueComment>builder()
-                    .data(pagedComments)
-                    .currentPage(currentPage)
-                    .size(size)
-                    .totalElements(totalCount)
-                    .totalPages(totalPages)
-                    .hasNext(currentPage < totalPages)
-                    .hasPrevious(currentPage > 1)
-                    .build();
+            PageResponse<CommentDTO> pageResponse = PaginationUtil.paginate(
+                    pagedIterable.toList(), currentPage, size, gitHubDtoMapper::toComment);
 
             return ApiResponse.success(pageResponse, "GitHub 댓글 목록 조회에 성공했습니다.");
         } catch (IOException e) {

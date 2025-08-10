@@ -11,7 +11,7 @@ import com.ourhour.global.common.dto.PageResponse;
 
 import lombok.RequiredArgsConstructor;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
-import org.kohsuke.github.GHIssueComment;
+import com.ourhour.domain.comment.dto.CommentDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -83,7 +83,7 @@ public class GitHubController {
 
     // 깃허브 레포지토리 이슈 댓글 목록 조회
     @GetMapping("/projects/repositories/{owner}/{repo}/issues/{issueNumber}/comments")
-    public ResponseEntity<ApiResponse<PageResponse<GHIssueComment>>> getGitHubRepositoryIssueComments(
+    public ResponseEntity<ApiResponse<PageResponse<CommentDTO>>> getGitHubRepositoryIssueComments(
             @PathVariable String owner, @PathVariable String repo,
             @PathVariable int issueNumber, @RequestParam Long memberId,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
