@@ -37,3 +37,33 @@ export const deleteUser = async (request: DeleteUserRequest): Promise<ApiRespons
     throw error;
   }
 };
+
+// ======== 깃허브 연동(코드 교환) ========
+export interface PostExchangeGithubCodeRequest {
+  code: string;
+  redirectUri: string;
+}
+
+export const postExchangeGithubCode = async (
+  request: PostExchangeGithubCodeRequest,
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.post('/api/user/github/exchange-code', request);
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 깃허브 연동 해제 ========
+
+export const deleteGithubDisconnect = async (): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.delete('/api/user/github/disconnect');
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
