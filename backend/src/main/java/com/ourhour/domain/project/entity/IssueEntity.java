@@ -13,7 +13,8 @@ import lombok.Setter;
 @Table(name = "tbl_issue")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class IssueEntity {
+@Builder
+public class IssueEntity extends GitHubSyncableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,7 +51,8 @@ public class IssueEntity {
     private IssueStatus status = IssueStatus.BACKLOG;
 
     @Builder
-    public IssueEntity(Long issueId, MilestoneEntity milestoneEntity, IssueTagEntity issueTagEntity, MemberEntity assigneeEntity, ProjectEntity projectEntity, String name, String content, IssueStatus status) {
+    public IssueEntity(Long issueId, MilestoneEntity milestoneEntity, IssueTagEntity issueTagEntity,
+            MemberEntity assigneeEntity, ProjectEntity projectEntity, String name, String content, IssueStatus status) {
         this.issueId = issueId;
         this.milestoneEntity = milestoneEntity;
         this.issueTagEntity = issueTagEntity;
@@ -59,6 +61,11 @@ public class IssueEntity {
         this.name = name;
         this.content = content;
         this.status = status != null ? status : IssueStatus.BACKLOG;
+    }
+
+    @Override
+    public Long getId() {
+        return issueId;
     }
 
 }
