@@ -34,14 +34,14 @@ public class GitHubController {
         return githubIntegrationService.getGitHubRepositories(token);
     }
 
-    // 프로젝트별 GitHub 연동(기존 프로젝트 연동)
+    // 프로젝트별 GitHub 연동(기존 프로젝트 연동), 연동 데이터 저장, 연동 데이터 업데이트
     @PostMapping("/projects/{projectId}/connect")
     public ResponseEntity<ApiResponse<Void>> connectProjectToGitHub(
             @PathVariable Long projectId,
             @RequestBody @Valid GitHubSyncTokenDTO gitHubSyncTokenDTO,
             @RequestParam Long memberId) {
         return ResponseEntity
-                .ok(githubIntegrationService.connectProjectToGitHub(projectId, gitHubSyncTokenDTO.getGithubRepository(),
+                .ok(githubIntegrationService.connectProjectToGitHub(projectId, gitHubSyncTokenDTO,
                         memberId));
     }
 

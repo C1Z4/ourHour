@@ -32,6 +32,7 @@ import com.ourhour.domain.user.entity.GitHubTokenEntity;
 import com.ourhour.domain.user.repository.GitHubTokenRepository;
 import com.ourhour.domain.user.dto.GitHubRepositoryResDTO;
 import com.ourhour.domain.user.dto.GitHubTokenReqDTO;
+import com.ourhour.domain.user.dto.GitHubSyncTokenDTO;
 import com.ourhour.domain.project.dto.SyncStatusDTO;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
@@ -40,6 +41,7 @@ import com.ourhour.domain.project.exception.GithubException;
 import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.EncryptionUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +57,7 @@ public class GithubIntegrationService {
     private final MemberRepository memberRepository;
     private final IssueRepository issueRepository;
     private final MilestoneRepository milestoneRepository;
+    private final EncryptionUtil encryptionUtil;
 
     // GitHub 토큰으로 레포지토리 이름 목록 조회
     public ApiResponse<List<GitHubRepositoryResDTO>> getGitHubRepositories(GitHubTokenReqDTO token) {
@@ -285,30 +288,21 @@ public class GithubIntegrationService {
 
     // 프로젝트에 GitHub 연동 설정
     @Transactional
-    public ApiResponse<Void> connectProjectToGitHub(Long projectId, String githubRepository, Long memberId) {
-
-        if (!isValidGitHubRepositoryFormat(githubRepository)) {
-            throw GithubException.invalidRepositoryFormatException();
-        }
-
-        // 사용자의 GitHub 토큰이 있는지만 확인
-        GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(memberId)
-                .orElseThrow(() -> GithubException.githubTokenNotFoundException());
+    public ApiResponse<Void> connectProjectToGitHub(Long projectId, GitHubSyncTokenDTO gitHubSyncTokenDTO,
+            Long memberId) {
 
         // 토큰 유효성 및 레포지토리 접근 권한 검증
         try {
-            // 저장된 토큰은 암호화되어 있으므로 복호화가 필요하다면 EncryptionUtil을 통해 복호화 후 사용
-            String decrypted = tokenEntity.getGithubAccessToken();
             GitHub gitHub = new GitHubBuilder()
-                    .withOAuthToken(decrypted)
+                    .withOAuthToken(gitHubSyncTokenDTO.getGithubAccessToken())
                     .build();
 
             // 실제로 레포지토리에 접근 가능한지 테스트
-            GHRepository testRepo = gitHub.getRepository(githubRepository);
+            GHRepository testRepo = gitHub.getRepository(gitHubSyncTokenDTO.getGithubRepository());
             testRepo.getFullName(); // 권한 확인
 
         } catch (IOException e) {
-            log.error("GitHub 레포지토리 접근 권한 없음: {}", githubRepository, e);
+            log.error("GitHub 레포지토리 접근 권한 없음: {}", gitHubSyncTokenDTO.getGithubRepository(), e);
             throw GithubException.githubRepositoryAccessDeniedException();
         }
 
@@ -320,15 +314,16 @@ public class GithubIntegrationService {
                                 .orElseThrow(() -> ProjectException.projectNotFoundException()))
                         .memberEntity(memberRepository.findById(memberId)
                                 .orElseThrow(() -> MemberException.memberNotFoundException()))
-                        .githubRepository(githubRepository)
+                        .githubRepository(gitHubSyncTokenDTO.getGithubRepository())
+                        .githubAccessToken(encryptionUtil.encrypt(gitHubSyncTokenDTO.getGithubAccessToken()))
                         .build());
 
-        if (integration.getIsGithubSynced()) {
+        if (integration.getIsActive()) {
             throw GithubException.githubRepositoryAlreadyConnectedException();
         }
 
         if (integration.getGithubId() != null) {
-            integration.updateRepository(githubRepository);
+            integration.updateRepository(gitHubSyncTokenDTO.getGithubRepository());
             integration.markAsSynced(integration.getGithubId());
         }
 
