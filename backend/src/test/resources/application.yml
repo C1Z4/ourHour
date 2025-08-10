@@ -38,3 +38,13 @@ jwt:
   secret: thisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecret
   access-token-validity-in-seconds: 300
   refresh-token-validity-in-seconds: 1000000
+
+encryption:
+  secret-key: thisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecret
+
+# GitHub OAuth 설정
+github:
+  client-id: 1234567890
+  client-secret: 1234567890
+  redirect-uri: http://localhost:5173/auth/github/callback
+  scope: repo,read:user,user:email
