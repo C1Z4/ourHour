@@ -96,7 +96,21 @@ public enum ErrorCode {
     // ========== 파일 관련 (8000~8999) ==========
     INVALID_FILE_FORMAT("잘못된 파일 형식입니다", 8000, HttpStatus.BAD_REQUEST),
     FILE_SAVE_ERROR("파일 저장 중 오류가 발생했습니다", 8001, HttpStatus.INTERNAL_SERVER_ERROR),
-    INVALID_BASE64_FORMAT("잘못된 Base64 형식입니다", 8002, HttpStatus.BAD_REQUEST);
+    INVALID_BASE64_FORMAT("잘못된 Base64 형식입니다", 8002, HttpStatus.BAD_REQUEST),
+    
+    // ========== 깃허브 관련 (9000~9999) ==========
+    GITHUB_TOKEN_NOT_FOUND("깃허브 토큰을 찾을 수 없습니다", 9000, HttpStatus.NOT_FOUND),
+    GITHUB_TOKEN_SAVE_FAILED("깃허브 토큰 저장에 실패했습니다", 9001, HttpStatus.INTERNAL_SERVER_ERROR),
+    GITHUB_TOKEN_UPDATE_FAILED("깃허브 토큰 업데이트에 실패했습니다", 9002, HttpStatus.INTERNAL_SERVER_ERROR),
+    GITHUB_TOKEN_DELETE_FAILED("깃허브 토큰 삭제에 실패했습니다", 9003, HttpStatus.INTERNAL_SERVER_ERROR),
+    GITHUB_TOKEN_NOT_MATCH("깃허브 토큰이 일치하지 않습니다", 9004, HttpStatus.BAD_REQUEST),
+    GITHUB_TOKEN_NOT_AUTHORIZED("깃허브 토큰이 인증되지 않았습니다", 9005, HttpStatus.UNAUTHORIZED),
+    GITHUB_REPOSITORY_NOT_FOUND("깃허브 레포지토리를 찾을 수 없습니다", 9006, HttpStatus.NOT_FOUND),
+    GITHUB_REPOSITORY_ALREADY_CONNECTED("이미 깃허브 레포지토리가 연동되어 있습니다", 9007, HttpStatus.BAD_REQUEST),
+    GITHUB_MILESTONE_LIST_NOT_FOUND("깃허브 마일스톤 목록을 찾을 수 없습니다", 9008, HttpStatus.NOT_FOUND),
+    GITHUB_REPOSITORY_ACCESS_DENIED("깃허브 레포지토리에 접근할 수 없습니다", 9009, HttpStatus.FORBIDDEN),
+    INVALID_REPOSITORY_FORMAT("깃허브 레포지토리 형식이 올바르지 않습니다", 9010, HttpStatus.BAD_REQUEST),
+    GITHUB_SYNC_FAILED("깃허브 동기화에 실패했습니다", 9011, HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final String message;
     private final int statusCode;

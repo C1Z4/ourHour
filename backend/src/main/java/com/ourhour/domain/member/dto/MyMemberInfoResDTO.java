@@ -20,5 +20,6 @@ public class MyMemberInfoResDTO {
     private String deptName;
     private String positionName;
     private String role;
+    private Boolean isGithubLinked;
 
 }
