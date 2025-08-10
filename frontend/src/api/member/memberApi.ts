@@ -16,6 +16,7 @@ export interface MyMemberInfoDetail extends MemberInfoBase {
   memberId: number;
   orgId: number;
   role: MemberRoleKo;
+  isGithubLinked: boolean;
 }
 
 export const getMyMemberInfo = async (
