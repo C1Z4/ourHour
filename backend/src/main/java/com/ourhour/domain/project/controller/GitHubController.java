@@ -5,11 +5,11 @@ import com.ourhour.domain.user.dto.GitHubTokenReqDTO;
 import com.ourhour.domain.user.dto.GitHubSyncTokenDTO;
 import com.ourhour.domain.user.dto.GitHubRepositoryResDTO;
 import com.ourhour.domain.project.dto.SyncStatusDTO;
+import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
 
 import lombok.RequiredArgsConstructor;
-import org.kohsuke.github.GHIssue;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
 import org.kohsuke.github.GHIssueComment;
 import org.springframework.http.ResponseEntity;
@@ -70,7 +70,7 @@ public class GitHubController {
 
     // 깃허브 레포지토리 마일스톤 별 이슈 목록 조회
     @GetMapping("/projects/repositories/{owner}/{repo}/milestones/{milestoneNumber}/issues")
-    public ResponseEntity<ApiResponse<PageResponse<GHIssue>>> getGitHubRepositoryIssues(
+    public ResponseEntity<ApiResponse<PageResponse<IssueDetailDTO>>> getGitHubRepositoryIssues(
             @PathVariable String owner, @PathVariable String repo,
             @PathVariable int milestoneNumber, @RequestParam Long memberId,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,

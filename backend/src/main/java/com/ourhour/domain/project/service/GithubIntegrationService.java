@@ -35,6 +35,7 @@ import com.ourhour.domain.user.dto.GitHubTokenReqDTO;
 import com.ourhour.domain.user.dto.GitHubSyncTokenDTO;
 import com.ourhour.domain.project.dto.SyncStatusDTO;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
+import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.domain.auth.exception.AuthException;
@@ -43,6 +44,9 @@ import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.global.util.EncryptionUtil;
+import com.ourhour.domain.project.github.GitHubClientFactory;
+import com.ourhour.domain.project.github.GitHubDtoMapper;
+import com.ourhour.global.util.PaginationUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +63,8 @@ public class GithubIntegrationService {
     private final IssueRepository issueRepository;
     private final MilestoneRepository milestoneRepository;
     private final EncryptionUtil encryptionUtil;
+    private final GitHubClientFactory gitHubClientFactory;
+    private final GitHubDtoMapper gitHubDtoMapper;
 
     // GitHub 토큰으로 레포지토리 이름 목록 조회
     public ApiResponse<List<GitHubRepositoryResDTO>> getGitHubRepositories(GitHubTokenReqDTO token) {
@@ -78,7 +84,7 @@ public class GithubIntegrationService {
 
             // 사용자가 접근 가능한 모든 레포지토리 조회
             List<GitHubRepositoryResDTO> repositories = gitHub.getMyself().getRepositories().values().stream()
-                    .map(this::convertToRepositoryDTO)
+                    .map(gitHubDtoMapper::toRepository)
                     .collect(Collectors.toList());
 
             return ApiResponse.success(repositories, "GitHub 레포지토리 목록 조회에 성공했습니다.");
@@ -87,27 +93,6 @@ public class GithubIntegrationService {
             log.error("GitHub 레포지토리 목록 조회 중 오류 발생", e);
             throw GithubException.githubRepositoryNotFoundException();
         }
-    }
-
-    // GHRepository를 DTO로 변환
-    private GitHubRepositoryResDTO convertToRepositoryDTO(GHRepository repository) {
-        return GitHubRepositoryResDTO.builder()
-                .id(repository.getId())
-                .fullName(repository.getFullName())
-                .build();
-    }
-
-    private MileStoneInfoDTO convertToMileStoneInfoDTO(GHMilestone milestone) {
-        int closed = milestone.getClosedIssues();
-        int open = milestone.getOpenIssues();
-        int total = closed + open;
-        byte progress = (byte) (total == 0 ? 0 : Math.round((closed * 100.0f) / total));
-        return new MileStoneInfoDTO(
-                (long) milestone.getNumber(),
-                milestone.getTitle(),
-                closed,
-                total,
-                progress);
     }
 
     // GitHub에서 이슈를 우리 서비스로 동기화
@@ -399,39 +384,16 @@ public class GithubIntegrationService {
             GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(claims.getUserId())
                     .orElseThrow(() -> GithubException.githubTokenNotFoundException());
 
-            String decrypted = encryptionUtil.decrypt(tokenEntity.getGithubAccessToken());
-            GitHub gitHub = new GitHubBuilder()
-                    .withOAuthToken(decrypted)
-                    .build();
+            GitHub gitHub = gitHubClientFactory.forEncryptedToken(tokenEntity.getGithubAccessToken());
 
             GHRepository repository = gitHub.getRepository(repositoryName);
 
             // GitHub API 페이징 사용
             PagedIterable<GHMilestone> pagedIterable = repository.listMilestones(GHIssueState.ALL);
 
-            // 전체 개수 조회 (별도 API 호출)
-            int totalCount = pagedIterable.toList().size();
-            int totalPages = (int) Math.ceil((double) totalCount / size);
-
-            // 현재 페이지 데이터 조회
-            List<GHMilestone> milestones = pagedIterable.toList();
-            int startIndex = (currentPage - 1) * size;
-            int endIndex = Math.min(startIndex + size, milestones.size());
-            List<MileStoneInfoDTO> pagedMilestones = milestones.subList(startIndex, endIndex)
-                    .stream()
-                    .map(this::convertToMileStoneInfoDTO)
-                    .collect(Collectors.toList());
-
-            // PageResponse 생성
-            PageResponse<MileStoneInfoDTO> pageResponse = PageResponse.<MileStoneInfoDTO>builder()
-                    .data(pagedMilestones)
-                    .currentPage(currentPage)
-                    .size(size)
-                    .totalElements(totalCount)
-                    .totalPages(totalPages)
-                    .hasNext(currentPage < totalPages)
-                    .hasPrevious(currentPage > 1)
-                    .build();
+            List<GHMilestone> all = pagedIterable.toList();
+            PageResponse<MileStoneInfoDTO> pageResponse = PaginationUtil.paginate(
+                    all, currentPage, size, gitHubDtoMapper::toMilestone);
 
             return ApiResponse.success(pageResponse, "GitHub 마일스톤 목록 조회에 성공했습니다.");
         } catch (IOException e) {
@@ -440,8 +402,9 @@ public class GithubIntegrationService {
         }
     }
 
-    // GitHub 레포지토리 마일스톤별 이슈 목록 조회
-    public ApiResponse<PageResponse<GHIssue>> getGitHubRepositoryIssues(String repositoryName, int milestoneNumber,
+    // GitHub 레포지토리 마일스톤별 이슈 목록 조회(OPEN 상태만)
+    public ApiResponse<PageResponse<IssueDetailDTO>> getGitHubRepositoryIssues(String repositoryName,
+            int milestoneNumber,
             Long memberId, int currentPage, int size) {
         try {
             Claims claims = UserContextHolder.get();
@@ -453,29 +416,14 @@ public class GithubIntegrationService {
             GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(claims.getUserId())
                     .orElseThrow(() -> GithubException.githubTokenNotFoundException());
 
-            GitHub gitHub = new GitHubBuilder()
-                    .withOAuthToken(encryptionUtil.decrypt(tokenEntity.getGithubAccessToken()))
-                    .build();
+            GitHub gitHub = gitHubClientFactory.forEncryptedToken(tokenEntity.getGithubAccessToken());
 
             GHRepository repository = gitHub.getRepository(repositoryName);
             GHMilestone milestone = repository.getMilestone(milestoneNumber);
-            List<GHIssue> issues = repository.getIssues(GHIssueState.ALL, milestone);
+            List<GHIssue> issues = repository.getIssues(GHIssueState.OPEN, milestone);
 
-            int totalCount = issues.size();
-            int totalPages = (int) Math.ceil((double) totalCount / size);
-            int startIndex = (currentPage - 1) * size;
-            int endIndex = Math.min(startIndex + size, issues.size());
-            List<GHIssue> pagedIssues = issues.subList(startIndex, endIndex);
-
-            PageResponse<GHIssue> pageResponse = PageResponse.<GHIssue>builder()
-                    .data(pagedIssues)
-                    .currentPage(currentPage)
-                    .size(size)
-                    .totalElements(totalCount)
-                    .totalPages(totalPages)
-                    .hasNext(currentPage < totalPages)
-                    .hasPrevious(currentPage > 1)
-                    .build();
+            PageResponse<IssueDetailDTO> pageResponse = PaginationUtil.paginate(
+                    issues, currentPage, size, gitHubDtoMapper::toIssue);
 
             return ApiResponse.success(pageResponse, "GitHub 이슈 목록 조회에 성공했습니다.");
         } catch (Exception e) {
@@ -497,9 +445,7 @@ public class GithubIntegrationService {
             GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(claims.getUserId())
                     .orElseThrow(() -> GithubException.githubTokenNotFoundException());
 
-            GitHub gitHub = new GitHubBuilder()
-                    .withOAuthToken(encryptionUtil.decrypt(tokenEntity.getGithubAccessToken()))
-                    .build();
+            GitHub gitHub = gitHubClientFactory.forEncryptedToken(tokenEntity.getGithubAccessToken());
 
             GHRepository repository = gitHub.getRepository(repositoryName);
             GHIssue issue = repository.getIssue(issueNumber);
@@ -529,94 +475,4 @@ public class GithubIntegrationService {
         }
     }
 
-    // (연동)프로젝트별 이슈 조회
-    public ApiResponse<List<GHIssue>> getProjectIssues(Long projectId) {
-        try {
-            Claims claims = UserContextHolder.get();
-            if (claims == null) {
-                throw AuthException.unauthorizedException();
-            }
-
-            // 프로젝트 연동 정보에서 토큰도 함께 조회
-            ProjectGithubIntegrationEntity integration = projectGithubIntegrationRepository
-                    .findByProjectEntity_ProjectIdAndIsActive(projectId, true)
-                    .orElseThrow(() -> GithubException.githubRepositoryNotFoundException());
-
-            // 프로젝트에 저장된 토큰 사용
-            String decrypted = encryptionUtil.decrypt(integration.getGithubAccessToken());
-            GitHub gitHub = new GitHubBuilder()
-                    .withOAuthToken(decrypted) // 프로젝트별 토큰
-                    .build();
-
-            GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
-            List<GHIssue> issues = repository.getIssues(GHIssueState.ALL);
-
-            return ApiResponse.success(issues, "GitHub 이슈 목록 조회에 성공했습니다.");
-        } catch (IOException e) {
-            log.error("GitHub 이슈 목록 조회 중 오류 발생", e);
-            throw GithubException.githubRepositoryNotFoundException();
-        }
-    }
-
-    // (연동)프로젝트별 마일스톤 조회
-    public ApiResponse<List<MileStoneInfoDTO>> getProjectMilestones(Long projectId) {
-        try {
-            Claims claims = UserContextHolder.get();
-            if (claims == null) {
-                throw AuthException.unauthorizedException();
-            }
-
-            // 프로젝트 연동 정보에서 토큰도 함께 조회
-            ProjectGithubIntegrationEntity integration = projectGithubIntegrationRepository
-                    .findByProjectEntity_ProjectIdAndIsActive(projectId, true)
-                    .orElseThrow(() -> GithubException.githubRepositoryNotFoundException());
-
-            // 프로젝트에 저장된 토큰 사용
-            String decrypted = encryptionUtil.decrypt(integration.getGithubAccessToken());
-            GitHub gitHub = new GitHubBuilder()
-                    .withOAuthToken(decrypted) // 프로젝트별 토큰
-                    .build();
-
-            GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
-            List<MileStoneInfoDTO> milestones = repository.listMilestones(GHIssueState.ALL).toList()
-                    .stream()
-                    .map(this::convertToMileStoneInfoDTO)
-                    .collect(Collectors.toList());
-
-            return ApiResponse.success(milestones, "GitHub 마일스톤 목록 조회에 성공했습니다.");
-        } catch (IOException e) {
-            log.error("GitHub 마일스톤 목록 조회 중 오류 발생", e);
-            throw GithubException.githubMilestoneListNotFoundException();
-        }
-    }
-
-    // 깃허브 레포지토리 형식 검증
-    private boolean isValidGitHubRepositoryFormat(String repository) {
-        if (repository == null || repository.trim().isEmpty()) {
-            return false;
-        }
-
-        // "owner/repo" 형식 검증
-        String[] parts = repository.split("/");
-        if (parts.length != 2) {
-            return false;
-        }
-
-        String owner = parts[0];
-        String repoName = parts[1];
-
-        // Owner 유효성 검증
-        if (!owner.matches("^[a-zA-Z0-9-]+$") || owner.length() > 39 ||
-                owner.startsWith("-") || owner.endsWith("-")) {
-            return false;
-        }
-
-        // Repository 이름 유효성 검증
-        if (!repoName.matches("^[a-zA-Z0-9._-]+$") || repoName.length() > 100 ||
-                repoName.startsWith("-") || repoName.endsWith("-") || repoName.contains("--")) {
-            return false;
-        }
-
-        return true;
-    }
 }
