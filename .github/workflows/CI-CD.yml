@@ -131,7 +131,7 @@ jobs:
       - name: Generate image tags (docker job)
         id: image-tags
         run: |
-          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+          if [[ "${GITHUB_REF}" == "refs/heads/main" || "${GITHUB_REF}" == "refs/heads/release" ]]; then
             echo "backend=ourhour-backend:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           else
             echo "backend=ourhour-backend:dev-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
