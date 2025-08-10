@@ -3,14 +3,6 @@ services:
   backend:
     image: ${BACKEND_IMAGE:-ourhour-backend:prod}
     container_name: release-backend
-    env_file:
-      - .env
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env
-    ports:
-      - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: release
     restart: unless-stopped

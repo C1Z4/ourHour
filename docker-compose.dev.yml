@@ -1,7 +1,7 @@
 services:
   # backend
   backend:
-    build: ./backend
+    image: ${BACKEND_IMAGE:-ourhour-backend:dev}
     container_name: dev-backend
     env_file:
       - ./backend/.env
