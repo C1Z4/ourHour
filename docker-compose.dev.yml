@@ -1,6 +1,7 @@
 services:
   backend:
-    image: gradle:8.8-jdk17
+    image: ${BACKEND_IMAGE:-ourhour-backend:dev}
+#     image: gradle:8.8-jdk17
     container_name: dev-backend
     working_dir: /app
     # 두 프로세스 모두 gradlew 사용 + 캐시 디렉터리 분리
