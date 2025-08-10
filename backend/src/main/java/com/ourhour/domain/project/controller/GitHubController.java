@@ -10,7 +10,7 @@ import com.ourhour.global.common.dto.PageResponse;
 
 import lombok.RequiredArgsConstructor;
 import org.kohsuke.github.GHIssue;
-import org.kohsuke.github.GHMilestone;
+import com.ourhour.domain.project.dto.MileStoneInfoDTO;
 import org.kohsuke.github.GHIssueComment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -58,34 +58,37 @@ public class GitHubController {
     }
 
     // 깃허브 레포지토리 마일스톤 목록 조회
-    @GetMapping("/projects/repositories/{repositoryName}/milestones")
-    public ResponseEntity<ApiResponse<PageResponse<GHMilestone>>> getGitHubRepositoryMilestones(
-            @PathVariable String repositoryName, @RequestParam Long memberId,
+    @GetMapping("/projects/repositories/{owner}/{repo}/milestones")
+    public ResponseEntity<ApiResponse<PageResponse<MileStoneInfoDTO>>> getGitHubRepositoryMilestones(
+            @PathVariable String owner, @PathVariable String repo, @RequestParam Long memberId,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
+        String repositoryName = owner + "/" + repo;
         return ResponseEntity.ok(githubIntegrationService.getGitHubRepositoryMilestones(repositoryName, memberId,
                 currentPage, size));
     }
 
     // 깃허브 레포지토리 마일스톤 별 이슈 목록 조회
-    @GetMapping("/projects/repositories/{repositoryName}/milestones/{milestoneNumber}/issues")
+    @GetMapping("/projects/repositories/{owner}/{repo}/milestones/{milestoneNumber}/issues")
     public ResponseEntity<ApiResponse<PageResponse<GHIssue>>> getGitHubRepositoryIssues(
-            @PathVariable String repositoryName,
+            @PathVariable String owner, @PathVariable String repo,
             @PathVariable int milestoneNumber, @RequestParam Long memberId,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
+        String repositoryName = owner + "/" + repo;
         return ResponseEntity
                 .ok(githubIntegrationService.getGitHubRepositoryIssues(repositoryName, milestoneNumber, memberId,
                         currentPage, size));
     }
 
     // 깃허브 레포지토리 이슈 댓글 목록 조회
-    @GetMapping("/projects/repositories/{repositoryName}/issues/{issueNumber}/comments")
+    @GetMapping("/projects/repositories/{owner}/{repo}/issues/{issueNumber}/comments")
     public ResponseEntity<ApiResponse<PageResponse<GHIssueComment>>> getGitHubRepositoryIssueComments(
-            @PathVariable String repositoryName,
+            @PathVariable String owner, @PathVariable String repo,
             @PathVariable int issueNumber, @RequestParam Long memberId,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
+        String repositoryName = owner + "/" + repo;
         return ResponseEntity
                 .ok(githubIntegrationService.getGitHubRepositoryIssueComments(repositoryName, issueNumber, memberId,
                         currentPage, size));
