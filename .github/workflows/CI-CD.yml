@@ -2,9 +2,9 @@ name: CI-CD
 
 on:
   push:
-    branches: ["main", "develop", "release"] 
+    branches: ["develop", "release"] 
   pull_request:
-    branches: ["main", "develop", "release"]
+    branches: ["develop", "release"]
 
 jobs:
   build-test:
@@ -72,7 +72,7 @@ jobs:
           echo "  client-id: '${{ secrets.APPLICATION_GITHUB_CLIENT_ID }}'" >> ./backend/src/main/resources/application-secret.yml
           echo "  client-secret: '${{ secrets.APPLICATION_GITHUB_CLIENT_SECRET }}'" >> ./backend/src/main/resources/application-secret.yml
           echo "  redirect-uri: '${{ secrets.APPLICATION_GITHUB_REDIRECT_URI }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "  scope: repo,user" >> ./backend/src/main/resources/application-secret.yml
+          echo "  scope: '${{ secrets.APPLICATION_GITHUB_SCOPE }}'" >> ./backend/src/main/resources/application-secret.yml
 
       # 운영환경용 application-secret.yml 생성 (AWS Parameter Store 사용)
       - name: Create application-secret.yml for prod
@@ -131,9 +131,9 @@ jobs:
       - name: Generate image tags (docker job)
         id: image-tags
         run: |
-          if [[ "${GITHUB_REF}" == "refs/heads/main" || "${GITHUB_REF}" == "refs/heads/release" ]]; then
+          if [[ "${GITHUB_REF}" == "refs/heads/release" ]]; then
             echo "backend=ourhour-backend:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-          else
+          elif [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
             echo "backend=ourhour-backend:dev-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           fi
 
@@ -146,60 +146,61 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # AWS EC2 배포 (개발환경)
-  deploy-aws-dev:
-    needs: [build-test, build-docker]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
-    environment: development
+  # # AWS EC2 배포 (개발환경)
+  # deploy-aws-dev:
+  #   needs: [build-test, build-docker]
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+  #   environment: development
 
-    steps:
-      - name: Deploy to AWS EC2 Development
-        uses: appleboy/ssh-action@v1.0.3
-        continue-on-error: true
-        with:
-          host: ${{ secrets.DEV_EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          port: 22
-          timeout: 15m
-          command_timeout: 40m
-          script: |
-            # 기존 프로세스 종료
-            sudo pkill -f "java.*ourhour" || true
+  #   steps:
+  #     - name: Deploy to AWS EC2 Development
+  #       uses: appleboy/ssh-action@v1.0.3
+  #       continue-on-error: true
+  #       with:
+  #         host: ${{ secrets.DEV_EC2_HOST }}
+  #         username: ${{ secrets.EC2_USERNAME }}
+  #         key: ${{ secrets.EC2_PRIVATE_KEY }}
+  #         port: 22
+  #         timeout: 15m
+  #         command_timeout: 40m
+  #         script: |
+  #           # 기존 프로세스 종료
+  #           sudo pkill -f "java.*ourhour" || true
 
-            # 애플리케이션 디렉토리로 이동
-            cd /home/ubuntu/ourHour
+  #           # 애플리케이션 디렉토리로 이동
+  #           cd /home/ubuntu/ourHour
 
-            # Git 최신 코드 가져오기
-            git fetch --all && git checkout release && git reset --hard origin/release
+  #           # Git 최신 코드 가져오기
+  #           git fetch --all && git checkout develop && git reset --hard origin/develop
 
-            # 환경변수 파일 생성 (개발환경 - GitHub Secrets 사용)
-            echo "SPRING_PROFILES_ACTIVE=dev" > .env
-            echo "DB_HOST=${{ secrets.DEV_DB_HOST }}" >> .env
-            echo "DB_USERNAME=${{ secrets.DEV_DB_USERNAME }}" >> .env
-            echo "DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}" >> .env
-            echo "DB_URL=${{ secrets.DEV_DB_URL }}" >> .env
-            echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
-            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
-            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
-            echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
-            echo "BASE_URL_EMAIL=${{ secrets.BASE_URL_EMAIL }}" >> .env
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-            echo "JWT_ACCESS=${{ secrets.JWT_ACCESS }}" >> .env
-            echo "JWT_REFRESH=${{ secrets.JWT_REFRESH }}" >> .env
-            echo "ENCRYPTION_SECRET_KEY=${{ secrets.ENCRYPTION_SECRET_KEY }}" >> .env
-            echo "APPLICATION_GITHUB_CLIENT_ID=${{ secrets.APPLICATION_GITHUB_CLIENT_ID }}" >> .env
-            echo "APPLICATION_GITHUB_CLIENT_SECRET=${{ secrets.APPLICATION_GITHUB_CLIENT_SECRET }}" >> .env
-            echo "APPLICATION_GITHUB_REDIRECT_URI=${{ secrets.APPLICATION_GITHUB_REDIRECT_URI }}" >> .env
+  #           # 환경변수 파일 생성 (개발환경 - GitHub Secrets 사용)
+  #           echo "SPRING_PROFILES_ACTIVE=dev" > .env
+  #           echo "DB_HOST=${{ secrets.DEV_DB_HOST }}" >> .env
+  #           echo "DB_USERNAME=${{ secrets.DEV_DB_USERNAME }}" >> .env
+  #           echo "DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}" >> .env
+  #           echo "DB_URL=${{ secrets.DEV_DB_URL }}" >> .env
+  #           echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
+  #           echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+  #           echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+  #           echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
+  #           echo "BASE_URL_EMAIL=${{ secrets.BASE_URL_EMAIL }}" >> .env
+  #           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+  #           echo "JWT_ACCESS=${{ secrets.JWT_ACCESS }}" >> .env
+  #           echo "JWT_REFRESH=${{ secrets.JWT_REFRESH }}" >> .env
+  #           echo "ENCRYPTION_SECRET_KEY=${{ secrets.ENCRYPTION_SECRET_KEY }}" >> .env
+  #           echo "APPLICATION_GITHUB_CLIENT_ID=${{ secrets.APPLICATION_GITHUB_CLIENT_ID }}" >> .env
+  #           echo "APPLICATION_GITHUB_CLIENT_SECRET=${{ secrets.APPLICATION_GITHUB_CLIENT_SECRET }}" >> .env
+  #           echo "APPLICATION_GITHUB_REDIRECT_URI=${{ secrets.APPLICATION_GITHUB_REDIRECT_URI }}" >> .env
+  #           echo "APPLICATION_GITHUB_SCOPE=${{ secrets.APPLICATION_GITHUB_SCOPE }}" >> .env
 
-            # 백엔드 빌드 및 실행
-            cd backend
-            chmod +x ./gradlew
-            ./gradlew clean build --no-daemon
+  #           # 백엔드 빌드 및 실행
+  #           cd backend
+  #           chmod +x ./gradlew
+  #           ./gradlew clean build --no-daemon
 
-            # 백그라운드에서 애플리케이션 실행
-            nohup java -jar -Dspring.profiles.active=dev build/libs/*.jar > ../app.log 2>&1 &
+  #           # 백그라운드에서 애플리케이션 실행
+  #           nohup java -jar -Dspring.profiles.active=dev build/libs/*.jar > ../app.log 2>&1 &
 
   # AWS EC2 배포 (프로덕션)
   deploy-aws-prod:
@@ -241,7 +242,7 @@ jobs:
   deploy-docker-dev:
     needs: [build-test, build-docker]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     environment: development
 
     steps:
@@ -256,7 +257,7 @@ jobs:
             cd /home/ubuntu/ourHour
 
             # Git 최신 코드 가져오기
-            git fetch --all && git checkout release && git reset --hard origin/release
+            git fetch --all && git checkout develop && git reset --hard origin/develop
 
             # Docker 로그인
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
@@ -283,7 +284,8 @@ jobs:
             export APPLICATION_GITHUB_CLIENT_ID=${{ secrets.APPLICATION_GITHUB_CLIENT_ID }}
             export APPLICATION_GITHUB_CLIENT_SECRET=${{ secrets.APPLICATION_GITHUB_CLIENT_SECRET }}
             export APPLICATION_GITHUB_REDIRECT_URI=${{ secrets.APPLICATION_GITHUB_REDIRECT_URI }}
-
+            export APPLICATION_GITHUB_SCOPE=${{ secrets.APPLICATION_GITHUB_SCOPE }}
+            
             # 새 컨테이너 시작
             docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
