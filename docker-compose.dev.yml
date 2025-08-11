@@ -1,45 +1,42 @@
 services:
+
+  # backend
   backend:
-    image: ${BACKEND_IMAGE:-ourhour-backend:dev}
-#     image: gradle:8.8-jdk17
+    build:
+      context: ./backend
+      target: dev
     container_name: dev-backend
+    volumes:
+      - ./backend:/app
+      - gradle-cache:/home/gradle/.gradle
     working_dir: /app
-    # 두 프로세스 모두 gradlew 사용 + 캐시 디렉터리 분리
-    command: >
-      sh -lc "
-      ./gradlew -Dorg.gradle.vfs.watch=false classes --continuous -x test --no-daemon --project-cache-dir=/tmp/continuous-cache &
-      ./gradlew -Dorg.gradle.vfs.watch=false bootRun -x test --no-daemon --project-cache-dir=/tmp/bootrun-cache
-      "
+    command: ./gradlew bootRun
     env_file:
       - ./backend/.env
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      JAVA_TOOL_OPTIONS: "-Dspring.devtools.restart.poll-interval=2s -Dspring.devtools.restart.quiet-period=1s"
-    volumes:
-      - ./backend:/app # 코드만 바인드
-      - gradle-cache:/home/gradle/.gradle
-      - build-cache:/app/build # 빌드 산출물은 볼륨
+      SPRING_DEVTOOLS_REMOTE_SECRET: secretary
     depends_on:
       db:
         condition: service_healthy
 
+  # db
   db:
     image: mysql:8
     container_name: dev-db
     ports:
       - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
     env_file:
       - ./backend/.env
     environment:
       SPRING_PROFILES_ACTIVE: dev
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 60s
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
       retries: 10
-    volumes:
-      - mysql-data:/var/lib/mysql
 
 volumes:
   gradle-cache:
-  build-cache:
   mysql-data:
