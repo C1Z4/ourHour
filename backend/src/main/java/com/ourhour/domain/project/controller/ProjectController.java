@@ -82,6 +82,7 @@ public class ProjectController {
         // 프로젝트 참가자 삭제
         @OrgAuth(accessLevel = Role.ADMIN)
         @DeleteMapping("/{orgId}/{projectId}/participants/{memberId}")
+        @Operation(summary = "프로젝트 참가자 삭제", description = "프로젝트 참가자를 삭제합니다.")
         public ResponseEntity<ApiResponse<Void>> deleteProjectParticipant(
                         @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
@@ -278,17 +279,6 @@ public class ProjectController {
                 }
 
                 ApiResponse<Void> response = issueService.deleteIssue(issueId, claims);
-
-                return ResponseEntity.ok(response);
-        }
-
-        // 프로젝트 참여 여부 확인
-        @GetMapping("/{projectId}/{memberId}/participation")
-        public ResponseEntity<ApiResponse<Boolean>> checkProjectParticipant(
-                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
-                        @PathVariable @Min(value = 1, message = "멤버 ID는 1 이상이어야 합니다.") Long memberId) {
-
-                ApiResponse<Boolean> response = projectParticipantService.checkProjectParticipant(projectId, memberId);
 
                 return ResponseEntity.ok(response);
         }
