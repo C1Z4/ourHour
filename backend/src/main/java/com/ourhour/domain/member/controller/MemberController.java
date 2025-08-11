@@ -29,11 +29,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "멤버", description = "멤버의 조직/개인 정보 API")
 public class MemberController {
 
     private final MemberService memberService;
@@ -41,6 +44,7 @@ public class MemberController {
 
     // 본인이 속한 회사 목록 조회
     @GetMapping("/organizations")
+    @Operation(summary = "내 조직 목록 조회", description = "현재 사용자 기준으로 참여 중인 조직 목록을 조회합니다.")
     public ResponseEntity<ApiResponse<PageResponse<MemberOrgSummaryResDTO>>> findOrgListByMemberId(
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
@@ -69,6 +73,7 @@ public class MemberController {
     // 본인이 속한 회사 상세 조회
     @OrgAuth
     @GetMapping("/organizations/{orgId}")
+    @Operation(summary = "내 조직 상세 조회", description = "현재 사용자 기준 특정 조직의 상세 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<MemberOrgDetailResDTO>> findOrgDetailByMemberIdAndOrgId(
             @OrgId @PathVariable Long orgId) {
 
@@ -98,6 +103,7 @@ public class MemberController {
     // 회사 내 개인 정보 조회
     @OrgAuth
     @GetMapping("/organizations/{orgId}/me")
+    @Operation(summary = "회사 내 내 정보 조회", description = "특정 조직 내에서의 내 개인 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<MyMemberInfoResDTO>> findMyMemberInfoInOrg(@OrgId @PathVariable Long orgId) {
 
         MyMemberInfoResDTO memberInfoResDTO = memberService.findMyMemberInfoInOrg(orgId);
@@ -111,6 +117,7 @@ public class MemberController {
     // 회사 내 개인 정보 수정
     @OrgAuth
     @PutMapping("/organizations/{orgId}/me")
+    @Operation(summary = "회사 내 내 정보 수정", description = "특정 조직 내에서의 내 개인 정보를 수정합니다.")
     public ResponseEntity<ApiResponse<MyMemberInfoResDTO>> updateMyMemberInfoInOrg(@OrgId @PathVariable Long orgId,
             @RequestBody MyMemberInfoReqDTO myMemberInfoReqDTO) {
 

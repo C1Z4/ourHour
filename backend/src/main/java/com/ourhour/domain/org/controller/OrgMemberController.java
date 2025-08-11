@@ -25,10 +25,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/organizations")
 @RequiredArgsConstructor
+@Tag(name = "조직 구성원", description = "조직 구성원 조회/권한/관리 API")
 public class OrgMemberController {
 
     private final OrgMemberService orgMemberService;
@@ -36,6 +39,7 @@ public class OrgMemberController {
     // 구성원 목록 조회
     @OrgAuth
     @GetMapping("/{orgId}/members")
+    @Operation(summary = "구성원 목록 조회", description = "조직 구성원 목록을 페이지네이션으로 조회합니다.")
     public ResponseEntity<ApiResponse<PageResponse<MemberInfoResDTO>>> getOrgMembers(
             @OrgId @PathVariable @Min(value = 1, message = "팀 ID는 1 이상이어야 합니다.") Long orgId,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 0 이상이어야 합니다.") int currentPage,
@@ -50,6 +54,7 @@ public class OrgMemberController {
 
     @OrgAuth
     @GetMapping("/{orgId}/members/all")
+    @Operation(summary = "구성원 전체 목록 조회", description = "조직의 전체 구성원을 조회합니다.")
     public ResponseEntity<ApiResponse<List<MemberInfoResDTO>>> getAllOrgMembers(
             @OrgId @PathVariable @Min(value = 1, message = "팀 ID는 1 이상이어야 합니다.") Long orgId) {
 
@@ -61,6 +66,7 @@ public class OrgMemberController {
     // 구성원 상세 조회
     @OrgAuth
     @GetMapping("/{orgId}/members/{memberId}")
+    @Operation(summary = "구성원 상세 조회", description = "특정 구성원의 상세 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<MemberInfoResDTO>> getOrgMember(@OrgId @PathVariable Long orgId,
             @PathVariable Long memberId) {
 
@@ -75,6 +81,7 @@ public class OrgMemberController {
     // 구성원 권한 변경
     @OrgAuth(accessLevel = Role.ROOT_ADMIN)
     @PatchMapping("/{orgId}/members/{memberId}/role")
+    @Operation(summary = "구성원 권한 변경", description = "특정 구성원의 역할을 변경합니다.")
     public ResponseEntity<ApiResponse<OrgMemberRoleResDTO>> getOrgMember(@OrgId @PathVariable Long orgId,
             @PathVariable Long memberId, @RequestBody OrgMemberRoleReqDTO orgMemberRoleReqDTO) {
 
@@ -89,6 +96,7 @@ public class OrgMemberController {
     // 구성원 삭제
     @OrgAuth(accessLevel = Role.ROOT_ADMIN)
     @DeleteMapping("/{orgId}/members/{memberId}")
+    @Operation(summary = "구성원 삭제", description = "조직에서 특정 구성원을 삭제합니다.")
     public ResponseEntity<ApiResponse<Void>> deleteOrgMember(@OrgId @PathVariable Long orgId,
             @PathVariable Long memberId) {
 
@@ -103,6 +111,7 @@ public class OrgMemberController {
     // 회사 나가기
     @OrgAuth
     @DeleteMapping("/{orgId}/members/me")
+    @Operation(summary = "조직 나가기", description = "현재 사용자가 조직에서 탈퇴합니다.")
     public ResponseEntity<ApiResponse<Void>> exitOrg(@OrgId @PathVariable Long orgId) {
 
         orgMemberService.exitOrg(orgId);

@@ -20,16 +20,20 @@ import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/comments")
 @RequiredArgsConstructor
-public class CommentController {    
+@Tag(name = "댓글", description = "댓글 조회/등록/수정/삭제 API")
+public class CommentController {
 
     private final CommentService commentService;
 
     // 댓글 목록 조회
     @GetMapping
+    @Operation(summary = "댓글 목록 조회", description = "게시글/이슈 기준으로 댓글 목록을 조회합니다.")
     public ResponseEntity<ApiResponse<CommentPageResDTO>> getComments(
             @RequestParam(required = false) Long postId,
             @RequestParam(required = false) Long issueId,
@@ -43,6 +47,7 @@ public class CommentController {
 
     // 댓글 등록
     @PostMapping
+    @Operation(summary = "댓글 등록", description = "새 댓글을 등록합니다.")
     public ResponseEntity<ApiResponse<Void>> createComment(
             @Valid @RequestBody CommentCreateReqDTO commentCreateReqDTO) {
 
@@ -53,6 +58,7 @@ public class CommentController {
 
     // 댓글 수정
     @PutMapping("/{commentId}")
+    @Operation(summary = "댓글 수정", description = "기존 댓글을 수정합니다.")
     public ResponseEntity<ApiResponse<Void>> updateComment(
             @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId,
             @Valid @RequestBody CommentUpdateReqDTO commentUpdateReqDTO) {
@@ -64,11 +70,12 @@ public class CommentController {
 
     // 댓글 삭제
     @DeleteMapping("/{commentId}")
+    @Operation(summary = "댓글 삭제", description = "댓글을 삭제합니다.")
     public ResponseEntity<ApiResponse<Void>> deleteComment(
             @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
 
         commentService.deleteComment(commentId);
-        
+
         return ResponseEntity.ok(ApiResponse.success(null, "댓글 삭제에 성공했습니다."));
     }
 }
