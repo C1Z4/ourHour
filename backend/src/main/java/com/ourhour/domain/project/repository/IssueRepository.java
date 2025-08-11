@@ -1,5 +1,8 @@
 package com.ourhour.domain.project.repository;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,4 +19,9 @@ public interface IssueRepository extends JpaRepository<IssueEntity, Long> {
     long countByMilestoneEntity_MilestoneId(Long milestoneId);
 
     long countByMilestoneEntity_MilestoneIdAndStatus(Long milestoneId, IssueStatus status);
+
+    Optional<IssueEntity> findByProjectEntity_ProjectIdAndGithubId(Long projectId, Long githubId);
+
+    List<IssueEntity> findByProjectEntity_ProjectId(Long projectId);
+
 }

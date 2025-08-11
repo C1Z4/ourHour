@@ -61,4 +61,8 @@ public class GithubException extends BusinessException {
         return new GithubException(ErrorCode.GITHUB_SYNC_FAILED);
     }
 
+    public static GithubException githubIntegrationNotFoundException() {
+        return new GithubException(ErrorCode.GITHUB_INTEGRATION_NOT_FOUND);
+    }
+
 }

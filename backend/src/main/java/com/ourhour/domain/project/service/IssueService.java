@@ -5,7 +5,6 @@ import com.ourhour.domain.project.dto.IssueSummaryDTO;
 import com.ourhour.domain.project.dto.IssueReqDTO;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
-import com.ourhour.global.exception.BusinessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +14,7 @@ import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.entity.MilestoneEntity;
 import com.ourhour.domain.project.entity.ProjectEntity;
+import com.ourhour.domain.project.enums.SyncOperation;
 import com.ourhour.domain.project.mapper.IssueMapper;
 import com.ourhour.domain.project.repository.IssueRepository;
 import com.ourhour.domain.project.repository.ProjectRepository;
@@ -26,6 +26,7 @@ import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.domain.project.exception.MilestoneException;
 import com.ourhour.domain.project.exception.IssueException;
 import com.ourhour.global.jwt.dto.Claims;
+import com.ourhour.domain.project.annotation.GitHubSync;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -94,6 +95,7 @@ public class IssueService {
     }
 
     // 이슈 등록
+    @GitHubSync(operation = SyncOperation.CREATE)
     @Transactional
     public ApiResponse<IssueDetailDTO> createIssue(Long projectId, IssueReqDTO issueReqDTO) {
         if (projectId <= 0) {
@@ -129,6 +131,7 @@ public class IssueService {
     }
 
     // 이슈 수정
+    @GitHubSync(operation = SyncOperation.UPDATE)
     @Transactional
     public ApiResponse<IssueDetailDTO> updateIssue(Long issueId, IssueReqDTO issueReqDTO, Claims claims) {
         if (issueId <= 0) {
@@ -183,6 +186,7 @@ public class IssueService {
     }
 
     // 이슈 삭제
+    @GitHubSync(operation = SyncOperation.DELETE)
     @Transactional
     public ApiResponse<Void> deleteIssue(Long issueId, Claims claims) {
         if (issueId <= 0) {
