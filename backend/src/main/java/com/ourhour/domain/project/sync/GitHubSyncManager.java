@@ -6,6 +6,8 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
+
+import com.ourhour.domain.comment.entity.CommentEntity;
 import com.ourhour.domain.project.entity.GitHubSyncableEntity;
 import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.entity.MilestoneEntity;
@@ -25,11 +27,16 @@ public class GitHubSyncManager {
     private final ProjectGitHubService projectGitHubService;
 
     private final IssueSyncHandler issueSyncHandler;
+    private final MilestoneSyncHandler milestoneSyncHandler;
+    private final IssueCommentSyncHandler issueCommentSyncHandler;
 
     // 동기화 핸들러 초기화
     @PostConstruct
     private void initializeSyncHandlers() {
         syncHandlers.put(IssueEntity.class, issueSyncHandler);
+        syncHandlers.put(MilestoneEntity.class, milestoneSyncHandler);
+        // 댓글은 이슈에 귀속되므로 CommentEntity도 등록
+        syncHandlers.put(CommentEntity.class, issueCommentSyncHandler);
 
         // 다른 엔티티들 추가 예정
     }
@@ -88,6 +95,12 @@ public class GitHubSyncManager {
 
         if (entity instanceof MilestoneEntity) {
             return ((MilestoneEntity) entity).getProjectEntity().getProjectId();
+        }
+
+        if (entity instanceof CommentEntity) {
+            CommentEntity c = (CommentEntity) entity;
+            IssueEntity issue = c.getIssueEntity();
+            return issue != null ? issue.getProjectEntity().getProjectId() : null;
         }
 
         // 다른 엔티티 타입들 추가

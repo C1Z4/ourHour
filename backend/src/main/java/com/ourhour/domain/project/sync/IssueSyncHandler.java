@@ -13,18 +13,16 @@ import org.kohsuke.github.GHMilestone;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GHUser;
 import org.kohsuke.github.GitHub;
-import org.kohsuke.github.GitHubBuilder;
 import org.kohsuke.github.PagedIterable;
 import org.springframework.stereotype.Component;
 
 import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.enums.IssueStatus;
+import com.ourhour.domain.project.github.GitHubClientFactory;
 import com.ourhour.domain.project.repository.IssueRepository;
 import com.ourhour.domain.project.repository.ProjectGithubIntegrationRepository;
 import com.ourhour.domain.user.entity.ProjectGithubIntegrationEntity;
-import com.ourhour.domain.user.entity.GitHubTokenEntity;
 import com.ourhour.domain.user.entity.UserGitHubMappingEntity;
-import com.ourhour.domain.user.repository.GitHubTokenRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
 
     private final ProjectGithubIntegrationRepository integrationRepository;
-    private final GitHubTokenRepository gitHubTokenRepository;
+    private final GitHubClientFactory gitHubClientFactory;
     private final IssueRepository issueRepository; // 동기화 상태 업데이트용
 
     // 이슈 생성
@@ -43,7 +41,7 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
     public void createInGitHub(IssueEntity issue) {
         try {
             ProjectGithubIntegrationEntity integration = getActiveIntegration(issue.getProjectEntity().getProjectId());
-            GitHub gitHub = createGitHubClient(integration);
+            GitHub gitHub = gitHubClientFactory.createGitHubClient(integration);
 
             GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
 
@@ -54,7 +52,8 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
 
             // 담당자 설정 (GitHub 사용자명이 있는 경우)
             if (issue.getAssigneeEntity() != null && issue.getAssigneeEntity().getMemberId() != null) {
-                UserGitHubMappingEntity githubMapping = issue.getAssigneeEntity().getUserEntity().getGithubMappingEntity();
+                UserGitHubMappingEntity githubMapping = issue.getAssigneeEntity().getUserEntity()
+                        .getGithubMappingEntity();
                 if (githubMapping != null) {
                     issueBuilder.assignee(githubMapping.getGithubUsername());
                 }
@@ -99,7 +98,7 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
             }
 
             ProjectGithubIntegrationEntity integration = getActiveIntegration(issue.getProjectEntity().getProjectId());
-            GitHub gitHub = createGitHubClient(integration);
+            GitHub gitHub = gitHubClientFactory.createGitHubClient(integration);
 
             GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
             GHIssue githubIssue = repository.getIssue(issue.getGithubId().intValue());
@@ -146,7 +145,7 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
             }
 
             ProjectGithubIntegrationEntity integration = getActiveIntegration(issue.getProjectEntity().getProjectId());
-            GitHub gitHub = createGitHubClient(integration);
+            GitHub gitHub = gitHubClientFactory.createGitHubClient(integration);
             GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
 
             GHIssue githubIssue;
@@ -186,7 +185,6 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
         }
     }
 
-    
     // 이미 삭제 표시된 이슈인지 확인
     private boolean isAlreadyMarkedAsDeleted(GHIssue githubIssue) throws IOException {
         String title = githubIssue.getTitle();
@@ -268,16 +266,5 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
     private ProjectGithubIntegrationEntity getActiveIntegration(Long projectId) {
         return integrationRepository.findByProjectEntity_ProjectIdAndIsActive(projectId, true)
                 .orElseThrow(() -> new RuntimeException("활성화된 GitHub 연동 정보를 찾을 수 없습니다."));
-    }
-
-    // GitHub 클라이언트 생성
-    private GitHub createGitHubClient(ProjectGithubIntegrationEntity integration) throws IOException {
-        GitHubTokenEntity tokenEntity = gitHubTokenRepository
-                .findById(integration.getMemberEntity().getUserEntity().getUserId())
-                .orElseThrow(() -> new RuntimeException("GitHub 토큰을 찾을 수 없습니다."));
-
-        return new GitHubBuilder()
-                .withOAuthToken(tokenEntity.getGithubAccessToken())
-                .build();
     }
 }

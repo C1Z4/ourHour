@@ -12,6 +12,8 @@ import com.ourhour.domain.user.entity.UserGitHubMappingEntity;
 public interface UserGitHubMappingRepository extends JpaRepository<UserGitHubMappingEntity, Long> {
     Optional<UserGitHubMappingEntity> findByUserId(Long userId);
 
+    Optional<UserGitHubMappingEntity> findByGithubUsername(String githubUsername);
+
     @Transactional
     long deleteByUserId(Long userId);
 }

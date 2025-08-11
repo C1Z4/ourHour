@@ -8,6 +8,7 @@ import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.project.dto.MilestoneReqDTO;
 import com.ourhour.domain.project.entity.MilestoneEntity;
 import com.ourhour.domain.project.entity.ProjectEntity;
+import com.ourhour.domain.project.enums.SyncOperation;
 import com.ourhour.domain.project.mapper.MilestoneMapper;
 import com.ourhour.domain.project.repository.MilestoneRepository;
 import com.ourhour.domain.project.repository.ProjectRepository;
@@ -15,6 +16,7 @@ import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.domain.project.exception.MilestoneException;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.jwt.dto.Claims;
+import com.ourhour.domain.project.annotation.GitHubSync;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class MilestoneService {
     private final MilestoneMapper milestoneMapper;
 
     // 마일스톤 등록
+    @GitHubSync(operation = SyncOperation.CREATE)
     @Transactional
     public ApiResponse<Void> createMilestone(Long projectId, MilestoneReqDTO milestoneReqDTO) {
         if (projectId <= 0) {
@@ -56,6 +59,7 @@ public class MilestoneService {
     }
 
     // 마일스톤 수정
+    @GitHubSync(operation = SyncOperation.UPDATE)
     @Transactional
     public ApiResponse<Void> updateMilestone(Long milestoneId, MilestoneReqDTO milestoneReqDTO) {
         if (milestoneId <= 0) {
@@ -73,6 +77,7 @@ public class MilestoneService {
     }
 
     // 마일스톤 삭제
+    @GitHubSync(operation = SyncOperation.DELETE)
     @Transactional
     public ApiResponse<Void> deleteMilestone(Long milestoneId, Claims claims) {
         if (milestoneId <= 0) {
