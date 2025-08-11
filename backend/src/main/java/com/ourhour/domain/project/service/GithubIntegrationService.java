@@ -37,6 +37,8 @@ import com.ourhour.domain.project.dto.SyncStatusDTO;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.domain.comment.dto.CommentDTO;
+import com.ourhour.domain.comment.entity.CommentEntity;
+import com.ourhour.domain.comment.repository.CommentRepository;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.domain.auth.exception.AuthException;
@@ -48,6 +50,7 @@ import com.ourhour.global.util.EncryptionUtil;
 import com.ourhour.domain.project.github.GitHubClientFactory;
 import com.ourhour.domain.project.github.GitHubDtoMapper;
 import com.ourhour.global.util.PaginationUtil;
+import com.ourhour.domain.user.repository.UserGitHubMappingRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +69,8 @@ public class GithubIntegrationService {
     private final EncryptionUtil encryptionUtil;
     private final GitHubClientFactory gitHubClientFactory;
     private final GitHubDtoMapper gitHubDtoMapper;
+    private final UserGitHubMappingRepository userGitHubMappingRepository;
+    private final CommentRepository commentRepository;
 
     // GitHub 토큰으로 레포지토리 이름 목록 조회
     public ApiResponse<List<GitHubRepositoryResDTO>> getGitHubRepositories(GitHubTokenReqDTO token) {
@@ -104,14 +109,12 @@ public class GithubIntegrationService {
                     .findByProjectEntity_ProjectIdAndIsActive(projectId, true)
                     .orElseThrow(() -> GithubException.githubRepositoryNotFoundException());
 
-            GitHub gitHub = new GitHubBuilder()
-                    .withOAuthToken(integration.getGithubAccessToken())
-                    .build();
+            GitHub gitHub = gitHubClientFactory.forEncryptedToken(integration.getGithubAccessToken());
 
             GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
 
             // PagedIterable 사용 - 자동 페이징 처리
-            PagedIterable<GHIssue> githubIssues = repository.listIssues(GHIssueState.ALL);
+            PagedIterable<GHIssue> githubIssues = repository.listIssues(GHIssueState.OPEN);
 
             int processedCount = 0;
             int batchSize = 50; // 배치 단위로 처리
@@ -159,6 +162,15 @@ public class GithubIntegrationService {
         Optional<IssueEntity> existingIssue = issueRepository.findByProjectEntity_ProjectIdAndGithubId(
                 projectId, (long) githubIssue.getNumber());
 
+        // GitHub 마일스톤 매핑
+        MilestoneEntity mappedMilestone = null;
+        if (githubIssue.getMilestone() != null) {
+            int milestoneNumber = githubIssue.getMilestone().getNumber();
+            mappedMilestone = milestoneRepository
+                    .findByProjectEntity_ProjectIdAndGithubId(projectId, (long) milestoneNumber)
+                    .orElse(null);
+        }
+
         if (existingIssue.isPresent()) {
             // 기존 이슈 업데이트
             IssueEntity issue = existingIssue.get();
@@ -166,6 +178,8 @@ public class GithubIntegrationService {
             issue.setContent(githubIssue.getBody());
             issue.setStatus(
                     githubIssue.getState() == GHIssueState.OPEN ? IssueStatus.IN_PROGRESS : IssueStatus.COMPLETED);
+            // 마일스톤 매핑 갱신
+            issue.setMilestoneEntity(mappedMilestone);
             issue.updateLastSyncTime();
             return issue;
         } else {
@@ -173,6 +187,7 @@ public class GithubIntegrationService {
             IssueEntity newIssue = IssueEntity.builder()
                     .projectEntity(projectRepository.findById(projectId)
                             .orElseThrow(() -> ProjectException.projectNotFoundException()))
+                    .milestoneEntity(mappedMilestone)
                     .name(githubIssue.getTitle())
                     .content(githubIssue.getBody())
                     .status(githubIssue.getState() == GHIssueState.OPEN ? IssueStatus.IN_PROGRESS
@@ -192,10 +207,8 @@ public class GithubIntegrationService {
                     .findByProjectEntity_ProjectIdAndIsActive(projectId, true)
                     .orElseThrow(() -> GithubException.githubRepositoryNotFoundException());
 
-            // GitHub 클라이언트 생성
-            GitHub gitHub = new GitHubBuilder()
-                    .withOAuthToken(integration.getGithubAccessToken())
-                    .build();
+            // GitHub 클라이언트 생성 (암호화 토큰 복호화)
+            GitHub gitHub = gitHubClientFactory.forEncryptedToken(integration.getGithubAccessToken());
 
             GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
 
@@ -241,13 +254,111 @@ public class GithubIntegrationService {
         }
     }
 
+    // GitHub에서 이슈 댓글을 우리 서비스로 동기화
+    @Transactional
+    public ApiResponse<Void> syncIssueCommentsFromGitHub(Long projectId) {
+        try {
+            ProjectGithubIntegrationEntity integration = projectGithubIntegrationRepository
+                    .findByProjectEntity_ProjectIdAndIsActive(projectId, true)
+                    .orElseThrow(() -> GithubException.githubRepositoryNotFoundException());
+
+            GitHub gitHub = gitHubClientFactory.forEncryptedToken(integration.getGithubAccessToken());
+
+            GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
+
+            // 프로젝트의 모든 이슈를 순회하며 댓글 동기화
+            List<IssueEntity> issues = issueRepository.findByProjectEntity_ProjectId(projectId);
+
+            int processed = 0;
+            List<CommentEntity> toSaveBatch = new ArrayList<>();
+            final int batchSize = 100;
+
+            for (IssueEntity issue : issues) {
+                if (issue.getGithubId() == null) {
+                    continue; // GitHub와 매핑되지 않은 이슈는 건너뜀
+                }
+
+                GHIssue ghIssue = repository.getIssue(issue.getGithubId().intValue());
+                PagedIterable<GHIssueComment> comments = ghIssue.listComments();
+
+                for (GHIssueComment ghComment : comments) {
+                    try {
+                        // 기존 댓글 조회 (이슈ID + GitHub 댓글ID 기준)
+                        CommentEntity entity = commentRepository
+                                .findByIssueEntity_IssueIdAndGithubId(issue.getId(), ghComment.getId())
+                                .orElse(null);
+
+                        if (entity != null) {
+                            // 업데이트
+                            entity.setContent(ghComment.getBody());
+                            entity.updateLastSyncTime();
+                        } else {
+                            // 신규 생성 (작성자/부모 댓글 매핑)
+                            com.ourhour.domain.member.entity.MemberEntity authorEntity = null;
+                            try {
+                                String ghLogin = ghComment.getUser() != null ? ghComment.getUser().getLogin() : null;
+                                if (ghLogin != null) {
+                                    var mappingOpt = userGitHubMappingRepository.findByGithubUsername(ghLogin);
+                                    if (mappingOpt.isPresent()) {
+                                        Long userId = mappingOpt.get().getUserId();
+                                        // 동일 조직 내 참여 멤버 매핑
+                                        var memberOpt = memberRepository.findMemberInOrgByUserId(
+                                                issue.getProjectEntity().getOrgEntity().getOrgId(), userId);
+                                        if (memberOpt.isPresent()) {
+                                            authorEntity = memberOpt.get();
+                                        }
+                                    }
+                                }
+                            } catch (Exception ignore) {
+                            }
+
+                            // 매핑 실패 시: 연동을 생성한 멤버를 기본 작성자로 사용
+                            if (authorEntity == null) {
+                                authorEntity = integration.getMemberEntity();
+                            }
+
+                            CommentEntity newComment = CommentEntity.builder()
+                                    .issueEntity(issue)
+                                    .authorEntity(authorEntity)
+                                    .content(ghComment.getBody())
+                                    .build();
+                            newComment.markAsSynced(ghComment.getId());
+                            entity = newComment;
+                        }
+
+                        toSaveBatch.add(entity);
+                        if (toSaveBatch.size() >= batchSize) {
+                            commentRepository.saveAll(toSaveBatch);
+                            toSaveBatch.clear();
+                        }
+                        processed++;
+                    } catch (Exception e) {
+                        log.error("댓글 동기화 중 오류 - Issue #{}, Comment ID {}", issue.getGithubId(), ghComment.getId(), e);
+                    }
+                }
+            }
+
+            if (!toSaveBatch.isEmpty()) {
+                commentRepository.saveAll(toSaveBatch);
+            }
+
+            log.info("GitHub 이슈 댓글 동기화 완료 - 프로젝트 ID: {}, 처리된 댓글 수: {}", projectId, processed);
+            return ApiResponse.success(null, "GitHub 이슈 댓글 동기화가 완료되었습니다.");
+
+        } catch (IOException e) {
+            log.error("GitHub 이슈 댓글 동기화 실패 - 프로젝트 ID: {}", projectId, e);
+            throw GithubException.githubSyncFailedException();
+        }
+    }
+
     // GitHub에서 모든 데이터 동기화
     @Transactional
     public ApiResponse<Void> syncAllFromGitHub(Long projectId) {
         try {
-            // 이슈와 마일스톤 모두 동기화
-            syncIssuesFromGitHub(projectId);
+            // 마일스톤 → 이슈 → 이슈 댓글 순서로 동기화 (이슈-마일스톤 매핑 보장)
             syncMilestonesFromGitHub(projectId);
+            syncIssuesFromGitHub(projectId);
+            syncIssueCommentsFromGitHub(projectId);
 
             return ApiResponse.success(null, "GitHub 전체 동기화가 완료되었습니다.");
 
