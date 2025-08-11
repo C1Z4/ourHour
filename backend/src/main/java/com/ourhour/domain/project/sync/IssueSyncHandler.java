@@ -186,17 +186,14 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
         }
     }
 
-    /**
-     * 이미 삭제 표시된 이슈인지 확인
-     */
+    
+    // 이미 삭제 표시된 이슈인지 확인
     private boolean isAlreadyMarkedAsDeleted(GHIssue githubIssue) throws IOException {
         String title = githubIssue.getTitle();
         return title != null && title.startsWith("[삭제됨]");
     }
 
-    /**
-     * GitHub 이슈를 삭제됨으로 표시
-     */
+    // GitHub 이슈를 삭제됨으로 표시
     private void markAsDeletedOnGitHub(GHIssue githubIssue) throws IOException {
         String currentTitle = githubIssue.getTitle();
         String newTitle;
@@ -224,9 +221,7 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
         }
     }
 
-    /**
-     * 이미 삭제 댓글이 있는지 확인
-     */
+    // 이미 삭제 댓글이 있는지 확인
     private boolean hasDeleteComment(GHIssue githubIssue) throws IOException {
         PagedIterable<GHIssueComment> comments = githubIssue.listComments();
 
@@ -238,14 +233,13 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
         return false;
     }
 
-    /**
-     * 404 에러인지 확인
-     */
+    // 404 에러인지 확인
     private boolean isNotFoundError(IOException e) {
         return e.getMessage() != null &&
                 (e.getMessage().contains("404") || e.getMessage().contains("Not Found"));
     }
 
+    // 담당자 업데이트
     private void updateAssignee(GHIssue githubIssue, IssueEntity issue, GitHub gitHub) throws IOException {
         if (issue.getAssigneeEntity() != null) {
             UserGitHubMappingEntity githubMapping = issue.getAssigneeEntity().getUserEntity().getGithubMappingEntity();
@@ -260,6 +254,7 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
         }
     }
 
+    // 마일스톤 업데이트
     private void updateMilestone(GHIssue githubIssue, IssueEntity issue, GHRepository repository) throws IOException {
         if (issue.getMilestoneEntity() != null && issue.getMilestoneEntity().getGithubId() != null) {
             GHMilestone milestone = repository.getMilestone(issue.getMilestoneEntity().getGithubId().intValue());
@@ -269,11 +264,13 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
         }
     }
 
+    // 활성화된 GitHub 연동 정보 조회
     private ProjectGithubIntegrationEntity getActiveIntegration(Long projectId) {
         return integrationRepository.findByProjectEntity_ProjectIdAndIsActive(projectId, true)
                 .orElseThrow(() -> new RuntimeException("활성화된 GitHub 연동 정보를 찾을 수 없습니다."));
     }
 
+    // GitHub 클라이언트 생성
     private GitHub createGitHubClient(ProjectGithubIntegrationEntity integration) throws IOException {
         GitHubTokenEntity tokenEntity = gitHubTokenRepository
                 .findById(integration.getMemberEntity().getUserEntity().getUserId())

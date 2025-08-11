@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import com.ourhour.domain.project.entity.GitHubSyncableEntity;
 import com.ourhour.domain.project.entity.IssueEntity;
+import com.ourhour.domain.project.entity.MilestoneEntity;
 import com.ourhour.domain.project.enums.SyncOperation;
-import com.ourhour.domain.project.repository.ProjectGithubIntegrationRepository;
 import com.ourhour.domain.project.service.ProjectGitHubService;
 
 import lombok.RequiredArgsConstructor;
@@ -20,18 +20,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GitHubSyncManager {
 
+    // 엔티티 타입에 따른 동기화 핸들러 매핑
     private final Map<Class<?>, GitHubSyncHandler<?>> syncHandlers = new HashMap<>();
     private final ProjectGitHubService projectGitHubService;
-    private final ProjectGithubIntegrationRepository integrationRepository;
 
     private final IssueSyncHandler issueSyncHandler;
 
+    // 동기화 핸들러 초기화
     @PostConstruct
     private void initializeSyncHandlers() {
         syncHandlers.put(IssueEntity.class, issueSyncHandler);
+
         // 다른 엔티티들 추가 예정
     }
 
+    // 엔티티 동기화
     public <T extends GitHubSyncableEntity> void syncToGitHub(T entity, SyncOperation operation) {
         if (!shouldSync(entity)) {
             log.debug("GitHub 동기화 건너뛰기 - 연동되지 않은 프로젝트: {}", entity.getClass().getSimpleName());
@@ -41,6 +44,11 @@ public class GitHubSyncManager {
         try {
             @SuppressWarnings("unchecked")
             GitHubSyncHandler<T> handler = (GitHubSyncHandler<T>) syncHandlers.get(entity.getClass());
+
+            if (handler == null) {
+                log.error("GitHub 동기화 핸들러를 찾을 수 없습니다. 엔티티: {}", entity.getClass().getSimpleName());
+                return;
+            }
 
             switch (operation) {
                 case CREATE:
@@ -66,28 +74,28 @@ public class GitHubSyncManager {
         }
     }
 
+    // 동기화 여부 확인
     private <T extends GitHubSyncableEntity> boolean shouldSync(T entity) {
         Long projectId = getProjectId(entity);
         return projectId != null && isProjectGitHubSynced(projectId);
     }
 
+    // 프로젝트 ID 조회
     private <T extends GitHubSyncableEntity> Long getProjectId(T entity) {
         if (entity instanceof IssueEntity) {
             return ((IssueEntity) entity).getProjectEntity().getProjectId();
         }
+
+        if (entity instanceof MilestoneEntity) {
+            return ((MilestoneEntity) entity).getProjectEntity().getProjectId();
+        }
+
         // 다른 엔티티 타입들 추가
         return null;
     }
 
+    // 프로젝트 GitHub 연동 여부 확인
     private boolean isProjectGitHubSynced(Long projectId) {
         return projectGitHubService.hasGitHubIntegration(projectId);
-    }
-
-    private <T extends GitHubSyncableEntity> GitHubSyncHandler<T> getSyncHandler(Class<T> entityClass) {
-        GitHubSyncHandler<T> handler = (GitHubSyncHandler<T>) syncHandlers.get(entityClass);
-        if (handler == null) {
-            throw new IllegalArgumentException("지원하지 않는 엔티티 타입: " + entityClass.getSimpleName());
-        }
-        return handler;
     }
 }
