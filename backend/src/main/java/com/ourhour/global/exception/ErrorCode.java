@@ -110,7 +110,8 @@ public enum ErrorCode {
     GITHUB_MILESTONE_LIST_NOT_FOUND("깃허브 마일스톤 목록을 찾을 수 없습니다", 9008, HttpStatus.NOT_FOUND),
     GITHUB_REPOSITORY_ACCESS_DENIED("깃허브 레포지토리에 접근할 수 없습니다", 9009, HttpStatus.FORBIDDEN),
     INVALID_REPOSITORY_FORMAT("깃허브 레포지토리 형식이 올바르지 않습니다", 9010, HttpStatus.BAD_REQUEST),
-    GITHUB_SYNC_FAILED("깃허브 동기화에 실패했습니다", 9011, HttpStatus.INTERNAL_SERVER_ERROR);
+    GITHUB_SYNC_FAILED("깃허브 동기화에 실패했습니다", 9011, HttpStatus.INTERNAL_SERVER_ERROR),
+    GITHUB_INTEGRATION_NOT_FOUND("깃허브 연동 정보를 찾을 수 없습니다", 9012, HttpStatus.NOT_FOUND);
 
     private final String message;
     private final int statusCode;
