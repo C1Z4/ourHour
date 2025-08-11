@@ -45,6 +45,12 @@ public class GitHubController {
                         memberId));
     }
 
+    // 프로젝트별 GitHub 연동 해제
+    @DeleteMapping("/projects/{projectId}/disconnect")
+    public ResponseEntity<ApiResponse<Void>> disconnectProjectFromGitHub(@PathVariable Long projectId) {
+        return ResponseEntity.ok(githubIntegrationService.disconnectProjectFromGitHub(projectId));
+    }
+
     // GitHub에서 모든 데이터 동기화 (마일스톤, 이슈, 이슈 댓글 불러오기)
     @PostMapping("/projects/{projectId}/sync/all")
     public ResponseEntity<ApiResponse<Void>> syncAllFromGitHub(@PathVariable Long projectId) {

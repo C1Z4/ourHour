@@ -482,6 +482,18 @@ public class GithubIntegrationService {
         return ApiResponse.success(null, "GitHub 연동이 완료되었습니다.");
     }
 
+    // 프로젝트별 GitHub 연동 해제
+    public ApiResponse<Void> disconnectProjectFromGitHub(Long projectId) {
+
+        ProjectGithubIntegrationEntity integration = projectGithubIntegrationRepository
+                .findByProjectEntity_ProjectIdAndIsActive(projectId, true)
+                .orElseThrow(() -> GithubException.githubRepositoryNotFoundException());
+
+        projectGithubIntegrationRepository.delete(integration);
+
+        return ApiResponse.success(null, "GitHub 연동이 해제되었습니다.");
+    }
+
     // GitHub 레포지토리 마일스톤 목록 조회
     public ApiResponse<PageResponse<MileStoneInfoDTO>> getGitHubRepositoryMilestones(String repositoryName,
             Long memberId,
