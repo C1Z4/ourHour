@@ -23,6 +23,7 @@ public enum ErrorCode {
     EMAIL_VERIFICATION_REQUIRED("이메일 인증 먼저 해주세요", 1008, HttpStatus.BAD_REQUEST),
     EMAIL_ALREADY_ACCEPTED("이미 참여가 완료된 이메일 링크입니다", 1009, HttpStatus.BAD_REQUEST),
     EMAIL_NOT_MATCH("로그인된 계정의 이메일과 초대받은 이메일이 일치하지 않습니다", 1010, HttpStatus.BAD_REQUEST),
+    INVALID_EMAIL_FORMAT("올바르지 않은 이메일 형식입니다.", 1011, HttpStatus.BAD_REQUEST),
 
     // 비밀번호 관련
     PASSWORD_NOT_MATCH("비밀번호가 일치하지 않습니다", 1011, HttpStatus.BAD_REQUEST),
@@ -47,6 +48,9 @@ public enum ErrorCode {
     ROOT_ADMIN_MAXIMUM_EXCEEDED("루트 관리자는 최대 2명이어야 합니다", 2004, HttpStatus.BAD_REQUEST),
     LAST_ROOT_ADMIN_CANNOT_LEAVE("마지막 루트 관리자입니다. 위임 후 계정 탈퇴 가능합니다", 2005, HttpStatus.BAD_REQUEST),
     CANNOT_DELETE_SELF("자기 자신은 삭제할 수 없습니다. 다른 루트 관리자에게 삭제를 요청하세요", 2006, HttpStatus.BAD_REQUEST),
+
+    // 구성원 초대 관련
+    CANNOT_INVITE_SELF("자기 자신은 초대할 수 없습니다.", 2007, HttpStatus.BAD_REQUEST),
 
     // ========== 회사 관련 (3000~3999) ==========
     ORG_NOT_FOUND("회사를 찾을 수 없습니다", 3000, HttpStatus.NOT_FOUND),

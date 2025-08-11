@@ -88,4 +88,6 @@ public interface OrgParticipantMemberRepository
             "WHERE opm.orgEntity.orgId = :orgId " +
             "ORDER BY m.memberId ASC")
    List<OrgParticipantMemberEntity> findAllByOrgEntity_OrgId(Long orgId);
+
+    boolean existsByOrgEntity_OrgIdAndMemberEntity_Email(Long orgId, String email);
 }

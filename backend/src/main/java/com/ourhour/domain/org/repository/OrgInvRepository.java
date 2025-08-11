@@ -22,4 +22,5 @@ public interface OrgInvRepository extends JpaRepository<OrgInvEntity, Long> {
         where oivb.batchId in :batchIds
     """)
     List<OrgInvEntity> findAllByBatchIds(@Param("batchIds") List<Long> batchIds);
+
 }

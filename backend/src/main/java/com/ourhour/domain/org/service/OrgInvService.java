@@ -6,7 +6,6 @@ import com.ourhour.domain.auth.service.EmailSenderService;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.member.repository.MemberRepository;
-import com.ourhour.domain.org.dto.InviteInfoDTO;
 import com.ourhour.domain.org.dto.OrgInvReqDTO;
 import com.ourhour.domain.org.dto.OrgInvResDTO;
 import com.ourhour.domain.org.dto.OrgJoinReqDTO;
@@ -18,6 +17,7 @@ import com.ourhour.domain.org.entity.OrgParticipantMemberId;
 import com.ourhour.domain.org.enums.InvStatus;
 import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.exception.OrgException;
+import com.ourhour.domain.org.exception.OrgInvExcception;
 import com.ourhour.domain.org.mapper.OrgInvMapper;
 import com.ourhour.domain.org.repository.OrgInvBatchRepository;
 import com.ourhour.domain.org.repository.OrgInvRepository;
@@ -37,6 +37,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -52,6 +53,9 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
 
     @Value("${spring.service.url.front}")
     private String serviceBaseUrl;
+
+    private static final Pattern EMAIL_PATTERN =
+            Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
     public OrgInvService(EmailSenderService emailSenderService, OrgInvRepository orgInvRepository,
             OrgInvBatchRepository orgInvBatchRepository, OrgParticipantMemberRepository orgParticipantMemberRepository,
@@ -71,10 +75,14 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
     // STATUS = PENDING, isUsed = false
     // TODO : 비동기 처리하기
     @Transactional
-    public void sendInvLink(Long orgId, OrgInvReqDTO orgInvReqDTO) {
+    public void sendInvLink(Long orgId, List<OrgInvReqDTO> orgInvReqDTOList) {
+
+        Long userId = UserContextHolder.get().getUserId();
+
+        // 해당 유저의 이메일 확인
+        String currentUserEmail = userRepository.findByUserIdAndIsDeletedFalse(userId).get().getEmail();
 
         // 해당 userId가 orgId의 어떤 memberEntity인지 확인
-        Long userId = UserContextHolder.get().getUserId();
         MemberEntity memberEntity = memberRepository
                 .findMemberInOrgByUserId(orgId, userId).orElseThrow(MemberException::memberNotFoundException);
 
@@ -94,11 +102,25 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
 
         // 일괄 저장을 위한 리스트
         List<OrgInvEntity> orgInvEntityList = new ArrayList<>();
-        List<InviteInfoDTO> inviteInfoDTOList = orgInvReqDTO
-                .getInviteInfoDTOList();
 
-        for (InviteInfoDTO inviteInfoDTO : inviteInfoDTOList) {
-            String email = inviteInfoDTO.getEmail();
+        for (OrgInvReqDTO orgInvReqDTO : orgInvReqDTOList) {
+            String email = orgInvReqDTO.getEmail();
+
+            // 이메일 형식 체크
+            if (!EMAIL_PATTERN.matcher(email).matches()){
+                throw AuthException.invalidEmailFormatException();
+            }
+
+            // 본인 이메일 초대 금지
+            if (email.equalsIgnoreCase(currentUserEmail)) {
+                throw OrgInvExcception.selfInvitationNotAllowedException();
+            }
+
+            // 이미 조직에 참여 중인지 확인
+            boolean alreadyMember = orgParticipantMemberRepository.existsByOrgEntity_OrgIdAndMemberEntity_Email(orgId, email);            if (alreadyMember) {
+                throw MemberException.memberAlreadyExistsException();
+            }
+
             String token = sendVerificationEmail(
                     email,
                     serviceBaseUrl,
@@ -112,7 +134,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
                     orgInvBatchEntity,
                     token,
                     email,
-                    inviteInfoDTO.getRole(),
+                    orgInvReqDTO.getRole(),
                     LocalDateTime.now().plusMinutes(15));
             orgInvEntityList.add(orgInvEntity);
         }

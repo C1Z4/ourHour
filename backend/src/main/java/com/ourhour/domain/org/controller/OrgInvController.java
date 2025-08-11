@@ -8,6 +8,7 @@ import com.ourhour.domain.org.service.OrgInvService;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,9 +30,9 @@ public class OrgInvController {
 
     @OrgAuth(accessLevel = Role.ADMIN)
     @PostMapping("/{orgId}/invitation")
-    public ResponseEntity<ApiResponse<Void>> sendInvLink(@OrgId @PathVariable Long orgId, @RequestBody OrgInvReqDTO orgInvReqDTO) {
+    public ResponseEntity<ApiResponse<Void>> sendInvLink(@OrgId @PathVariable Long orgId, @RequestBody List<OrgInvReqDTO> orgInvReqDTOList) {
 
-        orgInvService.sendInvLink(orgId, orgInvReqDTO);
+        orgInvService.sendInvLink(orgId, orgInvReqDTOList);
 
         ApiResponse<Void> apiResponse = ApiResponse.success(null, "초대 메일이 발송되었습니다.");
 
@@ -61,9 +62,9 @@ public class OrgInvController {
     }
 
     @OrgAuth(accessLevel = Role.ADMIN)
-    @GetMapping("/{orgId}/invitation")
+    @GetMapping("/{orgId}/invitations")
     public ResponseEntity<ApiResponse<List<OrgInvResDTO>>> getInvList(@OrgId @PathVariable Long orgId) {
-  
+
         List<OrgInvResDTO> orgInvResDTOList = orgInvService.getInvList(orgId);
 
         ApiResponse<List<OrgInvResDTO>> apiResponse = ApiResponse.success(orgInvResDTOList,"초대 링크를 보낸 리스트 조회에 성공하였습니다.");
