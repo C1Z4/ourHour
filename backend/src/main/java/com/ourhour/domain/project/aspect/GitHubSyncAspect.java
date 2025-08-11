@@ -1,12 +1,11 @@
 package com.ourhour.domain.project.aspect;
 
-import java.util.concurrent.CompletableFuture;
-
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ourhour.domain.project.annotation.GitHubSync;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
@@ -32,6 +31,7 @@ public class GitHubSyncAspect {
 
     // 동기화 성공 시 동기화 수행
     @AfterReturning(pointcut = "@annotation(gitHubSync)", returning = "result", argNames = "joinPoint,gitHubSync,result")
+    @Transactional
     public void syncAfterSuccess(JoinPoint joinPoint, GitHubSync gitHubSync, Object result) {
         try {
             // API 응답이 성공인지 확인
@@ -40,20 +40,14 @@ public class GitHubSyncAspect {
             }
 
             // 동기화할 엔티티 추출
-            GitHubSyncableEntity entity = extractEntityFromResult(result, joinPoint, gitHubSync);
+            GitHubSyncableEntity extracted = extractEntityFromResult(result, joinPoint, gitHubSync);
+
+            final GitHubSyncableEntity entity = extracted;
             if (entity == null) {
                 log.warn("동기화할 엔티티를 찾을 수 없습니다 - Method: {}", joinPoint.getSignature().getName());
                 return;
             }
-
-            // 비동기적으로 GitHub 동기화 수행
-            CompletableFuture.runAsync(() -> {
-                try {
-                    syncManager.syncToGitHub(entity, gitHubSync.operation());
-                } catch (Exception e) {
-                    log.error("비동기 GitHub 동기화 실패", e);
-                }
-            });
+            syncManager.syncToGitHub(entity, gitHubSync.operation());
 
         } catch (Exception e) {
             log.error("GitHub 동기화 AOP 처리 중 오류 발생", e);
@@ -85,6 +79,7 @@ public class GitHubSyncAspect {
                 MileStoneInfoDTO dto = (MileStoneInfoDTO) data;
                 return milestoneRepository.findById(dto.getMilestoneId()).orElse(null);
             }
+
         }
 
         // 메서드 파라미터에서 엔티티 추출
@@ -97,4 +92,5 @@ public class GitHubSyncAspect {
 
         return null;
     }
+
 }
