@@ -19,9 +19,10 @@ interface PostInvRequest {
 
 const postInv = async (request: PostInvRequest): Promise<ApiResponse<void>> => {
   try {
-    const response = await axiosInstance.post(`/api/organizations/${request.orgId}/invitation`, {
-      inviteInfoDTOList: request.inviteInfoDTOList,
-    });
+    const response = await axiosInstance.post(
+      `/api/organizations/${request.orgId}/invitation`,
+      request.inviteInfoDTOList,
+    );
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);

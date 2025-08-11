@@ -1,32 +1,32 @@
 import { AxiosError } from 'axios';
 
 import { ApiResponse } from '@/types/apiTypes';
-import { MemberRoleEng } from '@/types/memberTypes';
+import { InvStatusKo } from '@/types/invTypes';
+import { MemberRoleKo } from '@/types/memberTypes';
 
+import { axiosInstance } from '@/api/axiosConfig.ts';
 import { logError } from '@/utils/auth/errorUtils';
 
-import axiosInstance from '../axiosConfig';
-
-interface InviteInfo {
-  email: string;
-  role: MemberRoleEng;
-}
-
-interface PostInvRequest {
+interface GetInvListRequest {
   orgId: number;
-  inviteInfoDTOList: InviteInfo[];
 }
 
-const postInv = async (request: PostInvRequest): Promise<ApiResponse<void>> => {
+export interface GetInvList {
+  email: string;
+  role: MemberRoleKo;
+  status: InvStatusKo;
+}
+
+export const getInvList = async (
+  request: GetInvListRequest,
+): Promise<ApiResponse<GetInvList[]>> => {
   try {
-    const response = await axiosInstance.post(`/api/organizations/${request.orgId}/invitation`, {
-      inviteInfoDTOList: request.inviteInfoDTOList,
-    });
+    const response = await axiosInstance.get<ApiResponse<GetInvList[]>>(
+      `/api/organizations/${request.orgId}/invitations`,
+    );
     return response.data;
-  } catch (error: unknown) {
+  } catch (error) {
     logError(error as AxiosError);
     throw error;
   }
 };
-
-export default postInv;
