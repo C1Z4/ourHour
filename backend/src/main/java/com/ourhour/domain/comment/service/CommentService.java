@@ -22,11 +22,13 @@ import com.ourhour.domain.board.entity.PostEntity;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.IssueEntity;
+import com.ourhour.domain.project.enums.SyncOperation;
 import com.ourhour.domain.project.repository.IssueRepository;
 import com.ourhour.domain.board.repository.PostRepository;
 import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.board.exception.PostException;
 import com.ourhour.domain.project.exception.IssueException;
+import com.ourhour.domain.project.sync.GitHubSyncManager;
 import com.ourhour.global.exception.BusinessException;
 import com.ourhour.global.exception.ErrorCode;
 
@@ -41,6 +43,7 @@ public class CommentService {
     private final MemberRepository memberRepository;
     private final PostRepository postRepository;
     private final IssueRepository issueRepository;
+    private final GitHubSyncManager gitHubSyncManager;
 
     @Cacheable(value = "comments", key = "#postId + '_' + #issueId + '_' + #currentPage + '_' + #size")
     public CommentPageResDTO getComments(Long postId, Long issueId, int currentPage, int size) {
@@ -149,6 +152,11 @@ public class CommentService {
 
         commentRepository.save(commentEntity);
 
+        // GitHub에도 동기화 (이슈 댓글인 경우에만)
+        if (issueEntity != null) {
+            gitHubSyncManager.syncToGitHub(commentEntity, SyncOperation.CREATE);
+        }
+
     }
 
     // 댓글 생성 요청 검증
@@ -186,6 +194,10 @@ public class CommentService {
         commentMapper.updateCommentEntity(commentEntity, commentUpdateReqDTO);
 
         commentRepository.save(commentEntity);
+
+        if (commentEntity.getIssueEntity() != null) {
+            gitHubSyncManager.syncToGitHub(commentEntity, SyncOperation.UPDATE);
+        }
     }
 
     // 댓글 수정 요청 검증
@@ -207,6 +219,10 @@ public class CommentService {
     public void deleteComment(Long commentId) {
         CommentEntity commentEntity = commentRepository.findById(commentId)
                 .orElseThrow(() -> CommentException.commentNotFoundException());
+
+        if (commentEntity.getIssueEntity() != null) {
+            gitHubSyncManager.syncToGitHub(commentEntity, SyncOperation.DELETE);
+        }
 
         commentRepository.delete(commentEntity);
     }

@@ -3,6 +3,7 @@ package com.ourhour.domain.comment.entity;
 import com.ourhour.domain.board.entity.PostEntity;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.project.entity.IssueEntity;
+import com.ourhour.domain.project.entity.GitHubSyncableEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class CommentEntity {
+public class CommentEntity extends GitHubSyncableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,9 +42,13 @@ public class CommentEntity {
     private Long parentCommentId;
     @Setter
     private String content;
-    
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Override
+    public Long getId() {
+        return commentId;
+    }
 }
