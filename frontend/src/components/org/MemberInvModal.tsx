@@ -87,6 +87,8 @@ export function MemberInvModal({
         })),
       });
 
+      console.log('초대 API 응답:', response);
+
       showSuccessToast('초대 메일을 성공적으로 전송했습니다.');
       onInvite?.(entries);
       onClose();

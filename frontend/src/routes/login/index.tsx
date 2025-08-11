@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { createFileRoute, useRouter, useSearch } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 
+import postAcceptInv from '@/api/org/postAcceptInv';
 import landingImage from '@/assets/images/landing-2.jpg';
 import ErrorMessage from '@/components/auth/ErrorMessage';
 import LoginForm from '@/components/auth/LoginForm';
@@ -10,6 +11,7 @@ import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import { AUTH_MESSAGES, PLATFORM_NAME } from '@/constants/messages';
 import { useSigninMutation } from '@/hooks/queries/auth/useAuthMutations';
 import { useAppSelector } from '@/stores/hooks';
+import { getInviteToken, clearInviteToken } from '@/utils/auth/inviteTokenStorage';
 
 export const Route = createFileRoute('/login/')({
   component: LoginPage,
@@ -48,8 +50,22 @@ function LoginPage() {
     signinMutation.mutate(
       { email, password, platform: PLATFORM_NAME },
       {
-        onSuccess: () => {
-          router.navigate({ to: '/start', search: { page: 1 } });
+        onSuccess: async () => {
+          const inviteData = getInviteToken();
+          if (inviteData) {
+            try {
+              await postAcceptInv({ token: inviteData.token });
+              clearInviteToken();
+              router.navigate({
+                to: `/org/${inviteData.orgId}/info`,
+              });
+            } catch (e) {
+              // 실패해도 로그인은 된 상태이므로 기본 페이지로 이동 가능
+              router.navigate({ to: '/start', search: { page: 1 } });
+            }
+          } else {
+            router.navigate({ to: '/start', search: { page: 1 } });
+          }
         },
         onError: () => {
           setLoginError(AUTH_MESSAGES.LOGIN_FAILED);

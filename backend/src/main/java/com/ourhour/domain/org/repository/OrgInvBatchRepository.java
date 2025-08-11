@@ -8,6 +8,12 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface OrgInvBatchRepository extends JpaRepository<OrgInvBatchEntity, Long> {
+    @Query("""
+        select oivb.orgParticipantMemberEntity.orgEntity.orgId
+        from OrgInvBatchEntity oivb
+        join oivb.orgParticipantMemberEntity opm
+        where oivb.batchId=:batchId
+    """)
     Long findOrgIdByBatchId(Long batchId);
 
     @Query("""

@@ -4,7 +4,7 @@ import { createFileRoute, useRouter } from '@tanstack/react-router';
 
 import { MemberRoleKo } from '@/types/memberTypes';
 
-import getMyMemberInfo from '@/api/member/getMyMemberInfo';
+import { getMyMemberInfo } from '@/api/member/memberApi';
 import { MemberInvModal } from '@/components/org/MemberInvModal';
 
 export const Route = createFileRoute('/org/$orgId/invite/')({

@@ -1,12 +1,17 @@
 import { useState } from 'react';
 
-import { Trash2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+
+import { useParams } from '@tanstack/react-router';
+import { Trash2, UserRoundPlus } from 'lucide-react';
 
 import { Member, MemberRoleKo } from '@/types/memberTypes';
 
+import { getMyMemberInfo } from '@/api/member/memberApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
+import { MemberInvModal } from '@/components/org/MemberInvModal.tsx';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -51,7 +56,19 @@ export const ProjectMembersTable = ({
   setCurrentPage,
   onDelete,
 }: ProjectMembersTableProps) => {
+  const { orgId } = useParams({ from: '/org/$orgId/info/' });
+
   const [isParticipantDeleteModalOpen, setIsParticipantDeleteModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false); // 구성원 초대 모달 상태 추가
+
+  // 현재 로그인한 사용자 정보 가져오기
+  const { data: myMemberInfo } = useQuery({
+    queryKey: ['myMemberInfo', Number(orgId)],
+    queryFn: () => getMyMemberInfo({ orgId: Number(orgId) }),
+  });
+
+  const currentUserRole = myMemberInfo?.role;
+
   const handleParticipantDeleteModalClose = () => {
     setIsParticipantDeleteModalOpen(false);
   };
@@ -91,7 +108,13 @@ export const ProjectMembersTable = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end h-10">
+      <div className="flex justify-end h-10 gap-2">
+        {type === 'org' && (currentUserRole === '루트관리자' || currentUserRole === '관리자') && (
+          <ButtonComponent variant="primary" onClick={() => setIsInviteModalOpen(true)}>
+            <UserRoundPlus className="w-4 h-4" />
+            구성원 초대
+          </ButtonComponent>
+        )}
         {selectedMemberIds.length > 0 && (
           <ButtonComponent
             variant="danger"
@@ -213,6 +236,14 @@ export const ProjectMembersTable = ({
             </ButtonComponent>
           </div>
         </ModalComponent>
+      )}
+      {isInviteModalOpen && currentUserRole && (
+        <MemberInvModal
+          orgId={Number(orgId)}
+          isOpen={isInviteModalOpen}
+          onClose={() => setIsInviteModalOpen(false)}
+          currentUserRole={currentUserRole}
+        />
       )}
     </div>
   );
