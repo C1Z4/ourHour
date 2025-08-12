@@ -59,7 +59,7 @@ jobs:
 
       # test
       - name: Run Tests with Gradle
-        run: ./gradlew test --no-daemon -Dspring.profiles.active=test
+        run: ./gradlew test --no-daemon
         working-directory: ./backend
 
       # test 제외 build
