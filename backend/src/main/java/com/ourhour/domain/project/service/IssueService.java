@@ -1,5 +1,9 @@
 package com.ourhour.domain.project.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.ourhour.domain.project.dto.IssueTagDTO;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.domain.project.dto.IssueSummaryDTO;
 import com.ourhour.domain.project.dto.IssueReqDTO;
@@ -12,11 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.project.entity.IssueEntity;
+import com.ourhour.domain.project.entity.IssueTagEntity;
 import com.ourhour.domain.project.entity.MilestoneEntity;
 import com.ourhour.domain.project.entity.ProjectEntity;
 import com.ourhour.domain.project.enums.SyncOperation;
 import com.ourhour.domain.project.mapper.IssueMapper;
+import com.ourhour.domain.project.mapper.IssueTagMapper;
 import com.ourhour.domain.project.repository.IssueRepository;
+import com.ourhour.domain.project.repository.IssueTagRepository;
 import com.ourhour.domain.project.repository.ProjectRepository;
 import com.ourhour.domain.project.repository.MilestoneRepository;
 import com.ourhour.domain.member.entity.MemberEntity;
@@ -42,6 +49,8 @@ public class IssueService {
     private final ProjectRepository projectRepository;
     private final MemberRepository memberRepository;
     private final ProjectParticipantService projectParticipantService;
+    private final IssueTagRepository issueTagRepository;
+    private final IssueTagMapper issueTagMapper;
 
     // 특정 마일스톤의 이슈 목록 조회 (milestoneId가 null이면 마일스톤이 할당되지 않은 이슈들 조회)
     public ApiResponse<PageResponse<IssueSummaryDTO>> getMilestoneIssues(Long projectId, Long milestoneId,
@@ -178,6 +187,15 @@ public class IssueService {
             issueEntity.setMilestoneEntity(null);
         }
 
+        // 태그 설정
+        if (issueReqDTO.getIssueTagId() != null) {
+            IssueTagEntity issueTag = issueTagRepository.findById(issueReqDTO.getIssueTagId())
+                    .orElseThrow(() -> IssueException.issueTagNotFoundException());
+            issueEntity.setIssueTagEntity(issueTag);
+        } else {
+            issueEntity.setIssueTagEntity(null);
+        }
+
         IssueEntity savedIssueEntity = issueRepository.save(issueEntity);
 
         IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(savedIssueEntity);
@@ -218,5 +236,79 @@ public class IssueService {
         issueRepository.deleteById(issueId);
 
         return ApiResponse.success(null, "이슈 삭제에 성공했습니다.");
+    }
+
+    // 이슈 태그 조회
+    public ApiResponse<List<IssueTagDTO>> getIssueTags(Long projectId) {
+        if (projectId <= 0) {
+            throw ProjectException.projectNotFoundException();
+        }
+
+        List<IssueTagEntity> issueTagEntities = issueTagRepository.findByProjectEntity_ProjectId(projectId);
+
+        if (issueTagEntities.isEmpty()) {
+            return ApiResponse.success(null, "이슈 태그가 존재하지 않습니다.");
+        }
+
+        return ApiResponse.success(issueTagEntities.stream()
+                .map(issueTagMapper::toIssueTagDTO)
+                .collect(Collectors.toList()), "이슈 태그 조회에 성공했습니다.");
+    }
+
+    // 이슈 태그 등록
+    @Transactional
+    public ApiResponse<Void> createIssueTag(Long projectId, IssueTagDTO issueTagDTO) {
+        if (projectId <= 0) {
+            throw ProjectException.projectNotFoundException();
+        }
+
+        ProjectEntity projectEntity = projectRepository.findById(projectId)
+                .orElseThrow(() -> ProjectException.projectNotFoundException());
+
+        IssueTagEntity issueTagEntity = issueTagMapper.toIssueTagEntity(issueTagDTO);
+
+        issueTagEntity.setProjectEntity(projectEntity);
+
+        issueTagRepository.save(issueTagEntity);
+
+        return ApiResponse.success(null, "이슈 태그 등록에 성공했습니다.");
+    }
+
+    // 이슈 태그 수정
+    @Transactional
+    public ApiResponse<Void> updateIssueTag(Long projectId, Long issueTagId, IssueTagDTO issueTagDTO) {
+        if (projectId <= 0) {
+            throw ProjectException.projectNotFoundException();
+        }
+
+        if (issueTagId <= 0) {
+            throw IssueException.issueNotFoundException();
+        }
+
+        IssueTagEntity issueTagEntity = issueTagRepository.findById(issueTagId)
+                .orElseThrow(() -> IssueException.issueTagNotFoundException());
+
+        issueTagMapper.updateIssueTagEntity(issueTagEntity, issueTagDTO);
+
+        return ApiResponse.success(null, "이슈 태그 수정에 성공했습니다.");
+    }
+
+    // 이슈 태그 삭제
+    @Transactional
+    public ApiResponse<Void> deleteIssueTag(Long projectId, Long issueTagId) {
+        if (projectId <= 0) {
+            throw ProjectException.projectNotFoundException();
+        }
+
+        if (issueTagId <= 0) {
+            throw IssueException.issueNotFoundException();
+        }
+
+        IssueTagEntity issueTagEntity = issueTagRepository.findById(issueTagId)
+                .orElseThrow(() -> IssueException.issueTagNotFoundException());
+
+        issueTagRepository.delete(issueTagEntity);
+
+        return ApiResponse.success(null, "이슈 태그 삭제에 성공했습니다.");
     }
 }
