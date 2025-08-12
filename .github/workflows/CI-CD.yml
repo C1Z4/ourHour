@@ -57,8 +57,14 @@ jobs:
           echo "APPLICATION_GITHUB_REDIRECT_URI=${{ secrets.APPLICATION_GITHUB_REDIRECT_URI }}" >> $GITHUB_ENV
           echo "APPLICATION_GITHUB_SCOPE=${{ secrets.APPLICATION_GITHUB_SCOPE }}" >> $GITHUB_ENV
 
-      - name: Build with Gradle
-        run: ./gradlew clean build --no-daemon
+      # test
+      - name: Run Tests with Gradle
+        run: ./gradlew test --no-daemon -Dspring.profiles.active=test
+        working-directory: ./backend
+
+      # test 제외 build
+      - name: Build JAR for Deployment
+        run: ./gradlew clean bootJar --no-daemon
         working-directory: ./backend
 
       - name: Upload JAR artifact
