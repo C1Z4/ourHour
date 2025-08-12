@@ -8,6 +8,12 @@ import {
   PostCreateIssueRequest,
   PutUpdateIssueRequest,
   putUpdateIssue,
+  PostCreateIssueTagRequest,
+  postCreateIssueTag,
+  PutUpdateIssueTagRequest,
+  putUpdateIssueTag,
+  DeleteIssueTagRequest,
+  deleteIssueTag,
 } from '@/api/project/issueApi';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
@@ -72,5 +78,54 @@ export const useIssueDeleteMutation = (issueId: number, orgId: number, projectId
 
     onError: (error: AxiosError) => {
       showErrorToast('이슈 삭제에 실패하였습니다.');
+    },
+  });
+
+// ======== 이슈 태그 생성 ========
+export const useIssueTagCreateMutation = (projectId: number) =>
+  useMutation({
+    mutationFn: (request: PostCreateIssueTagRequest) => postCreateIssueTag(request),
+    onSuccess: () => {
+      showSuccessToast('이슈 태그 생성에 성공하였습니다.');
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_TAG_LIST, projectId],
+        exact: false,
+      });
+    },
+
+    onError: (error: AxiosError) => {
+      showErrorToast('이슈 태그 생성에 실패하였습니다.');
+    },
+  });
+
+// ======== 이슈 태그 수정 ========
+export const useIssueTagUpdateMutation = (projectId: number) =>
+  useMutation({
+    mutationFn: (request: PutUpdateIssueTagRequest) => putUpdateIssueTag(request),
+    onSuccess: () => {
+      showSuccessToast('이슈 태그 수정에 성공하였습니다.');
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_TAG_LIST, projectId],
+        exact: false,
+      });
+    },
+    onError: (error: AxiosError) => {
+      showErrorToast('이슈 태그 수정에 실패하였습니다.');
+    },
+  });
+
+// ======== 이슈 태그 삭제 ========
+export const useIssueTagDeleteMutation = (projectId: number) =>
+  useMutation({
+    mutationFn: (request: DeleteIssueTagRequest) => deleteIssueTag(request),
+    onSuccess: () => {
+      showSuccessToast('이슈 태그 삭제에 성공하였습니다.');
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_TAG_LIST, projectId],
+        exact: false,
+      });
+    },
+    onError: (error: AxiosError) => {
+      showErrorToast('이슈 태그 삭제에 실패하였습니다.');
     },
   });

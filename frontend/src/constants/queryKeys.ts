@@ -3,6 +3,7 @@ export const PROJECT_QUERY_KEYS = {
   MILESTONE_LIST: 'projectMilestoneList',
   ISSUE_LIST: 'projectIssueList',
   ISSUE_DETAIL: 'projectIssueDetail',
+  ISSUE_TAG_LIST: 'projectIssueTagList',
   PROJECT_INFO: 'projectInfo',
   PARTICIPANT_LIST: 'projectParticipantList',
   GITHUB_SYNC_STATUS: 'githubSyncStatus',
