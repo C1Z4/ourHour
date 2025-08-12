@@ -31,7 +31,7 @@ public class GitHubController {
     private final GithubIntegrationService githubIntegrationService;
 
     // GitHub 토큰으로 레포지토리 목록 조회
-    @GetMapping("/token/repositories")
+    @PostMapping("/token/repositories")
     @Operation(summary = "토큰으로 레포지토리 목록 조회", description = "GitHub 토큰으로 레포지토리 목록을 조회합니다.")
     public ApiResponse<List<GitHubRepositoryResDTO>> getGitHubRepositoriesByToken(
             @RequestBody GitHubTokenReqDTO token) {
