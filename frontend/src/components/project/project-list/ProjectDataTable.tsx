@@ -25,7 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useProjectSummaryListQuery } from '@/hooks/queries/project/useProjectQueries';
-import { setCurrentProjectName } from '@/stores/projectSlice';
+import { setCurrentProjectId, setCurrentProjectName } from '@/stores/projectSlice';
 
 import { ProjectColumns } from './ProjectColumns';
 
@@ -76,6 +76,7 @@ export function ProjectDataTable() {
       to: '/org/$orgId/project/$projectId',
       params: { orgId, projectId },
     });
+    dispatch(setCurrentProjectId(projectId));
     dispatch(setCurrentProjectName(projectName));
   };
 

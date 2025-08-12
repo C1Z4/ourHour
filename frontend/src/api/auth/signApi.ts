@@ -4,7 +4,7 @@ import { ApiResponse } from '@/types/apiTypes';
 
 import { axiosInstance } from '@/api/axiosConfig';
 import { clearAllMemberNames } from '@/stores/memberSlice';
-import { clearCurrentProjectName } from '@/stores/projectSlice';
+import { clearCurrentProject } from '@/stores/projectSlice';
 import { logError } from '@/utils/auth/errorUtils';
 import { loginUser, logout } from '@/utils/auth/tokenUtils';
 
@@ -59,7 +59,7 @@ export const postSignout = async (): Promise<ApiResponse<void>> => {
 
     logout();
     clearAllMemberNames();
-    clearCurrentProjectName();
+    clearCurrentProject();
 
     return response.data;
   } catch (error: unknown) {

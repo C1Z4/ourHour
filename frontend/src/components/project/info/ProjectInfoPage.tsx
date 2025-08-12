@@ -4,9 +4,9 @@ import { useRouter } from '@tanstack/react-router';
 
 import { ProjectBaseInfo, PutUpdateProjectRequest } from '@/api/project/projectApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { MembersTable } from '@/components/common/MembersTable';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { StatusBadge } from '@/components/common/StatusBadge';
-import { ProjectMembersTable } from '@/components/project/info/ProjectMembersTable';
 import { ProjectModal } from '@/components/project/modal/ProjectModal';
 import { Input } from '@/components/ui/input';
 import { ORG_QUERY_KEYS } from '@/constants/queryKeys';
@@ -175,7 +175,7 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
             <p className="text-gray-600 text-lg mb-8">{projectInfo?.description}</p>
           </div>
 
-          <ProjectMembersTable
+          <MembersTable
             type="project"
             projectMembers={projectMembers}
             selectedMemberIds={selectedMemberIds}
