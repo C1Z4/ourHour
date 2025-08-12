@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
-import { Github, Info, Plus } from 'lucide-react';
+import { Github, Info, Plus, RefreshCw } from 'lucide-react';
 
 import type { GithubRepository } from '@/api/project/githubApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
@@ -62,7 +62,9 @@ export const ProjectDashboardHeader = ({
     useGithubRepositoryListByTokenMutation();
   const { mutate: connectGithub, isPending: isConnecting } = useGithubConnectMutation();
   const { mutate: disconnectGithub } = useGithubDisconnectMutation(Number(projectId));
-  const { mutate: syncAllData } = useGithubSyncAllMutation(Number(projectId));
+  const { mutate: syncAllData, isPending: isSyncingAll } = useGithubSyncAllMutation(
+    Number(projectId),
+  );
 
   useEffect(() => {
     if (
@@ -116,6 +118,14 @@ export const ProjectDashboardHeader = ({
         setGithubToken('');
         setSelectedRepository('');
         setRepositoryOptions([]);
+        window.location.reload();
+      },
+    });
+  };
+
+  const handleSyncAll = () => {
+    syncAllData(undefined, {
+      onSuccess: () => {
         window.location.reload();
       },
     });
@@ -192,7 +202,18 @@ export const ProjectDashboardHeader = ({
             onClick={handleProjectInfo}
           />
           {isGithubSyncing ? (
-            <>
+            <div className="flex items-center gap-2">
+              <ButtonComponent
+                variant="secondary"
+                size="icon"
+                className="cursor-pointer"
+                onClick={handleSyncAll}
+                aria-label="GitHub 데이터 동기화"
+                title="데이터 동기화"
+                disabled={isSyncingAll}
+              >
+                <RefreshCw className={`h-4 w-4 ${isSyncingAll ? 'animate-spin' : ''}`} />
+              </ButtonComponent>
               <ButtonComponent
                 variant="danger"
                 size="sm"
@@ -202,7 +223,7 @@ export const ProjectDashboardHeader = ({
                 <Github className="size-5 text-muted-foreground text-white" />
                 깃허브 연동해제
               </ButtonComponent>
-            </>
+            </div>
           ) : (
             <ButtonComponent
               variant="primary"
