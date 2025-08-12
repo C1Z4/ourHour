@@ -6,9 +6,9 @@ import { MEMBER_ROLE_KO_TO_ENG, MemberRoleKo } from '@/types/memberTypes';
 
 import { OrgBaseInfo } from '@/api/org/orgApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { MembersTable } from '@/components/common/MembersTable';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { OrgModal } from '@/components/org/OrgModal';
-import { ProjectMembersTable } from '@/components/project/info/ProjectMembersTable';
 import { Input } from '@/components/ui/input';
 import {
   useMemberDeleteMutation,
@@ -254,7 +254,7 @@ function OrgInfoPage() {
             </div>
           </div>
 
-          <ProjectMembersTable
+          <MembersTable
             type="org"
             projectMembers={orgMembers}
             selectedMemberIds={selectedMemberIds}

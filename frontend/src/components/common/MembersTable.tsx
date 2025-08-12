@@ -2,7 +2,6 @@ import { useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { useParams } from '@tanstack/react-router';
 import { Trash2, UserRoundPlus } from 'lucide-react';
 
 import { Member, MemberRoleKo } from '@/types/memberTypes';
@@ -30,8 +29,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { MEMBER_ROLE_STYLES } from '@/constants/badges';
+import { useAppSelector } from '@/stores/hooks';
 
-interface ProjectMembersTableProps {
+interface MembersTableProps {
   type: 'project' | 'org';
   projectMembers?: Member[];
   selectedMemberIds: number[];
@@ -44,7 +44,7 @@ interface ProjectMembersTableProps {
   onDelete: () => void;
 }
 
-export const ProjectMembersTable = ({
+export const MembersTable = ({
   type,
   projectMembers,
   selectedMemberIds,
@@ -55,19 +55,20 @@ export const ProjectMembersTable = ({
   currentPage,
   setCurrentPage,
   onDelete,
-}: ProjectMembersTableProps) => {
-  const { orgId } = useParams({ from: '/org/$orgId/info/' });
+}: MembersTableProps) => {
+  const orgId = useAppSelector((state) => state.activeOrgId.currentOrgId);
+  const projectId = useAppSelector((state) => state.projectName.currentProjectId);
 
   const [isParticipantDeleteModalOpen, setIsParticipantDeleteModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false); // 구성원 초대 모달 상태 추가
 
   // 현재 로그인한 사용자 정보 가져오기
   const { data: myMemberInfo } = useQuery({
-    queryKey: ['myMemberInfo', Number(orgId)],
-    queryFn: () => getMyMemberInfo({ orgId: Number(orgId) }),
+    queryKey: ['myMemberInfo', Number(orgId || projectId)],
+    queryFn: () => getMyMemberInfo({ orgId: Number(orgId || projectId) }),
   });
 
-  const currentUserRole = myMemberInfo?.role;
+  const currentUserRole = myMemberInfo && 'role' in myMemberInfo ? myMemberInfo.role : null;
 
   const handleParticipantDeleteModalClose = () => {
     setIsParticipantDeleteModalOpen(false);
@@ -237,12 +238,12 @@ export const ProjectMembersTable = ({
           </div>
         </ModalComponent>
       )}
-      {isInviteModalOpen && currentUserRole && (
+      {isInviteModalOpen && (
         <MemberInvModal
           orgId={Number(orgId)}
           isOpen={isInviteModalOpen}
           onClose={() => setIsInviteModalOpen(false)}
-          currentUserRole={currentUserRole}
+          currentUserRole={currentUserRole as MemberRoleKo}
         />
       )}
     </div>
