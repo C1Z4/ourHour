@@ -77,7 +77,7 @@ public class MilestoneService {
     }
 
     // 마일스톤 삭제
-    @GitHubSync(operation = SyncOperation.DELETE)
+    @GitHubSync(operation = SyncOperation.DELETE, entityParam = "milestoneId")
     @Transactional
     public ApiResponse<Void> deleteMilestone(Long milestoneId, Claims claims) {
         if (milestoneId <= 0) {

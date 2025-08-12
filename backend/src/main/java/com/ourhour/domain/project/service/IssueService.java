@@ -186,7 +186,7 @@ public class IssueService {
     }
 
     // 이슈 삭제
-    @GitHubSync(operation = SyncOperation.DELETE)
+    @GitHubSync(operation = SyncOperation.DELETE, entityParam = "issueId")
     @Transactional
     public ApiResponse<Void> deleteIssue(Long issueId, Claims claims) {
         if (issueId <= 0) {
