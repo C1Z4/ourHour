@@ -1,5 +1,6 @@
 import { IssueDetail } from '@/api/project/issueApi';
 import { StatusBadge } from '@/components/common/StatusBadge';
+import { computeHexColor } from '@/components/project/issue-form/TagSelect';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 
@@ -12,11 +13,15 @@ export const IssueDetailSidebar = ({ issue }: IssueDetailSidebarProps) => (
     <div className="space-y-6">
       <div>
         <h3 className="text-sm font-medium text-gray-700 mb-2">태그</h3>
-        {issue.tag && (
-          <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            {issue.tag}
-          </div>
-        )}
+        <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
+          {issue.tagColor && (
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: computeHexColor(issue.tagColor) }}
+            />
+          )}
+          {issue.tagName || '태그없음'}
+        </div>
       </div>
 
       <Separator />
