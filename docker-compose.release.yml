@@ -1,3 +1,7 @@
+networks:
+  internal:
+    driver: bridge
+
 services:
   # backend
   backend:
@@ -6,3 +10,21 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: release
     restart: unless-stopped
+
+  # db
+  db:
+    image: mysql:8
+    container_name: release-db
+    ports:
+      - "3306:3306"
+    environment:
+      SPRING_PROFILES_ACTIVE: release
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 60s
+      retries: 10
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:

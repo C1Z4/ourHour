@@ -28,7 +28,6 @@ spring:
   service:
     url:
       front: ${url.front}
-    base-url-email: http://localhost:8080
 
 # JWT 관련 설정
 jwt:
@@ -36,6 +35,16 @@ jwt:
   access-token-validity-in-seconds: ${jwt.access-token}
   refresh-token-validity-in-seconds: ${jwt.refresh-token}
 
+# 암호화 설정
+encryption:
+  secret-key: ${encryption.secret-key}
+
+# GitHub OAuth 설정
+github:
+  client-id: ${github.client-id}
+  client-secret: ${github.client-secret}
+  redirect-uri: ${github.redirect-uri}
+  scope: ${github.scope}
 
 # AWS 설정 (지역 및 인증 프로파일)
 cloud:
@@ -45,4 +54,3 @@ cloud:
     credentials:
       profile:
         name: default
-

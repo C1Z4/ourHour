@@ -23,7 +23,6 @@ spring:
   service:
     url:
       front: ${FRONTEND_URL}
-    base-url-email: ${BASE_URL_EMAIL}
 
 # JWT 관련 설정
 jwt:
