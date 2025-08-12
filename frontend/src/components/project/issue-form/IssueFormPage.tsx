@@ -2,31 +2,23 @@ import { useEffect, useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
 
-import {
-  ISSUE_STATUS_ENG_TO_KO,
-  ISSUE_STATUS_KO_TO_ENG,
-  IssueStatusEng,
-  IssueStatusKo,
-} from '@/types/issueTypes';
+import { ISSUE_STATUS_KO_TO_ENG, IssueStatusEng, IssueStatusKo } from '@/types/issueTypes';
 
 import { IssueDetail } from '@/api/project/issueApi';
-import { ButtonComponent } from '@/components/common/ButtonComponent';
-import { StatusBadge } from '@/components/common/StatusBadge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AssigneeSelect } from '@/components/project/issue-form/AssigneeSelect';
+import { IssueFormActions } from '@/components/project/issue-form/IssueFormActions';
+import { MilestoneSelect } from '@/components/project/issue-form/MilestoneSelect';
+import { StatusSelect } from '@/components/project/issue-form/StatusSelect';
+import { TagManagerModal } from '@/components/project/issue-form/TagManagerModal';
+import { TagSelect } from '@/components/project/issue-form/TagSelect';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { FORM_MESSAGES, ISSUE_TAGS } from '@/constants/issueConstants';
+import { FORM_MESSAGES } from '@/constants/issueConstants';
 import {
   useIssueCreateMutation,
   useIssueUpdateMutation,
 } from '@/hooks/queries/project/useIssueMutations';
+import { useProjectIssueTagListQuery } from '@/hooks/queries/project/useIssueQueries';
 import { useProjectMilestoneListQuery } from '@/hooks/queries/project/useMilestoneQueries';
 import { useProjectParticipantListQuery } from '@/hooks/queries/project/useProjectQueries';
 
@@ -50,6 +42,9 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
 
   const { data: milestoneList } = useProjectMilestoneListQuery(Number(projectId));
 
+  const { data: issueTagListData } = useProjectIssueTagListQuery(Number(projectId));
+  const issueTags = Array.isArray(issueTagListData) ? issueTagListData : [];
+
   const { data: projectParticipantListData } = useProjectParticipantListQuery(
     Number(projectId),
     Number(orgId),
@@ -63,14 +58,17 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
 
   const isEditing = !!issueId;
 
+  const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
+
   useEffect(() => {
     if (initialData) {
-      const { milestoneId, status, tag, assigneeId, ...rest } = initialData;
+      const { milestoneId, status, issueTagId, assigneeId, tagName, tagColor, ...rest } =
+        initialData;
       setFormData({
         ...rest,
         milestoneId: milestoneId || null,
         status: status ? ISSUE_STATUS_KO_TO_ENG[status as IssueStatusKo] || 'BACKLOG' : 'BACKLOG',
-        tag: tag || null,
+        issueTagId: issueTagId || null,
         assigneeId: assigneeId || null,
       });
     }
@@ -81,7 +79,7 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
     content: '',
     milestoneId: null as number | null,
     status: 'BACKLOG' as IssueStatusEng,
-    tag: null as string | null,
+    issueTagId: null as number | null,
     assigneeId: null as number | null,
   });
 
@@ -91,6 +89,14 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
   });
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
+    if (field === 'milestoneId') {
+      setFormData((prev) => ({
+        ...prev,
+        milestoneId: value === 'no-milestone' ? null : Number(value),
+      }));
+      return;
+    }
+
     if (field === 'assigneeId') {
       setFormData((prev) => ({
         ...prev,
@@ -99,10 +105,10 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
       return;
     }
 
-    if (field === 'tag') {
+    if (field === 'issueTagId') {
       setFormData((prev) => ({
         ...prev,
-        tag: value === 'no-tag' ? null : value,
+        issueTagId: value === 'no-tag' ? null : Number(value),
       }));
       return;
     }
@@ -116,6 +122,8 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
       setErrors((prev) => ({ ...prev, content: '' }));
     }
   };
+
+  const openCreateTag = () => setIsTagManagerOpen(true);
 
   const validateForm = () => {
     const newErrors = {
@@ -141,6 +149,7 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
         name: formData.name,
         content: formData.content,
         status: formData.status as IssueStatusEng,
+        issueTagId: formData.issueTagId,
       };
 
       createIssue(issueData, {
@@ -162,6 +171,7 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
       name: formData.name,
       content: formData.content,
       status: formData.status as IssueStatusEng,
+      issueTagId: formData.issueTagId,
     };
 
     updateIssue(
@@ -189,27 +199,11 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
         </h1>
 
         <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">마일스톤</label>
-            <Select
-              value={formData.milestoneId?.toString() || ''}
-              onValueChange={(value) => handleInputChange('milestoneId', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="마일스톤을 선택하세요" />
-              </SelectTrigger>
-              <SelectContent>
-                {milestones?.map((milestone) => (
-                  <SelectItem
-                    key={milestone.milestoneId}
-                    value={milestone.milestoneId?.toString() || ''}
-                  >
-                    {milestone.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <MilestoneSelect
+            milestones={milestones}
+            value={formData.milestoneId}
+            onChange={(v) => handleInputChange('milestoneId', v ? String(v) : 'no-milestone')}
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -239,91 +233,50 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
 
           <div className="flex gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">상태</label>
-              <Select
+              <StatusSelect
                 value={formData.status}
-                onValueChange={(value) => handleInputChange('status', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="상태를 선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(ISSUE_STATUS_ENG_TO_KO).map((status) => (
-                    <SelectItem key={status} value={status}>
-                      <StatusBadge
-                        status={
-                          ISSUE_STATUS_ENG_TO_KO[status as keyof typeof ISSUE_STATUS_ENG_TO_KO]
-                        }
-                        type="issue"
-                      />
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={(v) => handleInputChange('status', v)}
+              />
             </div>
 
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">태그</label>
-              <Select
-                value={formData.tag || ''}
-                onValueChange={(value) => handleInputChange('tag', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="태그를 선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="no-tag">태그 없음</SelectItem>
-                  {ISSUE_TAGS.map((tag) => (
-                    <SelectItem key={tag.value} value={tag.value}>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${tag.color}`} />
-                        {tag.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <TagSelect
+                tags={issueTags}
+                value={formData.issueTagId?.toString() || ''}
+                onChange={(value) =>
+                  handleInputChange('issueTagId', value === 'no-tag' ? 'no-tag' : (value ?? ''))
+                }
+                onOpenManager={openCreateTag}
+              />
             </div>
 
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">할당자</label>
-              <Select
-                value={formData.assigneeId?.toString() || ''}
-                onValueChange={(value) => handleInputChange('assigneeId', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="할당자를 선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="no-assignee">할당자 없음</SelectItem>
-                  {participants?.map((assignee) => (
-                    <SelectItem key={assignee.memberId} value={assignee.memberId.toString()}>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="w-6 h-6">
-                          <AvatarImage src={assignee.profileImgUrl} alt={assignee.name} />
-                          <AvatarFallback className="text-xs">
-                            {assignee.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        {assignee.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <AssigneeSelect
+                assignees={participants}
+                value={formData.assigneeId}
+                onChange={(v) => handleInputChange('assigneeId', v ? String(v) : 'no-assignee')}
+              />
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-6">
-            <ButtonComponent variant="danger" onClick={handleCancel}>
-              취소
-            </ButtonComponent>
-            <ButtonComponent onClick={handleSubmit}>
-              {isEditing ? '수정 완료' : '등록 완료'}
-            </ButtonComponent>
-          </div>
+          <IssueFormActions isEditing={isEditing} onCancel={handleCancel} onSubmit={handleSubmit} />
         </div>
       </div>
+
+      {isTagManagerOpen && (
+        <TagManagerModal
+          projectId={Number(projectId)}
+          isOpen={isTagManagerOpen}
+          onClose={() => setIsTagManagerOpen(false)}
+          tags={issueTags}
+          onAfterDelete={(deletedTag) =>
+            setFormData((prev) => ({
+              ...prev,
+              issueTagId: prev.issueTagId === deletedTag.issueTagId ? null : prev.issueTagId,
+            }))
+          }
+        />
+      )}
     </div>
   );
 };

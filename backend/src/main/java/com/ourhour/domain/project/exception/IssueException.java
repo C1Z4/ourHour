@@ -12,4 +12,8 @@ public class IssueException extends BusinessException {
     public static IssueException issueNotFoundException() {
         return new IssueException(ErrorCode.ISSUE_NOT_FOUND);
     }
+
+    public static IssueException issueTagNotFoundException() {
+        return new IssueException(ErrorCode.ISSUE_TAG_NOT_FOUND);
+    }
 }

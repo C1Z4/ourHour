@@ -19,6 +19,9 @@ public interface IssueMapper {
     @Mapping(target = "assigneeName", source = "assigneeEntity.name")
     @Mapping(target = "assigneeProfileImgUrl", source = "assigneeEntity.profileImgUrl")
     @Mapping(target = "status", expression = "java(issueEntity.getStatus().getDescription())")
+    @Mapping(target = "tagName", source = "issueTagEntity.name")
+    @Mapping(target = "tagColor", source = "issueTagEntity.color")
+    @Mapping(target = "issueTagId", source = "issueTagEntity.issueTagId")
     IssueSummaryDTO toIssueSummaryDTO(IssueEntity issueEntity);
 
     // IssueEntity -> IssueDetailDTO
@@ -28,6 +31,9 @@ public interface IssueMapper {
     @Mapping(target = "milestoneId", source = "milestoneEntity.milestoneId")
     @Mapping(target = "milestoneName", source = "milestoneEntity.name")
     @Mapping(target = "status", expression = "java(issueEntity.getStatus().getDescription())")
+    @Mapping(target = "tagName", source = "issueTagEntity.name")
+    @Mapping(target = "tagColor", source = "issueTagEntity.color")
+    @Mapping(target = "issueTagId", source = "issueTagEntity.issueTagId")
     IssueDetailDTO toIssueDetailDTO(IssueEntity issueEntity);
 
     // IssueReqDTO -> IssueEntity

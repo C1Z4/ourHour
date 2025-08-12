@@ -7,6 +7,7 @@ import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { StatusBadge } from '@/components/common/StatusBadge';
+import { computeHexColor } from '@/components/project/issue-form/TagSelect';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useIssueDeleteMutation } from '@/hooks/queries/project/useIssueMutations';
 
@@ -54,7 +55,15 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
       onClick={handleIssueClick}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-500 font-medium">{issue.tag || '태그없음'}</span>
+        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+          {issue.tagColor && (
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: computeHexColor(issue.tagColor) }}
+            />
+          )}
+          {issue.tagName || '태그없음'}
+        </div>
         <div onClick={handlePopoverClick}>
           <MoreOptionsPopover
             className="w-32"

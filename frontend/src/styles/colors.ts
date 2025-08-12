@@ -23,3 +23,11 @@ export const CHAT_COLORS = {
   YELLOW: '#F1E7A3',
   PURPLE: '#DCBBD7',
 };
+
+export const ISSUE_TAG_COLORS = {
+  PINK: '#FFCBCB',
+  BLUE: '#467599',
+  GREEN: '#BDD6B2',
+  YELLOW: '#F1E7A3',
+  PURPLE: '#DCBBD7',
+};

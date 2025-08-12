@@ -1,5 +1,8 @@
 package com.ourhour.domain.project.controller;
 
+import java.util.List;
+
+import com.ourhour.domain.project.dto.IssueTagDTO;
 import com.ourhour.domain.project.dto.IssueSummaryDTO;
 import com.ourhour.domain.project.dto.MilestoneReqDTO;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
@@ -279,6 +282,54 @@ public class ProjectController {
                 }
 
                 ApiResponse<Void> response = issueService.deleteIssue(issueId, claims);
+
+                return ResponseEntity.ok(response);
+        }
+
+        // 이슈 태그 목록 조회
+        @GetMapping("/{projectId}/issues/tags")
+        @Operation(summary = "이슈 태그 목록 조회", description = "프로젝트의 이슈 태그 목록을 조회합니다.")
+        public ResponseEntity<ApiResponse<List<IssueTagDTO>>> getIssueTags(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId) {
+
+                ApiResponse<List<IssueTagDTO>> response = issueService.getIssueTags(projectId);
+
+                return ResponseEntity.ok(response);
+        }
+
+        // 이슈 태그 등록
+        @PostMapping("/{projectId}/issues/tags")
+        @Operation(summary = "이슈 태그 등록", description = "특정 이슈에 태그를 등록합니다.")
+        public ResponseEntity<ApiResponse<Void>> createIssueTag(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @Valid @RequestBody IssueTagDTO issueTagReqDTO) {
+
+                ApiResponse<Void> response = issueService.createIssueTag(projectId, issueTagReqDTO);
+
+                return ResponseEntity.ok(response);
+        }
+
+        // 이슈 태그 수정
+        @PutMapping("/{projectId}/issues/tags/{issueTagId}")
+        @Operation(summary = "이슈 태그 수정", description = "특정 이슈의 태그를 수정합니다.")
+        public ResponseEntity<ApiResponse<Void>> updateIssueTag(
+                        @PathVariable @Min(value = 1, message = "이슈 태그 ID는 1 이상이어야 합니다.") Long issueTagId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @Valid @RequestBody IssueTagDTO issueTagReqDTO) {
+
+                ApiResponse<Void> response = issueService.updateIssueTag(projectId, issueTagId, issueTagReqDTO);
+
+                return ResponseEntity.ok(response);
+        }
+
+        // 이슈 태그 삭제
+        @DeleteMapping("/{projectId}/issues/tags/{issueTagId}")
+        @Operation(summary = "이슈 태그 삭제", description = "특정 이슈의 태그를 삭제합니다.")
+        public ResponseEntity<ApiResponse<Void>> deleteIssueTag(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "이슈 태그 ID는 1 이상이어야 합니다.") Long issueTagId) {
+
+                ApiResponse<Void> response = issueService.deleteIssueTag(projectId, issueTagId);
 
                 return ResponseEntity.ok(response);
         }
