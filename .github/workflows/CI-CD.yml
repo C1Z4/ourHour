@@ -2,11 +2,12 @@ name: CI-CD
 
 on:
   push:
-    branches: ["develop", "release"] 
+    branches: ["develop", "main"]
   pull_request:
-    branches: ["develop", "release"]
+    branches: ["develop", "main"]
 
 jobs:
+  #-------------------------CI-------------------------
   build-test:
     runs-on: ubuntu-latest
 
@@ -31,60 +32,40 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Grant execute permission for gradlew
+      - name: Set execute permission on gradlew
         run: chmod +x ./gradlew
         working-directory: ./backend
 
-      # 개발환경용 application-secret.yml 생성 (GitHub Secrets 사용)
-      - name: Create application-secret.yml for dev
+      # 개발 환경용 환경 변수 세팅
+      - name: Set environment variables for dev
         if: github.ref == 'refs/heads/develop'
         run: |
-          mkdir -p ./backend/src/main/resources
-          echo "spring:" > ./backend/src/main/resources/application-secret.yml
-          echo "  datasource:" >> ./backend/src/main/resources/application-secret.yml
-          echo "    url: '${{ secrets.DEV_DB_URL }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "    username: '${{ secrets.DEV_DB_USERNAME }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "    password: '${{ secrets.DEV_DB_PASSWORD }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "    driver-class-name: com.mysql.cj.jdbc.Driver" >> ./backend/src/main/resources/application-secret.yml
-          echo "  mail:" >> ./backend/src/main/resources/application-secret.yml
-          echo "    from: '${{ secrets.MAIL_FROM }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "    host: smtp.gmail.com" >> ./backend/src/main/resources/application-secret.yml
-          echo "    port: 587" >> ./backend/src/main/resources/application-secret.yml
-          echo "    username: '${{ secrets.MAIL_USERNAME }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "    password: '${{ secrets.MAIL_PASSWORD }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "    properties:" >> ./backend/src/main/resources/application-secret.yml
-          echo "      mail:" >> ./backend/src/main/resources/application-secret.yml
-          echo "        smtp:" >> ./backend/src/main/resources/application-secret.yml
-          echo "          auth: true" >> ./backend/src/main/resources/application-secret.yml
-          echo "          starttls:" >> ./backend/src/main/resources/application-secret.yml
-          echo "            enable: true" >> ./backend/src/main/resources/application-secret.yml
-          echo "  service:" >> ./backend/src/main/resources/application-secret.yml
-          echo "    base-url-email: '${{ secrets.BASE_URL_EMAIL }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "    url:" >> ./backend/src/main/resources/application-secret.yml
-          echo "      front: '${{ secrets.FRONTEND_URL }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "jwt:" >> ./backend/src/main/resources/application-secret.yml
-          echo "  secret: '${{ secrets.JWT_SECRET }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "  access-token-validity-in-seconds: '${{ secrets.JWT_ACCESS }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "  refresh-token-validity-in-seconds: '${{ secrets.JWT_REFRESH }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "encryption:" >> ./backend/src/main/resources/application-secret.yml
-          echo "  secret-key: '${{ secrets.ENCRYPTION_SECRET_KEY }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "github:" >> ./backend/src/main/resources/application-secret.yml
-          echo "  client-id: '${{ secrets.APPLICATION_GITHUB_CLIENT_ID }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "  client-secret: '${{ secrets.APPLICATION_GITHUB_CLIENT_SECRET }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "  redirect-uri: '${{ secrets.APPLICATION_GITHUB_REDIRECT_URI }}'" >> ./backend/src/main/resources/application-secret.yml
-          echo "  scope: '${{ secrets.APPLICATION_GITHUB_SCOPE }}'" >> ./backend/src/main/resources/application-secret.yml
-
-      # 운영환경용 application-secret.yml 생성 (AWS Parameter Store 사용)
-      - name: Create application-secret.yml for prod
-        if: github.ref == 'refs/heads/main'
-        run: |
-          mkdir -p ./backend/src/main/resources
-          # 운영환경은 AWS Parameter Store에서 환경변수를 가져오므로 빈 파일 생성
-          echo "# Production environment uses AWS Parameter Store" > ./backend/src/main/resources/application-secret.yml
+          echo "SPRING_PROFILES_ACTIVE=dev" >> $GITHUB_ENV
+          echo "DB_URL=${{ secrets.DEV_DB_URL }}" >> $GITHUB_ENV
+          echo "DB_USERNAME=${{ secrets.DEV_DB_USERNAME }}" >> $GITHUB_ENV
+          echo "DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}" >> $GITHUB_ENV
+          echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> $GITHUB_ENV
+          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> $GITHUB_ENV
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> $GITHUB_ENV
+          echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> $GITHUB_ENV
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+          echo "JWT_ACCESS=${{ secrets.JWT_ACCESS }}" >> $GITHUB_ENV
+          echo "JWT_REFRESH=${{ secrets.JWT_REFRESH }}" >> $GITHUB_ENV
+          echo "ENCRYPTION_SECRET_KEY=${{ secrets.ENCRYPTION_SECRET_KEY }}" >> $GITHUB_ENV
+          echo "APPLICATION_GITHUB_CLIENT_ID=${{ secrets.APPLICATION_GITHUB_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "APPLICATION_GITHUB_CLIENT_SECRET=${{ secrets.APPLICATION_GITHUB_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "APPLICATION_GITHUB_REDIRECT_URI=${{ secrets.APPLICATION_GITHUB_REDIRECT_URI }}" >> $GITHUB_ENV
+          echo "APPLICATION_GITHUB_SCOPE=${{ secrets.APPLICATION_GITHUB_SCOPE }}" >> $GITHUB_ENV
 
       - name: Build with Gradle
         run: ./gradlew clean build --no-daemon
         working-directory: ./backend
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: ./backend/build/libs/backend-0.0.1-SNAPSHOT.jar
 
       # Frontend 코드 품질 검사 (Vercel 배포 전 검증용)
       - name: Set up Node.js
@@ -109,6 +90,7 @@ jobs:
         run: npm run coverage
         working-directory: ./frontend
 
+  #-------------------------CD-------------------------
   # Docker 이미지 빌드 및 푸시
   build-docker:
     needs: build-test
@@ -118,6 +100,12 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
+
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar
+          path: ./backend/build/libs/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -131,7 +119,7 @@ jobs:
       - name: Generate image tags (docker job)
         id: image-tags
         run: |
-          if [[ "${GITHUB_REF}" == "refs/heads/release" ]]; then
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "backend=ourhour-backend:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           elif [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
             echo "backend=ourhour-backend:dev-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
@@ -141,162 +129,17 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
+          target: release
           push: true
           tags: ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.backend)) || format('myuser/{0}', steps['image-tags'].outputs.backend) }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # # AWS EC2 배포 (개발환경)
-  # deploy-aws-dev:
-  #   needs: [build-test, build-docker]
-  #   runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-  #   environment: development
-
-  #   steps:
-  #     - name: Deploy to AWS EC2 Development
-  #       uses: appleboy/ssh-action@v1.0.3
-  #       continue-on-error: true
-  #       with:
-  #         host: ${{ secrets.DEV_EC2_HOST }}
-  #         username: ${{ secrets.EC2_USERNAME }}
-  #         key: ${{ secrets.EC2_PRIVATE_KEY }}
-  #         port: 22
-  #         timeout: 15m
-  #         command_timeout: 40m
-  #         script: |
-  #           # 기존 프로세스 종료
-  #           sudo pkill -f "java.*ourhour" || true
-
-  #           # 애플리케이션 디렉토리로 이동
-  #           cd /home/ubuntu/ourHour
-
-  #           # Git 최신 코드 가져오기
-  #           git fetch --all && git checkout develop && git reset --hard origin/develop
-
-  #           # 환경변수 파일 생성 (개발환경 - GitHub Secrets 사용)
-  #           echo "SPRING_PROFILES_ACTIVE=dev" > .env
-  #           echo "DB_HOST=${{ secrets.DEV_DB_HOST }}" >> .env
-  #           echo "DB_USERNAME=${{ secrets.DEV_DB_USERNAME }}" >> .env
-  #           echo "DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}" >> .env
-  #           echo "DB_URL=${{ secrets.DEV_DB_URL }}" >> .env
-  #           echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
-  #           echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
-  #           echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
-  #           echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
-  #           echo "BASE_URL_EMAIL=${{ secrets.BASE_URL_EMAIL }}" >> .env
-  #           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-  #           echo "JWT_ACCESS=${{ secrets.JWT_ACCESS }}" >> .env
-  #           echo "JWT_REFRESH=${{ secrets.JWT_REFRESH }}" >> .env
-  #           echo "ENCRYPTION_SECRET_KEY=${{ secrets.ENCRYPTION_SECRET_KEY }}" >> .env
-  #           echo "APPLICATION_GITHUB_CLIENT_ID=${{ secrets.APPLICATION_GITHUB_CLIENT_ID }}" >> .env
-  #           echo "APPLICATION_GITHUB_CLIENT_SECRET=${{ secrets.APPLICATION_GITHUB_CLIENT_SECRET }}" >> .env
-  #           echo "APPLICATION_GITHUB_REDIRECT_URI=${{ secrets.APPLICATION_GITHUB_REDIRECT_URI }}" >> .env
-  #           echo "APPLICATION_GITHUB_SCOPE=${{ secrets.APPLICATION_GITHUB_SCOPE }}" >> .env
-
-  #           # 백엔드 빌드 및 실행
-  #           cd backend
-  #           chmod +x ./gradlew
-  #           ./gradlew clean build --no-daemon
-
-  #           # 백그라운드에서 애플리케이션 실행
-  #           nohup java -jar -Dspring.profiles.active=dev build/libs/*.jar > ../app.log 2>&1 &
-
-  # AWS EC2 배포 (프로덕션)
-  deploy-aws-prod:
-    needs: [build-test, build-docker]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
-    environment: production
-
-    steps:
-      - name: Deploy to AWS EC2 Production
-        uses: appleboy/ssh-action@v1.0.3
-        continue-on-error: true
-        with:
-          host: ${{ secrets.PROD_EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          port: 22
-          timeout: 15m
-          command_timeout: 40m
-          script: |
-            # 기존 프로세스 종료
-            sudo pkill -f "java.*ourhour" || true
-
-            # 애플리케이션 디렉토리로 이동
-            cd /home/ubuntu/ourHour
-
-            # Git 최신 코드 가져오기
-            git fetch --all && git checkout release && git reset --hard origin/release
-
-            # 백엔드 빌드 및 실행 (프로덕션 - AWS Parameter Store 사용)
-            cd backend
-            chmod +x ./gradlew
-            ./gradlew clean build --no-daemon
-
-            # 백그라운드에서 애플리케이션 실행 (AWS Parameter Store에서 환경변수 자동 로드)
-            nohup java -jar -Dspring.profiles.active=release build/libs/*.jar > ../app.log 2>&1 &
-
-  # Docker 배포 (개발환경)
-  deploy-docker-dev:
-    needs: [build-test, build-docker]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-    environment: development
-
-    steps:
-      - name: Deploy with Docker to Development
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DEV_EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          script: |
-            # 애플리케이션 디렉토리로 이동
-            cd /home/ubuntu/ourHour
-
-            # Git 최신 코드 가져오기
-            git fetch --all && git checkout develop && git reset --hard origin/develop
-
-            # Docker 로그인
-            echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-            # 기존 컨테이너 중지 및 제거
-            docker compose -f docker-compose.yml -f docker-compose.dev.yml down || true
-
-            # 최신 이미지 풀
-            docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:dev-${{ github.sha }}
-
-            # 환경변수 설정 (개발환경 - GitHub Secrets 사용)
-            export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:dev-${{ github.sha }}
-            export DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }}
-            export DB_URL=${{ secrets.DEV_DB_URL }}
-            export MAIL_FROM=${{ secrets.MAIL_FROM }}
-            export MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-            export MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-            export FRONTEND_URL=${{ secrets.FRONTEND_URL }}
-            export BASE_URL_EMAIL=${{ secrets.BASE_URL_EMAIL }}
-            export JWT_SECRET=${{ secrets.JWT_SECRET }}
-            export JWT_ACCESS=${{ secrets.JWT_ACCESS }}
-            export JWT_REFRESH=${{ secrets.JWT_REFRESH }}
-            export ENCRYPTION_SECRET_KEY=${{ secrets.ENCRYPTION_SECRET_KEY }}
-            export APPLICATION_GITHUB_CLIENT_ID=${{ secrets.APPLICATION_GITHUB_CLIENT_ID }}
-            export APPLICATION_GITHUB_CLIENT_SECRET=${{ secrets.APPLICATION_GITHUB_CLIENT_SECRET }}
-            export APPLICATION_GITHUB_REDIRECT_URI=${{ secrets.APPLICATION_GITHUB_REDIRECT_URI }}
-            export APPLICATION_GITHUB_SCOPE=${{ secrets.APPLICATION_GITHUB_SCOPE }}
-            
-            # 새 컨테이너 시작
-            docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-
-            # 불필요한 이미지 정리
-            docker image prune -f
-
   # Docker 배포 (프로덕션)
   deploy-docker-prod:
     needs: [build-test, build-docker]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
 
     steps:
@@ -311,12 +154,13 @@ jobs:
             cd /home/ubuntu/ourHour
 
             # Git 최신 코드 가져오기
-            git fetch --all && git checkout release && git reset --hard origin/release
+            git fetch --all && git checkout main && git reset --hard origin/main
 
             # Docker 로그인
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
             # 기존 컨테이너 중지 및 제거
+            docker compose -f docker-compose.yml -f docker-compose.dev.yml down || true
             docker compose -f docker-compose.yml -f docker-compose.release.yml down || true
 
             # 최신 이미지 풀
