@@ -8,6 +8,7 @@ import com.ourhour.domain.org.service.OrgInvService;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,10 +34,9 @@ public class OrgInvController {
     @OrgAuth(accessLevel = Role.ADMIN)
     @PostMapping("/{orgId}/invitation")
     @Operation(summary = "초대 메일 발송", description = "조직 구성원 초대 메일을 발송합니다.")
-    public ResponseEntity<ApiResponse<Void>> sendInvLink(@OrgId @PathVariable Long orgId,
-            @RequestBody OrgInvReqDTO orgInvReqDTO) {
+    public ResponseEntity<ApiResponse<Void>> sendInvLink(@OrgId @PathVariable Long orgId, @RequestBody List<OrgInvReqDTO> orgInvReqDTOList) {
 
-        orgInvService.sendInvLink(orgId, orgInvReqDTO);
+        orgInvService.sendInvLink(orgId, orgInvReqDTOList);
 
         ApiResponse<Void> apiResponse = ApiResponse.success(null, "초대 메일이 발송되었습니다.");
 
@@ -68,7 +68,7 @@ public class OrgInvController {
     }
 
     @OrgAuth(accessLevel = Role.ADMIN)
-    @GetMapping("/{orgId}/invitation")
+    @GetMapping("/{orgId}/invitations")
     @Operation(summary = "발송한 초대 목록 조회", description = "조직에서 발송한 초대 링크 목록을 조회합니다.")
     public ResponseEntity<ApiResponse<List<OrgInvResDTO>>> getInvList(@OrgId @PathVariable Long orgId) {
 

@@ -30,12 +30,8 @@ function OrgInfoPage() {
   const router = useRouter();
 
   const [currentPage, setCurrentPage] = useState(1);
-  // 회사 구성원 삭제
-  const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
-
-  // 비밀번호 확인
-  const [password, setPassword] = useState('');
-
+  const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]); // 회사 구성원 삭제
+  const [password, setPassword] = useState(''); // 비밀번호 확인
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteMemberModalOpen, setIsDeleteMemberModalOpen] = useState(false);
   const [isDeleteOrgModalOpen, setIsDeleteOrgModalOpen] = useState(false);

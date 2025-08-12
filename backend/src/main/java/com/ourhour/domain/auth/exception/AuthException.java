@@ -80,4 +80,8 @@ public class AuthException extends BusinessException {
     public static AuthException deleteUserException(String message) {
         return new AuthException(ErrorCode.LAST_ROOT_ADMIN_CANNOT_LEAVE, message);
     }
+
+    public static AuthException invalidEmailFormatException() {
+        return new AuthException(ErrorCode.INVALID_EMAIL_FORMAT);
+    }
 }

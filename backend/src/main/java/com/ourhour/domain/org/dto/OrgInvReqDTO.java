@@ -1,5 +1,7 @@
 package com.ourhour.domain.org.dto;
 
+import com.ourhour.domain.org.enums.Role;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +13,8 @@ import java.util.List;
 @AllArgsConstructor
 public class OrgInvReqDTO {
 
-    private List<InviteInfoDTO> inviteInfoDTOList;
+    @Email
+    private String email;
+    private Role role;
 
 }
