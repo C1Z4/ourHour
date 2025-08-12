@@ -4,11 +4,13 @@ import com.ourhour.domain.org.enums.Role;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@ActiveProfiles("test")
 @RestController
 @RequestMapping("/api/test")
 public class AuthTestController {
