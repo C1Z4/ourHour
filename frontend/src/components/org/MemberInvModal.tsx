@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { INV_STATUS_STYLES, MEMBER_ROLE_STYLES } from '@/constants/badges';
+import { getErrorMessage } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 // 초대할 1명 단위 데이터 구조
@@ -112,18 +113,7 @@ export function MemberInvModal({
       refetch(); // 초대 목록 갱신
       onClose();
     } catch (e: unknown) {
-      // AxiosError 타입 체크
-      if (e && typeof e === 'object' && 'isAxiosError' in e && e.isAxiosError) {
-        const axiosError = e as AxiosError;
-        const serverMessage = axiosError.response?.data?.message;
-        if (serverMessage) {
-          showErrorToast(serverMessage);
-        } else {
-          showErrorToast('서버와 통신 중 오류가 발생했습니다.');
-        }
-      } else {
-        showErrorToast('알 수 없는 오류가 발생했습니다.');
-      }
+      showErrorToast(getErrorMessage(e as AxiosError));
     } finally {
       setIsLoading(false);
     }
