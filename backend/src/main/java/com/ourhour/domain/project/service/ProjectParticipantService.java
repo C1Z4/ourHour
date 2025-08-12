@@ -59,20 +59,6 @@ public class ProjectParticipantService {
         return ApiResponse.success(PageResponse.of(participantDTOPage), "프로젝트 참여자 목록 조회에 성공했습니다.");
     }
 
-    // 프로젝트 참여 여부 확인
-    public ApiResponse<Boolean> checkProjectParticipant(Long projectId, Long memberId) {
-        if (projectId <= 0 || memberId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
-
-        ProjectParticipantId projectParticipantId = new ProjectParticipantId(projectId, memberId);
-        if (!projectParticipantRepository.existsById(projectParticipantId)) {
-            return ApiResponse.success(false, "프로젝트 참여 여부 확인에 성공했습니다.");
-        }
-
-        return ApiResponse.success(true, "프로젝트 참여 여부 확인에 성공했습니다.");
-    }
-
     public boolean isProjectParticipant(Long projectId, Long memberId) {
         ProjectParticipantId projectParticipantId = new ProjectParticipantId(projectId, memberId);
         return projectParticipantRepository.existsById(projectParticipantId);
