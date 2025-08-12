@@ -73,7 +73,7 @@ public enum ErrorCode {
 
     // 이슈 관련
     ISSUE_NOT_FOUND("이슈를 찾을 수 없습니다", 4008, HttpStatus.NOT_FOUND),
-
+    ISSUE_TAG_NOT_FOUND("이슈 태그를 찾을 수 없습니다", 4009, HttpStatus.NOT_FOUND),
     // ========== 게시판 관련 (5000~5999) ==========
     BOARD_NOT_FOUND("게시판을 찾을 수 없습니다", 5000, HttpStatus.NOT_FOUND),
     BOARD_AUTHOR_NOT_FOUND("해당 작성자를 찾을 수 없습니다", 5001, HttpStatus.NOT_FOUND),
