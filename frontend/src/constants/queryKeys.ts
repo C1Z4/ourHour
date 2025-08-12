@@ -5,6 +5,7 @@ export const PROJECT_QUERY_KEYS = {
   ISSUE_DETAIL: 'projectIssueDetail',
   PROJECT_INFO: 'projectInfo',
   PARTICIPANT_LIST: 'projectParticipantList',
+  GITHUB_SYNC_STATUS: 'githubSyncStatus',
 } as const;
 
 export const ORG_QUERY_KEYS = {
