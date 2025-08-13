@@ -30,8 +30,6 @@ spring:
       parameterstore:
         recursive: true
       credentials:
-        access-key: ${aws.access-key}
-        secret-key: ${aws.secret-key}
         profile:
           name: default
       region:
