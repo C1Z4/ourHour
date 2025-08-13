@@ -15,7 +15,7 @@ function ProjectDashboard() {
 
   const [isMyIssuesOnly, setIsMyIssuesOnly] = useState(false);
 
-  const { data: milestoneList } = useProjectMilestoneListQuery(Number(projectId));
+  const { data: milestoneList } = useProjectMilestoneListQuery(Number(projectId), isMyIssuesOnly);
 
   const handleToggleViewMode = () => {
     setIsMyIssuesOnly(!isMyIssuesOnly);
@@ -35,7 +35,12 @@ function ProjectDashboard() {
           {(Array.isArray(milestoneList?.data) ? milestoneList.data : []).map(
             (milestone: ProjectMilestone) => (
               <div key={milestone.milestoneId}>
-                <MilestoneColumn milestone={milestone} orgId={orgId} projectId={projectId} />
+                <MilestoneColumn
+                  milestone={milestone}
+                  orgId={orgId}
+                  projectId={projectId}
+                  isMyIssuesOnly={isMyIssuesOnly}
+                />
               </div>
             ),
           )}
@@ -44,6 +49,7 @@ function ProjectDashboard() {
               milestone={{ milestoneId: null, name: '미분류' }}
               orgId={orgId}
               projectId={projectId}
+              isMyIssuesOnly={isMyIssuesOnly}
             />
           </div>
         </div>
