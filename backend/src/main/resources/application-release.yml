@@ -2,7 +2,7 @@ spring:
 
   config:
     import:
-      - aws-parameterstore:/ourhour/
+      - aws-parameterstore:/ourhour/${spring.profiles.active}/
 
   # DB 관련 설정
   datasource:

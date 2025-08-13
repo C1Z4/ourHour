@@ -169,12 +169,14 @@ jobs:
             
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:dev-${{ github.sha }}
             
+            export SPRING_PROFILES_ACTIVE=test
+
             export BACKEND_PORT=8081
             
             docker compose -f docker-compose.yml -f docker-compose.release.yml up -d
             
             docker image prune -f
-            
+  
 
   # 배포용 Docker (main 브랜치)
   deploy-docker-prod:
@@ -207,9 +209,11 @@ jobs:
             # 최신 이미지 풀
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
 
-            # 환경변수 설정 (프로덕션 - AWS Parameter Store 사용)
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
-
+            
+            # 환경변수 설정 (프로덕션 - AWS Parameter Store 사용)
+            export SPRING_PROFILES_ACTIVE=release
+            
             # 새 컨테이너 시작 (AWS Parameter Store에서 환경변수 자동 로드)
             docker compose -f docker-compose.yml -f docker-compose.release.yml up -d
 
