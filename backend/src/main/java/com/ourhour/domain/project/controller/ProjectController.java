@@ -156,13 +156,14 @@ public class ProjectController {
         @Operation(summary = "마일스톤 목록 조회", description = "프로젝트의 마일스톤 목록을 페이지네이션으로 조회합니다.")
         public ResponseEntity<ApiResponse<PageResponse<MileStoneInfoDTO>>> getProjectMilestones(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @RequestParam(defaultValue = "false") boolean myMilestonesOnly,
                         @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
                 Pageable pageable = PageRequest.of(currentPage - 1, size, Sort.by(Sort.Direction.ASC, "milestoneId"));
 
                 ApiResponse<PageResponse<MileStoneInfoDTO>> response = projectService.getProjectMilestones(projectId,
-                                pageable);
+                                myMilestonesOnly, pageable);
 
                 return ResponseEntity.ok(response);
         }
@@ -173,6 +174,7 @@ public class ProjectController {
         public ResponseEntity<ApiResponse<PageResponse<IssueSummaryDTO>>> getMilestoneIssues(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @RequestParam(required = false) Long milestoneId,
+                        @RequestParam(required = false) boolean myIssuesOnly,
                         @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
@@ -180,6 +182,7 @@ public class ProjectController {
 
                 ApiResponse<PageResponse<IssueSummaryDTO>> response = issueService.getMilestoneIssues(projectId,
                                 milestoneId,
+                                myIssuesOnly,
                                 pageable);
 
                 return ResponseEntity.ok(response);
