@@ -171,7 +171,7 @@ jobs:
             
             export BACKEND_PORT=8081
             
-            docker compose -f docker-compose.yml -f docker-compose.release.yml up -
+            docker compose -f docker-compose.yml -f docker-compose.release.yml up -d
             
             docker image prune -f
             
