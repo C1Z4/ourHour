@@ -42,6 +42,37 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
 
+  # prometheus
+  prometheus:
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # grafana
+  grafana:
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
+      - ./monitoring/grafana/dashboards/:/etc/grafana/dashboards/
+
+  # node-exporter
+  node-exporter:
+    ports:
+      - "9100:9100"
+
+  # mysqld-exporter
+  mysqld-exporter:
+    ports:
+      - "9104:9104"
+    env_file:
+      - ./backend/.env
+    environment:
+      DATA_SOURCE_NAME: "${DB_USERNAME}:${DB_PASSWORD}@(host.docker.internal:3307)/"
+
 volumes:
   gradle-cache:
   build-cache:
