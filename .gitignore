@@ -49,6 +49,7 @@ nbdist/
 # 기타
 .cursor/
 HELP.md
+CLAUDE.md
 
 
 #############################
@@ -94,3 +95,4 @@ docker-compose.override.yml
 # ✅ 이미지 설정             #
 ###########################
 uploads/
+
