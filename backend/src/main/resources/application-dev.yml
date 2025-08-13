@@ -24,6 +24,19 @@ spring:
     url:
       front: ${FRONTEND_URL}
 
+# AWS 설정 (지역 및 인증 프로파일)
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID}
+        secret-key: ${AWS_SECRET_ACCESS_KEY}
+      region:
+        static: ${AWS_REGION}
+      s3:
+        bucket: ${AWS_S3_BUCKET_NAME}
+      stack:
+        auto: false
+
 # JWT 관련 설정
 jwt:
   secret: ${JWT_SECRET}

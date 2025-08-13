@@ -1,5 +1,4 @@
 spring:
-
   config:
     import:
       - aws-parameterstore:/ourhour/${spring.profiles.active}/
@@ -24,6 +23,21 @@ spring:
           starttls:
             enable: true
 
+  # AWS 설정 (지역 및 인증 프로파일)
+  cloud:
+    aws:
+      credentials:
+        access-key: ${aws.access-key}
+        secret-key: ${aws.secret-key}
+        profile:
+          name: default
+      region:
+        static: ${aws.region}
+      s3:
+        bucket: ${aws.s3.bucket}
+      stack:
+        auto: false
+
   # 프론트엔드 관련 설정
   service:
     url:
@@ -46,11 +60,3 @@ github:
   redirect-uri: ${github.redirect-uri}
   scope: ${github.scope}
 
-# AWS 설정 (지역 및 인증 프로파일)
-cloud:
-  aws:
-    region:
-      static: ap-northeast-2
-    credentials:
-      profile:
-        name: default

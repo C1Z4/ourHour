@@ -1,5 +1,4 @@
 spring:
-
   # JPA 관련 설정
   jpa:
     hibernate:
@@ -16,15 +15,6 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
-
-# 이미지 업로드 설정
-app:
-  upload:
-    path: ./uploads/images
-
-  web:
-    resources:
-      static-locations: classpath:/static/,file:uploads/images/
 
 # 로그 설정
 logging:
@@ -45,3 +35,10 @@ management:
   endpoint:
     health:
       show-details: always
+
+# 이미지 업로드 설정
+app:
+  upload:
+    prefix: images
+  cdn:
+    domain: https://dke56if5x4hny.cloudfront.net
