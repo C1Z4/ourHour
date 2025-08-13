@@ -43,6 +43,28 @@ spring:
     base-url-email: localhost
     url:
       front: localhost
+
+  data:
+    # Redis 테스트 설정 (임베디드 Redis 사용)
+    redis:
+      host: localhost
+      port: 6379
+      password: testpassword123
+      timeout: 2000ms
+      database: 1
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+          time-between-eviction-runs: 30s
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000  # 1시간 (밀리초)
+      cache-null-values: false
+
 jwt:
   secret: thisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecret
   access-token-validity-in-seconds: 300
@@ -58,9 +80,22 @@ github:
   redirect-uri: http://localhost:5173/auth/github/callback
   scope: repo,read:user,user:email
 
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 60000
+      cache-null-values: false
+
 # 이미지 업로드 설정
 app:
   upload:
     prefix: images
   cdn:
     domain: https://cdn.ourhour.com
+  cache:
+    image:
+      ttl: 60
+      max-size: 100
+    presign:
+      ttl: 30

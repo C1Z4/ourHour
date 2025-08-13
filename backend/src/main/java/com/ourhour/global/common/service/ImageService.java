@@ -1,5 +1,7 @@
 package com.ourhour.global.common.service;
 
+import com.ourhour.global.common.dto.ImageMetadataDTO;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -11,9 +13,11 @@ import java.util.Base64;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class ImageService {
 
     private final S3Client s3Client;
+    private final ImageCacheService imageCacheService;
 
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
@@ -23,10 +27,6 @@ public class ImageService {
 
     @Value("${app.upload.prefix:images}")
     private String uploadPrefix;
-
-    public ImageService(S3Client s3Client) {
-        this.s3Client = s3Client;
-    }
 
     public String saveBase64Image(String base64Data) {
         try {
@@ -55,7 +55,14 @@ public class ImageService {
 
             s3Client.putObject(putObjectRequest, RequestBody.fromBytes(decodedBytes));
 
-            return buildCdnUrl(key);
+            String cdnUrl = buildCdnUrl(key);
+            
+            ImageMetadataDTO metadata = imageCacheService.createImageMetadata(
+                key, fileName, cdnUrl, contentType, (long) decodedBytes.length
+            );
+            imageCacheService.saveImageMetadata(metadata);
+
+            return cdnUrl;
 
         } catch (Exception e) {
             throw new RuntimeException("이미지 저장 중 오류가 발생했습니다", e);
@@ -91,5 +98,17 @@ public class ImageService {
     public String buildCdnUrl(String key) {
         String base = cdnDomain.endsWith("/") ? cdnDomain.substring(0, cdnDomain.length() - 1) : cdnDomain;
         return base + "/" + key;
+    }
+
+    public ImageMetadataDTO getImageMetadata(String key) {
+        ImageMetadataDTO metadata = imageCacheService.getImageMetadata(key);
+        if (metadata != null) {
+            imageCacheService.incrementAccessCount(key);
+        }
+        return metadata;
+    }
+
+    public void deleteImage(String key) {
+        imageCacheService.evictImageMetadata(key);
     }
 }
