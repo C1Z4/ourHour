@@ -43,11 +43,12 @@ public class OrgMemberController {
     public ResponseEntity<ApiResponse<PageResponse<MemberInfoResDTO>>> getOrgMembers(
             @OrgId @PathVariable @Min(value = 1, message = "팀 ID는 1 이상이어야 합니다.") Long orgId,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 0 이상이어야 합니다.") int currentPage,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size,
+            @RequestParam(required = false) String search) {
 
         Pageable pageable = PageRequest.of(currentPage - 1, size);
 
-        PageResponse<MemberInfoResDTO> response = orgMemberService.getOrgMembers(orgId, pageable);
+        PageResponse<MemberInfoResDTO> response = orgMemberService.getOrgMembers(orgId, search, pageable);
 
         return ResponseEntity.ok(ApiResponse.success(response, "팀 구성원 조회에 성공하였습니다."));
     }
