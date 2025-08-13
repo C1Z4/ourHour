@@ -27,6 +27,8 @@ spring:
   # AWS 설정 (지역 및 인증 프로파일)
   cloud:
     aws:
+      parameterstore:
+        recursive: true
       credentials:
         access-key: ${aws.access-key}
         secret-key: ${aws.secret-key}
@@ -61,12 +63,5 @@ github:
   redirect-uri: ${github.redirect-uri}
   scope: ${github.scope}
 
-# AWS 설정 (지역 및 인증 프로파일)
-cloud:
-  aws:
-    region:
-      static: ap-northeast-2
-    credentials:
-      profile:
-        name: default
+
 
