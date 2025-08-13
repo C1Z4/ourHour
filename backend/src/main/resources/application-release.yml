@@ -26,6 +26,8 @@ spring:
   # AWS 설정 (지역 및 인증 프로파일)
   cloud:
     aws:
+      parameterstore:
+        recursive: true
       credentials:
         access-key: ${aws.access-key}
         secret-key: ${aws.secret-key}
