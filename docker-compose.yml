@@ -24,5 +24,5 @@ services:
   # backend
   backend:
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
 
