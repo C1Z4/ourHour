@@ -2,6 +2,7 @@ package com.ourhour.global.config;
 
 import com.ourhour.global.jwt.filter.JwtAuthenticationFilter;
 
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
