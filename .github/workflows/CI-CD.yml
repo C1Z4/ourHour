@@ -176,7 +176,7 @@ jobs:
             docker compose -f docker-compose.yml -f docker-compose.release.yml up -d
             
             docker image prune -f
-  
+            
 
   # 배포용 Docker (main 브랜치)
   deploy-docker-prod:
