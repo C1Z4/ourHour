@@ -1,8 +1,7 @@
 package com.ourhour.global.config;
 
 import com.ourhour.global.jwt.filter.JwtAuthenticationFilter;
-import jakarta.servlet.FilterRegistration;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -12,7 +11,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
@@ -21,12 +20,6 @@ import java.util.List;
 public class WebConfig implements WebMvcConfigurer {
 
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/images/**")
-                .addResourceLocations("file:uploads/images/");
-    }
 
     @Value("${spring.service.url.front}")
     private String url;
@@ -51,7 +44,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
+    public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins("https://www.ourhour.cloud")
                 .allowedMethods("*")
