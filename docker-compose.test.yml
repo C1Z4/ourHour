@@ -1,0 +1,37 @@
+networks:
+  internal:
+    driver: bridge
+
+services:
+  # backend
+  backend:
+    image: ${BACKEND_IMAGE:-ourhour-backend:test}
+    container_name: test-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+    restart: unless-stopped
+
+  # db
+  db:
+    image: mysql:8
+    container_name: test-db
+    ports:
+      - "3306:3306"
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 60s
+      retries: 10
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  #mysqld-exporter
+  mysqld-exporter:
+    env_file:
+      - ./backend/.env
+    environment:
+      DATA_SOURCE_NAME: "${MYSQL_USER}:${MYSQL_PASSWORD}@(db:3306)/"
+
+volumes:
+  mysql-data:
