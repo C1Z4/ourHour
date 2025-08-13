@@ -52,11 +52,13 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addCorsMappings(@NonNull CorsRegistry registry) {
+    public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://www.ourhour.cloud")
-                .allowedMethods("*")
-                .allowCredentials(true);
+                .allowedOrigins("https://www.ourhour.cloud", "https://our-hour-test.vercel.app")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .exposedHeaders("*");
     }
 
     @Bean
