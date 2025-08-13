@@ -26,14 +26,23 @@ spring:
           starttls:
             enable: false
 
+  # AWS 설정 (지역 및 인증 프로파일)
+  cloud:
+    aws:
+      credentials:
+        access-key: test
+        secret-key: test
+      region:
+        static: test
+      s3:
+        bucket: test
+      stack:
+        auto: false
+
   service:
     base-url-email: localhost
     url:
       front: localhost
-# 이미지 업로드 설정
-app:
-  upload:
-    path: ./uploads/images
 jwt:
   secret: thisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecret
   access-token-validity-in-seconds: 300
@@ -48,3 +57,10 @@ github:
   client-secret: 1234567890
   redirect-uri: http://localhost:5173/auth/github/callback
   scope: repo,read:user,user:email
+
+# 이미지 업로드 설정
+app:
+  upload:
+    prefix: images
+  cdn:
+    domain: https://cdn.ourhour.com
