@@ -177,7 +177,7 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
 
           <MembersTable
             type="project"
-            projectMembers={projectMembers}
+            members={projectMembers}
             selectedMemberIds={selectedMemberIds}
             onSelectionChange={handleMemberSelectionChange}
             onDeleteSelected={handleDeleteSelectedMembers}

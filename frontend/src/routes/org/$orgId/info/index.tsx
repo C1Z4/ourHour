@@ -36,6 +36,8 @@ function OrgInfoPage() {
   const [isDeleteMemberModalOpen, setIsDeleteMemberModalOpen] = useState(false);
   const [isDeleteOrgModalOpen, setIsDeleteOrgModalOpen] = useState(false);
   const [isRoleChangeModalOpen, setIsRoleChangeModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
 
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
@@ -49,7 +51,12 @@ function OrgInfoPage() {
 
   const orgInfo = orgInfoData as OrgBaseInfo | undefined;
 
-  const { data: orgMembersData } = useOrgMemberListQuery(Number(orgId), currentPage);
+  const { data: orgMembersData } = useOrgMemberListQuery(
+    Number(orgId),
+    currentPage,
+    10,
+    activeSearchQuery || undefined,
+  );
 
   const orgMembers = Array.isArray(orgMembersData?.data) ? orgMembersData.data : [];
 
@@ -195,6 +202,24 @@ function OrgInfoPage() {
     setPendingRoleChange(null);
   };
 
+  // 검색 관련 핸들러
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleSearchSubmit = () => {
+    setActiveSearchQuery(searchQuery);
+    setCurrentPage(1); // 검색 시 첫 페이지로 이동
+    setSelectedMemberIds([]); // 선택된 멤버 초기화
+  };
+
+  const handleSearchClear = () => {
+    setSearchQuery('');
+    setActiveSearchQuery('');
+    setCurrentPage(1);
+    setSelectedMemberIds([]);
+  };
+
   return (
     <>
       <div className="bg-white">
@@ -256,7 +281,7 @@ function OrgInfoPage() {
 
           <MembersTable
             type="org"
-            projectMembers={orgMembers}
+            members={orgMembers}
             selectedMemberIds={selectedMemberIds}
             onSelectionChange={handleMemberSelectionChange}
             onDeleteSelected={handleDeleteSelectedMembers}
@@ -265,6 +290,10 @@ function OrgInfoPage() {
             setCurrentPage={setCurrentPage}
             onRoleChange={handleRoleChange}
             onDelete={handleDeleteMembers}
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+            onSearchSubmit={handleSearchSubmit}
+            onSearchClear={handleSearchClear}
           />
         </div>
       </div>

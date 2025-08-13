@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { Trash2, UserRoundPlus } from 'lucide-react';
+import { Search, Trash2, UserRoundPlus, X } from 'lucide-react';
 
 import { Member, MemberRoleKo } from '@/types/memberTypes';
 
@@ -13,6 +13,7 @@ import { PaginationComponent } from '@/components/common/PaginationComponent';
 import { MemberInvModal } from '@/components/org/MemberInvModal.tsx';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -33,7 +34,7 @@ import { useAppSelector } from '@/stores/hooks';
 
 interface MembersTableProps {
   type: 'project' | 'org';
-  projectMembers?: Member[];
+  members?: Member[];
   selectedMemberIds: number[];
   onSelectionChange: (memberIds: number[]) => void;
   onDeleteSelected: () => void;
@@ -42,11 +43,15 @@ interface MembersTableProps {
   currentPage: number;
   setCurrentPage: (page: number) => void;
   onDelete: () => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  onSearchSubmit?: () => void;
+  onSearchClear?: () => void;
 }
 
 export const MembersTable = ({
   type,
-  projectMembers,
+  members,
   selectedMemberIds,
   onSelectionChange,
   onDeleteSelected,
@@ -55,6 +60,10 @@ export const MembersTable = ({
   currentPage,
   setCurrentPage,
   onDelete,
+  searchQuery = '',
+  onSearchChange,
+  onSearchSubmit,
+  onSearchClear,
 }: MembersTableProps) => {
   const orgId = useAppSelector((state) => state.activeOrgId.currentOrgId);
   const projectId = useAppSelector((state) => state.projectName.currentProjectId);
@@ -75,7 +84,7 @@ export const MembersTable = ({
   };
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      onSelectionChange(projectMembers?.map((member) => member.memberId) || []);
+      onSelectionChange(members?.map((member) => member.memberId) || []);
     } else {
       onSelectionChange([]);
     }
@@ -96,9 +105,9 @@ export const MembersTable = ({
   };
 
   const isAllSelected =
-    projectMembers &&
-    projectMembers.length > 0 &&
-    projectMembers.every((member) => selectedMemberIds.includes(member.memberId));
+    members &&
+    members.length > 0 &&
+    members.every((member) => selectedMemberIds.includes(member.memberId));
 
   const roleOptions = [
     { value: '루트관리자', label: '루트관리자' },
@@ -107,15 +116,50 @@ export const MembersTable = ({
     { value: '게스트', label: '게스트' },
   ];
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      onSearchSubmit?.();
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-end h-10 gap-2">
+      <div className="flex items-center justify-end gap-2 h-10">
+        {type === 'org' && onSearchChange && (
+          <div className="flex items-center gap-2">
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="구성원 이름으로 검색..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onKeyDown={handleKeyPress}
+                className="pl-10 pr-10"
+              />
+              {searchQuery && (
+                <button
+                  onClick={onSearchClear}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            <ButtonComponent variant="primary" onClick={onSearchSubmit} size="default">
+              <Search className="w-4 h-4" />
+              검색
+            </ButtonComponent>
+          </div>
+        )}
+
         {type === 'org' && (currentUserRole === '루트관리자' || currentUserRole === '관리자') && (
           <ButtonComponent variant="primary" onClick={() => setIsInviteModalOpen(true)}>
             <UserRoundPlus className="w-4 h-4" />
             구성원 초대
           </ButtonComponent>
         )}
+
         {selectedMemberIds.length > 0 && (
           <ButtonComponent
             variant="danger"
@@ -147,14 +191,19 @@ export const MembersTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {projectMembers?.length === 0 && (
+            {members?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-gray-500">
-                  아직 프로젝트 참여자가 없습니다.
+                <TableCell
+                  colSpan={type === 'org' ? 7 : 6}
+                  className="h-24 text-center text-gray-500"
+                >
+                  {type === 'org'
+                    ? '조직 구성원이 존재하지 않습니다.'
+                    : '프로젝트 참여자가 존재하지 않습니다.'}
                 </TableCell>
               </TableRow>
             )}
-            {projectMembers?.map((member) => (
+            {members?.map((member) => (
               <TableRow key={member.memberId} className="hover:bg-gray-50">
                 <TableCell className="w-12">
                   <Checkbox
