@@ -43,6 +43,15 @@ spring:
     url:
       front: ${url.front}
 
+  # Redis 설정
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
+      ssl:
+        enabled: true
+
 # JWT 관련 설정
 jwt:
   secret: ${jwt.secret}
@@ -60,3 +69,7 @@ github:
   redirect-uri: ${github.redirect-uri}
   scope: ${github.scope}
 
+app:
+  cache:
+    image:
+      max-size: 1000 

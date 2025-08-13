@@ -46,6 +46,16 @@ dependencies {
     implementation "io.awspring.cloud:spring-cloud-aws-starter-s3"
     implementation 'software.amazon.awssdk:s3:2.25.62'
 
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // Redis 캐싱 의존성
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'redis.clients:jedis:4.4.3'
+    
+    // 테스트용 임베디드 Redis
+    testImplementation 'it.ozimov:embedded-redis:0.7.3'
+
     // OpenAPI/Swagger UI (Spring Boot 3.5.x 호환)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
 
