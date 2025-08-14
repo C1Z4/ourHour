@@ -107,7 +107,7 @@ public class OrgController {
     public ResponseEntity<ApiResponse<DepartmentResDTO>> createDepartment(
             @OrgId @PathVariable Long orgId,
             @Valid @RequestBody DepartmentReqDTO departmentReqDTO) {
-        DepartmentResDTO response = departmentService.createDepartment(departmentReqDTO);
+        DepartmentResDTO response = departmentService.createDepartment(orgId, departmentReqDTO);
         return ResponseEntity.ok(ApiResponse.success(response, "부서 생성에 성공하였습니다."));
     }
 
@@ -150,7 +150,7 @@ public class OrgController {
     public ResponseEntity<ApiResponse<PositionResDTO>> createPosition(
             @OrgId @PathVariable Long orgId,
             @Valid @RequestBody PositionReqDTO positionReqDTO) {
-        PositionResDTO response = positionService.createPosition(positionReqDTO);
+        PositionResDTO response = positionService.createPosition(orgId, positionReqDTO);
         return ResponseEntity.ok(ApiResponse.success(response, "직책 생성에 성공하였습니다."));
     }
 
@@ -185,9 +185,8 @@ public class OrgController {
         positionService.deletePosition(positionId);
         return ResponseEntity.ok(ApiResponse.success(null, "직책 삭제에 성공하였습니다."));
     }
-
-    // ========== 구성원 조회 API ==========
     
+    // 부서별 구성원 조회
     @OrgAuth
     @GetMapping("/{orgId}/departments/{deptId}/members")
     @Operation(summary = "부서별 구성원 조회", description = "특정 부서에 속한 구성원 목록을 조회합니다.")
@@ -198,6 +197,7 @@ public class OrgController {
         return ResponseEntity.ok(ApiResponse.success(response, "부서별 구성원 조회에 성공하였습니다."));
     }
     
+    // 직책별 구성원 조회
     @OrgAuth
     @GetMapping("/{orgId}/positions/{positionId}/members")
     @Operation(summary = "직책별 구성원 조회", description = "특정 직책의 구성원 목록을 조회합니다.")
