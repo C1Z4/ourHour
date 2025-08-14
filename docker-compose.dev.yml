@@ -69,9 +69,11 @@ services:
     ports:
       - "9104:9104"
     env_file:
-      - ./backend/.env
-    environment:
-      DATA_SOURCE_NAME: "${DB_USERNAME}:${DB_PASSWORD}@(host.docker.internal:3307)/"
+      - .env
+    command:
+      - "--mysqld.username=$DB_USERNAME:$DB_PASSWORD"
+      - "--mysqld.address=db:3306"
+      - "--no-collect.slave_status"
 
 volumes:
   gradle-cache:

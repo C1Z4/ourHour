@@ -1,4 +1,16 @@
 services:
+  # backend
+  backend:
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    networks:
+      - default
+
+  #db
+  db:
+    networks:
+      - default
+
   # prometheus
   prometheus:
     image: prom/prometheus
@@ -6,6 +18,8 @@ services:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command: --config.file=/etc/prometheus/prometheus.yml
     restart: always
+    networks:
+      - default
 
   # grafana
   grafana:
@@ -16,11 +30,8 @@ services:
     depends_on:
       - prometheus
     restart: always
-
-  # backend
-  backend:
-    ports:
-      - "${BACKEND_PORT:-8080}:8080"
+    networks:
+      - default
 
   # node-exporter
   node-exporter:
@@ -36,9 +47,18 @@ services:
       - '--path.rootfs=/rootfs'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     restart: always
+    networks:
+      - default
 
   # mysqld-exporter
   mysqld-exporter:
     image: prom/mysqld-exporter:v0.15.1
     container_name: mysqld-exporter
-    restart: always
+    depends_on:
+      - db
+    networks:
+      - default
+
+networks:
+  default:
+    name: monitoring-net
