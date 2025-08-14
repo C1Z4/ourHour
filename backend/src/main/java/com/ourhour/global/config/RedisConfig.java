@@ -36,9 +36,6 @@ public class RedisConfig {
     @Value("${spring.data.redis.password:}")
     private String password;
 
-    @Value("${spring.cache.redis.time-to-live}")
-    private long defaultTtl;
-
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         LettuceConnectionFactory factory = new LettuceConnectionFactory(host, port);
