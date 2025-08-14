@@ -16,7 +16,7 @@ services:
     image: mysql:8
     container_name: test-db
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
       SPRING_PROFILES_ACTIVE: test
     healthcheck:
