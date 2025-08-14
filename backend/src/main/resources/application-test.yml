@@ -29,11 +29,8 @@ spring:
     aws:
       parameterstore:
         recursive: true
-      credentials:
-        profile:
-          name: default
       region:
-        static: ${aws.region}
+        static: ap-northeast-2
       s3:
         bucket: ${aws.s3.bucket}
       stack:
@@ -43,6 +40,15 @@ spring:
   service:
     url:
       front: ${url.front}
+
+  # Redis 설정
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
+      ssl:
+        enabled: true
 
 # JWT 관련 설정
 jwt:

@@ -28,11 +28,8 @@ spring:
     aws:
       parameterstore:
         recursive: true
-      credentials:
-        profile:
-          name: default
       region:
-        static: ${aws.region}
+        static: ap-northeast-2
       s3:
         bucket: ${aws.s3.bucket}
       stack:
