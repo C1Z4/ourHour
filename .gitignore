@@ -48,6 +48,7 @@ nbdist/
 
 # 기타
 .cursor/
+.claude/
 HELP.md
 CLAUDE.md
 
