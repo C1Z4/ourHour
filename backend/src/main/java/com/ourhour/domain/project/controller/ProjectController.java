@@ -130,13 +130,13 @@ public class ProjectController {
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다 .") int currentPage,
-                        @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = " 페이지 크기는 100이하여야 합니다.") int size) {
+                        @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = " 페이지 크기는 100이하여야 합니다.") int size,
+                        @RequestParam(required = false) String search) {
 
-                Pageable pageable = PageRequest.of(currentPage - 1, size,
-                                Sort.by(Sort.Direction.ASC, "ProjectParticipantId.memberId"));
+                Pageable pageable = PageRequest.of(currentPage - 1, size);
 
                 ApiResponse<PageResponse<ProjectParticipantDTO>> response = projectParticipantService
-                                .getProjectParticipants(projectId, orgId, pageable);
+                                .getProjectParticipants(projectId, orgId, search, pageable);
 
                 return ResponseEntity.ok(response);
         }
