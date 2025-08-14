@@ -1,7 +1,3 @@
-networks:
-  internal:
-    driver: bridge
-
 services:
   # backend
   backend:
@@ -25,13 +21,6 @@ services:
       retries: 10
     volumes:
       - mysql-data:/var/lib/mysql
-
-  #mysqld-exporter
-  mysqld-exporter:
-    env_file:
-      - ./backend/.env
-    environment:
-      DATA_SOURCE_NAME: "${MYSQL_USER}:${MYSQL_PASSWORD}@(db:3306)/"
 
 volumes:
   mysql-data:
