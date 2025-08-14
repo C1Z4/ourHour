@@ -1,6 +1,7 @@
 package com.ourhour.domain.org.repository;
 
 import com.ourhour.domain.org.entity.DepartmentEntity;
+import com.ourhour.domain.org.entity.OrgEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,10 +15,9 @@ public interface DepartmentRepository extends JpaRepository<DepartmentEntity, Lo
     
     Optional<DepartmentEntity> findByName(String name);
     
-    @Query("SELECT DISTINCT d FROM DepartmentEntity d " +
-           "JOIN d.orgParticipantMemberEntityList opm " +
-           "WHERE opm.orgEntity.orgId = :orgId")
-    List<DepartmentEntity> findByOrgId(@Param("orgId") Long orgId);
+    List<DepartmentEntity> findByOrgEntity(OrgEntity orgEntity);
     
     boolean existsByName(String name);
+    
+    boolean existsByNameAndOrgEntity(String name, OrgEntity orgEntity);
 }

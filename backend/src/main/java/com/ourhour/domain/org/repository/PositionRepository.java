@@ -1,5 +1,6 @@
 package com.ourhour.domain.org.repository;
 
+import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.entity.PositionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,10 +15,9 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     
     Optional<PositionEntity> findByName(String name);
     
-    @Query("SELECT DISTINCT p FROM PositionEntity p " +
-           "JOIN p.orgParticipantMemberEntityList opm " +
-           "WHERE opm.orgEntity.orgId = :orgId")
-    List<PositionEntity> findByOrgId(@Param("orgId") Long orgId);
+    List<PositionEntity> findByOrgEntity(OrgEntity orgEntity);
     
     boolean existsByName(String name);
+    
+    boolean existsByNameAndOrgEntity(String name, OrgEntity orgEntity);
 }
