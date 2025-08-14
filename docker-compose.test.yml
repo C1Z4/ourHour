@@ -29,6 +29,7 @@ services:
       retries: 10
     volumes:
       - mysql-data:/var/lib/mysql
+
     networks:
       - default
 

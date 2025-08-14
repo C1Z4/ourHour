@@ -49,6 +49,7 @@ services:
   # prometheus
   prometheus:
     image: prom/prometheus
+
     ports:
       - "9090:9090"
     volumes:
@@ -57,17 +58,21 @@ services:
     restart: always
     networks:
       - default
+
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
   # grafana
   grafana:
+
     image: grafana/grafana
+
     ports:
       - "3000:3000"
     volumes:
       - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
       - ./monitoring/grafana/dashboards/:/etc/grafana/dashboards/
+
     depends_on:
       - prometheus
     restart: always
@@ -129,3 +134,4 @@ volumes:
 networks:
   default:
     name: monitoring-net
+
