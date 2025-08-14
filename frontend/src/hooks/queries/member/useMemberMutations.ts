@@ -22,6 +22,9 @@ export const useMyMemberInfoUpdateMutation = (orgId: number) =>
     onSuccess: () => {
       showSuccessToast('멤버 정보 수정에 성공하였습니다.');
       queryClient.invalidateQueries({ queryKey: [MEMBER_QUERY_KEYS.MY_MEMBER_INFO, orgId] });
+      queryClient.invalidateQueries({ queryKey: [ORG_QUERY_KEYS.DEPARTMENT_LIST, orgId] });
+      queryClient.invalidateQueries({ queryKey: [ORG_QUERY_KEYS.POSITION_LIST, orgId] });
+      queryClient.invalidateQueries({ queryKey: [ORG_QUERY_KEYS.MEMBER_LIST, orgId] });
     },
 
     onError: (error: AxiosError) => {
