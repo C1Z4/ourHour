@@ -1,5 +1,3 @@
-import { Pencil, Trash } from 'lucide-react';
-
 import { Member } from '@/types/memberTypes';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,14 +22,6 @@ export function MemberCard({ member }: MemberCardProps) {
               {member.positionName}
             </div>
           </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button className="text-gray-400 hover:text-gray-600 p-1">
-            <Pencil className="w-4 h-4" />
-          </button>
-          <button className="text-red-400 hover:text-red-600 p-1">
-            <Trash className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </div>
