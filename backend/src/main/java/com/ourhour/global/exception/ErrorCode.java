@@ -59,6 +59,16 @@ public enum ErrorCode {
     ORG_MEMBER_NOT_FOUND("회사 구성원을 찾을 수 없습니다", 3003, HttpStatus.NOT_FOUND),
     ORG_ID_NOT_MATCH("해당 회사의 소속이 아니거나 회사 아이디의 값이 잘못되었습니다", 3004, HttpStatus.BAD_REQUEST),
 
+    // 부서 관련
+    DEPARTMENT_NOT_FOUND("부서를 찾을 수 없습니다", 3010, HttpStatus.NOT_FOUND),
+    DEPARTMENT_NAME_DUPLICATE("이미 존재하는 부서명입니다", 3011, HttpStatus.BAD_REQUEST),
+    DEPARTMENT_HAS_MEMBERS("해당 부서에 소속된 구성원이 있어 삭제할 수 없습니다", 3012, HttpStatus.BAD_REQUEST),
+
+    // 직책 관련
+    POSITION_NOT_FOUND("직책을 찾을 수 없습니다", 3020, HttpStatus.NOT_FOUND),
+    POSITION_NAME_DUPLICATE("이미 존재하는 직책명입니다", 3021, HttpStatus.BAD_REQUEST),
+    POSITION_HAS_MEMBERS("해당 직책에 소속된 구성원이 있어 삭제할 수 없습니다", 3022, HttpStatus.BAD_REQUEST),
+
     // ========== 프로젝트 관련 (4000~4999) ==========
     PROJECT_NOT_FOUND("프로젝트를 찾을 수 없습니다", 4000, HttpStatus.NOT_FOUND),
     PROJECT_ACCESS_DENIED("프로젝트 접근 권한이 없습니다", 4001, HttpStatus.FORBIDDEN),
@@ -91,6 +101,8 @@ public enum ErrorCode {
     COMMENT_AUTHOR_REQUIRED("작성자 ID는 필수입니다", 6003, HttpStatus.BAD_REQUEST),
     COMMENT_TARGET_REQUIRED("postId 또는 issueId 중 하나는 필수입니다", 6004, HttpStatus.BAD_REQUEST),
     COMMENT_TARGET_CONFLICT("postId 또는 issueId 중 하나만 입력해주세요", 6005, HttpStatus.BAD_REQUEST),
+    COMMENT_ALREADY_LIKED("이미 좋아요를 누른 댓글입니다", 6006, HttpStatus.BAD_REQUEST),
+    COMMENT_LIKE_NOT_FOUND("좋아요를 누르지 않은 댓글입니다", 6007, HttpStatus.NOT_FOUND),
 
     // ========== 채팅 관련 (7000~7999) ==========
     CHAT_ROOM_NOT_FOUND("존재하지 않는 채팅방입니다", 7000, HttpStatus.NOT_FOUND),
@@ -101,7 +113,7 @@ public enum ErrorCode {
     INVALID_FILE_FORMAT("잘못된 파일 형식입니다", 8000, HttpStatus.BAD_REQUEST),
     FILE_SAVE_ERROR("파일 저장 중 오류가 발생했습니다", 8001, HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_BASE64_FORMAT("잘못된 Base64 형식입니다", 8002, HttpStatus.BAD_REQUEST),
-    
+
     // ========== 깃허브 관련 (9000~9999) ==========
     GITHUB_TOKEN_NOT_FOUND("깃허브 토큰을 찾을 수 없습니다", 9000, HttpStatus.NOT_FOUND),
     GITHUB_TOKEN_SAVE_FAILED("깃허브 토큰 저장에 실패했습니다", 9001, HttpStatus.INTERNAL_SERVER_ERROR),

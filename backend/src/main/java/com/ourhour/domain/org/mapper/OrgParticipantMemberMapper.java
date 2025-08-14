@@ -55,6 +55,8 @@ public interface OrgParticipantMemberMapper {
         @Mapping(source = "opm.memberEntity.phone", target = "phone")
         @Mapping(source = "opm.memberEntity.email", target = "email")
         @Mapping(source = "opm.memberEntity.profileImgUrl", target = "profileImgUrl")
+        @Mapping(source = "opm.departmentEntity.deptId", target = "deptId")
+        @Mapping(source = "opm.positionEntity.positionId", target = "positionId")
         @Mapping(source = "opm.departmentEntity.name", target = "deptName")
         @Mapping(source = "opm.positionEntity.name", target = "positionName")
         @Mapping(target = "role", expression = "java(opm.getRole().getDescription())")

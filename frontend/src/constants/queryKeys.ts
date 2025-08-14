@@ -15,6 +15,10 @@ export const ORG_QUERY_KEYS = {
   MY_ORG_LIST: 'myOrgList',
   MY_PROJECT_LIST: 'myProjectList',
   ORG_INFO: 'orgInfo',
+  DEPARTMENT_LIST: 'departmentList',
+  POSITION_LIST: 'positionList',
+  DEPARTMENT_MEMBERS: 'departmentMembers',
+  POSITION_MEMBERS: 'positionMembers',
 } as const;
 
 export const MEMBER_QUERY_KEYS = {

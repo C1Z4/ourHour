@@ -8,21 +8,10 @@ import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { LogoUpload } from '@/components/org/LogoUpload';
 import { OrgBasicInfo } from '@/components/org/OrgBasicInfo';
+import { OrgStructureManager } from '@/components/org/OrgStructureManager';
 import { RootState } from '@/stores/store';
 import { validateFileSize, validateFileType } from '@/utils/file/fileStorage';
 import { showErrorToast } from '@/utils/toast';
-
-// import { DepartmentPositionManager } from './DepartmentPositionManager';
-
-// interface Department {
-//   id: string;
-//   name: string;
-// }
-
-// interface Position {
-//   id: string;
-//   name: string;
-// }
 
 interface OrgModalProps {
   isOpen: boolean;
@@ -40,8 +29,6 @@ export interface OrgFormData {
   businessNumber: string;
   representativeName: string;
   phone: string;
-  //   departments: Department[];
-  //   positions: Position[];
 }
 
 export function OrgModal({ isOpen, onClose, onSubmit, initialInfoData }: OrgModalProps) {
@@ -58,8 +45,6 @@ export function OrgModal({ isOpen, onClose, onSubmit, initialInfoData }: OrgModa
     businessNumber: initialInfoData?.businessNumber || '',
     representativeName: initialInfoData?.representativeName || '',
     phone: '',
-    // departments: [{ id: '1', name: '' }],
-    // positions: [{ id: '1', name: '' }],
   });
 
   useEffect(() => {
@@ -161,16 +146,8 @@ export function OrgModal({ isOpen, onClose, onSubmit, initialInfoData }: OrgModa
           onInputChange={handleInputChange}
           isEditing={isEditing}
         />
-
-        {/* <DepartmentPositionManager
-          departments={formData.departments}
-          positions={formData.positions}
-          onDepartmentsChange={(departments) =>
-            setFormData((prev) => ({ ...prev, departments }))
-          }
-          onPositionsChange={(positions) => setFormData((prev) => ({ ...prev, positions }))}
-        /> */}
       </form>
+      {isEditing && initialInfoData?.orgId && <OrgStructureManager orgId={initialInfoData.orgId} />}
     </ModalComponent>
   );
 }
