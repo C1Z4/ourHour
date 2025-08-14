@@ -1,7 +1,7 @@
 spring:
   # DB 관련 설정
   datasource:
-    url: ${DB_URL}
+    url: ${DB_URL}?serverTimezone=Asia/Seoul
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
@@ -24,6 +24,41 @@ spring:
     url:
       front: ${FRONTEND_URL}
 
+# AWS 설정 (지역 및 인증 프로파일)
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID}
+        secret-key: ${AWS_SECRET_ACCESS_KEY}
+      region:
+        static: ${AWS_REGION}
+      s3:
+        bucket: ${AWS_S3_BUCKET_NAME}
+      stack:
+        auto: false
+
+  # Redis 설정
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      timeout: 2000ms
+      database: 0
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+          time-between-eviction-runs: 30s
+
+  # 캐시 설정
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000  # 1시간 (밀리초)
+      cache-null-values: false
+
 # JWT 관련 설정
 jwt:
   secret: ${JWT_SECRET}
@@ -40,3 +75,17 @@ github:
   client-secret: ${APPLICATION_GITHUB_CLIENT_SECRET}
   redirect-uri: ${APPLICATION_GITHUB_REDIRECT_URI}
   scope: ${APPLICATION_GITHUB_SCOPE}
+
+
+# 이미지 캐시 관련 설정
+app:
+  cdn:
+    domain: ${CDN_DOMAIN}
+  upload:
+    prefix: ${UPLOAD_PREFIX:images}
+  cache:
+    image:
+      ttl: 3600  # 1시간 (초)
+      max-size: 100  # 최대 캐시 항목 수
+    presign:
+      ttl: 600   # 10분 (초)

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { createFileRoute, useParams } from '@tanstack/react-router';
 
 import { MyMemberInfoDetail, MemberInfoBase } from '@/api/member/memberApi';
+import { uploadImageWithCompression } from '@/api/storage/uploadApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { MemberInfoForm } from '@/components/member/MemberInfoForm';
@@ -14,7 +15,7 @@ import {
 } from '@/hooks/queries/member/useMemberMutations';
 import { useMyMemberInfoQuery } from '@/hooks/queries/member/useMemberQueries';
 import { usePasswordVerificationMutation } from '@/hooks/queries/user/useUserMutations';
-import { compressAndSaveImage, validateFileSize, validateFileType } from '@/utils/file/fileStorage';
+import { validateFileSize, validateFileType } from '@/utils/file/fileStorage';
 import { showErrorToast } from '@/utils/toast';
 
 export const Route = createFileRoute('/info/$orgId/')({
@@ -80,26 +81,20 @@ function MemberInfoPage() {
 
   const handleFileSelect = async (file: File) => {
     try {
-      // 파일 검증
       if (!validateFileType(file)) {
         showErrorToast('지원하지 않는 파일 형식입니다. (JPG, PNG, GIF만 가능)');
         return;
       }
-
       if (!validateFileSize(file, 5)) {
         showErrorToast('파일 크기는 5MB 이하여야 합니다.');
         return;
       }
 
-      // 미리보기를 위한 이미지 압축 및 저장(메모리에 임시 저장)
-      const compressedImageUrl = await compressAndSaveImage(file, 800, 0.8);
-      setLogoPreview(compressedImageUrl);
-      setFormData((prev) => ({
-        ...prev,
-        profileImgUrl: compressedImageUrl,
-      }));
-    } catch (error) {
-      showErrorToast('이미지 처리 중 오류가 발생했습니다.');
+      const cdnUrl = await uploadImageWithCompression(file);
+      setLogoPreview(cdnUrl);
+      setFormData((prev) => ({ ...prev, profileImgUrl: cdnUrl }));
+    } catch {
+      showErrorToast('이미지 업로드 중 오류가 발생했습니다.');
     }
   };
 

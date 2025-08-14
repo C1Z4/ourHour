@@ -1,11 +1,12 @@
 spring:
+
   config:
     import:
-      - aws-parameterstore:/ourhour/release/
+      - aws-parameterstore:/ourhour/test/
 
   # DB 관련 설정
   datasource:
-    url: ${db.url}?serverTimezone=Asia/Seoul
+    url: ${db.url}
     username: ${db.username}
     password: ${db.password}
 
@@ -43,15 +44,6 @@ spring:
     url:
       front: ${url.front}
 
-  # Redis 설정
-  data:
-    redis:
-      host: ${redis.host}
-      port: ${redis.port}
-      password: ${redis.password}
-      ssl:
-        enabled: true
-
 # JWT 관련 설정
 jwt:
   secret: ${jwt.secret}
@@ -69,7 +61,5 @@ github:
   redirect-uri: ${github.redirect-uri}
   scope: ${github.scope}
 
-app:
-  cache:
-    image:
-      max-size: 1000 
+
+

@@ -2,9 +2,9 @@ name: CI-CD
 
 on:
   push:
-    branches: ["develop", "main"]
+    branches: ["develop", "main", "release"]
   pull_request:
-    branches: ["develop", "main"]
+    branches: ["develop", "main", "release"]
 
 jobs:
   #-------------------------CI-------------------------
@@ -101,7 +101,7 @@ jobs:
   build-docker:
     needs: build-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/release' || github.ref == 'refs/heads/main')
 
     steps:
       - name: Checkout source code
@@ -127,8 +127,8 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "backend=ourhour-backend:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-          elif [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
-            echo "backend=ourhour-backend:dev-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_REF}" == "refs/heads/release" ]]; then
+            echo "backend=ourhour-backend:test-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build and push Backend Docker image
@@ -142,11 +142,11 @@ jobs:
           cache-to: type=gha,mode=max
 
 
-  # 배포 태스트용 Docker (develop 브랜치)
-  deploy-docker-dev:
+  # 배포 태스트용 Docker (release 브랜치)
+  deploy-docker-test:
     needs: [ build-test, build-docker ]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
     environment: development
 
     steps:
@@ -159,22 +159,25 @@ jobs:
           script: |
             cd /home/ubuntu/ourHour
             
-            git fetch --all && git checkout develop && git reset --hard origin/develop
+            git fetch origin
+            git checkout release
+            git reset --hard origin/release
+            git merge origin/develop
             
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             
-            docker compose -f docker-compose.yml -f docker-compose.release.yml down || true
+            docker compose -f docker-compose.yml -f docker-compose.test.yml down || true
             
-            docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:dev-${{ github.sha }}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
             
-            export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:dev-${{ github.sha }}
+            export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
             
             export BACKEND_PORT=8081
             
-            docker compose -f docker-compose.yml -f docker-compose.release.yml up -
+            docker compose -f docker-compose.yml -f docker-compose.test.yml up -d
             
             docker image prune -f
-            
+  
 
   # 배포용 Docker (main 브랜치)
   deploy-docker-prod:
@@ -196,20 +199,20 @@ jobs:
 
             # Git 최신 코드 가져오기
             git fetch --all && git checkout main && git reset --hard origin/main
+            git merge origin/release
 
             # Docker 로그인
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
             # 기존 컨테이너 중지 및 제거
-            docker compose -f docker-compose.yml -f docker-compose.dev.yml down || true
+            docker compose -f docker-compose.yml -f docker-compose.dev.release down || true
             docker compose -f docker-compose.yml -f docker-compose.release.yml down || true
 
             # 최신 이미지 풀
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
 
-            # 환경변수 설정 (프로덕션 - AWS Parameter Store 사용)
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
-
+            
             # 새 컨테이너 시작 (AWS Parameter Store에서 환경변수 자동 로드)
             docker compose -f docker-compose.yml -f docker-compose.release.yml up -d
 

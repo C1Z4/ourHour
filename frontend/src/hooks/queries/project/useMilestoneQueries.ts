@@ -6,11 +6,12 @@ import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 // ======== 프로젝트 마일스톤 목록 조회 ========
 export const useProjectMilestoneListQuery = (
   projectId: number,
+  myMilestonesOnly: boolean = false,
   currentPage: number = 1,
   size: number = 10,
 ) =>
   useQuery({
-    queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId, currentPage, size],
-    queryFn: () => getProjectMilestoneList({ projectId, currentPage, size }),
+    queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId, myMilestonesOnly, currentPage, size],
+    queryFn: () => getProjectMilestoneList({ projectId, myMilestonesOnly, currentPage, size }),
     enabled: !!projectId,
   });

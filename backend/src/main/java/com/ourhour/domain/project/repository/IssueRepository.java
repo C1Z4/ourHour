@@ -24,4 +24,13 @@ public interface IssueRepository extends JpaRepository<IssueEntity, Long> {
 
     List<IssueEntity> findByProjectEntity_ProjectId(Long projectId);
 
+    Page<IssueEntity> findByProjectEntity_ProjectIdAndAssigneeEntity_MemberId(Long projectId, Long memberId,
+            Pageable pageable);
+
+    Page<IssueEntity> findByMilestoneEntity_MilestoneIdAndAssigneeEntity_MemberId(Long milestoneId, Long memberId, 
+            Pageable pageable);
+
+    Page<IssueEntity> findByProjectEntity_ProjectIdAndMilestoneEntityIsNullAndAssigneeEntity_MemberId(Long projectId, Long memberId, 
+            Pageable pageable);
+
 }

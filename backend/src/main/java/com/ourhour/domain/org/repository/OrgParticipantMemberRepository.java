@@ -31,6 +31,16 @@ public interface OrgParticipantMemberRepository
             "ORDER BY m.memberId ASC")
     Page<OrgParticipantMemberEntity> findByOrgId(@Param("orgId") Long orgId, Pageable pageable);
 
+    @Query("SELECT opm " +
+            "FROM OrgParticipantMemberEntity opm " +
+            "JOIN opm.memberEntity m " +
+            "LEFT JOIN opm.positionEntity p " +
+            "LEFT JOIN opm.departmentEntity d " +
+            "WHERE opm.orgEntity.orgId = :orgId " +
+            "AND m.name LIKE %:search% " +
+            "ORDER BY m.memberId ASC")
+    Page<OrgParticipantMemberEntity> findByOrgIdAndNameContaining(@Param("orgId") Long orgId, @Param("search") String search, Pageable pageable);
+
     boolean existsByOrgEntity_OrgIdAndMemberEntity_MemberId(Long orgId, Long memberId);
 
     @Query("SELECT opm " +

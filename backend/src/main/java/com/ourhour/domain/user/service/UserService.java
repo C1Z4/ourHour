@@ -23,6 +23,7 @@ import com.ourhour.domain.user.dto.PwdVerifyReqDTO;
 import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.domain.user.util.PasswordChanger;
 import com.ourhour.domain.user.util.PasswordVerifier;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,7 @@ import java.util.List;
 
 import static com.ourhour.domain.user.exception.UserException.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -143,6 +145,7 @@ public class UserService {
                     .linkedAt(LocalDateTime.now())
                     .build();
         } catch (IOException e) {
+            log.error("깃허브 사용자 정보 조회 실패", e);
             throw GithubException.githubTokenNotAuthorizedException();
         }
     }
@@ -153,6 +156,7 @@ public class UserService {
         String code = req.getCode();
 
         if (code == null || code.isBlank()) {
+            log.error("깃허브 코드가 없습니다.");
             throw GithubException.githubTokenNotAuthorizedException();
         }
 
@@ -225,6 +229,7 @@ public class UserService {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() / 100 != 2) {
+                log.error("깃허브 토큰 교환 실패, 응답 코드: {}", response.statusCode());
                 throw GithubException.githubTokenNotAuthorizedException();
             }
 
@@ -233,10 +238,12 @@ public class UserService {
             String json = response.body();
             String token = parseJsonField(json, "access_token");
             if (token == null || token.isBlank()) {
+                log.error("깃허브 토큰 교환 실패, 토큰이 null 또는 빈 문자열입니다: {}", json);
                 throw GithubException.githubTokenNotAuthorizedException();
             }
             return token;
         } catch (IOException | InterruptedException e) {
+            log.error("깃허브 토큰 교환 실패, 예외 발생: {}", e.getMessage());
             throw GithubException.githubTokenNotAuthorizedException();
         }
     }

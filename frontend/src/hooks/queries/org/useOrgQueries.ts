@@ -14,10 +14,15 @@ export const useOrgInfoQuery = (orgId: number) =>
   });
 
 // ======== 조직 멤버 목록 조회 ========
-export const useOrgMemberListQuery = (orgId: number, currentPage: number = 1, size: number = 10) =>
+export const useOrgMemberListQuery = (
+  orgId: number,
+  currentPage: number = 1,
+  size: number = 10,
+  search?: string,
+) =>
   useQuery({
-    queryKey: [ORG_QUERY_KEYS.MEMBER_LIST, orgId, currentPage, size],
-    queryFn: () => getOrgMemberList({ orgId, currentPage, size }),
+    queryKey: [ORG_QUERY_KEYS.MEMBER_LIST, orgId, currentPage, size, search],
+    queryFn: () => getOrgMemberList({ orgId, currentPage, size, search }),
     enabled: !!orgId,
   });
 

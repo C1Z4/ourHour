@@ -10,6 +10,7 @@ import { logError } from '@/utils/auth/errorUtils';
 export interface GetProjectIssueListRequest {
   projectId: number;
   milestoneId?: number | null;
+  myIssuesOnly?: boolean;
   currentPage?: number;
   size?: number;
 }
@@ -36,7 +37,9 @@ export const getProjectIssueList = async (
     if (request.milestoneId) {
       params.append('milestoneId', request.milestoneId.toString());
     }
-
+    if (request.myIssuesOnly !== undefined) {
+      params.append('myIssuesOnly', request.myIssuesOnly.toString());
+    }
     if (request.currentPage) {
       params.append('currentPage', request.currentPage.toString());
     }

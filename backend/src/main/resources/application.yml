@@ -1,5 +1,11 @@
 spring:
-
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+    time-zone: Asia/Seoul
+    date-format: yyyy-MM-dd HH:mm:ss
   # JPA 관련 설정
   jpa:
     hibernate:
@@ -11,20 +17,24 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
+        jdbc:
+          time_zone: Asia/Seoul
 
   # flywqy 관련 설정
   flyway:
     enabled: true
     baseline-on-migrate: true
 
-# 이미지 업로드 설정
-app:
-  upload:
-    path: ./uploads/images
-
-  web:
-    resources:
-      static-locations: classpath:/static/,file:uploads/images/
+  # Redis 관련 설정
+  data:
+    redis:
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
 
 # 로그 설정
 logging:
@@ -45,3 +55,10 @@ management:
   endpoint:
     health:
       show-details: always
+
+# 이미지 업로드 설정
+app:
+  upload:
+    prefix: images
+  cdn:
+    domain: https://dke56if5x4hny.cloudfront.net

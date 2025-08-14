@@ -212,8 +212,7 @@ export const ProjectModal = ({
             <MemberSelector
               selectedMemberIds={selectedParticipantIds || []}
               onMemberSelect={handleMemberSelect}
-              participantTotalPages={orgMemberTotalPages || 1}
-              initialMemberData={orgMembers}
+              orgId={orgId}
             />
           )}
         </div>

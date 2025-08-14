@@ -33,6 +33,7 @@ import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.domain.project.exception.MilestoneException;
 import com.ourhour.domain.project.exception.IssueException;
 import com.ourhour.global.jwt.dto.Claims;
+import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.domain.project.annotation.GitHubSync;
 
 import lombok.RequiredArgsConstructor;
@@ -54,13 +55,53 @@ public class IssueService {
 
     // 특정 마일스톤의 이슈 목록 조회 (milestoneId가 null이면 마일스톤이 할당되지 않은 이슈들 조회)
     public ApiResponse<PageResponse<IssueSummaryDTO>> getMilestoneIssues(Long projectId, Long milestoneId,
-            Pageable pageable) {
+            boolean myIssuesOnly, Pageable pageable) {
         if (projectId <= 0) {
             throw ProjectException.projectNotFoundException();
         }
 
         if (!projectRepository.existsById(projectId)) {
             throw ProjectException.projectNotFoundException();
+        }
+
+        Long orgId = projectRepository.findById(projectId)
+                .orElseThrow(() -> ProjectException.projectNotFoundException())
+                .getOrgEntity()
+                .getOrgId();
+
+        Claims claims = UserContextHolder.get();
+
+        if (myIssuesOnly) {
+            Long memberId = claims.getOrgAuthorityList().stream()
+                    .filter(auth -> auth.getOrgId().equals(orgId))
+                    .map(auth -> auth.getMemberId())
+                    .findFirst()
+                    .orElseThrow(() -> MemberException.memberAccessDeniedException());
+            
+            Page<IssueEntity> issuePage;
+            
+            if (milestoneId != null && milestoneId > 0) {
+                // 특정 마일스톤의 내가 할당된 이슈 조회
+                if (!milestoneRepository.existsById(milestoneId)) {
+                    throw MilestoneException.milestoneNotFoundException();
+                }
+                issuePage = issueRepository.findByMilestoneEntity_MilestoneIdAndAssigneeEntity_MemberId(
+                        milestoneId, memberId, pageable);
+            } else {
+                // 마일스톤이 할당되지 않은 내가 할당된 이슈 조회
+                issuePage = issueRepository.findByProjectEntity_ProjectIdAndMilestoneEntityIsNullAndAssigneeEntity_MemberId(
+                        projectId, memberId, pageable);
+            }
+            
+            if (issuePage.isEmpty()) {
+                return ApiResponse.success(PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize()));
+            }
+            
+            String message = milestoneId != null && milestoneId > 0
+                    ? "특정 마일스톤의 내가 할당된 이슈 목록 조회에 성공했습니다."
+                    : "마일스톤이 할당되지 않은 내가 할당된 이슈 목록 조회에 성공했습니다.";
+            
+            return ApiResponse.success(PageResponse.of(issuePage.map(issueMapper::toIssueSummaryDTO)), message);
         }
 
         Page<IssueEntity> issuePage;

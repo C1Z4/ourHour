@@ -75,7 +75,18 @@ services:
       - "--mysqld.address=db:3306"
       - "--no-collect.slave_status"
 
+  redis:
+    image: redis:7-alpine
+    container_name: ourhour-dev-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass devpassword123
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
 volumes:
   gradle-cache:
   build-cache:
   mysql-data:
+  redis_data:
