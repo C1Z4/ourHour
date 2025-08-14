@@ -24,6 +24,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - default
 
   # db
   db:
@@ -41,33 +43,71 @@ services:
       retries: 10
     volumes:
       - mysql-data:/var/lib/mysql
+    networks:
+      - default
 
   # prometheus
   prometheus:
+    image: prom/prometheus
+
     ports:
       - "9090:9090"
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command: --config.file=/etc/prometheus/prometheus.yml
+    restart: always
+    networks:
+      - default
+
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
   # grafana
   grafana:
+
+    image: grafana/grafana
+
     ports:
       - "3000:3000"
     volumes:
       - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
       - ./monitoring/grafana/dashboards/:/etc/grafana/dashboards/
 
+    depends_on:
+      - prometheus
+    restart: always
+    networks:
+      - default
+
   # node-exporter
   node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: node-exporter
     ports:
       - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: always
+    networks:
+      - default
 
   # mysqld-exporter
   mysqld-exporter:
+    image: prom/mysqld-exporter:v0.15.1
+    container_name: mysqld-exporter
     ports:
       - "9104:9104"
+    depends_on:
+      - db
+    networks:
+      - default
     env_file:
       - .env
     command:
@@ -90,3 +130,8 @@ volumes:
   build-cache:
   mysql-data:
   redis_data:
+
+networks:
+  default:
+    name: monitoring-net
+
