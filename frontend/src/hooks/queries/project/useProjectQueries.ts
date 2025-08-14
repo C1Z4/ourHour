@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 
 import {
   getProjectInfo,
@@ -40,4 +40,25 @@ export const useProjectParticipantListQuery = (
     queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, projectId, orgId, currentPage, size, search],
     queryFn: () => getProjectParticipantList({ projectId, orgId, currentPage, size, search }),
     enabled: !!orgId && !!projectId,
+  });
+
+// ======== 프로젝트 참여자 무한스크롤 조회 ========
+export const useInfiniteProjectParticipantListQuery = (
+  projectId: number,
+  orgId: number,
+  size: number = 10,
+  search?: string,
+) =>
+  useInfiniteQuery({
+    queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, 'infinite', projectId, orgId, size, search],
+    queryFn: ({ pageParam = 1 }) =>
+      getProjectParticipantList({ projectId, orgId, currentPage: pageParam, size, search }),
+    enabled: !!orgId && !!projectId,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.data.hasNext) {
+        return allPages.length + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
   });

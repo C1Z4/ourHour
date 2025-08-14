@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 
-import { Search, X } from 'lucide-react';
-
+import { ParticipantList } from '@/components/project/issue-form/ParticipantList';
+import { SearchInput } from '@/components/project/issue-form/SearchInput';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useProjectParticipantListQuery } from '@/hooks/queries/project/useProjectQueries';
+import { useInfiniteProjectParticipantListQuery } from '@/hooks/queries/project/useProjectQueries';
 
 interface Assignee {
   memberId: number;
@@ -25,35 +24,20 @@ export const AssigneeSelect = ({ projectId, orgId, value, onChange }: AssigneeSe
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSearchQuery, setActiveSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [allParticipants, setAllParticipants] = useState<Assignee[]>([]);
-  const [hasMore, setHasMore] = useState(true);
   const [selectedAssignee, setSelectedAssignee] = useState<Assignee | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { data: participantData, isLoading } = useProjectParticipantListQuery(
-    projectId,
-    orgId,
-    currentPage,
-    10,
-    activeSearchQuery || undefined,
+  const { data, isLoading, isFetching, fetchNextPage, hasNextPage, refetch } =
+    useInfiniteProjectParticipantListQuery(projectId, orgId, 10, activeSearchQuery || undefined);
+
+  // 모든 페이지의 참여자를 평탄화
+  const allParticipants = useMemo(
+    () => data?.pages.flatMap((page) => (Array.isArray(page.data) ? page.data : [])) || [],
+    [data],
   );
 
-  useEffect(() => {
-    if (participantData?.data) {
-      const newParticipants = Array.isArray(participantData.data) ? participantData.data : [];
-
-      if (currentPage === 1) {
-        setAllParticipants(newParticipants);
-      } else {
-        setAllParticipants((prev) => [...prev, ...newParticipants]);
-      }
-
-      setHasMore(participantData.data.totalPages > currentPage);
-    }
-  }, [participantData, currentPage]);
-
+  // 선택된 할당자 찾기
   useEffect(() => {
     if (value && allParticipants.length > 0) {
       const assignee = allParticipants.find((p) => p.memberId === value);
@@ -65,30 +49,20 @@ export const AssigneeSelect = ({ projectId, orgId, value, onChange }: AssigneeSe
 
   const handleSearchSubmit = () => {
     setActiveSearchQuery(searchQuery);
-    setCurrentPage(1);
-    setAllParticipants([]);
-    setHasMore(true);
+    refetch();
   };
 
   const handleSearchClear = () => {
     setSearchQuery('');
     setActiveSearchQuery('');
-    setCurrentPage(1);
-    setAllParticipants([]);
-    setHasMore(true);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearchSubmit();
-    }
+    refetch();
   };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
 
-    if (scrollHeight - scrollTop <= clientHeight + 10 && hasMore && !isLoading) {
-      setCurrentPage((prev) => prev + 1);
+    if (scrollHeight - scrollTop <= clientHeight + 10 && hasNextPage && !isFetching) {
+      fetchNextPage();
     }
   };
 
@@ -125,62 +99,22 @@ export const AssigneeSelect = ({ projectId, orgId, value, onChange }: AssigneeSe
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
-          <div className="p-3 border-b">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  placeholder="참여자 이름으로 검색..."
-                  className="pl-10 pr-10"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={handleSearchClear}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-              <Button variant="outline" onClick={handleSearchSubmit}>
-                <Search className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onSubmit={handleSearchSubmit}
+            onClear={handleSearchClear}
+            placeholder="참여자 이름으로 검색..."
+          />
 
-          <div ref={scrollRef} onScroll={handleScroll} className="max-h-64 overflow-y-auto">
-            <div
-              className="p-2 hover:bg-gray-50 cursor-pointer flex items-center gap-2 text-sm"
-              onClick={() => handleAssigneeSelect(null)}
-            >
-              할당자 없음
-            </div>
-
-            {allParticipants.map((participant) => (
-              <div
-                key={participant.memberId}
-                className="p-2 hover:bg-gray-50 cursor-pointer flex items-center gap-2 text-sm"
-                onClick={() => handleAssigneeSelect(participant)}
-              >
-                <Avatar className="w-6 h-6">
-                  <AvatarImage src={participant.profileImgUrl} alt={participant.name} />
-                  <AvatarFallback className="text-xs">{participant.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                {participant.name}
-              </div>
-            ))}
-
-            {isLoading && <div className="p-4 text-center text-gray-500">로딩 중...</div>}
-
-            {allParticipants.length === 0 && !isLoading && (
-              <div className="p-4 text-center text-gray-500">
-                {activeSearchQuery ? '검색 결과가 없습니다.' : '참여자가 없습니다.'}
-              </div>
-            )}
-          </div>
+          <ParticipantList
+            ref={scrollRef}
+            participants={allParticipants}
+            onSelect={handleAssigneeSelect}
+            onScroll={handleScroll}
+            isLoading={isLoading || isFetching}
+            hasSearchQuery={!!activeSearchQuery}
+          />
         </PopoverContent>
       </Popover>
     </div>
