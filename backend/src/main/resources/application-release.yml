@@ -1,0 +1,72 @@
+spring:
+  config:
+    import:
+      - aws-parameterstore:/ourhour/release/
+
+  # DB 관련 설정
+  datasource:
+    url: ${db.url}?serverTimezone=Asia/Seoul
+    username: ${db.username}
+    password: ${db.password}
+
+  # 메일 관련 설정
+  mail:
+    from: ${mail.from}
+    host: smtp.gmail.com
+    port: 587
+    username: ${mail.username}
+    password: ${mail.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # AWS 설정 (지역 및 인증 프로파일)
+  cloud:
+    aws:
+      parameterstore:
+        recursive: true
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: ${aws.s3.bucket}
+      stack:
+        auto: false
+
+  # 프론트엔드 관련 설정
+  service:
+    url:
+      front: ${url.front}
+
+  # Redis 설정
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
+      ssl:
+        enabled: true
+
+# JWT 관련 설정
+jwt:
+  secret: ${jwt.secret}
+  access-token-validity-in-seconds: ${jwt.access-token}
+  refresh-token-validity-in-seconds: ${jwt.refresh-token}
+
+# 암호화 설정
+encryption:
+  secret-key: ${encryption.secret-key}
+
+# GitHub OAuth 설정
+github:
+  client-id: ${github.client-id}
+  client-secret: ${github.client-secret}
+  redirect-uri: ${github.redirect-uri}
+  scope: ${github.scope}
+
+app:
+  cache:
+    image:
+      max-size: 1000 

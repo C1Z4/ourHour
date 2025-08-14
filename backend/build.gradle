@@ -19,6 +19,10 @@ checkstyle {
     configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
 }
 
+ext {
+    JJWT_VERSION = "0.12.3"
+}
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
@@ -33,17 +37,51 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.modelmapper:modelmapper:3.1.1'
+    implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.0.2")
+    implementation "io.awspring.cloud:spring-cloud-aws-starter-parameter-store"
+    implementation "io.awspring.cloud:spring-cloud-aws-starter-s3"
+    implementation 'software.amazon.awssdk:s3:2.25.62'
+
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // Redis 캐싱 의존성
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'redis.clients:jedis:4.4.3'
+
+    // OpenAPI/Swagger UI (Spring Boot 3.5.x 호환)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
+
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
     testImplementation 'org.springframework.security:spring-security-test'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.mysql:mysql-connector-j'
+
     annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation 'org.flywaydb:flyway-mysql'
+
+    testImplementation 'com.h2database:h2'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    implementation "io.jsonwebtoken:jjwt-api:${JJWT_VERSION}"
+    runtimeOnly "io.jsonwebtoken:jjwt-gson:${JJWT_VERSION}"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:${JJWT_VERSION}"
+
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    implementation 'org.kohsuke:github-api:1.327'
 }
 
 tasks.named('test') {

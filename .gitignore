@@ -1,6 +1,6 @@
-###########################
+############################
 # ✅ Backend (Spring Boot) #
-###########################
+############################
 
 # Gradle 관련
 .gradle/
@@ -11,6 +11,9 @@ build/
 
 #.yml 관련
 **/src/main/resources/*secret*.yml
+
+# 환경 변수 관련
+/backend/.env
 
 # IntelliJ IDEA
 .idea/
@@ -44,12 +47,14 @@ nbdist/
 .vscode/
 
 # 기타
+.cursor/
 HELP.md
+CLAUDE.md
 
 
-###########################
+#############################
 # ✅ Frontend (React / npm) #
-###########################
+#############################
 
 # 의존성
 /frontend/node_modules/
@@ -60,13 +65,17 @@ HELP.md
 /frontend/coverage/
 
 # 프로덕션 빌드
-/frontend/build/
+/frontend/dist/
+/frontend/src/routeTree.gen.ts
+
+# Vite 관련 캐시 및 임시 파일
+/frontend/.vite/
+/frontend/.vite-temp/
+/frontend/vite.config.ts.timestamp-*
 
 # 환경 변수
-/frontend/.env.local
-/frontend/.env.development.local
-/frontend/.env.test.local
-/frontend/.env.production.local
+/frontend/.env*
+!/frontend/.env.example
 
 # macOS
 /frontend/.DS_Store
@@ -75,3 +84,15 @@ HELP.md
 /frontend/npm-debug.log*
 /frontend/yarn-debug.log*
 /frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+
+###########################
+# ✅ Docker 로컬 설정       #
+###########################
+docker-compose.override.yml
+
+###########################
+# ✅ 이미지 설정             #
+###########################
+uploads/
+
