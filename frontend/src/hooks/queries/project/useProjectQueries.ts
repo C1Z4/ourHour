@@ -34,9 +34,10 @@ export const useProjectParticipantListQuery = (
   orgId: number,
   currentPage: number = 1,
   size: number = 10,
+  search?: string,
 ) =>
   useQuery({
-    queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, projectId, orgId, currentPage, size],
-    queryFn: () => getProjectParticipantList({ projectId, orgId, currentPage, size }),
+    queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, projectId, orgId, currentPage, size, search],
+    queryFn: () => getProjectParticipantList({ projectId, orgId, currentPage, size, search }),
     enabled: !!orgId && !!projectId,
   });

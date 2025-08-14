@@ -93,14 +93,26 @@ interface GetProjectParticipantListRequest {
   orgId: number;
   currentPage?: number;
   size?: number;
+  search?: string;
 }
 
 export const getProjectParticipantList = async (
   request: GetProjectParticipantListRequest,
 ): Promise<ApiResponse<PageResponse<Member[]>>> => {
   try {
+    const params = new URLSearchParams();
+    if (request.currentPage) {
+      params.append('currentPage', request.currentPage.toString());
+    }
+    if (request.size) {
+      params.append('size', request.size.toString());
+    }
+    if (request.search) {
+      params.append('search', request.search);
+    }
+
     const response = await axiosInstance.get(
-      `/api/projects/${request.projectId}/${request.orgId}/participants?currentPage=${request.currentPage}&size=${request.size}`,
+      `/api/projects/${request.projectId}/${request.orgId}/participants?${params.toString()}`,
     );
 
     return response.data;

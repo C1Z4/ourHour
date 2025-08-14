@@ -1,82 +1,86 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 
-import { Member } from '@/types/memberTypes';
-
+import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { useOrgMemberListQuery } from '@/hooks/queries/org/useOrgQueries';
 
 interface MemberSelectorProps {
   selectedMemberIds: number[];
   onMemberSelect: (memberId: number, checked: boolean) => void;
   className?: string;
-  participantTotalPages: number;
-  initialMemberData?: Member[];
+  orgId: number;
 }
 
 export const MemberSelector = ({
   selectedMemberIds,
   onMemberSelect,
   className,
-  participantTotalPages,
-  initialMemberData,
+  orgId,
 }: MemberSelectorProps) => {
-  const [searchTerm, setSearchTerm] = useState('');
-
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
 
-  useEffect(() => {
+  const { data: orgMembersData } = useOrgMemberListQuery(
+    orgId,
+    currentPage,
+    10,
+    activeSearchQuery || undefined,
+  );
+
+  const members = Array.isArray(orgMembersData?.data) ? orgMembersData.data : [];
+  const totalPages = orgMembersData?.data?.totalPages || 1;
+
+  const handleSearchSubmit = () => {
+    setActiveSearchQuery(searchQuery);
     setCurrentPage(1);
-  }, [searchTerm]);
-
-  const isEnglish = (text: string): boolean => /^[a-zA-Z\s]+$/.test(text);
-
-  // 영어면 소문자로 변환
-  const normalizeText = (text: string | undefined | null): string => {
-    if (!text) {
-      return '';
-    }
-    return isEnglish(text) ? text.toLowerCase() : text;
   };
 
-  // 검색 결과 필터링
-  const filteredMembers = initialMemberData?.filter((member) => {
-    const isSearchTermEnglish = isEnglish(searchTerm);
+  const handleSearchClear = () => {
+    setSearchQuery('');
+    setActiveSearchQuery('');
+    setCurrentPage(1);
+  };
 
-    const normalizedSearchTerm = isSearchTermEnglish ? searchTerm.toLowerCase() : searchTerm;
-
-    const normalizedName = normalizeText(member.name);
-    const normalizedDepartment = normalizeText(member.deptName);
-    const normalizedPosition = normalizeText(member.positionName);
-
-    return (
-      normalizedName.includes(normalizedSearchTerm) ||
-      normalizedDepartment.includes(normalizedSearchTerm) ||
-      normalizedPosition.includes(normalizedSearchTerm)
-    );
-  });
-
-  const currentMembers = filteredMembers?.slice(startIndex, endIndex) || [];
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
+  };
 
   return (
     <div className={className}>
       <label className="block text-sm font-medium text-gray-700 mb-2">
         구성원 수정({selectedMemberIds.length})
       </label>
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        <Input
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="구성원 검색"
-          className="pl-10"
-        />
+      <div className="flex gap-2 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder="구성원 이름으로 검색..."
+            className="pl-10 pr-10"
+          />
+          {searchQuery && (
+            <button
+              onClick={handleSearchClear}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <ButtonComponent variant="primary" onClick={handleSearchSubmit} size="default">
+          <Search className="w-4 h-4" />
+          검색
+        </ButtonComponent>
       </div>
       <div className="border rounded-lg">
         <div className="p-3">
@@ -87,7 +91,7 @@ export const MemberSelector = ({
           </div>
           <div className="min-h-[220px] flex flex-col justify-between">
             <div className="flex-1">
-              {currentMembers.map((member) => (
+              {members.map((member) => (
                 <div
                   key={member.memberId}
                   className="grid grid-cols-3 gap-2 items-center py-2 border-b border-gray-100 last:border-b-0 cursor-pointer"
@@ -112,33 +116,25 @@ export const MemberSelector = ({
                   <div className="text-center text-sm text-gray-600">{member.positionName}</div>
                 </div>
               ))}
-              {currentMembers.length === 0 && (
-                <div className="text-center py-8 text-gray-500">검색 결과가 없습니다.</div>
+              {members.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  {activeSearchQuery ? '검색 결과가 없습니다.' : '구성원이 없습니다.'}
+                </div>
               )}
             </div>
           </div>
         </div>
 
         <div className="p-3 border-t">
-          {participantTotalPages > 1 ? (
-            <>
-              <div className="flex justify-end items-center text-sm text-gray-600 mb-2">
-                <span>
-                  {startIndex + 1}-{Math.min(endIndex, filteredMembers?.length || 0)} of{' '}
-                  {filteredMembers?.length || 0}
-                </span>
-              </div>
-              <PaginationComponent
-                currentPage={currentPage}
-                totalPages={participantTotalPages}
-                onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
-              />
-            </>
+          {totalPages > 1 ? (
+            <PaginationComponent
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
+            />
           ) : (
             <div className="h-10 flex items-center justify-center text-sm text-gray-500">
-              {filteredMembers && filteredMembers.length > 0
-                ? `총 ${filteredMembers.length}명`
-                : ''}
+              {members.length > 0 ? `총 ${members.length}명` : ''}
             </div>
           )}
         </div>
