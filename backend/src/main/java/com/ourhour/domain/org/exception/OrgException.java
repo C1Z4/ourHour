@@ -41,4 +41,30 @@ public class OrgException extends BusinessException {
         return new OrgException(ErrorCode.ORG_ID_NOT_MATCH);
     }
 
+    // ========== 부서 관련 예외 ==========
+    public static OrgException departmentNotFoundException() {
+        return new OrgException(ErrorCode.DEPARTMENT_NOT_FOUND);
+    }
+
+    public static OrgException departmentNameDuplicateException() {
+        return new OrgException(ErrorCode.DEPARTMENT_NAME_DUPLICATE);
+    }
+
+    public static OrgException departmentHasMembersException() {
+        return new OrgException(ErrorCode.DEPARTMENT_HAS_MEMBERS);
+    }
+
+    // ========== 직책 관련 예외 ==========
+    public static OrgException positionNotFoundException() {
+        return new OrgException(ErrorCode.POSITION_NOT_FOUND);
+    }
+
+    public static OrgException positionNameDuplicateException() {
+        return new OrgException(ErrorCode.POSITION_NAME_DUPLICATE);
+    }
+
+    public static OrgException positionHasMembersException() {
+        return new OrgException(ErrorCode.POSITION_HAS_MEMBERS);
+    }
+
 }
