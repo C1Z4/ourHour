@@ -33,6 +33,8 @@ import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.ProjectParticipantId;
 import com.ourhour.domain.project.enums.IssueStatus;
 import com.ourhour.domain.project.exception.ProjectException;
+import com.ourhour.global.jwt.dto.Claims;
+import com.ourhour.global.jwt.util.UserContextHolder;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -177,7 +179,8 @@ public class ProjectService {
     }
 
     // 특정 프로젝트의 마일스톤 목록 조회
-    public ApiResponse<PageResponse<MileStoneInfoDTO>> getProjectMilestones(Long projectId, Pageable pageable) {
+    public ApiResponse<PageResponse<MileStoneInfoDTO>> getProjectMilestones(Long projectId, boolean myMilestonesOnly,
+            Pageable pageable) {
         if (projectId <= 0) {
             throw ProjectException.projectNotFoundException();
         }
@@ -187,7 +190,26 @@ public class ProjectService {
             throw ProjectException.projectNotFoundException();
         }
 
-        Page<MilestoneEntity> milestonePage = milestoneRepository.findByProjectEntity_ProjectId(projectId, pageable);
+        Page<MilestoneEntity> milestonePage;
+
+        if (myMilestonesOnly) {
+            Claims claims = UserContextHolder.get();
+            Long orgId = projectRepository.findById(projectId)
+                    .orElseThrow(() -> ProjectException.projectNotFoundException())
+                    .getOrgEntity()
+                    .getOrgId();
+
+            Long memberId = claims.getOrgAuthorityList().stream()
+                    .filter(auth -> auth.getOrgId().equals(orgId))
+                    .map(auth -> auth.getMemberId())
+                    .findFirst()
+                    .orElseThrow(() -> MemberException.memberAccessDeniedException());
+
+            milestonePage = milestoneRepository.findByProjectEntity_ProjectIdWithAssignedIssues(projectId, memberId,
+                    pageable);
+        } else {
+            milestonePage = milestoneRepository.findByProjectEntity_ProjectId(projectId, pageable);
+        }
 
         if (milestonePage.isEmpty()) {
             return ApiResponse.success(PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize()));
@@ -208,7 +230,10 @@ public class ProjectService {
 
         PageResponse<MileStoneInfoDTO> response = PageResponse.of(milestoneInfoPage);
 
-        return ApiResponse.success(response, "특정 프로젝트의 마일스톤 목록 조회에 성공했습니다.");
+        String message = myMilestonesOnly
+                ? "내가 할당된 이슈가 있는 마일스톤 목록 조회에 성공했습니다."
+                : "특정 프로젝트의 마일스톤 목록 조회에 성공했습니다.";
+        return ApiResponse.success(response, message);
     }
 
 }

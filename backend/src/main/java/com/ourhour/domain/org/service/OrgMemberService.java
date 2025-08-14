@@ -38,7 +38,7 @@ public class OrgMemberService {
     private final AnonymizeUserService anonymizeUserService;
 
     // 회사 구성원 목록 조회
-    public PageResponse<MemberInfoResDTO> getOrgMembers(Long orgId, Pageable pageable) {
+    public PageResponse<MemberInfoResDTO> getOrgMembers(Long orgId, String search, Pageable pageable) {
 
         if (orgId == null || orgId <= 0) {
             throw OrgException.orgNotFoundException();
@@ -49,7 +49,12 @@ public class OrgMemberService {
             throw OrgException.orgNotFoundException();
         }
 
-        Page<OrgParticipantMemberEntity> page = orgParticipantMemberRepository.findByOrgId(orgId, pageable);
+        Page<OrgParticipantMemberEntity> page;
+        if (search != null && !search.trim().isEmpty()) {
+            page = orgParticipantMemberRepository.findByOrgIdAndNameContaining(orgId, search.trim(), pageable);
+        } else {
+            page = orgParticipantMemberRepository.findByOrgId(orgId, pageable);
+        }
 
         Page<MemberInfoResDTO> memberInfoPage = page.map(entity -> {
             MemberInfoResDTO dto = new MemberInfoResDTO();

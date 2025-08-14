@@ -30,7 +30,7 @@ public class ProjectParticipantService {
 
     // 특정 프로젝트의 참가자 목록 조회
     public ApiResponse<PageResponse<ProjectParticipantDTO>> getProjectParticipants(Long projectId, Long orgId,
-            Pageable pageable) {
+            String search, Pageable pageable) {
         if (projectId <= 0) {
             throw ProjectException.projectNotFoundException();
         }
@@ -45,9 +45,14 @@ public class ProjectParticipantService {
             throw OrgException.orgNotFoundException();
         }
 
-        Page<ProjectParticipantEntity> participantPage = projectParticipantRepository
-                .findByProjectParticipantId_ProjectId(projectId,
-                        pageable);
+        Page<ProjectParticipantEntity> participantPage;
+        if (search != null && !search.trim().isEmpty()) {
+            participantPage = projectParticipantRepository
+                    .findByProjectParticipantId_ProjectIdAndMemberNameContaining(projectId, search.trim(), pageable);
+        } else {
+            participantPage = projectParticipantRepository
+                    .findByProjectParticipantId_ProjectId(projectId, pageable);
+        }
 
         if (participantPage.isEmpty()) {
             return ApiResponse.success(PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize()));

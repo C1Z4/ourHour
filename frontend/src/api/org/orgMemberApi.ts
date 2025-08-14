@@ -11,14 +11,26 @@ interface GetOrgMemberListRequest {
   orgId: number;
   currentPage?: number;
   size?: number;
+  search?: string;
 }
 
 export const getOrgMemberList = async (
   request: GetOrgMemberListRequest,
 ): Promise<ApiResponse<PageResponse<Member[]>>> => {
   try {
+    const params = new URLSearchParams();
+    if (request.currentPage) {
+      params.append('currentPage', request.currentPage.toString());
+    }
+    if (request.size) {
+      params.append('size', request.size.toString());
+    }
+    if (request.search) {
+      params.append('search', request.search);
+    }
+
     const response = await axiosInstance.get(
-      `/api/organizations/${request.orgId}/members?currentPage=${request.currentPage}&size=${request.size}`,
+      `/api/organizations/${request.orgId}/members?${params.toString()}`,
     );
 
     return response.data;

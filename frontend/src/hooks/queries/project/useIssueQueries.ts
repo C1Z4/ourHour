@@ -12,12 +12,21 @@ export const useProjectIssueListQuery = (
   orgId: number,
   projectId: number,
   milestoneId: number | null,
+  myIssuesOnly: boolean = false,
   currentPage: number = 1,
   size: number = 10,
 ) =>
   useQuery({
-    queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, orgId, projectId, milestoneId, currentPage, size],
-    queryFn: () => getProjectIssueList({ projectId, milestoneId, currentPage, size }),
+    queryKey: [
+      PROJECT_QUERY_KEYS.ISSUE_LIST,
+      orgId,
+      projectId,
+      milestoneId,
+      myIssuesOnly,
+      currentPage,
+      size,
+    ],
+    queryFn: () => getProjectIssueList({ projectId, milestoneId, myIssuesOnly, currentPage, size }),
     enabled: !!orgId && !!projectId,
   });
 

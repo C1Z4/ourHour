@@ -20,7 +20,6 @@ import {
 } from '@/hooks/queries/project/useIssueMutations';
 import { useProjectIssueTagListQuery } from '@/hooks/queries/project/useIssueQueries';
 import { useProjectMilestoneListQuery } from '@/hooks/queries/project/useMilestoneQueries';
-import { useProjectParticipantListQuery } from '@/hooks/queries/project/useProjectQueries';
 
 interface IssueFormPageProps {
   orgId: string;
@@ -44,15 +43,6 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
 
   const { data: issueTagListData } = useProjectIssueTagListQuery(Number(projectId));
   const issueTags = Array.isArray(issueTagListData) ? issueTagListData : [];
-
-  const { data: projectParticipantListData } = useProjectParticipantListQuery(
-    Number(projectId),
-    Number(orgId),
-  );
-
-  const participants = Array.isArray(projectParticipantListData?.data)
-    ? projectParticipantListData.data
-    : [];
 
   const milestones = Array.isArray(milestoneList?.data) ? milestoneList.data : [];
 
@@ -252,7 +242,8 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
 
             <div className="flex-1">
               <AssigneeSelect
-                assignees={participants}
+                projectId={Number(projectId)}
+                orgId={Number(orgId)}
                 value={formData.assigneeId}
                 onChange={(v) => handleInputChange('assigneeId', v ? String(v) : 'no-assignee')}
               />

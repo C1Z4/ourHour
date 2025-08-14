@@ -20,20 +20,27 @@ interface MilestoneColumnProps {
   milestone: ProjectMilestone | { milestoneId: number | null; name: string };
   orgId: string;
   projectId: string;
+  isMyIssuesOnly?: boolean;
 }
 
-export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumnProps) => {
+export const MilestoneColumn = ({
+  milestone,
+  orgId,
+  projectId,
+  isMyIssuesOnly = false,
+}: MilestoneColumnProps) => {
   const router = useRouter();
 
   const { data: issueListData, refetch: refetchIssueList } = useProjectIssueListQuery(
     Number(orgId),
     Number(projectId),
     milestone.milestoneId || null,
+    isMyIssuesOnly,
   );
 
   useEffect(() => {
     refetchIssueList();
-  }, [milestone.milestoneId]);
+  }, [milestone.milestoneId, isMyIssuesOnly, refetchIssueList]);
 
   const issueList = Array.isArray(issueListData?.data) ? issueListData.data : [];
 
