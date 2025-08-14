@@ -4,6 +4,7 @@ import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,7 @@ import java.util.List;
 @Table(name = "tbl_member")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class MemberEntity {
 
     @Id
@@ -43,9 +45,9 @@ public class MemberEntity {
         this.name = "Anonymous_Name" + suffix;
         this.email = "Anonymous_Email" + suffix;
     }
-
+    
     public void changeMyMemberInfo(String name, String phone, String email, String profileImgUrl) {
-        if (name != null && !name.isBlank()) this.name = name;
+        if (name != null) this.name = name;
         if (phone != null) this.phone = phone;
         if (email != null) this.email = email;
         if (profileImgUrl != null) this.profileImgUrl = profileImgUrl;

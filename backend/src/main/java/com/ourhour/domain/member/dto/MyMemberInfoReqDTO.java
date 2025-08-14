@@ -24,7 +24,7 @@ public class MyMemberInfoReqDTO {
     @Pattern(regexp = "^(https?://.*|data:image/(png|jpg|jpeg|gif|svg\\+xml);base64,.*)$", message = "올바른 URL 또는 Base64 이미지 데이터여야 합니다")
     private String profileImgUrl;
 
-    private String deptName;
-    private String positionName;
+    private Long deptId;
+    private Long positionId;
 
 }
