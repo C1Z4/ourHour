@@ -8,7 +8,9 @@ import com.ourhour.domain.org.entity.DepartmentEntity;
 import com.ourhour.domain.org.entity.PositionEntity;
 import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.mapper.OrgParticipantMemberMapper;
+import com.ourhour.domain.org.repository.DepartmentRepository;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
+import com.ourhour.domain.org.repository.PositionRepository;
 import com.ourhour.domain.member.dto.MemberOrgDetailResDTO;
 import com.ourhour.domain.member.dto.MemberOrgSummaryResDTO;
 import com.ourhour.domain.member.mapper.MemberOrgMapper;
@@ -37,6 +39,8 @@ public class MemberService {
     private final MemberOrgMapper memberOrgMapper;
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
     private final OrgParticipantMemberMapper orgParticipantMemberMapper;
+    private final DepartmentRepository departmentRepository;
+    private final PositionRepository positionRepository;
     private final ImageService imageService;
 
     public MemberOrgSummaryResDTO findOrgSummaryByMemberId(Long memberId) {
@@ -120,9 +124,9 @@ public class MemberService {
 
         // 해당 회사 내에 내 정보가 있고 활성 상태인지 조회
         OrgParticipantMemberEntity opm = findMyMemberInOrgHelper(orgId);
+
+        // 내 정보 조회
         MemberEntity memberEntity = opm.getMemberEntity();
-        DepartmentEntity deptEntity = opm.getDepartmentEntity();
-        PositionEntity positionEntity = opm.getPositionEntity();
 
         // 이미지 처리
         String profileImgUrl = myInfoReqDTO.getProfileImgUrl();
@@ -140,23 +144,37 @@ public class MemberService {
                     .phone(myInfoReqDTO.getPhone())
                     .email(myInfoReqDTO.getEmail())
                     .profileImgUrl(profileImgUrl)
-                    .deptName(myInfoReqDTO.getDeptName())
-                    .positionName(myInfoReqDTO.getPositionName())
+                    .deptId(myInfoReqDTO.getDeptId())
+                    .positionId(myInfoReqDTO.getPositionId())
                     .build();
         }
 
         // memberEntity 업데이트
-        memberEntity.changeMyMemberInfo(updatedInfoReqDTO.getName(), updatedInfoReqDTO.getPhone(),
-                updatedInfoReqDTO.getEmail(),
-                updatedInfoReqDTO.getProfileImgUrl());
+        memberEntity.changeMyMemberInfo(
+            updatedInfoReqDTO.getName(),
+            updatedInfoReqDTO.getPhone(),
+            updatedInfoReqDTO.getEmail(),
+            updatedInfoReqDTO.getProfileImgUrl()
+        );
 
         // 부서 재할당
-        if (updatedInfoReqDTO.getDeptName() != null) {
+        if (updatedInfoReqDTO.getDeptId() != null) {
+            DepartmentEntity newDepartment = departmentRepository.findById(updatedInfoReqDTO.getDeptId())
+                    .orElseThrow(OrgException::departmentNotFoundException);
+            opm.changeDepartment(newDepartment);
+        } else {
+            // 부서 없음으로 설정
+            opm.changeDepartment(null);
         }
 
-        // 직책 재할당
-        if (updatedInfoReqDTO.getPositionName() != null) {
-
+        // 직책 재할당  
+        if (updatedInfoReqDTO.getPositionId() != null) {
+            PositionEntity newPosition = positionRepository.findById(updatedInfoReqDTO.getPositionId())
+                    .orElseThrow(OrgException::positionNotFoundException);
+            opm.changePosition(newPosition);
+        } else {
+            // 직책 없음으로 설정
+            opm.changePosition(null);
         }
 
         // Entity -> DTO 변환
