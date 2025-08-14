@@ -109,11 +109,11 @@
       "description": "서버의 네트워크 송수신량을 보여줍니다.",
       "targets": [
         {
-          "expr": "rate(node_network_receive_bytes_total{job=\"backend\"}[5m])",
+          "expr": "rate(node_network_receive_bytes_total{job=\"node-exporter\"}[5m])",
           "legendFormat": "{{device}} RX"
         },
         {
-          "expr": "rate(node_network_transmit_bytes_total{job=\"backend\"}[5m])",
+          "expr": "rate(node_network_transmit_bytes_total{job=\"node-exporter\"}[5m])",
           "legendFormat": "{{device}} TX"
         }
       ]
@@ -124,11 +124,11 @@
       "description": "디스크 읽기/쓰기 처리량을 보여줍니다.",
       "targets": [
         {
-          "expr": "rate(node_disk_read_bytes_total{job=\"backend\"}[5m])",
+          "expr": "rate(node_disk_read_bytes_total{job=\"node-exporter\"}[5m])",
           "legendFormat": "{{device}} read"
         },
         {
-          "expr": "rate(node_disk_written_bytes_total{job=\"backend\"}[5m])",
+          "expr": "rate(node_disk_written_bytes_total{job=\"node-exporter\"}[5m])",
           "legendFormat": "{{device}} write"
         }
       ]
