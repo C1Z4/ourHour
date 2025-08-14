@@ -2,8 +2,10 @@ package com.ourhour.domain.org.service;
 
 import com.ourhour.domain.org.dto.PositionReqDTO;
 import com.ourhour.domain.org.dto.PositionResDTO;
+import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.entity.PositionEntity;
 import com.ourhour.domain.org.exception.OrgException;
+import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.domain.org.repository.PositionRepository;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,16 +21,21 @@ import java.util.stream.Collectors;
 public class PositionService {
 
     private final PositionRepository positionRepository;
+    private final OrgRepository orgRepository;
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
 
     @Transactional
-    public PositionResDTO createPosition(PositionReqDTO positionReqDTO) {
-        if (positionRepository.existsByName(positionReqDTO.getName())) {
+    public PositionResDTO createPosition(Long orgId, PositionReqDTO positionReqDTO) {
+        OrgEntity orgEntity = orgRepository.findById(orgId)
+                .orElseThrow(OrgException::orgNotFoundException);
+                
+        if (positionRepository.existsByNameAndOrgEntity(positionReqDTO.getName(), orgEntity)) {
             throw OrgException.positionNameDuplicateException();
         }
 
         PositionEntity position = PositionEntity.builder()
                 .name(positionReqDTO.getName())
+                .orgEntity(orgEntity)
                 .build();
 
         PositionEntity savedPosition = positionRepository.save(position);
@@ -50,7 +57,10 @@ public class PositionService {
     }
 
     public List<PositionResDTO> getPositionsByOrg(Long orgId) {
-        return positionRepository.findByOrgId(orgId).stream()
+        OrgEntity orgEntity = orgRepository.findById(orgId)
+                .orElseThrow(OrgException::orgNotFoundException);
+                
+        return positionRepository.findByOrgEntity(orgEntity).stream()
                 .map(position -> {
                     Long memberCount = orgParticipantMemberRepository.countByOrgIdAndPositionId(orgId, position.getPositionId());
                     return PositionResDTO.builder()

@@ -3,8 +3,10 @@ package com.ourhour.domain.org.service;
 import com.ourhour.domain.org.dto.DepartmentReqDTO;
 import com.ourhour.domain.org.dto.DepartmentResDTO;
 import com.ourhour.domain.org.entity.DepartmentEntity;
+import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.org.repository.DepartmentRepository;
+import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,16 +21,21 @@ import java.util.stream.Collectors;
 public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
+    private final OrgRepository orgRepository;
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
 
     @Transactional
-    public DepartmentResDTO createDepartment(DepartmentReqDTO departmentReqDTO) {
-        if (departmentRepository.existsByName(departmentReqDTO.getName())) {
+    public DepartmentResDTO createDepartment(Long orgId, DepartmentReqDTO departmentReqDTO) {
+        OrgEntity orgEntity = orgRepository.findById(orgId)
+                .orElseThrow(OrgException::orgNotFoundException);
+                
+        if (departmentRepository.existsByNameAndOrgEntity(departmentReqDTO.getName(), orgEntity)) {
             throw OrgException.departmentNameDuplicateException();
         }
 
         DepartmentEntity department = DepartmentEntity.builder()
                 .name(departmentReqDTO.getName())
+                .orgEntity(orgEntity)
                 .build();
 
         DepartmentEntity savedDepartment = departmentRepository.save(department);
@@ -50,7 +57,10 @@ public class DepartmentService {
     }
 
     public List<DepartmentResDTO> getDepartmentsByOrg(Long orgId) {
-        return departmentRepository.findByOrgId(orgId).stream()
+        OrgEntity orgEntity = orgRepository.findById(orgId)
+                .orElseThrow(OrgException::orgNotFoundException);
+                
+        return departmentRepository.findByOrgEntity(orgEntity).stream()
                 .map(dept -> {
                     Long memberCount = orgParticipantMemberRepository.countByOrgIdAndDeptId(orgId, dept.getDeptId());
                     return DepartmentResDTO.builder()
