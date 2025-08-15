@@ -173,9 +173,12 @@ jobs:
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
             
             # Redis 환경변수를 AWS Parameter Store에서 가져오기
-            export REDIS_HOST=$(aws ssm get-parameter --name "/ourHour/test/redis/host" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export REDIS_PORT=$(aws ssm get-parameter --name "/ourHour/test/redis/port" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export REDIS_PASSWORD=$(aws ssm get-parameter --name "/ourHour/test/redis/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export REDIS_HOST=$(aws ssm get-parameter --name "/ourhour/test/redis/host" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export REDIS_PORT=$(aws ssm get-parameter --name "/ourhour/test/redis/port" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export REDIS_PASSWORD=$(aws ssm get-parameter --name "/ourhour/test/redis/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            
+            # DB root password
+            export DB_ROOT_PASSWORD=$(aws ssm get-parameter --name "/ourhour/db/root-password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             
             export BACKEND_PORT=8081
             
@@ -220,9 +223,12 @@ jobs:
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
 
             # Redis 환경변수를 AWS Parameter Store에서 가져오기
-            export REDIS_HOST=$(aws ssm get-parameter --name "/ourHour/release/redis/host" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export REDIS_PORT=$(aws ssm get-parameter --name "/ourHour/release/redis/port" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export REDIS_PASSWORD=$(aws ssm get-parameter --name "/ourHour/release/redis/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export REDIS_HOST=$(aws ssm get-parameter --name "/ourhour/release/redis/host" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export REDIS_PORT=$(aws ssm get-parameter --name "/ourhour/release/redis/port" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export REDIS_PASSWORD=$(aws ssm get-parameter --name "/ourhour/release/redis/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            
+            # DB root password
+            export DB_ROOT_PASSWORD=$(aws ssm get-parameter --name "/ourhour/db/root-password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             
             # 새 컨테이너 시작 (AWS Parameter Store에서 환경변수 자동 로드)
             docker compose -f docker-compose.yml -f docker-compose.release.yml up -d
