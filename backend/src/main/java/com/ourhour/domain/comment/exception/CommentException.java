@@ -36,4 +36,12 @@ public class CommentException extends BusinessException {
     public static CommentException commentTargetConflictException() {
         return new CommentException(ErrorCode.COMMENT_TARGET_CONFLICT);
     }
+
+    public static CommentException commentAlreadyLikedException() {
+        return new CommentException(ErrorCode.COMMENT_ALREADY_LIKED);
+    }
+
+    public static CommentException commentLikeNotFoundException() {
+        return new CommentException(ErrorCode.COMMENT_LIKE_NOT_FOUND);
+    }
 }
