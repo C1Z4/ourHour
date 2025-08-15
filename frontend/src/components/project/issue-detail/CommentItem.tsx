@@ -1,23 +1,54 @@
 import { useState } from 'react';
 
+import { Heart } from 'lucide-react';
+
 import { Comment } from '@/api/comment/commentApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  useLikeCommentMutation,
+  useUnlikeCommentMutation,
+} from '@/hooks/queries/comment/useCommentMutations';
+import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 import { getImageUrl } from '@/utils/file/imageUtils';
 
 interface CommentItemProps {
   comment: Comment;
   onUpdate: (commentId: number, newContent: string) => void;
   onDelete: (commentId: number) => void;
+  orgId: number;
+  postId?: number | null;
+  issueId?: number | null;
 }
 
-export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) => {
+export const CommentItem = ({
+  comment,
+  onUpdate,
+  onDelete,
+  orgId,
+  postId = null,
+  issueId = null,
+}: CommentItemProps) => {
+  const memberId = getMemberIdFromToken(orgId);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const { mutate: likeMutation, isPending: isLikePending } = useLikeCommentMutation(
+    orgId,
+    postId,
+    issueId,
+    memberId,
+  );
+  const { mutate: unlikeMutation, isPending: isUnlikePending } = useUnlikeCommentMutation(
+    orgId,
+    postId,
+    issueId,
+    memberId,
+  );
   const handleEdit = () => {
     setIsEditing(true);
   };
@@ -36,6 +67,16 @@ export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) =
 
   const handleDelete = () => {
     setIsDeleteModalOpen(true);
+  };
+
+  const handleLike = () => {
+    if (comment.isLikedByCurrentUser) {
+      // 좋아요 취소
+      unlikeMutation({ commentId: comment.commentId, memberId });
+    } else {
+      // 좋아요 추가
+      likeMutation({ commentId: comment.commentId, memberId });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -97,7 +138,28 @@ export const CommentItem = ({ comment, onUpdate, onDelete }: CommentItemProps) =
               </div>
             </div>
           ) : (
-            <div className="text-sm text-gray-700 whitespace-pre-wrap">{comment.content}</div>
+            <div>
+              <div className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                {comment.content}
+              </div>
+              <div className="flex justify-end mt-2">
+                <button
+                  onClick={handleLike}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors hover:bg-gray-100 ${
+                    comment.isLikedByCurrentUser
+                      ? 'text-red-500 hover:text-red-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                  disabled={isLikePending || isUnlikePending}
+                >
+                  <Heart
+                    size={14}
+                    className={`${comment.isLikedByCurrentUser ? 'fill-current' : ''} transition-colors`}
+                  />
+                  <span>{comment.likeCount}</span>
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
