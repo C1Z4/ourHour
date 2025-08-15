@@ -133,6 +133,30 @@ export const putUpdateIssue = async (
   }
 };
 
+// ======== 프로젝트 이슈 상태 변경 ========
+export interface PutUpdateIssueStatusRequest {
+  issueId: number;
+  status: IssueStatusEng;
+  projectId: number;
+}
+
+export const putUpdateIssueStatus = async (
+  request: PutUpdateIssueStatusRequest,
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.put(
+      `/api/projects/${request.projectId}/issues/${request.issueId}/status`,
+      {
+        status: request.status,
+      },
+    );
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
 // ======== 프로젝트 이슈 삭제 ========
 export interface DeleteIssueRequest {
   issueId: number;

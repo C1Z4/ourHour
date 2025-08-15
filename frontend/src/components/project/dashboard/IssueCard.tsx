@@ -2,14 +2,19 @@ import { useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
 
+import { IssueStatusEng } from '@/types/issueTypes';
+
 import { ProjectIssueSummary } from '@/api/project/issueApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
-import { StatusBadge } from '@/components/common/StatusBadge';
+import { StatusDropdown } from '@/components/common/StatusDropdown';
 import { computeHexColor } from '@/components/project/issue-form/TagSelect';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useIssueDeleteMutation } from '@/hooks/queries/project/useIssueMutations';
+import {
+  useIssueDeleteMutation,
+  useIssueStatusUpdateMutation,
+} from '@/hooks/queries/project/useIssueMutations';
 
 interface IssueCardProps {
   issue: ProjectIssueSummary;
@@ -23,6 +28,11 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
 
   const { mutate: deleteIssue } = useIssueDeleteMutation(
     issue.issueId,
+    Number(orgId),
+    Number(projectId),
+  );
+
+  const { mutate: updateStatus, isPending: isStatusUpdating } = useIssueStatusUpdateMutation(
     Number(orgId),
     Number(projectId),
   );
@@ -47,6 +57,14 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
 
   const handlePopoverClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+  };
+
+  const handleStatusChange = (newStatus: IssueStatusEng) => {
+    updateStatus({
+      issueId: issue.issueId,
+      status: newStatus,
+      projectId: Number(projectId),
+    });
   };
 
   return (
@@ -90,7 +108,13 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
           </Avatar>
           <span className="text-xs text-gray-700">{issue.assigneeName}</span>
         </div>
-        <StatusBadge type="issue" status={issue.status} />
+        <div onClick={(e) => e.stopPropagation()}>
+          <StatusDropdown
+            currentStatus={issue.status}
+            onStatusChange={handleStatusChange}
+            disabled={isStatusUpdating}
+          />
+        </div>
       </div>
 
       {isDeleteModalOpen && (
