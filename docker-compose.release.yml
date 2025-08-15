@@ -10,7 +10,7 @@ services:
 
   # db
   db:
-    image: mysql:8
+    image: mysql:8.0
     container_name: release-db
     ports:
       - "3306:3306"
