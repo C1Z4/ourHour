@@ -7,6 +7,7 @@ import com.ourhour.domain.project.dto.IssueSummaryDTO;
 import com.ourhour.domain.project.dto.MilestoneReqDTO;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.domain.project.dto.IssueReqDTO;
+import com.ourhour.domain.project.dto.IssueStatusReqDTO;
 import com.ourhour.domain.project.dto.ProjecUpdateReqDTO;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
@@ -269,6 +270,20 @@ public class ProjectController {
                 }
 
                 ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO, claims);
+
+                return ResponseEntity.ok(response);
+        }
+
+        // 이슈 상태 수정
+        @ProjectParticipantOnly
+        @PutMapping("/{projectId}/issues/{issueId}/status")
+        @Operation(summary = "이슈 상태 수정", description = "이슈의 상태를 수정합니다.")
+        public ResponseEntity<ApiResponse<IssueDetailDTO>> updateIssueStatus(
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId,
+                        @Valid @RequestBody IssueStatusReqDTO issueStatusReqDTO) {
+
+                ApiResponse<IssueDetailDTO> response = issueService.updateIssueStatus(issueId, issueStatusReqDTO);
 
                 return ResponseEntity.ok(response);
         }
