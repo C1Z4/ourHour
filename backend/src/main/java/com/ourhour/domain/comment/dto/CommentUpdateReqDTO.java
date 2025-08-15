@@ -9,5 +9,4 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CommentUpdateReqDTO {
     private String content;
-    private Long authorId;
 }

@@ -9,6 +9,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +18,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "tbl_comment_like")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class CommentLikeEntity {
 
     @EmbeddedId
@@ -30,6 +34,5 @@ public class CommentLikeEntity {
     @JoinColumn(name = "member_id")
     @MapsId("memberId")
     private MemberEntity memberEntity;
-
 
 }

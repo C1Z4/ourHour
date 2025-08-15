@@ -1,6 +1,7 @@
 package com.ourhour.domain.comment.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.cache.annotation.CacheEvict;
@@ -22,8 +23,8 @@ import com.ourhour.domain.board.entity.PostEntity;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.IssueEntity;
-import com.ourhour.domain.project.enums.SyncOperation;
 import com.ourhour.domain.project.repository.IssueRepository;
+import com.ourhour.domain.project.enums.SyncOperation;
 import com.ourhour.domain.board.repository.PostRepository;
 import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.board.exception.PostException;
@@ -44,9 +45,11 @@ public class CommentService {
     private final PostRepository postRepository;
     private final IssueRepository issueRepository;
     private final GitHubSyncManager gitHubSyncManager;
+    private final CommentLikeService commentLikeService;
 
-    @Cacheable(value = "comments", key = "#postId + '_' + #issueId + '_' + #currentPage + '_' + #size")
-    public CommentPageResDTO getComments(Long postId, Long issueId, int currentPage, int size) {
+    // 댓글 목록 조회
+    @Cacheable(value = "comments", key = "#postId + '_' + #issueId + '_' + #currentPage + '_' + #size + '_' + #currentMemberId")
+    public CommentPageResDTO getComments(Long postId, Long issueId, int currentPage, int size, Long currentMemberId) {
 
         validateParameters(postId, issueId);
 
@@ -65,7 +68,8 @@ public class CommentService {
         // 대댓글들만 조회
         List<CommentEntity> relevantComments = getRelevantComments(postId, issueId, parentCommentIds);
 
-        CommentResDTO commentResDTO = commentMapper.toCommentResDTO(relevantComments, postId, issueId);
+        CommentResDTO commentResDTO = commentMapper.toCommentResDTO(relevantComments, postId, issueId,
+                commentLikeService, currentMemberId);
 
         CommentPageResDTO result = CommentPageResDTO.of(
                 commentResDTO,
@@ -121,12 +125,8 @@ public class CommentService {
     // 댓글 등록
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
-    public void createComment(CommentCreateReqDTO commentCreateReqDTO) {
+    public void createComment(CommentCreateReqDTO commentCreateReqDTO, Long currentMemberId) {
         validateCreateCommentRequest(commentCreateReqDTO);
-
-        // 작성자 조회
-        MemberEntity authorEntity = memberRepository.findById(commentCreateReqDTO.getAuthorId())
-                .orElseThrow(() -> MemberException.memberNotFoundException());
 
         PostEntity postEntity = null;
         IssueEntity issueEntity = null;
@@ -145,7 +145,8 @@ public class CommentService {
         CommentEntity commentEntity = CommentEntity.builder()
                 .postEntity(postEntity)
                 .issueEntity(issueEntity)
-                .authorEntity(authorEntity)
+                .authorEntity(memberRepository.findById(currentMemberId)
+                        .orElseThrow(() -> MemberException.memberNotFoundException()))
                 .parentCommentId(commentCreateReqDTO.getParentCommentId())
                 .content(commentCreateReqDTO.getContent())
                 .build();
@@ -169,10 +170,6 @@ public class CommentService {
             throw CommentException.commentTargetConflictException();
         }
 
-        if (request.getAuthorId() == null) {
-            throw CommentException.commentAuthorRequiredException();
-        }
-
         if (request.getContent() == null || request.getContent().trim().isEmpty()) {
             throw CommentException.commentContentRequiredException();
         }
@@ -185,7 +182,7 @@ public class CommentService {
     // 댓글 수정
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
-    public void updateComment(Long commentId, CommentUpdateReqDTO commentUpdateReqDTO) {
+    public void updateComment(Long commentId, CommentUpdateReqDTO commentUpdateReqDTO, Long currentMemberId) {
         validateUpdateCommentRequest(commentId, commentUpdateReqDTO);
 
         CommentEntity commentEntity = commentRepository.findById(commentId)
@@ -207,18 +204,19 @@ public class CommentService {
             throw CommentException.commentContentRequiredException();
         }
 
-        if (request.getAuthorId() == null) {
-            throw CommentException.commentAuthorRequiredException();
-        }
-
     }
 
     // 댓글 삭제
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
-    public void deleteComment(Long commentId) {
+    public void deleteComment(Long commentId, Long currentMemberId) {
+
         CommentEntity commentEntity = commentRepository.findById(commentId)
                 .orElseThrow(() -> CommentException.commentNotFoundException());
+
+        if (!commentEntity.getAuthorEntity().getMemberId().equals(currentMemberId)) {
+            throw CommentException.commentAuthorRequiredException();
+        }
 
         if (commentEntity.getIssueEntity() != null) {
             gitHubSyncManager.syncToGitHub(commentEntity, SyncOperation.DELETE);
