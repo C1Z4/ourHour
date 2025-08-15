@@ -9,29 +9,27 @@ import {
   useUpdateCommentMutation,
 } from '@/hooks/queries/comment/useCommentMutations';
 import { useCommentListQuery } from '@/hooks/queries/comment/useCommentQueries';
-import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 
 export const CommentSection = () => {
   const { orgId, issueId } = useParams({ from: '/org/$orgId/project/$projectId/issue/$issueId' });
 
   const { data: commentsData } = useCommentListQuery({
+    orgId: Number(orgId),
+    postId: null,
     issueId: Number(issueId),
   });
 
   const comments = (commentsData as unknown as CommentPageResponse)?.comments;
   const totalElements = (commentsData as unknown as CommentPageResponse)?.totalElements;
 
-  const { mutate: createComment } = useCreateCommentMutation(null, Number(issueId));
-  const { mutate: updateComment } = useUpdateCommentMutation(null, Number(issueId));
-  const { mutate: deleteComment } = useDeleteCommentMutation(null, Number(issueId));
-
-  const memberId = getMemberIdFromToken(Number(orgId));
+  const { mutate: createComment } = useCreateCommentMutation(Number(orgId), null, Number(issueId));
+  const { mutate: updateComment } = useUpdateCommentMutation(Number(orgId), null, Number(issueId));
+  const { mutate: deleteComment } = useDeleteCommentMutation(Number(orgId), null, Number(issueId));
 
   const handleCreateComment = (content: string) => {
     createComment({
       content,
       issueId: Number(issueId),
-      authorId: memberId,
     });
   };
 
@@ -39,7 +37,6 @@ export const CommentSection = () => {
     updateComment({
       commentId,
       content: newContent,
-      authorId: memberId,
     });
   };
 
@@ -61,6 +58,8 @@ export const CommentSection = () => {
             comment={comment}
             onUpdate={handleUpdateComment}
             onDelete={handleDeleteComment}
+            orgId={Number(orgId)}
+            issueId={Number(issueId)}
           />
         ))}
       </div>
