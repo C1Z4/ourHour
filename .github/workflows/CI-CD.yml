@@ -159,10 +159,10 @@ jobs:
           script: |
             cd /home/ubuntu/ourHour
             
+            # 최신 release 브랜치 pull
             git fetch origin
             git checkout release
             git reset --hard origin/release
-            git merge origin/develop
             
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             
@@ -202,9 +202,10 @@ jobs:
             # 애플리케이션 디렉토리로 이동
             cd /home/ubuntu/ourHour
 
-            # Git 최신 코드 가져오기
-            git fetch --all && git checkout main && git reset --hard origin/main
-            git merge origin/release
+            # 최신 main 브랜치 pull
+            git fetch origin
+            git checkout main
+            git reset --hard origin/main
 
             # Docker 로그인
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
