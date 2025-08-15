@@ -14,6 +14,8 @@ import {
   putUpdateIssueTag,
   DeleteIssueTagRequest,
   deleteIssueTag,
+  PutUpdateIssueStatusRequest,
+  putUpdateIssueStatus,
 } from '@/api/project/issueApi';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
@@ -56,6 +58,22 @@ export const useIssueUpdateMutation = (issueId: number, orgId: number, projectId
 
     onError: (error: AxiosError) => {
       showErrorToast('이슈 수정에 실패하였습니다.');
+    },
+  });
+
+// ======== 이슈 상태 변경 ========
+export const useIssueStatusUpdateMutation = (orgId: number, projectId: number) =>
+  useMutation({
+    mutationFn: (request: PutUpdateIssueStatusRequest) => putUpdateIssueStatus(request),
+    onSuccess: () => {
+      showSuccessToast('이슈 상태가 변경되었습니다.');
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, orgId, projectId],
+        exact: false,
+      });
+    },
+    onError: (error: AxiosError) => {
+      showErrorToast('이슈 상태 변경에 실패하였습니다.');
     },
   });
 
