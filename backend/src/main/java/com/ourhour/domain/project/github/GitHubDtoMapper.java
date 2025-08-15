@@ -109,6 +109,7 @@ public class GitHubDtoMapper {
                     comment.getBody(),
                     comment.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
                     0L, // GitHub 댓글은 좋아요 수 0으로 초기화
+                    false, // GitHub 댓글은 좋아요 기능 없음
                     List.of());
         } catch (IOException e) {
             log.error("GitHub 댓글 변환 중 오류 발생", e);
