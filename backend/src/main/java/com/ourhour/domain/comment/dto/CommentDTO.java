@@ -17,5 +17,7 @@ public class CommentDTO {
     private String profileImgUrl;
     private String content;
     private LocalDateTime createdAt;
+    private Long likeCount;
+    private Boolean isLikedByCurrentUser;
     private List<CommentDTO> childComments;
 }
