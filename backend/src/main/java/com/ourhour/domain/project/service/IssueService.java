@@ -7,6 +7,7 @@ import com.ourhour.domain.project.dto.IssueTagDTO;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.domain.project.dto.IssueSummaryDTO;
 import com.ourhour.domain.project.dto.IssueReqDTO;
+import com.ourhour.domain.project.dto.IssueStatusReqDTO;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
 import org.springframework.data.domain.Page;
@@ -77,9 +78,9 @@ public class IssueService {
                     .map(auth -> auth.getMemberId())
                     .findFirst()
                     .orElseThrow(() -> MemberException.memberAccessDeniedException());
-            
+
             Page<IssueEntity> issuePage;
-            
+
             if (milestoneId != null && milestoneId > 0) {
                 // 특정 마일스톤의 내가 할당된 이슈 조회
                 if (!milestoneRepository.existsById(milestoneId)) {
@@ -89,18 +90,19 @@ public class IssueService {
                         milestoneId, memberId, pageable);
             } else {
                 // 마일스톤이 할당되지 않은 내가 할당된 이슈 조회
-                issuePage = issueRepository.findByProjectEntity_ProjectIdAndMilestoneEntityIsNullAndAssigneeEntity_MemberId(
-                        projectId, memberId, pageable);
+                issuePage = issueRepository
+                        .findByProjectEntity_ProjectIdAndMilestoneEntityIsNullAndAssigneeEntity_MemberId(
+                                projectId, memberId, pageable);
             }
-            
+
             if (issuePage.isEmpty()) {
                 return ApiResponse.success(PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize()));
             }
-            
+
             String message = milestoneId != null && milestoneId > 0
                     ? "특정 마일스톤의 내가 할당된 이슈 목록 조회에 성공했습니다."
                     : "마일스톤이 할당되지 않은 내가 할당된 이슈 목록 조회에 성공했습니다.";
-            
+
             return ApiResponse.success(PageResponse.of(issuePage.map(issueMapper::toIssueSummaryDTO)), message);
         }
 
@@ -242,6 +244,26 @@ public class IssueService {
         IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(savedIssueEntity);
 
         return ApiResponse.success(issueDetailDTO, "이슈 수정에 성공했습니다.");
+    }
+
+    // 이슈 상태 수정
+    @GitHubSync(operation = SyncOperation.UPDATE)
+    @Transactional
+    public ApiResponse<IssueDetailDTO> updateIssueStatus(Long issueId, IssueStatusReqDTO issueStatusReqDTO) {
+        if (issueId <= 0) {
+            throw IssueException.issueNotFoundException();
+        }
+
+        IssueEntity issueEntity = issueRepository.findById(issueId)
+                .orElseThrow(() -> IssueException.issueNotFoundException());
+
+        issueEntity.setStatus(issueStatusReqDTO.getStatus());
+
+        IssueEntity savedIssueEntity = issueRepository.save(issueEntity);
+
+        IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(savedIssueEntity);
+
+        return ApiResponse.success(issueDetailDTO, "이슈 상태 수정에 성공했습니다.");
     }
 
     // 이슈 삭제
