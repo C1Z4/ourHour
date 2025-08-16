@@ -1,7 +1,6 @@
 package com.ourhour.domain.comment.service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.cache.annotation.CacheEvict;
@@ -20,7 +19,6 @@ import com.ourhour.domain.comment.dto.CommentUpdateReqDTO;
 import com.ourhour.domain.comment.repository.CommentRepository;
 import com.ourhour.domain.comment.exception.CommentException;
 import com.ourhour.domain.board.entity.PostEntity;
-import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.repository.IssueRepository;
@@ -73,7 +71,7 @@ public class CommentService {
 
         CommentPageResDTO result = CommentPageResDTO.of(
                 commentResDTO,
-                parentCommentPage.getNumber(),
+                parentCommentPage.getNumber() + 1,
                 parentCommentPage.getSize(),
                 parentCommentPage.getTotalPages(),
                 parentCommentPage.getTotalElements(),
