@@ -12,7 +12,6 @@ import {
   useLikeCommentMutation,
   useUnlikeCommentMutation,
 } from '@/hooks/queries/comment/useCommentMutations';
-import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 import { getImageUrl } from '@/utils/file/imageUtils';
 
 interface CommentItemProps {
@@ -32,7 +31,6 @@ export const CommentItem = ({
   postId = null,
   issueId = null,
 }: CommentItemProps) => {
-  const memberId = getMemberIdFromToken(orgId);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -41,13 +39,11 @@ export const CommentItem = ({
     orgId,
     postId,
     issueId,
-    memberId,
   );
   const { mutate: unlikeMutation, isPending: isUnlikePending } = useUnlikeCommentMutation(
     orgId,
     postId,
     issueId,
-    memberId,
   );
   const handleEdit = () => {
     setIsEditing(true);
@@ -72,10 +68,10 @@ export const CommentItem = ({
   const handleLike = () => {
     if (comment.isLikedByCurrentUser) {
       // 좋아요 취소
-      unlikeMutation({ commentId: comment.commentId, memberId });
+      unlikeMutation({ commentId: comment.commentId });
     } else {
       // 좋아요 추가
-      likeMutation({ commentId: comment.commentId, memberId });
+      likeMutation({ commentId: comment.commentId });
     }
   };
 
