@@ -126,8 +126,7 @@ public class CommentController {
     @Operation(summary = "댓글 좋아요", description = "댓글에 좋아요를 추가합니다.")
     public ResponseEntity<ApiResponse<Void>> likeComment(
             @PathVariable Long orgId,
-            @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId,
-            @RequestParam @Min(value = 1, message = "회원 ID는 1 이상이어야 합니다.") Long memberId) {
+            @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
 
         // 현재 사용자 정보 가져오기
         Claims claims = UserContextHolder.get();
@@ -137,12 +136,7 @@ public class CommentController {
                 .orElseThrow(() -> OrgException.orgNotFoundException())
                 .getMemberId();
 
-        // 현재 사용자 권한 확인
-        if (!currentMemberId.equals(memberId)) {
-            throw new RuntimeException("권한이 없습니다.");
-        }
-
-        commentLikeService.likeComment(commentId, memberId);
+        commentLikeService.likeComment(commentId, currentMemberId);
 
         return ResponseEntity.ok(ApiResponse.success(null, "댓글 좋아요에 성공했습니다."));
     }
@@ -152,8 +146,7 @@ public class CommentController {
     @Operation(summary = "댓글 좋아요 취소", description = "댓글 좋아요를 취소합니다.")
     public ResponseEntity<ApiResponse<Void>> unlikeComment(
             @PathVariable Long orgId,
-            @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId,
-            @RequestParam @Min(value = 1, message = "회원 ID는 1 이상이어야 합니다.") Long memberId) {
+            @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
 
         // 현재 사용자 정보 가져오기
         Claims claims = UserContextHolder.get();
@@ -164,11 +157,7 @@ public class CommentController {
                 .getMemberId();
 
         // 현재 사용자 권한 확인
-        if (!currentMemberId.equals(memberId)) {
-            throw new RuntimeException("권한이 없습니다.");
-        }
-
-        commentLikeService.unlikeComment(commentId, memberId);
+        commentLikeService.unlikeComment(commentId, currentMemberId);
 
         return ResponseEntity.ok(ApiResponse.success(null, "댓글 좋아요 취소에 성공했습니다."));
     }
