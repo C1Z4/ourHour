@@ -71,6 +71,10 @@ export const useIssueStatusUpdateMutation = (orgId: number, projectId: number) =
         queryKey: [PROJECT_QUERY_KEYS.ISSUE_LIST, orgId, projectId],
         exact: false,
       });
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
+        exact: false,
+      });
     },
     onError: (error: AxiosError) => {
       showErrorToast('이슈 상태 변경에 실패하였습니다.');
