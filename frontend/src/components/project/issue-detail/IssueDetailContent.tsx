@@ -7,6 +7,7 @@ import { Post } from '@/types/postTypes';
 import { IssueDetail } from '@/api/project/issueApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
+import { formatIsoToDate } from '@/utils/auth/dateUtils';
 
 interface IssueDetailContentProps {
   issue?: IssueDetail;
@@ -21,7 +22,10 @@ export const IssueDetailContent = ({ issue, post, onEdit, onDelete }: IssueDetai
   return (
     <div className="bg-white">
       <div className=" flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{issue?.name || post?.title}</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{issue?.name || post?.title}</h1>
+          {post && <div className="text-sm text-gray-500">{formatIsoToDate(post.createdAt)}</div>}
+        </div>
         <div className="flex ">
           <ButtonComponent variant="ghost" size="sm" onClick={onEdit}>
             <Edit className="w-4 h-4 mr-2" />
