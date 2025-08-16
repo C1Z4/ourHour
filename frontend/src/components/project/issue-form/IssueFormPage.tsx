@@ -24,11 +24,18 @@ import { useProjectMilestoneListQuery } from '@/hooks/queries/project/useMilesto
 interface IssueFormPageProps {
   orgId: string;
   projectId: string;
+  milestoneId?: number;
   issueId?: string;
   initialData?: IssueDetail;
 }
 
-export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueFormPageProps) => {
+export const IssueFormPage = ({
+  orgId,
+  projectId,
+  milestoneId,
+  issueId,
+  initialData,
+}: IssueFormPageProps) => {
   const router = useRouter();
 
   const { mutate: createIssue } = useIssueCreateMutation(Number(orgId), Number(projectId));
@@ -51,6 +58,13 @@ export const IssueFormPage = ({ orgId, projectId, issueId, initialData }: IssueF
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
 
   useEffect(() => {
+    if (milestoneId) {
+      setFormData((prev) => ({
+        ...prev,
+        milestoneId: milestoneId,
+      }));
+    }
+
     if (initialData) {
       const { milestoneId, status, issueTagId, assigneeId, tagName, tagColor, ...rest } =
         initialData;

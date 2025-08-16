@@ -70,6 +70,7 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
     router.navigate({
       to: '/org/$orgId/project/$projectId/issue/create',
       params: { orgId, projectId },
+      search: { milestoneId: milestone.milestoneId },
     });
   };
 
