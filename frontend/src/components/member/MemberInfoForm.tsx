@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { handlePhoneInputChange } from '@/utils/phoneUtils';
 
 interface MemberInfoFormProps {
   formData: {
@@ -65,7 +66,7 @@ export function MemberInfoForm({
           id="phone"
           placeholder="전화번호를 입력하세요 (ex. 010-1234-5678)"
           value={formData.phone ?? ''}
-          onChange={(e) => onInputChange('phone', e.target.value)}
+          onChange={(e) => handlePhoneInputChange(e.target.value, onInputChange, 'phone')}
         />
       </div>
 
