@@ -45,7 +45,17 @@ export const IssueDetailHeader = ({
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
-            <BreadcrumbItem>{milestoneName ?? '미분류'}</BreadcrumbItem>
+            {type === 'board' ? (
+              <Link
+                to="/org/$orgId/board/$boardId"
+                params={{ orgId, boardId: projectId }}
+                search={{ boardName: milestoneName }}
+              >
+                {milestoneName ?? '미분류'}
+              </Link>
+            ) : (
+              <BreadcrumbItem>{milestoneName ?? '미분류'}</BreadcrumbItem>
+            )}
             <BreadcrumbSeparator />
             <BreadcrumbItem>{issueTitle}</BreadcrumbItem>
           </BreadcrumbList>
