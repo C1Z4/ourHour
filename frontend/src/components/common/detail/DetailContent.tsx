@@ -9,14 +9,14 @@ import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { formatIsoToDate } from '@/utils/auth/dateUtils';
 
-interface IssueDetailContentProps {
+interface DetailContentProps {
   issue?: IssueDetail;
   post?: Post;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-export const IssueDetailContent = ({ issue, post, onEdit, onDelete }: IssueDetailContentProps) => {
+export const DetailContent = ({ issue, post, onEdit, onDelete }: DetailContentProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   return (

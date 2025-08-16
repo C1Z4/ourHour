@@ -9,21 +9,21 @@ import {
 } from '@/components/ui/breadcrumb';
 import { useAppSelector } from '@/stores/hooks';
 
-interface IssueDetailHeaderProps {
+interface DetailHeaderProps {
   type: 'board' | 'project';
   milestoneName: string;
-  issueTitle: string;
+  title: string;
   orgId: string;
-  projectId: string;
+  entityId: string; // boardId or projectId
 }
 
-export const IssueDetailHeader = ({
+export const DetailHeader = ({
   type,
   milestoneName,
-  issueTitle,
+  title,
   orgId,
-  projectId,
-}: IssueDetailHeaderProps) => {
+  entityId,
+}: DetailHeaderProps) => {
   const currentProjectName = useAppSelector((state) => state.projectName.currentProjectName);
 
   return (
@@ -38,7 +38,7 @@ export const IssueDetailHeader = ({
                     게시판 메인
                   </Link>
                 ) : (
-                  <Link to="/org/$orgId/project/$projectId" params={{ orgId, projectId }}>
+                  <Link to="/org/$orgId/project/$projectId" params={{ orgId, projectId: entityId }}>
                     {currentProjectName}
                   </Link>
                 )}
@@ -48,7 +48,7 @@ export const IssueDetailHeader = ({
             {type === 'board' ? (
               <Link
                 to="/org/$orgId/board/$boardId"
-                params={{ orgId, boardId: projectId }}
+                params={{ orgId, boardId: entityId }}
                 search={{ boardName: milestoneName }}
               >
                 {milestoneName ?? '미분류'}
@@ -57,7 +57,7 @@ export const IssueDetailHeader = ({
               <BreadcrumbItem>{milestoneName ?? '미분류'}</BreadcrumbItem>
             )}
             <BreadcrumbSeparator />
-            <BreadcrumbItem>{issueTitle}</BreadcrumbItem>
+            <BreadcrumbItem>{title}</BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </div>
