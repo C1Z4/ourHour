@@ -42,6 +42,10 @@ import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.repository.IssueRepository;
 import com.ourhour.domain.project.sync.GitHubSyncManager;
+import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
+import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
+import com.ourhour.domain.org.enums.Role;
+import com.ourhour.domain.org.enums.Status;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CommentService 테스트")
@@ -67,6 +71,9 @@ class CommentServiceTest {
 
         @Mock
         private GitHubSyncManager gitHubSyncManager;
+
+        @Mock
+        private OrgParticipantMemberRepository orgParticipantMemberRepository;
 
         @InjectMocks
         private CommentService commentService;
@@ -324,6 +331,7 @@ class CommentServiceTest {
         @DisplayName("댓글 삭제 성공")
         void deleteComment_Success() {
                 // given
+                Long orgId = 1L;
                 Long commentId = 1L;
                 Long currentMemberId = 1L;
                 // Mock 객체 설정
@@ -333,7 +341,7 @@ class CommentServiceTest {
                 given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
 
                 // when
-                commentService.deleteComment(commentId, currentMemberId);
+                commentService.deleteComment(orgId, commentId, currentMemberId);
 
                 // then
                 then(commentRepository).should().findById(commentId);
@@ -344,6 +352,7 @@ class CommentServiceTest {
         @DisplayName("이슈 댓글 삭제 시 GitHub 동기화 호출")
         void deleteComment_IssueComment_CallsGitHubSync() {
                 // given
+                Long orgId = 1L;
                 Long commentId = 1L;
                 Long currentMemberId = 1L;
 
@@ -355,7 +364,7 @@ class CommentServiceTest {
                 given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
 
                 // when
-                commentService.deleteComment(commentId, currentMemberId);
+                commentService.deleteComment(orgId, commentId, currentMemberId);
 
                 // then
                 then(commentRepository).should().findById(commentId);
@@ -366,6 +375,7 @@ class CommentServiceTest {
         @DisplayName("댓글 삭제 시 작성자가 아닌 경우 예외 발생")
         void deleteComment_NotAuthor_ThrowsException() {
                 // given
+                Long orgId = 1L;
                 Long commentId = 1L;
                 Long differentMemberId = 999L;
 
@@ -373,9 +383,11 @@ class CommentServiceTest {
                 given(member.getMemberId()).willReturn(1L);
                 given(comment.getAuthorEntity()).willReturn(member);
                 given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+                given(orgParticipantMemberRepository.findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, differentMemberId, Status.ACTIVE))
+                                .willReturn(Optional.empty());
 
                 // when & then
-                assertThatThrownBy(() -> commentService.deleteComment(commentId, differentMemberId))
+                assertThatThrownBy(() -> commentService.deleteComment(orgId, commentId, differentMemberId))
                                 .isInstanceOf(CommentException.class);
         }
 
@@ -383,13 +395,72 @@ class CommentServiceTest {
         @DisplayName("댓글 삭제 시 댓글이 존재하지 않는 경우 예외 발생")
         void deleteComment_CommentNotFound_ThrowsException() {
                 // given
+                Long orgId = 1L;
                 Long commentId = 999L;
                 Long currentMemberId = 1L;
 
                 given(commentRepository.findById(commentId)).willReturn(Optional.empty());
 
                 // when & then
-                assertThatThrownBy(() -> commentService.deleteComment(commentId, currentMemberId))
+                assertThatThrownBy(() -> commentService.deleteComment(orgId, commentId, currentMemberId))
                                 .isInstanceOf(CommentException.class);
+        }
+
+        @Test
+        @DisplayName("댓글 삭제 성공 - 조직 관리자 권한으로")
+        void deleteComment_Success_WithAdminRole() {
+                // given
+                Long orgId = 1L;
+                Long commentId = 1L;
+                Long authorMemberId = 1L;
+                Long adminMemberId = 2L;
+
+                OrgParticipantMemberEntity adminOpm = mock(OrgParticipantMemberEntity.class);
+                given(adminOpm.getRole()).willReturn(Role.ADMIN);
+
+                // Mock 설정: 작성자 ID는 1L, 관리자 ID는 2L
+                given(member.getMemberId()).willReturn(authorMemberId);
+                given(comment.getAuthorEntity()).willReturn(member);
+                given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+                given(orgParticipantMemberRepository.findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, adminMemberId, Status.ACTIVE))
+                                .willReturn(Optional.of(adminOpm));
+
+                // when
+                commentService.deleteComment(orgId, commentId, adminMemberId);
+
+                // then
+                then(commentRepository).should().findById(commentId);
+                then(commentRepository).should().delete(comment);
+                then(orgParticipantMemberRepository).should()
+                                .findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, adminMemberId, Status.ACTIVE);
+        }
+
+        @Test
+        @DisplayName("댓글 삭제 성공 - 조직 최고 관리자 권한으로")
+        void deleteComment_Success_WithRootAdminRole() {
+                // given
+                Long orgId = 1L;
+                Long commentId = 1L;
+                Long authorMemberId = 1L;
+                Long rootAdminMemberId = 3L;
+
+                OrgParticipantMemberEntity rootAdminOpm = mock(OrgParticipantMemberEntity.class);
+                given(rootAdminOpm.getRole()).willReturn(Role.ROOT_ADMIN);
+
+                // Mock 설정: 작성자 ID는 1L, 최고 관리자 ID는 3L
+                given(member.getMemberId()).willReturn(authorMemberId);
+                given(comment.getAuthorEntity()).willReturn(member);
+                given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+                given(orgParticipantMemberRepository.findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, rootAdminMemberId, Status.ACTIVE))
+                                .willReturn(Optional.of(rootAdminOpm));
+
+                // when
+                commentService.deleteComment(orgId, commentId, rootAdminMemberId);
+
+                // then
+                then(commentRepository).should().findById(commentId);
+                then(commentRepository).should().delete(comment);
+                then(orgParticipantMemberRepository).should()
+                                .findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, rootAdminMemberId, Status.ACTIVE);
         }
 }
