@@ -9,5 +9,7 @@ export const Route = createFileRoute('/org/$orgId/project/$projectId/issue/creat
 function IssueCreate() {
   const { orgId, projectId } = Route.useParams();
 
-  return <IssueFormPage orgId={orgId} projectId={projectId} />;
+  const { milestoneId } = Route.useSearch() as { milestoneId?: number };
+
+  return <IssueFormPage orgId={orgId} projectId={projectId} milestoneId={milestoneId} />;
 }

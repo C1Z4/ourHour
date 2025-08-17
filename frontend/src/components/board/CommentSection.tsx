@@ -25,11 +25,16 @@ export const CommentSection = () => {
   const { mutate: updateComment } = useUpdateCommentMutation(Number(orgId), Number(postId), null);
   const { mutate: deleteComment } = useDeleteCommentMutation(Number(orgId), Number(postId), null);
 
-  const handleCreateComment = (content: string) => {
+  const handleCreateComment = (content: string, parentCommentId?: number) => {
     createComment({
       content,
       postId: Number(postId),
+      parentCommentId,
     });
+  };
+
+  const handleReply = (parentCommentId: number, content: string) => {
+    handleCreateComment(content, parentCommentId);
   };
 
   const handleUpdateComment = (commentId: number, newContent: string) => {
@@ -57,6 +62,7 @@ export const CommentSection = () => {
             comment={comment}
             onUpdate={handleUpdateComment}
             onDelete={handleDeleteComment}
+            onReply={handleReply}
             orgId={Number(orgId)}
             postId={Number(postId)}
           />
@@ -64,7 +70,7 @@ export const CommentSection = () => {
       </div>
 
       <div className="mt-8 pt-6 border-t border-gray-200">
-        <CommentForm orgId={Number(orgId)} onSubmit={handleCreateComment} />
+        <CommentForm orgId={Number(orgId)} onSubmit={(content) => handleCreateComment(content)} />
       </div>
     </div>
   );

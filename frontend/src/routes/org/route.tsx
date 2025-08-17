@@ -3,8 +3,12 @@ import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { AppSidebar } from '@/components/common/left-sidebar/AppSidebarComponent';
 import { NavigationMenuComponent } from '@/components/common/navigation-menu/NavigationMenuComponent';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { requireAuth } from '@/utils/auth/routeGuards';
 
 export const Route = createFileRoute('/org')({
+  beforeLoad: async () => {
+    await requireAuth();
+  },
   component: DefaultLayoutComponent,
 });
 

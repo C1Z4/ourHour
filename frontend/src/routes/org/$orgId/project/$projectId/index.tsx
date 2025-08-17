@@ -1,10 +1,9 @@
-import { useState } from 'react';
-
 import { createFileRoute } from '@tanstack/react-router';
 
 import { ProjectMilestone } from '@/api/project/milestoneApi';
 import { MilestoneColumn, ProjectDashboardHeader } from '@/components/project/dashboard';
 import { useProjectMilestoneListQuery } from '@/hooks/queries/project/useMilestoneQueries';
+import { useAppSelector } from '@/stores/hooks';
 
 export const Route = createFileRoute('/org/$orgId/project/$projectId/')({
   component: ProjectDashboard,
@@ -13,34 +12,20 @@ export const Route = createFileRoute('/org/$orgId/project/$projectId/')({
 function ProjectDashboard() {
   const { orgId, projectId } = Route.useParams();
 
-  const [isMyIssuesOnly, setIsMyIssuesOnly] = useState(false);
+  const isMyIssuesOnly = useAppSelector((state) => state.projectName.isMyIssuesOnly);
 
   const { data: milestoneList } = useProjectMilestoneListQuery(Number(projectId), isMyIssuesOnly);
 
-  const handleToggleViewMode = () => {
-    setIsMyIssuesOnly(!isMyIssuesOnly);
-  };
-
   return (
     <div className="bg-white">
-      <ProjectDashboardHeader
-        isMyIssuesOnly={isMyIssuesOnly}
-        onToggleViewMode={handleToggleViewMode}
-        orgId={orgId}
-        projectId={projectId}
-      />
+      <ProjectDashboardHeader orgId={orgId} projectId={projectId} />
 
       <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {(Array.isArray(milestoneList?.data) ? milestoneList.data : []).map(
             (milestone: ProjectMilestone) => (
               <div key={milestone.milestoneId}>
-                <MilestoneColumn
-                  milestone={milestone}
-                  orgId={orgId}
-                  projectId={projectId}
-                  isMyIssuesOnly={isMyIssuesOnly}
-                />
+                <MilestoneColumn milestone={milestone} orgId={orgId} projectId={projectId} />
               </div>
             ),
           )}
@@ -49,7 +34,6 @@ function ProjectDashboard() {
               milestone={{ milestoneId: null, name: '미분류' }}
               orgId={orgId}
               projectId={projectId}
-              isMyIssuesOnly={isMyIssuesOnly}
             />
           </div>
         </div>

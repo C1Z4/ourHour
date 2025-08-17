@@ -9,9 +9,13 @@ import ErrorMessage from '@/components/auth/ErrorMessage';
 import SignupForm from '@/components/auth/SignupForm';
 import { AUTH_MESSAGES } from '@/constants/messages';
 import { useSendEmailVerificationMutation } from '@/hooks/queries/auth/useAuthMutations';
+import { requireGuest } from '@/utils/auth/routeGuards';
 import { showErrorToast, TOAST_MESSAGES } from '@/utils/toast';
 
 export const Route = createFileRoute('/signup/')({
+  beforeLoad: async () => {
+    await requireGuest();
+  },
   component: SignupPage,
 });
 
@@ -19,7 +23,6 @@ function SignupPage() {
   const [signupError, setSignupError] = useState('');
 
   const router = useRouter();
-
   const sendEmailVerificationMutation = useSendEmailVerificationMutation();
   const isLoading = sendEmailVerificationMutation.isPending;
 

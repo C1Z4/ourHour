@@ -3,7 +3,7 @@ import { useRouter } from '@tanstack/react-router';
 import { Post } from '@/types/postTypes';
 
 import { CommentSection } from '@/components/board/CommentSection';
-import { IssueDetailContent, IssueDetailHeader } from '@/components/project/issue-detail';
+import { DetailContent, DetailHeader } from '@/components/common/detail';
 import { usePostDeleteMutation } from '@/hooks/queries/board/usePostMutations';
 import { usePostDetailQuery } from '@/hooks/queries/board/usePostQueries';
 
@@ -55,19 +55,19 @@ export const PostDetailPage = ({ orgId, boardId, postId }: PostDetailPageProps) 
 
   return (
     <div className="bg-white">
-      <IssueDetailHeader
+      <DetailHeader
         type="board"
         milestoneName={post.boardName}
-        issueTitle={post.title}
+        title={post.title}
         orgId={orgId}
-        projectId={boardId}
+        entityId={boardId}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8">
           <div className="lg:col-span-2">
             <div className="mt-8">
-              <IssueDetailContent post={post} onEdit={handleEditPost} onDelete={handleDeletePost} />
+              <DetailContent post={post} onEdit={handleEditPost} onDelete={handleDeletePost} />
 
               <div className="mt-8">
                 <CommentSection />

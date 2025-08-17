@@ -1,51 +1,90 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+import { MemberRoleKo } from '@/types/memberTypes';
+
 interface OrgState {
   currentOrgId: number | null;
+  currentRole: MemberRoleKo | null;
 }
 
-const getInitialOrgId = (): number | null => {
+const getInitialOrgInfo = (): { orgId: number | null; role: MemberRoleKo | null } => {
   try {
-    return sessionStorage.getItem('currentOrgId')
-      ? Number(sessionStorage.getItem('currentOrgId'))
-      : null;
+    const orgInfoStr = sessionStorage.getItem('currentOrgInfo');
+    if (orgInfoStr) {
+      const orgInfo = JSON.parse(orgInfoStr);
+      return { orgId: orgInfo.orgId || null, role: orgInfo.role || null };
+    }
+    return { orgId: null, role: null };
   } catch {
-    return null;
+    return { orgId: null, role: null };
   }
 };
 
+const initialOrgInfo = getInitialOrgInfo();
+
 const initialState: OrgState = {
-  currentOrgId: getInitialOrgId(),
+  currentOrgId: initialOrgInfo.orgId,
+  currentRole: initialOrgInfo.role,
 };
 
 const orgSlice = createSlice({
   name: 'activeOrgId',
   initialState,
   reducers: {
-    setCurrentOrgId: (state, action: PayloadAction<number | null>) => {
-      state.currentOrgId = action.payload;
+    setCurrentOrgInfo: (
+      state,
+      action: PayloadAction<{ orgId: number | null; role: MemberRoleKo | null }>,
+    ) => {
+      state.currentOrgId = action.payload.orgId;
+      state.currentRole = action.payload.role;
       try {
-        if (action.payload) {
-          sessionStorage.setItem('currentOrgId', action.payload.toString());
+        if (action.payload.orgId && action.payload.role) {
+          sessionStorage.setItem(
+            'currentOrgInfo',
+            JSON.stringify({
+              orgId: action.payload.orgId,
+              role: action.payload.role,
+            }),
+          );
         } else {
-          sessionStorage.removeItem('currentOrgId');
+          sessionStorage.removeItem('currentOrgInfo');
         }
       } catch (error) {
-        console.warn('Failed to save org id to sessionStorage:', error);
+        console.warn('Failed to save org info to sessionStorage:', error);
       }
     },
 
-    clearCurrentOrgId: (state) => {
-      state.currentOrgId = null;
+    setCurrentOrgId: (state, action: PayloadAction<number | null>) => {
+      state.currentOrgId = action.payload;
       try {
-        sessionStorage.removeItem('currentOrgId');
+        if (action.payload && state.currentRole) {
+          sessionStorage.setItem(
+            'currentOrgInfo',
+            JSON.stringify({
+              orgId: action.payload,
+              role: state.currentRole,
+            }),
+          );
+        } else {
+          sessionStorage.removeItem('currentOrgInfo');
+        }
       } catch (error) {
-        console.warn('Failed to remove org id from sessionStorage:', error);
+        console.warn('Failed to save org info to sessionStorage:', error);
+      }
+    },
+
+    clearCurrentOrgInfo: (state) => {
+      state.currentOrgId = null;
+      state.currentRole = null;
+      try {
+        sessionStorage.removeItem('currentOrgInfo');
+      } catch (error) {
+        console.warn('Failed to remove org info from sessionStorage:', error);
       }
     },
   },
 });
 
-export const { setCurrentOrgId, clearCurrentOrgId } = orgSlice.actions;
+export const { setCurrentOrgInfo, setCurrentOrgId, clearCurrentOrgInfo } = orgSlice.actions;
 
 export default orgSlice.reducer;

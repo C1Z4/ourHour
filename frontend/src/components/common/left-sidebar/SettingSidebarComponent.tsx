@@ -45,9 +45,6 @@ export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeo
       logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl,
     });
     setIsCreateOrgModalOpen(false);
-
-    // 페이지 새로고침(임시)
-    window.location.reload();
   };
 
   const data = {

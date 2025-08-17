@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 interface ProjectState {
   currentProjectId: string | null;
   currentProjectName: string | null;
+  isMyIssuesOnly: boolean;
 }
 
 const getInitialProjectId = (): string | null => {
@@ -21,9 +22,19 @@ const getInitialProjectName = (): string | null => {
   }
 };
 
+const getInitialIsMyIssuesOnly = (): boolean => {
+  try {
+    const stored = localStorage.getItem('isMyIssuesOnly');
+    return stored ? JSON.parse(stored) : false;
+  } catch {
+    return false;
+  }
+};
+
 const initialState: ProjectState = {
   currentProjectId: getInitialProjectId(),
   currentProjectName: getInitialProjectName(),
+  isMyIssuesOnly: getInitialIsMyIssuesOnly(),
 };
 
 const projectSlice = createSlice({
@@ -56,6 +67,24 @@ const projectSlice = createSlice({
       }
     },
 
+    setIsMyIssuesOnly: (state, action: PayloadAction<boolean>) => {
+      state.isMyIssuesOnly = action.payload;
+      try {
+        localStorage.setItem('isMyIssuesOnly', JSON.stringify(action.payload));
+      } catch (error) {
+        console.warn('Failed to save isMyIssuesOnly to localStorage:', error);
+      }
+    },
+
+    toggleIsMyIssuesOnly: (state) => {
+      state.isMyIssuesOnly = !state.isMyIssuesOnly;
+      try {
+        localStorage.setItem('isMyIssuesOnly', JSON.stringify(state.isMyIssuesOnly));
+      } catch (error) {
+        console.warn('Failed to save isMyIssuesOnly to localStorage:', error);
+      }
+    },
+
     clearCurrentProject: (state) => {
       state.currentProjectName = null;
       try {
@@ -68,7 +97,12 @@ const projectSlice = createSlice({
   },
 });
 
-export const { setCurrentProjectId, setCurrentProjectName, clearCurrentProject } =
-  projectSlice.actions;
+export const {
+  setCurrentProjectId,
+  setCurrentProjectName,
+  setIsMyIssuesOnly,
+  toggleIsMyIssuesOnly,
+  clearCurrentProject,
+} = projectSlice.actions;
 
 export default projectSlice.reducer;

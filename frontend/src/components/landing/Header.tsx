@@ -1,10 +1,10 @@
 import { Link } from '@tanstack/react-router';
 
 import logo from '@/assets/images/logo.png';
+import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { useSignoutMutation } from '@/hooks/queries/auth/useAuthMutations';
 import { useAppSelector } from '@/stores/hooks';
-
-import { ButtonComponent } from '../common/ButtonComponent';
+import { getEmailFromToken } from '@/utils/auth/tokenUtils';
 
 const smoothScrollTo = (elementId: string) => {
   const element = document.getElementById(elementId);
@@ -18,7 +18,10 @@ const smoothScrollTo = (elementId: string) => {
 
 export const Header = () => {
   const { mutate: signout } = useSignoutMutation();
+
   const accessToken = useAppSelector((state) => state.auth.accessToken);
+
+  const userEmail = getEmailFromToken() || 'example@example.com';
 
   const handleSignout = () => {
     signout();
@@ -67,11 +70,14 @@ export const Header = () => {
 
           <div className="flex items-center space-x-4">
             {accessToken ? (
-              <ButtonComponent variant="ghost" asChild>
-                <Link to="/" onClick={handleSignout}>
-                  로그아웃
-                </Link>
-              </ButtonComponent>
+              <div className="flex items-center space-x-2">
+                <p className="text-sm text-gray-600">{userEmail}님 환영합니다!</p>
+                <ButtonComponent variant="ghost" asChild>
+                  <Link to="/" onClick={handleSignout}>
+                    로그아웃
+                  </Link>
+                </ButtonComponent>
+              </div>
             ) : (
               <ButtonComponent variant="ghost" asChild>
                 <Link to="/login">로그인</Link>

@@ -25,23 +25,19 @@ import {
 } from '@/hooks/queries/project/useGithubMutations';
 import { useGithubSyncStatusQuery } from '@/hooks/queries/project/useGithubQueries';
 import { useMilestoneCreateMutation } from '@/hooks/queries/project/useMilestoneMutations';
-import { useAppSelector } from '@/stores/hooks';
+import { useAppDispatch, useAppSelector } from '@/stores/hooks';
+import { toggleIsMyIssuesOnly } from '@/stores/projectSlice';
 
 interface ProjectDashboardHeaderProps {
-  isMyIssuesOnly: boolean;
-  onToggleViewMode: () => void;
   orgId: string;
   projectId: string;
 }
 
-export const ProjectDashboardHeader = ({
-  isMyIssuesOnly,
-  onToggleViewMode,
-  orgId,
-  projectId,
-}: ProjectDashboardHeaderProps) => {
+export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHeaderProps) => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const currentProjectName = useAppSelector((state) => state.projectName.currentProjectName);
+  const isMyIssuesOnly = useAppSelector((state) => state.projectName.isMyIssuesOnly);
 
   // 마일스톤 관련 상태
   const [isCreateMilestoneModalOpen, setIsCreateMilestoneModalOpen] = useState(false);
@@ -256,7 +252,7 @@ export const ProjectDashboardHeader = ({
             <ButtonComponent
               variant={!isMyIssuesOnly ? 'primary' : 'ghost'}
               size="sm"
-              onClick={onToggleViewMode}
+              onClick={() => dispatch(toggleIsMyIssuesOnly())}
               className="px-3"
             >
               전체보기
@@ -264,7 +260,7 @@ export const ProjectDashboardHeader = ({
             <ButtonComponent
               variant={isMyIssuesOnly ? 'primary' : 'ghost'}
               size="sm"
-              onClick={onToggleViewMode}
+              onClick={() => dispatch(toggleIsMyIssuesOnly())}
               className="px-3"
             >
               내 이슈만 보기

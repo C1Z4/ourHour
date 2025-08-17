@@ -134,7 +134,6 @@ export const deleteComment = async (
 // ======== 댓글 좋아요 ========
 export interface PostLikeCommentRequest {
   commentId: number;
-  memberId: number;
 }
 
 export const postLikeComment = async (
@@ -143,7 +142,7 @@ export const postLikeComment = async (
 ): Promise<ApiResponse<void>> => {
   try {
     const response = await axiosInstance.post(
-      `/api/org/${orgId}/comments/${request.commentId}/like?memberId=${request.memberId}`,
+      `/api/org/${orgId}/comments/${request.commentId}/like`,
     );
     return response.data;
   } catch (error: unknown) {
@@ -155,7 +154,6 @@ export const postLikeComment = async (
 // ======== 댓글 좋아요 취소 ========
 export interface DeleteLikeCommentRequest {
   commentId: number;
-  memberId: number;
 }
 
 export const deleteLikeComment = async (
@@ -164,7 +162,7 @@ export const deleteLikeComment = async (
 ): Promise<ApiResponse<void>> => {
   try {
     const response = await axiosInstance.delete(
-      `/api/org/${orgId}/comments/${request.commentId}/like?memberId=${request.memberId}`,
+      `/api/org/${orgId}/comments/${request.commentId}/like`,
     );
     return response.data;
   } catch (error: unknown) {

@@ -1,12 +1,11 @@
 import { useRouter } from '@tanstack/react-router';
 
 import { IssueDetail } from '@/api/project/issueApi';
+import { DetailContent, DetailHeader } from '@/components/common/detail';
 import { useIssueDeleteMutation } from '@/hooks/queries/project/useIssueMutations';
 import { useProjectIssueDetailQuery } from '@/hooks/queries/project/useIssueQueries';
 
 import { CommentSection } from './CommentSection';
-import { IssueDetailContent } from './IssueDetailContent';
-import { IssueDetailHeader } from './IssueDetailHeader';
 import { IssueDetailSidebar } from './IssueDetailSidebar';
 
 interface IssueDetailPageProps {
@@ -59,22 +58,18 @@ export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPagePr
 
   return (
     <div className="bg-white">
-      <IssueDetailHeader
+      <DetailHeader
         type="project"
         milestoneName={issue.milestoneName}
-        issueTitle={issue.name}
+        title={issue.name}
         orgId={orgId}
-        projectId={projectId}
+        entityId={projectId}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <IssueDetailContent
-              issue={issue}
-              onEdit={handleEditIssue}
-              onDelete={handleDeleteIssue}
-            />
+            <DetailContent issue={issue} onEdit={handleEditIssue} onDelete={handleDeleteIssue} />
 
             <div className="mt-8">
               <CommentSection />
