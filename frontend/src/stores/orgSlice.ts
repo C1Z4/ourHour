@@ -1,11 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+import { MemberRoleKo } from '@/types/memberTypes';
+
 interface OrgState {
   currentOrgId: number | null;
-  currentRole: string | null;
+  currentRole: MemberRoleKo | null;
 }
 
-const getInitialOrgInfo = (): { orgId: number | null; role: string | null } => {
+const getInitialOrgInfo = (): { orgId: number | null; role: MemberRoleKo | null } => {
   try {
     const orgInfoStr = sessionStorage.getItem('currentOrgInfo');
     if (orgInfoStr) {
@@ -31,7 +33,7 @@ const orgSlice = createSlice({
   reducers: {
     setCurrentOrgInfo: (
       state,
-      action: PayloadAction<{ orgId: number | null; role: string | null }>,
+      action: PayloadAction<{ orgId: number | null; role: MemberRoleKo | null }>,
     ) => {
       state.currentOrgId = action.payload.orgId;
       state.currentRole = action.payload.role;

@@ -18,6 +18,7 @@ import {
 } from '@/hooks/queries/org/useOrgMutations';
 import { useOrgInfoQuery, useOrgMemberListQuery } from '@/hooks/queries/org/useOrgQueries';
 import { usePasswordVerificationMutation } from '@/hooks/queries/user/useUserMutations';
+import { useAppSelector } from '@/stores/hooks';
 import { getImageUrl } from '@/utils/file/imageUtils';
 
 export const Route = createFileRoute('/org/$orgId/info/')({
@@ -28,6 +29,8 @@ function OrgInfoPage() {
   const { orgId } = Route.useParams();
 
   const router = useRouter();
+
+  const currentUserRole = useAppSelector((state) => state.activeOrgId.currentRole);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]); // 회사 구성원 삭제
@@ -254,22 +257,25 @@ function OrgInfoPage() {
                 </div>
                 <h1 className="text-3xl font-bold text-gray-900">{orgInfo?.name}</h1>
               </div>
-              <div className="flex items-center gap-4">
-                <ButtonComponent variant="secondary" onClick={handleEditProject}>
-                  회사 정보 수정
-                </ButtonComponent>
-                <ButtonComponent
-                  variant="danger"
-                  onClick={openDeleteOrgModal}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      openDeleteOrgModal();
-                    }
-                  }}
-                >
-                  회사 삭제
-                </ButtonComponent>
-              </div>
+              {currentUserRole === '관리자' ||
+                (currentUserRole === '루트관리자' && (
+                  <div className="flex items-center gap-4">
+                    <ButtonComponent variant="secondary" onClick={handleEditProject}>
+                      회사 정보 수정
+                    </ButtonComponent>
+                    <ButtonComponent
+                      variant="danger"
+                      onClick={openDeleteOrgModal}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          openDeleteOrgModal();
+                        }
+                      }}
+                    >
+                      회사 삭제
+                    </ButtonComponent>
+                  </div>
+                ))}
             </div>
 
             <div className="flex flex-col gap-2">

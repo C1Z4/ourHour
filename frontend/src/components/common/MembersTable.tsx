@@ -220,31 +220,39 @@ export const MembersTable = ({
                 <TableCell className="w-48 text-center truncate">{member.email}</TableCell>
                 {type === 'org' && (
                   <TableCell className="w-48 text-center">
-                    <Select
-                      value={member.role}
-                      onValueChange={(value) => handleRoleChange(member.memberId, value)}
-                    >
-                      <SelectTrigger className="w-32 mx-auto">
-                        <SelectValue>
-                          <div
-                            className={`rounded-full px-2 py-1 text-xs ${MEMBER_ROLE_STYLES[member.role]}`}
-                          >
-                            {member.role}
-                          </div>
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {roleOptions.map((role) => (
-                          <SelectItem key={role.value} value={role.value}>
+                    {currentUserRole === '루트관리자' ? (
+                      <Select
+                        value={member.role}
+                        onValueChange={(value) => handleRoleChange(member.memberId, value)}
+                      >
+                        <SelectTrigger className="w-32 mx-auto">
+                          <SelectValue>
                             <div
-                              className={`rounded-full px-2 py-1 text-xs ${MEMBER_ROLE_STYLES[role.label as keyof typeof MEMBER_ROLE_STYLES]}`}
+                              className={`rounded-full px-2 py-1 text-xs ${MEMBER_ROLE_STYLES[member.role]}`}
                             >
-                              {role.label}
+                              {member.role}
                             </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roleOptions.map((role) => (
+                            <SelectItem key={role.value} value={role.value}>
+                              <div
+                                className={`rounded-full px-2 py-1 text-xs ${MEMBER_ROLE_STYLES[role.label as keyof typeof MEMBER_ROLE_STYLES]}`}
+                              >
+                                {role.label}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div
+                        className={`rounded-full px-2 py-1 text-xs mx-auto w-fit ${MEMBER_ROLE_STYLES[member.role]}`}
+                      >
+                        {member.role}
+                      </div>
+                    )}
                   </TableCell>
                 )}
               </TableRow>
