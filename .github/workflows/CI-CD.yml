@@ -135,6 +135,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
+          dockerfile: docker/Dockerfile
           target: release
           push: true
           tags: ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.backend)) || format('myuser/{0}', steps['image-tags'].outputs.backend) }}
