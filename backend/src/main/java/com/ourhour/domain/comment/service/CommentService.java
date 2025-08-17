@@ -23,10 +23,12 @@ import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.repository.IssueRepository;
 import com.ourhour.domain.project.enums.SyncOperation;
+import com.ourhour.domain.project.enums.SyncStatus;
 import com.ourhour.domain.board.repository.PostRepository;
 import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.board.exception.PostException;
 import com.ourhour.domain.project.exception.IssueException;
+import com.ourhour.domain.project.annotation.GitHubSync;
 import com.ourhour.domain.project.sync.GitHubSyncManager;
 import com.ourhour.global.exception.BusinessException;
 import com.ourhour.global.exception.ErrorCode;
@@ -121,6 +123,7 @@ public class CommentService {
     }
 
     // 댓글 등록
+    @GitHubSync(operation = SyncOperation.CREATE)
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void createComment(CommentCreateReqDTO commentCreateReqDTO, Long currentMemberId) {
@@ -140,6 +143,9 @@ public class CommentService {
                     .orElseThrow(() -> IssueException.issueNotFoundException());
         }
 
+        // GitHub 연동 상태 결정
+        boolean shouldSyncToGitHub = issueEntity != null && issueEntity.getIsGithubSynced();
+
         CommentEntity commentEntity = CommentEntity.builder()
                 .postEntity(postEntity)
                 .issueEntity(issueEntity)
@@ -147,12 +153,17 @@ public class CommentService {
                         .orElseThrow(() -> MemberException.memberNotFoundException()))
                 .parentCommentId(commentCreateReqDTO.getParentCommentId())
                 .content(commentCreateReqDTO.getContent())
+                .isGithubSynced(false) // 생성 시점에는 아직 동기화되지 않음
+                .syncStatus(SyncStatus.NOT_SYNCED)
                 .build();
 
         commentRepository.save(commentEntity);
 
         // GitHub에도 동기화 (이슈 댓글인 경우에만)
-        if (issueEntity != null) {
+        if (shouldSyncToGitHub) {
+            // 동기화 상태를 SYNCING으로 변경 후 GitHub 동기화 시작
+            commentEntity.setSyncStatus(SyncStatus.SYNCING);
+            commentRepository.save(commentEntity);
             gitHubSyncManager.syncToGitHub(commentEntity, SyncOperation.CREATE);
         }
 
@@ -178,6 +189,7 @@ public class CommentService {
     }
 
     // 댓글 수정
+    @GitHubSync(operation = SyncOperation.UPDATE)
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void updateComment(Long commentId, CommentUpdateReqDTO commentUpdateReqDTO, Long currentMemberId) {
@@ -205,6 +217,7 @@ public class CommentService {
     }
 
     // 댓글 삭제
+    @GitHubSync(operation = SyncOperation.DELETE)
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void deleteComment(Long commentId, Long currentMemberId) {
