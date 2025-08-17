@@ -92,6 +92,9 @@ class CommentServiceTest {
                 issue = mock(IssueEntity.class);
                 comment = mock(CommentEntity.class);
 
+                given(member.getMemberId()).willReturn(1L);
+                given(comment.getAuthorEntity()).willReturn(member);
+
                 createReqDTO = new CommentCreateReqDTO();
                 updateReqDTO = new CommentUpdateReqDTO();
         }
@@ -285,7 +288,7 @@ class CommentServiceTest {
                 // given
                 Long commentId = 1L;
                 Long currentMemberId = 1L;
-                updateReqDTO.setContent("테스트 댓글 수정정");
+                updateReqDTO.setContent("테스트 댓글 수정");
 
                 given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
                 given(commentRepository.save(any(CommentEntity.class))).willReturn(comment);
@@ -383,7 +386,8 @@ class CommentServiceTest {
                 given(member.getMemberId()).willReturn(1L);
                 given(comment.getAuthorEntity()).willReturn(member);
                 given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
-                given(orgParticipantMemberRepository.findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, differentMemberId, Status.ACTIVE))
+                given(orgParticipantMemberRepository.findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId,
+                                differentMemberId, Status.ACTIVE))
                                 .willReturn(Optional.empty());
 
                 // when & then
@@ -422,7 +426,8 @@ class CommentServiceTest {
                 given(member.getMemberId()).willReturn(authorMemberId);
                 given(comment.getAuthorEntity()).willReturn(member);
                 given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
-                given(orgParticipantMemberRepository.findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, adminMemberId, Status.ACTIVE))
+                given(orgParticipantMemberRepository.findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId,
+                                adminMemberId, Status.ACTIVE))
                                 .willReturn(Optional.of(adminOpm));
 
                 // when
@@ -432,7 +437,8 @@ class CommentServiceTest {
                 then(commentRepository).should().findById(commentId);
                 then(commentRepository).should().delete(comment);
                 then(orgParticipantMemberRepository).should()
-                                .findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, adminMemberId, Status.ACTIVE);
+                                .findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, adminMemberId,
+                                                Status.ACTIVE);
         }
 
         @Test
@@ -451,7 +457,8 @@ class CommentServiceTest {
                 given(member.getMemberId()).willReturn(authorMemberId);
                 given(comment.getAuthorEntity()).willReturn(member);
                 given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
-                given(orgParticipantMemberRepository.findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, rootAdminMemberId, Status.ACTIVE))
+                given(orgParticipantMemberRepository.findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId,
+                                rootAdminMemberId, Status.ACTIVE))
                                 .willReturn(Optional.of(rootAdminOpm));
 
                 // when
@@ -461,6 +468,7 @@ class CommentServiceTest {
                 then(commentRepository).should().findById(commentId);
                 then(commentRepository).should().delete(comment);
                 then(orgParticipantMemberRepository).should()
-                                .findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, rootAdminMemberId, Status.ACTIVE);
+                                .findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, rootAdminMemberId,
+                                                Status.ACTIVE);
         }
 }

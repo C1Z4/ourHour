@@ -32,7 +32,6 @@ import com.ourhour.domain.project.annotation.GitHubSync;
 import com.ourhour.domain.project.sync.GitHubSyncManager;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
-import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.Status;
 
 import lombok.RequiredArgsConstructor;
