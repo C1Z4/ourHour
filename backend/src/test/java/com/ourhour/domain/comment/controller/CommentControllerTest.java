@@ -170,13 +170,13 @@ class CommentControllerTest {
         // Given
         try (MockedStatic<UserContextHolder> mockedUserContext = Mockito.mockStatic(UserContextHolder.class)) {
             mockedUserContext.when(UserContextHolder::get).thenReturn(createMockClaims());
-            willDoNothing().given(commentService).deleteComment(eq(COMMENT_ID), eq(MEMBER_ID));
+            willDoNothing().given(commentService).deleteComment(eq(ORG_ID), eq(COMMENT_ID), eq(MEMBER_ID));
 
             // When & Then
             mockMvc.perform(delete("/api/org/{orgId}/comments/{commentId}", ORG_ID, COMMENT_ID))
                     .andExpect(status().isOk());
 
-            then(commentService).should().deleteComment(eq(COMMENT_ID), eq(MEMBER_ID));
+            then(commentService).should().deleteComment(eq(ORG_ID), eq(COMMENT_ID), eq(MEMBER_ID));
         }
     }
 
