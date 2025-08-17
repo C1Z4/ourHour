@@ -12,14 +12,13 @@ import { FilterTabs, FilterType } from '@/components/org/map/FilterTabs';
 import { PositionsSection } from '@/components/org/map/PositionsSection';
 import { useOrgMemberListQuery } from '@/hooks/queries/org/useOrgQueries';
 import { useDepartmentsQuery, usePositionsQuery } from '@/hooks/queries/org/useOrgStructureQueries';
-import { useAppSelector } from '@/stores/hooks';
 
 export const Route = createFileRoute('/org/$orgId/map/')({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const orgId = useAppSelector((state) => state.activeOrgId.currentOrgId);
+  const { orgId } = Route.useParams();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [expandedDepartments, setExpandedDepartments] = useState<Set<number>>(new Set());
   const [expandedPositions, setExpandedPositions] = useState<Set<number>>(new Set());
