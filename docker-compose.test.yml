@@ -1,9 +1,3 @@
-networks:
-  internal:
-    driver: bridge
-  default:
-    name: monitoring-net
-
 services:
   # backend
   backend:
@@ -12,8 +6,6 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: test
     restart: unless-stopped
-    networks:
-      - default
 
   # db
   db:
@@ -32,10 +24,8 @@ services:
       timeout: 60s
       retries: 10
     volumes:
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d
       - mysql-data:/var/lib/mysql
-
-    networks:
-      - default
 
   # prometheus
   prometheus:

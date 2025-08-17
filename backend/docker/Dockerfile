@@ -1,7 +1,7 @@
 # Build Stage
 FROM gradle:7.6-jdk17 AS build
 WORKDIR /app
-COPY . .
+COPY .. .
 
 # Runtime Stage - 배포용
 FROM openjdk:17-jdk-slim AS release
