@@ -13,8 +13,8 @@ import java.util.List;
 @AllArgsConstructor
 public class Claims {
 
-    private String email;
     private Long userId;
+    private String email;
     private List<OrgAuthority> orgAuthorityList;
 
 }

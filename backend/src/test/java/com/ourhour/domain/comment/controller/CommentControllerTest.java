@@ -74,7 +74,7 @@ class CommentControllerTest {
 
     private Claims createMockClaims() {
         OrgAuthority orgAuthority = new OrgAuthority(ORG_ID, MEMBER_ID, Role.MEMBER);
-        return new Claims("test@example.com", 1L, List.of(orgAuthority));
+        return new Claims(1L, "test@example.com", List.of(orgAuthority));
     }
 
     @Test
@@ -216,7 +216,7 @@ class CommentControllerTest {
     @DisplayName("댓글 목록 조회 - 실패 (조직 권한 없음)")
     void getComments_Fail_NoOrgAuth() throws Exception {
         // Given
-        Claims claimsWithoutOrg = new Claims("test@example.com", 1L, List.of());
+        Claims claimsWithoutOrg = new Claims(1L, "test@example.com", List.of());
 
         try (MockedStatic<UserContextHolder> mockedUserContext = Mockito.mockStatic(UserContextHolder.class)) {
             mockedUserContext.when(UserContextHolder::get).thenReturn(claimsWithoutOrg);
@@ -239,7 +239,7 @@ class CommentControllerTest {
     @DisplayName("댓글 좋아요 - 실패 (조직 권한 없음)")
     void likeComment_Fail_NoOrgAuth() throws Exception {
         // Given
-        Claims claimsWithoutOrg = new Claims("test@example.com", 1L, List.of());
+        Claims claimsWithoutOrg = new Claims(1L, "test@example.com", List.of());
 
         try (MockedStatic<UserContextHolder> mockedUserContext = Mockito.mockStatic(UserContextHolder.class)) {
             mockedUserContext.when(UserContextHolder::get).thenReturn(claimsWithoutOrg);

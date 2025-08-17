@@ -21,27 +21,19 @@ import java.util.List;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @Value("${spring.service.url.front}")
-    private String url;
-
-    public WebConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
-
     @Override
     public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("file:uploads/images/");
     }
 
+    // Spring Security에서 사용할 CORS 정책 Bean
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of(url));
+        config.setAllowedOrigins(List.of("https://www.ourhour.cloud", "https://our-hour-test.vercel.app"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("*"));
@@ -51,31 +43,9 @@ public class WebConfig implements WebMvcConfigurer {
         return source;
     }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("https://www.ourhour.cloud", "https://our-hour-test.vercel.app")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true)
-                .exposedHeaders("*");
-    }
-
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
-    }
-
-    // 인증 필터 등록
-    @Bean
-    public FilterRegistrationBean<JwtAuthenticationFilter> authenticationFilter() {
-        FilterRegistrationBean<JwtAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
-
-        registrationBean.setFilter(jwtAuthenticationFilter);
-        registrationBean.addUrlPatterns("/api/*");
-        registrationBean.setOrder(1);
-
-        return registrationBean;
     }
 
 }
