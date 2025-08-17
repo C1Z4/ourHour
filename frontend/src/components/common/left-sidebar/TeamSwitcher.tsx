@@ -73,9 +73,6 @@ export function TeamSwitcher() {
       logoImgUrl: data.logoImgUrl === '' ? null : data.logoImgUrl,
     });
     setIsOrgModalOpen(false);
-
-    // 페이지 새로고침(임시)
-    window.location.reload();
   };
 
   const handleImageError = (orgId: number) => {
