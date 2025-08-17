@@ -78,7 +78,7 @@ public class MemberService {
                 .map(memberOrgMapper::toMemberOrgSummaryResDTO)
                 .toList();
 
-        Page<MemberOrgSummaryResDTO> dtoPage = new PageImpl<>(dtoList, pageable, dtoList.size());
+        Page<MemberOrgSummaryResDTO> dtoPage = new PageImpl<>(dtoList, pageable, orgParticipantMemberEntityPage.getTotalElements());
 
         return PageResponse.of(dtoPage);
     }
