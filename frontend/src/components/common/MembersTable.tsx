@@ -1,12 +1,9 @@
 import { useState } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
-
 import { Search, Trash2, UserRoundPlus, X } from 'lucide-react';
 
 import { Member, MemberRoleKo } from '@/types/memberTypes';
 
-import { getMyMemberInfo } from '@/api/member/memberApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
@@ -30,6 +27,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { MEMBER_ROLE_STYLES } from '@/constants/badges';
+import { Route } from '@/routes/org/$orgId/project/$projectId/index';
 import { useAppSelector } from '@/stores/hooks';
 
 interface MembersTableProps {
@@ -66,18 +64,12 @@ export const MembersTable = ({
   onSearchClear,
 }: MembersTableProps) => {
   const orgId = useAppSelector((state) => state.activeOrgId.currentOrgId);
-  const projectId = useAppSelector((state) => state.projectName.currentProjectId);
+  // const projectId = useAppSelector((state) => state.projectName.currentProjectId);
 
   const [isParticipantDeleteModalOpen, setIsParticipantDeleteModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false); // 구성원 초대 모달 상태 추가
 
-  // 현재 로그인한 사용자 정보 가져오기
-  const { data: myMemberInfo } = useQuery({
-    queryKey: ['myMemberInfo', Number(orgId || projectId)],
-    queryFn: () => getMyMemberInfo({ orgId: Number(orgId || projectId) }),
-  });
-
-  const currentUserRole = myMemberInfo && 'role' in myMemberInfo ? myMemberInfo.role : null;
+  const currentUserRole = useAppSelector((state) => state.activeOrgId.currentRole);
 
   const handleParticipantDeleteModalClose = () => {
     setIsParticipantDeleteModalOpen(false);
