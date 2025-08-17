@@ -1,5 +1,7 @@
 services:
   # backend
   backend:
+    build:
+      dockerfile: docker/Dockerfile
     ports:
       - "${BACKEND_PORT:-8080}:8080"

@@ -24,8 +24,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - default
 
   # db
   db:
@@ -43,8 +41,6 @@ services:
       retries: 10
     volumes:
       - mysql-data:/var/lib/mysql
-    networks:
-      - default
 
   # prometheus
   prometheus:
