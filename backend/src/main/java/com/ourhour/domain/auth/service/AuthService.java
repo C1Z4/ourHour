@@ -14,7 +14,7 @@ import com.ourhour.domain.user.repository.UserRepository;
 import com.ourhour.global.jwt.JwtTokenProvider;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.jwt.mapper.JwtClaimMapper;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -59,7 +59,6 @@ public class AuthService {
         if (!checkAvailEmail(signupReqDTO.getEmail())) {
             throw duplicateRequestException();
         }
-        ;
 
         boolean isVerified = emailVerificationRepository.existsByEmailAndIsUsedTrue(signupReqDTO.getEmail());
         if (!isVerified) {
@@ -178,13 +177,11 @@ public class AuthService {
     public void signout() {
 
         // 인증 정보 확인
-        Claims claims = UserContextHolder.get();
-        if (claims == null) {
-            throw unauthorizedException();
+        Long userId = SecurityUtil.getCurrentUserId();
+        if(userId == null) {
+            throw AuthException.unauthorizedException();
         }
 
-        // db에서 refresh token 삭제
-        Long userId = claims.getUserId();
         RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findByUserEntity_UserId(userId);
         if (refreshTokenEntity != null) {
             refreshTokenRepository.delete(refreshTokenEntity);

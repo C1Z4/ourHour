@@ -5,10 +5,10 @@ import java.util.List;
 import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.domain.project.repository.ProjectRepository;
 import com.ourhour.domain.auth.exception.AuthException;
-import com.ourhour.global.jwt.dto.Claims;
+import com.ourhour.global.jwt.dto.CustomUserDetails;
 import com.ourhour.global.jwt.dto.OrgAuthority;
-import com.ourhour.global.jwt.util.UserContextHolder;
 
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -51,13 +51,12 @@ public class ProjectParticipantAspect {
     }
 
     private void validateProjectAccess(Long orgId) {
-        Claims claims = UserContextHolder.get();
-
-        if (claims == null) {
+        CustomUserDetails currentUser = SecurityUtil.getCurrentUser();
+        if (currentUser == null) {
             throw AuthException.unauthorizedException();
         }
 
-        List<OrgAuthority> orgAuthorities = claims.getOrgAuthorityList();
+        List<OrgAuthority> orgAuthorities = currentUser.getOrgAuthorityList();
 
         boolean hasPermission = orgAuthorities.stream()
                 .anyMatch(orgAuthority -> orgAuthority.getOrgId().equals(orgId));

@@ -18,6 +18,7 @@ import com.ourhour.domain.project.repository.ProjectRepository;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
 
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,8 +34,6 @@ import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.ProjectParticipantId;
 import com.ourhour.domain.project.enums.IssueStatus;
 import com.ourhour.domain.project.exception.ProjectException;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -193,17 +192,15 @@ public class ProjectService {
         Page<MilestoneEntity> milestonePage;
 
         if (myMilestonesOnly) {
-            Claims claims = UserContextHolder.get();
             Long orgId = projectRepository.findById(projectId)
                     .orElseThrow(() -> ProjectException.projectNotFoundException())
                     .getOrgEntity()
                     .getOrgId();
 
-            Long memberId = claims.getOrgAuthorityList().stream()
-                    .filter(auth -> auth.getOrgId().equals(orgId))
-                    .map(auth -> auth.getMemberId())
-                    .findFirst()
-                    .orElseThrow(() -> MemberException.memberAccessDeniedException());
+            Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+            if (memberId == null) {
+                throw MemberException.memberAccessDeniedException();
+            }
 
             milestonePage = milestoneRepository.findByProjectEntity_ProjectIdWithAssignedIssues(projectId, memberId,
                     pageable);

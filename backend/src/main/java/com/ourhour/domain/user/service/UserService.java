@@ -8,8 +8,6 @@ import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.user.entity.UserGitHubMappingEntity;
 import com.ourhour.domain.user.repository.GitHubTokenRepository;
 import com.ourhour.domain.user.repository.UserGitHubMappingRepository;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.global.util.EncryptionUtil;
 import com.ourhour.domain.auth.repository.EmailVerificationRepository;
 import com.ourhour.domain.member.entity.MemberEntity;
@@ -23,6 +21,7 @@ import com.ourhour.domain.user.dto.PwdVerifyReqDTO;
 import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.domain.user.util.PasswordChanger;
 import com.ourhour.domain.user.util.PasswordVerifier;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -172,12 +171,11 @@ public class UserService {
     // 깃허브 연동
     @Transactional
     public void connectGitHub(GitHubConnectReqDTO gitHubConnectReqDTO) {
-        Claims claims = UserContextHolder.get();
-        if (claims == null) {
+        // 현재 유저 확인
+        Long userId = SecurityUtil.getCurrentUserId();
+        if(userId == null) {
             throw AuthException.unauthorizedException();
         }
-
-        Long userId = claims.getUserId();
 
         // 1) 액세스 토큰 암호화 저장/업데이트
         String encrypted = encryptionUtil.encrypt(gitHubConnectReqDTO.getAccessToken());
@@ -266,12 +264,11 @@ public class UserService {
     // 깃허브 연동 해제
     @Transactional
     public void disconnectGitHub() {
-        Claims claims = UserContextHolder.get();
-        if (claims == null) {
+        // 인증 정보 확인
+        Long userId = SecurityUtil.getCurrentUserId();
+        if(userId == null) {
             throw AuthException.unauthorizedException();
         }
-
-        Long userId = claims.getUserId();
 
         gitHubTokenRepository.deleteById(userId);
 

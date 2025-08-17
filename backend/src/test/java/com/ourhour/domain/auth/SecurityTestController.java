@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ActiveProfiles("test")
 @RestController
 @RequestMapping("/api/test")
-public class AuthTestController {
+public class SecurityTestController {
 
     @GetMapping("/auth-check")
     public ResponseEntity<String> authCheck() {

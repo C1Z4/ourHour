@@ -17,7 +17,7 @@ import com.ourhour.domain.member.mapper.MemberOrgMapper;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.exception.OrgException;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -181,7 +181,7 @@ public class MemberService {
         return orgParticipantMemberRepository
                 .findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(
                         orgId,
-                        UserContextHolder.get().getUserId(),
+                        SecurityUtil.getCurrentUserId(),
                         Status.ACTIVE)
                 .orElseThrow(MemberException::memberNotFoundException);
     }

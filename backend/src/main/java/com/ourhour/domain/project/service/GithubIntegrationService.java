@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.ourhour.global.jwt.dto.CustomUserDetails;
+import com.ourhour.global.util.SecurityUtil;
 import org.kohsuke.github.GHIssue;
 import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHMilestone;
@@ -44,8 +46,6 @@ import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.project.exception.GithubException;
 import com.ourhour.domain.project.exception.ProjectException;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.global.util.EncryptionUtil;
 import com.ourhour.domain.project.github.GitHubClientFactory;
 import com.ourhour.domain.project.github.GitHubDtoMapper;
@@ -499,13 +499,13 @@ public class GithubIntegrationService {
             Long memberId,
             int currentPage, int size) {
         try {
-            Claims claims = UserContextHolder.get();
-            if (claims == null) {
+            CustomUserDetails currentUser = SecurityUtil.getCurrentUser();
+            if (currentUser == null) {
                 throw AuthException.unauthorizedException();
             }
 
             // 사용자의 GitHub 토큰 조회
-            GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(claims.getUserId())
+            GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(currentUser.getUserId())
                     .orElseThrow(() -> GithubException.githubTokenNotFoundException());
 
             GitHub gitHub = gitHubClientFactory.forEncryptedToken(tokenEntity.getGithubAccessToken());
@@ -531,13 +531,13 @@ public class GithubIntegrationService {
             int milestoneNumber,
             Long memberId, int currentPage, int size) {
         try {
-            Claims claims = UserContextHolder.get();
-            if (claims == null) {
+            CustomUserDetails currentUser = SecurityUtil.getCurrentUser();
+            if (currentUser == null) {
                 throw AuthException.unauthorizedException();
             }
 
             // 사용자의 GitHub 토큰 조회
-            GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(claims.getUserId())
+            GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(currentUser.getUserId())
                     .orElseThrow(() -> GithubException.githubTokenNotFoundException());
 
             GitHub gitHub = gitHubClientFactory.forEncryptedToken(tokenEntity.getGithubAccessToken());
@@ -560,13 +560,13 @@ public class GithubIntegrationService {
     public ApiResponse<PageResponse<CommentDTO>> getGitHubRepositoryIssueComments(String repositoryName,
             int issueNumber, Long memberId, int currentPage, int size) {
         try {
-            Claims claims = UserContextHolder.get();
-            if (claims == null) {
+            CustomUserDetails currentUser = SecurityUtil.getCurrentUser();
+            if (currentUser == null) {
                 throw AuthException.unauthorizedException();
             }
 
             // 사용자의 GitHub 토큰 조회
-            GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(claims.getUserId())
+            GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(currentUser.getUserId())
                     .orElseThrow(() -> GithubException.githubTokenNotFoundException());
 
             GitHub gitHub = gitHubClientFactory.forEncryptedToken(tokenEntity.getGithubAccessToken());

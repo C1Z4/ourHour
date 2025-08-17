@@ -46,7 +46,6 @@ public class AuthController {
     @PostMapping("/signup")
     @Operation(summary = "회원가입", description = "회원가입을 처리합니다.")
     public ResponseEntity<ApiResponse<Void>> signup(@Valid @RequestBody SignupReqDTO signupReqDTO) {
-
         authService.signup(signupReqDTO);
 
         ApiResponse<Void> response = ApiResponse.success(null, "회원가입이 완료되었습니다.");

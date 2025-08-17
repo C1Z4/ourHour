@@ -7,7 +7,7 @@ import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -86,7 +86,7 @@ public class OrgRoleGuardService {
         }
 
         // 삭제 요청자 확인 (삭제를 하고 있는 주체)
-        Long actingUserId = UserContextHolder.get().getUserId();
+        Long actingUserId = SecurityUtil.getCurrentUserId();
 
         // 해당 조직 내 삭제 요청자 확인
         MemberEntity actingMember = memberRepository

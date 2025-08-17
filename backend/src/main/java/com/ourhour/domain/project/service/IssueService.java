@@ -3,6 +3,8 @@ package com.ourhour.domain.project.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.ourhour.domain.board.exception.PostException;
+import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.project.dto.IssueTagDTO;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.domain.project.dto.IssueSummaryDTO;
@@ -10,6 +12,7 @@ import com.ourhour.domain.project.dto.IssueReqDTO;
 import com.ourhour.domain.project.dto.IssueStatusReqDTO;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
+import com.ourhour.global.util.SecurityUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,8 +36,6 @@ import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.domain.project.exception.MilestoneException;
 import com.ourhour.domain.project.exception.IssueException;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.domain.project.annotation.GitHubSync;
 
 import lombok.RequiredArgsConstructor;
@@ -70,14 +71,11 @@ public class IssueService {
                 .getOrgEntity()
                 .getOrgId();
 
-        Claims claims = UserContextHolder.get();
-
         if (myIssuesOnly) {
-            Long memberId = claims.getOrgAuthorityList().stream()
-                    .filter(auth -> auth.getOrgId().equals(orgId))
-                    .map(auth -> auth.getMemberId())
-                    .findFirst()
-                    .orElseThrow(() -> MemberException.memberAccessDeniedException());
+            Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+            if (memberId == null) {
+                throw MemberException.memberAccessDeniedException();
+            }
 
             Page<IssueEntity> issuePage;
 
@@ -185,7 +183,7 @@ public class IssueService {
     // 이슈 수정
     @GitHubSync(operation = SyncOperation.UPDATE)
     @Transactional
-    public ApiResponse<IssueDetailDTO> updateIssue(Long issueId, IssueReqDTO issueReqDTO, Claims claims) {
+    public ApiResponse<IssueDetailDTO> updateIssue(Long issueId, IssueReqDTO issueReqDTO) {
         if (issueId <= 0) {
             throw IssueException.issueNotFoundException();
         }
@@ -196,18 +194,14 @@ public class IssueService {
         Long orgId = issueEntity.getProjectEntity().getOrgEntity().getOrgId();
         Long projectId = issueEntity.getProjectEntity().getProjectId();
 
-        Long memberId = claims.getOrgAuthorityList().stream()
-                .filter(auth -> auth.getOrgId().equals(orgId))
-                .map(auth -> auth.getMemberId())
-                .findFirst()
-                .orElseThrow(() -> MemberException.memberAccessDeniedException());
-
+        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (memberId == null) {
+            throw MemberException.memberAccessDeniedException();
+        }
         boolean isParticipant = projectParticipantService.isProjectParticipant(projectId, memberId);
 
-        boolean isAdminOrRootAdmin = claims.getOrgAuthorityList().stream()
-                .filter(auth -> auth.getOrgId().equals(orgId))
-                .anyMatch(auth -> auth.getRole().equals(Role.ADMIN) || auth.getRole().equals(Role.ROOT_ADMIN));
-
+        Role role = SecurityUtil.getCurrentRoleByOrgId(orgId);
+        boolean isAdminOrRootAdmin = role != null && (role.equals(Role.ADMIN) || role.equals(Role.ROOT_ADMIN));
         if (!(isParticipant || isAdminOrRootAdmin)) {
             throw ProjectException.projectParticipantOrAdminOrRootAdminException();
         }
@@ -269,7 +263,7 @@ public class IssueService {
     // 이슈 삭제
     @GitHubSync(operation = SyncOperation.DELETE, entityParam = "issueId")
     @Transactional
-    public ApiResponse<Void> deleteIssue(Long issueId, Claims claims) {
+    public ApiResponse<Void> deleteIssue(Long issueId) {
         if (issueId <= 0) {
             throw IssueException.issueNotFoundException();
         }
@@ -280,18 +274,14 @@ public class IssueService {
         Long orgId = issueEntity.getProjectEntity().getOrgEntity().getOrgId();
         Long projectId = issueEntity.getProjectEntity().getProjectId();
 
-        Long memberId = claims.getOrgAuthorityList().stream()
-                .filter(auth -> auth.getOrgId().equals(orgId))
-                .map(auth -> auth.getMemberId())
-                .findFirst()
-                .orElseThrow(() -> MemberException.memberAccessDeniedException());
-
+        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (memberId == null) {
+            throw MemberException.memberAccessDeniedException();
+        }
         boolean isParticipant = projectParticipantService.isProjectParticipant(projectId, memberId);
 
-        boolean isAdminOrRootAdmin = claims.getOrgAuthorityList().stream()
-                .filter(auth -> auth.getOrgId().equals(orgId))
-                .anyMatch(auth -> auth.getRole().equals(Role.ADMIN) || auth.getRole().equals(Role.ROOT_ADMIN));
-
+        Role role = SecurityUtil.getCurrentRoleByOrgId(orgId);
+        boolean isAdminOrRootAdmin = role != null && (role.equals(Role.ADMIN) || role.equals(Role.ROOT_ADMIN));
         if (!(isParticipant || isAdminOrRootAdmin)) {
             throw ProjectException.projectParticipantOrAdminOrRootAdminException();
         }

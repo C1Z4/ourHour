@@ -7,8 +7,7 @@ import com.ourhour.domain.org.enums.Role;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,22 +31,17 @@ public class ChatRestController {
 
     private final ChatService chatService;
 
-    private Long getMemberIdForOrg(Claims claims, Long orgId) {
-        return claims.getOrgAuthorityList().stream()
-                .filter(auth -> auth.getOrgId().equals(orgId))
-                .map(auth -> auth.getMemberId())
-                .findFirst()
-                .orElseThrow(() -> MemberException.memberAccessDeniedException());
-    }
-
     @OrgAuth(accessLevel = Role.MEMBER)
     @GetMapping
     @Operation(summary = "채팅방 목록 조회", description = "조직 내 채팅방 목록을 조회합니다.")
     public ResponseEntity<ApiResponse<List<ChatRoomListResDTO>>> getAllChatRooms(
             @OrgId @PathVariable Long orgId) {
 
-        Claims claims = UserContextHolder.get();
-        Long memberId = getMemberIdForOrg(claims, orgId);
+        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (memberId == null) {
+            throw MemberException.memberAccessDeniedException();
+        }
+
         List<ChatRoomListResDTO> chatRooms = chatService.findAllChatRooms(orgId, memberId);
 
         return ResponseEntity.ok(ApiResponse.success(chatRooms, "채팅방 목록 조회에 성공했습니다."));

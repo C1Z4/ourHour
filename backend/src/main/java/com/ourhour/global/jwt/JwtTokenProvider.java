@@ -1,13 +1,19 @@
 package com.ourhour.global.jwt;
 
 import com.ourhour.global.jwt.dto.Claims;
+import com.ourhour.global.jwt.dto.CustomUserDetails;
 import com.ourhour.global.jwt.mapper.JwtClaimMapper;
 import com.ourhour.global.jwt.mapper.OrgAuthorityMapper;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -20,10 +26,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    // JWT 서명에 사용할 signature
-    private final SecretKey secretKey;
+
+    private final SecretKey secretKey; // JWT 서명에 사용할 signature
     private final OrgAuthorityMapper orgAuthorityMapper;
     private final JwtClaimMapper jwtClaimMapper;
 
@@ -35,19 +42,6 @@ public class JwtTokenProvider {
     @Value("${jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenValidityInSeconds;
 
-
-    public JwtTokenProvider(@Value("${jwt.secret}") String secret, OrgAuthorityMapper orgAuthorityMapper, JwtClaimMapper jwtClaimMapper) {
-
-        // Base64로 인코딩된 문자열 -> 바이트 배열로 디코딩
-        byte[] keyBytes = Base64.getDecoder().decode(secret);
-
-        // 디코딩된 바이트 배열 -> SecretKey 객체를 생성(HMAC SHA 알고리즘 사용)
-        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
-        this.orgAuthorityMapper = orgAuthorityMapper;
-        this.jwtClaimMapper = jwtClaimMapper;
-
-    }
-
     // Access Token 생성
     public String generateAccessToken(Claims claims) {
         Date now = new Date();
@@ -55,8 +49,8 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(String.valueOf(claims.getUserId()))
-                .claim("email", claims.getEmail())
                 .claim("userId", claims.getUserId())
+                .claim("email", claims.getEmail())
                 .claim("orgAuthorityList",
                      claims.getOrgAuthorityList()
                           .stream().map(
@@ -67,9 +61,9 @@ public class JwtTokenProvider {
                               )
                           ).collect(Collectors.toList())
                 )
-                .setIssuedAt(now)
-                .setExpiration(expiry)
-                .signWith(secretKey, SignatureAlgorithm.HS512) // 64바이트 알고리즘
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(secretKey, Jwts.SIG.HS512) // 64바이트 알고리즘
                 .compact();
     }
 
@@ -80,9 +74,9 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(String.valueOf(claims.getUserId()))
-                .setIssuedAt(now)
-                .setExpiration(expiry)
-                .signWith(secretKey, SignatureAlgorithm.HS512)
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(secretKey, Jwts.SIG.HS512)
                 .compact();
     }
 
@@ -130,17 +124,43 @@ public class JwtTokenProvider {
 
     // 토큰 유효성 검사
     public boolean validateToken(String token) {
-
         if (token == null || token.isBlank()) return false;
 
         try {
             jwtClaimMapper.getJwtClaims(secretKey, token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            System.err.println("Invalid JWT : " + e.getMessage());
             return false;
         }
+    }
 
+    // JWT → Claims → CustomUserDetails → Authentication 변환
+    public Authentication getAuthenticationFromToken(String token) {
+        // JWT(Access Token) -> Claims 추출
+        Claims claims = parseAccessToken(token);
+
+        // 인가를 위한 Role enum -> string -> GrantedAuthority 변환
+        List<SimpleGrantedAuthority> authorities = claims.getOrgAuthorityList().stream()
+                .map(auth -> new SimpleGrantedAuthority("ROLE_" + auth.getRole().name()))
+                .toList();
+
+        // Claims -> CustomUserDetails 객체 생성
+        CustomUserDetails userDetails = new CustomUserDetails(
+                claims.getUserId(),
+                claims.getEmail(),
+                null,
+                claims.getOrgAuthorityList(),
+                authorities
+        );
+
+        // Security Context에 등록할 CustomUserDetails -> Authentication 객체 생성
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+
+        return authentication;
     }
 
 }

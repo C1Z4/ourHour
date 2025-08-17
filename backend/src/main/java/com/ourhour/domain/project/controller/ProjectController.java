@@ -42,9 +42,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.ourhour.global.jwt.util.UserContextHolder;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.domain.auth.exception.AuthException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -222,12 +219,7 @@ public class ProjectController {
         public ResponseEntity<ApiResponse<Void>> deleteMilestone(
                         @PathVariable Long milestoneId) {
 
-                Claims claims = UserContextHolder.get();
-                if (claims == null) {
-                        throw AuthException.unauthorizedException();
-                }
-
-                ApiResponse<Void> response = milestoneService.deleteMilestone(milestoneId, claims);
+                ApiResponse<Void> response = milestoneService.deleteMilestone(milestoneId);
                 return ResponseEntity.ok(response);
         }
 
@@ -264,12 +256,7 @@ public class ProjectController {
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId,
                         @Valid @RequestBody IssueReqDTO issueReqDTO) {
 
-                Claims claims = UserContextHolder.get();
-                if (claims == null) {
-                        throw AuthException.unauthorizedException();
-                }
-
-                ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO, claims);
+                ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO);
 
                 return ResponseEntity.ok(response);
         }
@@ -294,12 +281,7 @@ public class ProjectController {
         public ResponseEntity<ApiResponse<Void>> deleteIssue(
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId) {
 
-                Claims claims = UserContextHolder.get();
-                if (claims == null) {
-                        throw AuthException.unauthorizedException();
-                }
-
-                ApiResponse<Void> response = issueService.deleteIssue(issueId, claims);
+                ApiResponse<Void> response = issueService.deleteIssue(issueId);
 
                 return ResponseEntity.ok(response);
         }

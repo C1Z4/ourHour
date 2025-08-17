@@ -15,7 +15,7 @@ import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.domain.user.service.AnonymizeUserService;
 import com.ourhour.global.common.dto.PageResponse;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -225,7 +225,7 @@ public class OrgMemberService {
     public void exitOrg(Long orgId) {
 
         // 현재 사용자 ID
-        Long userId = UserContextHolder.get().getUserId();
+        Long userId = SecurityUtil.getCurrentUserId();
 
         // 해당 회사에 속한 멤버 엔티티 찾기
         OrgParticipantMemberEntity opm = orgParticipantMemberRepository
