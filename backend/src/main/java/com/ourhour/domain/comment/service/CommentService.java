@@ -30,8 +30,10 @@ import com.ourhour.domain.board.exception.PostException;
 import com.ourhour.domain.project.exception.IssueException;
 import com.ourhour.domain.project.annotation.GitHubSync;
 import com.ourhour.domain.project.sync.GitHubSyncManager;
-import com.ourhour.global.exception.BusinessException;
-import com.ourhour.global.exception.ErrorCode;
+import com.ourhour.domain.org.enums.Role;
+import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
+import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
+import com.ourhour.domain.org.enums.Status;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,19 +41,29 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CommentService {
 
-    private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
+
+    private final CommentRepository commentRepository;
     private final MemberRepository memberRepository;
     private final PostRepository postRepository;
     private final IssueRepository issueRepository;
+    private final OrgParticipantMemberRepository orgParticipantMemberRepository;
+
     private final GitHubSyncManager gitHubSyncManager;
+
     private final CommentLikeService commentLikeService;
 
     // 댓글 목록 조회
     @Cacheable(value = "comments", key = "#postId + '_' + #issueId + '_' + #currentPage + '_' + #size + '_' + #currentMemberId")
     public CommentPageResDTO getComments(Long postId, Long issueId, int currentPage, int size, Long currentMemberId) {
 
-        validateParameters(postId, issueId);
+        if (postId == null && issueId == null) {
+            throw CommentException.commentTargetRequiredException();
+        }
+
+        if (postId != null && issueId != null) {
+            throw CommentException.commentTargetConflictException();
+        }
 
         // 최상위 댓글만 페이징
         Page<CommentEntity> parentCommentPage = getParentComments(postId, issueId, currentPage, size);
@@ -83,25 +95,6 @@ public class CommentService {
         return result;
     }
 
-    // 유효성 검사
-    private void validateParameters(Long postId, Long issueId) {
-        if (postId != null && postId < 0) {
-            throw BusinessException.of(ErrorCode.INVALID_REQUEST, "postId는 0 이상이어야 합니다.");
-        }
-
-        if (issueId != null && issueId < 0) {
-            throw BusinessException.of(ErrorCode.INVALID_REQUEST, "issueId는 0 이상이어야 합니다.");
-        }
-
-        if (postId == null && issueId == null) {
-            throw CommentException.commentTargetRequiredException();
-        }
-
-        if (postId != null && issueId != null) {
-            throw CommentException.commentTargetConflictException();
-        }
-    }
-
     // 최상위 댓글만 페이징
     private Page<CommentEntity> getParentComments(Long postId, Long issueId, int currentPage, int size) {
         if (postId != null) {
@@ -127,7 +120,22 @@ public class CommentService {
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void createComment(CommentCreateReqDTO commentCreateReqDTO, Long currentMemberId) {
-        validateCreateCommentRequest(commentCreateReqDTO);
+
+        if (commentCreateReqDTO.getPostId() == null && commentCreateReqDTO.getIssueId() == null) {
+            throw CommentException.commentTargetRequiredException();
+        }
+
+        if (commentCreateReqDTO.getPostId() != null && commentCreateReqDTO.getIssueId() != null) {
+            throw CommentException.commentTargetConflictException();
+        }
+
+        if (commentCreateReqDTO.getContent() == null || commentCreateReqDTO.getContent().trim().isEmpty()) {
+            throw CommentException.commentContentRequiredException();
+        }
+
+        if (commentCreateReqDTO.getContent().length() > 1000) {
+            throw CommentException.commentContentTooLongException();
+        }
 
         PostEntity postEntity = null;
         IssueEntity issueEntity = null;
@@ -169,34 +177,28 @@ public class CommentService {
 
     }
 
-    // 댓글 생성 요청 검증
-    private void validateCreateCommentRequest(CommentCreateReqDTO request) {
-        if (request.getPostId() == null && request.getIssueId() == null) {
-            throw CommentException.commentTargetRequiredException();
-        }
-
-        if (request.getPostId() != null && request.getIssueId() != null) {
-            throw CommentException.commentTargetConflictException();
-        }
-
-        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
-            throw CommentException.commentContentRequiredException();
-        }
-
-        if (request.getContent().length() > 1000) {
-            throw CommentException.commentContentTooLongException();
-        }
-    }
-
     // 댓글 수정
     @GitHubSync(operation = SyncOperation.UPDATE)
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void updateComment(Long commentId, CommentUpdateReqDTO commentUpdateReqDTO, Long currentMemberId) {
-        validateUpdateCommentRequest(commentId, commentUpdateReqDTO);
 
+        // 댓글 수정
         CommentEntity commentEntity = commentRepository.findById(commentId)
                 .orElseThrow(() -> CommentException.commentNotFoundException());
+
+        // 본인이 작성한 댓글인지 확인
+        if (!commentEntity.getAuthorEntity().getMemberId().equals(currentMemberId)) {
+            throw CommentException.commentAuthorRequiredException();
+        }
+
+        if (commentUpdateReqDTO.getContent() == null || commentUpdateReqDTO.getContent().trim().isEmpty()) {
+            throw CommentException.commentContentRequiredException();
+        }
+
+        if (commentUpdateReqDTO.getContent().length() > 1000) {
+            throw CommentException.commentContentTooLongException();
+        }
 
         commentMapper.updateCommentEntity(commentEntity, commentUpdateReqDTO);
 
@@ -207,25 +209,17 @@ public class CommentService {
         }
     }
 
-    // 댓글 수정 요청 검증
-    private void validateUpdateCommentRequest(Long commentId, CommentUpdateReqDTO request) {
-
-        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
-            throw CommentException.commentContentRequiredException();
-        }
-
-    }
-
     // 댓글 삭제
     @GitHubSync(operation = SyncOperation.DELETE)
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
-    public void deleteComment(Long commentId, Long currentMemberId) {
+    public void deleteComment(Long orgId, Long commentId, Long currentMemberId) {
 
         CommentEntity commentEntity = commentRepository.findById(commentId)
                 .orElseThrow(() -> CommentException.commentNotFoundException());
 
-        if (!commentEntity.getAuthorEntity().getMemberId().equals(currentMemberId)) {
+        // 본인이 작성한 댓글이거나, 관리자 이상의 권한을 갖고 있는 경우
+        if (!canDeleteComment(orgId, commentEntity, currentMemberId)) {
             throw CommentException.commentAuthorRequiredException();
         }
 
@@ -234,5 +228,18 @@ public class CommentService {
         }
 
         commentRepository.delete(commentEntity);
+    }
+
+    private boolean canDeleteComment(Long orgId, CommentEntity commentEntity, Long currentMemberId) {
+        // 본인이 작성한 댓글인 경우
+        if (commentEntity.getAuthorEntity().getMemberId().equals(currentMemberId)) {
+            return true;
+        }
+
+        // 현재 사용자의 해당 조직에서의 권한 확인
+        return orgParticipantMemberRepository
+                .findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, currentMemberId, Status.ACTIVE)
+                .map(opm -> opm.getRole().equals(Role.ADMIN) || opm.getRole().equals(Role.ROOT_ADMIN))
+                .orElse(false);
     }
 }
