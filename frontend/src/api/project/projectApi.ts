@@ -11,6 +11,7 @@ import { logError } from '@/utils/auth/errorUtils';
 interface GetProjectSummaryListRequest {
   orgId: number;
   participantLimit?: number;
+  myProjectsOnly?: boolean;
   currentPage?: number;
   size?: number;
 }
@@ -28,9 +29,20 @@ export const getProjectSummaryList = async (
   request: GetProjectSummaryListRequest,
 ): Promise<ApiResponse<PageResponse<ProjectSummary[]>>> => {
   try {
-    const response = await axiosInstance.get(
-      `/api/projects/${request.orgId}?participantLimit=${request.participantLimit}&currentPage=${request.currentPage}&size=${request.size}`,
-    );
+    const params = new URLSearchParams();
+    if (request.participantLimit) {
+      params.append('participantLimit', request.participantLimit.toString());
+    }
+    if (request.myProjectsOnly) {
+      params.append('myProjectsOnly', request.myProjectsOnly.toString());
+    }
+    if (request.currentPage) {
+      params.append('currentPage', request.currentPage.toString());
+    }
+    if (request.size) {
+      params.append('size', request.size.toString());
+    }
+    const response = await axiosInstance.get(`/api/projects/${request.orgId}?${params.toString()}`);
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);
