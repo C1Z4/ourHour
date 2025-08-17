@@ -1,6 +1,5 @@
 package com.ourhour.domain.board.service;
 
-import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.board.dto.PostCreateUpdateReqDTO;
 import com.ourhour.domain.board.dto.PostDTO;
 import com.ourhour.domain.board.entity.BoardEntity;
@@ -16,8 +15,7 @@ import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
 import com.ourhour.global.common.dto.PageResponse;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -73,11 +71,10 @@ public class PostService {
     @Transactional
     public PostDTO createPost(Long orgId, Long boardId, PostCreateUpdateReqDTO request) {
 
-        Long currentMemberId = UserContextHolder.get().getOrgAuthorityList().stream()
-                .filter(auth -> auth.getOrgId().equals(orgId))
-                .map(auth -> auth.getMemberId())
-                .findFirst()
-                .orElseThrow(() -> PostException.postAuthorNotFoundException());
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (currentMemberId == null) {
+            throw PostException.postAuthorNotFoundException();
+        }
 
         MemberEntity author = memberRepository.findById(currentMemberId)
                 .orElseThrow(() -> PostException.postAuthorNotFoundException());
@@ -100,7 +97,10 @@ public class PostService {
     @Transactional
     public void updatePost(Long orgId, Long boardId, Long postId, PostCreateUpdateReqDTO request) {
 
-        Long currentMemberId = getCurrentMemberId(orgId);
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (currentMemberId == null) {
+            throw PostException.postAuthorNotFoundException();
+        }
 
         PostEntity postToUpdate = postRepository.findById(postId)
                 .orElseThrow(() -> PostException.postNotFoundException());
@@ -120,7 +120,10 @@ public class PostService {
     @Transactional
     public void deletePost(Long orgId, Long boardId, Long postId) {
 
-        Long currentMemberId = getCurrentMemberId(orgId);
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (currentMemberId == null) {
+            throw PostException.postAuthorNotFoundException();
+        }
 
         PostEntity postToDelete = postRepository.findById(postId)
                 .orElseThrow(() -> PostException.postNotFoundException());
@@ -150,16 +153,4 @@ public class PostService {
                 .orElse(false);
     }
 
-    private Long getCurrentMemberId(Long orgId) {
-        Claims claims = UserContextHolder.get();
-        if (claims == null) {
-            throw AuthException.unauthorizedException();
-        }
-
-        return claims.getOrgAuthorityList().stream()
-                .filter(auth -> auth.getOrgId().equals(orgId))
-                .map(auth -> auth.getMemberId())
-                .findFirst()
-                .orElseThrow(() -> PostException.postAuthorNotFoundException());
-    }
 }

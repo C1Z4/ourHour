@@ -2,6 +2,7 @@ package com.ourhour.domain.org.controller;
 
 import java.util.List;
 
+import com.ourhour.global.util.SecurityUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,14 +14,10 @@ import com.ourhour.domain.org.service.OrgService;
 import com.ourhour.domain.org.service.PositionService;
 import com.ourhour.domain.project.dto.ProjectNameResDTO;
 import com.ourhour.global.common.dto.ApiResponse;
-import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.member.dto.MemberInfoResDTO;
 import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.dto.OrgAuthority;
-import com.ourhour.global.jwt.util.UserContextHolder;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -84,16 +81,10 @@ public class OrgController {
     @Operation(summary = "내 프로젝트 목록 조회", description = "조직 내 본인이 참여 중인 프로젝트 이름 목록을 조회합니다.")
     public ResponseEntity<ApiResponse<List<ProjectNameResDTO>>> getMyProjects(@OrgId @PathVariable Long orgId) {
 
-        Claims claims = UserContextHolder.get();
-        if (claims == null) {
-            throw AuthException.unauthorizedException();
+        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (memberId == null) {
+            MemberException.memberAccessDeniedException();
         }
-
-        Long memberId = claims.getOrgAuthorityList().stream()
-                .filter(authority -> authority.getOrgId().equals(orgId))
-                .map(OrgAuthority::getMemberId)
-                .findFirst()
-                .orElseThrow(() -> MemberException.memberAccessDeniedException());
 
         List<ProjectNameResDTO> response = orgService.getMyProjects(memberId, orgId);
 

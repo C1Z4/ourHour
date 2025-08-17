@@ -28,8 +28,8 @@ import com.ourhour.domain.user.repository.UserRepository;
 import com.ourhour.domain.user.service.AnonymizeUserService;
 
 import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.global.common.service.ImageService;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -55,8 +55,7 @@ public class OrgService {
     public OrgResDTO registerOrg(OrgReqDTO orgReqDTO) {
 
         // 해당 회사를 등록한 유저 정보 가져오기
-        Claims claims = UserContextHolder.get();
-        Long userId = claims.getUserId();
+        Long userId = SecurityUtil.getCurrentUserId();
 
         // 회사를 등록한 사용자 조회
         UserEntity userEntity = userRepository.findByUserIdAndIsDeletedFalse(userId)

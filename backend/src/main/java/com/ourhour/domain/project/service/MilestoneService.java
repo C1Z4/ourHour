@@ -1,5 +1,6 @@
 package com.ourhour.domain.project.service;
 
+import com.ourhour.global.util.SecurityUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +16,6 @@ import com.ourhour.domain.project.repository.ProjectRepository;
 import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.domain.project.exception.MilestoneException;
 import com.ourhour.global.common.dto.ApiResponse;
-import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.domain.project.annotation.GitHubSync;
 
 import lombok.RequiredArgsConstructor;
@@ -79,7 +79,7 @@ public class MilestoneService {
     // 마일스톤 삭제
     @GitHubSync(operation = SyncOperation.DELETE, entityParam = "milestoneId")
     @Transactional
-    public ApiResponse<Void> deleteMilestone(Long milestoneId, Claims claims) {
+    public ApiResponse<Void> deleteMilestone(Long milestoneId) {
         if (milestoneId <= 0) {
             throw MilestoneException.milestoneNotFoundException();
         }
@@ -90,19 +90,15 @@ public class MilestoneService {
         Long orgId = milestoneEntity.getProjectEntity().getOrgEntity().getOrgId();
 
         // 권한 검사: 해당 회사의 멤버인지 확인
-        boolean isOrgMember = claims.getOrgAuthorityList().stream()
-                .anyMatch(orgAuthority -> orgAuthority.getOrgId().equals(orgId));
-
-        if (!isOrgMember) {
+        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (memberId == null) {
             throw MemberException.memberAccessDeniedException();
         }
 
         // 권한 검사: 프로젝트 참여자이거나 ADMIN 이상 권한이 있는지 확인
-        boolean hasPermission = claims.getOrgAuthorityList().stream()
-                .anyMatch(orgAuthority -> orgAuthority.getOrgId().equals(orgId) &&
-                        (orgAuthority.getRole().equals(Role.ADMIN) || orgAuthority.getRole().equals(Role.ROOT_ADMIN)));
-
-        if (!hasPermission) {
+        Role role = SecurityUtil.getCurrentRoleByOrgId(orgId);
+        boolean isAdminOrRootAdmin = role != null && (role.equals(Role.ADMIN) || role.equals(Role.ROOT_ADMIN));
+        if (!isAdminOrRootAdmin) {
             throw ProjectException.projectParticipantOrAdminOrRootAdminException();
         }
 

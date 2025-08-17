@@ -25,7 +25,7 @@ import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.domain.user.repository.UserRepository;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -77,7 +77,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
     @Transactional
     public void sendInvLink(Long orgId, List<OrgInvReqDTO> orgInvReqDTOList) {
 
-        Long userId = UserContextHolder.get().getUserId();
+        Long userId = SecurityUtil.getCurrentUserId();
 
         // 해당 유저의 이메일 확인
         String currentUserEmail = userRepository.findByUserIdAndIsDeletedFalse(userId).get().getEmail();
@@ -203,7 +203,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
         String invitedEmail = orgInvEntity.getEmail();
 
         // 현재 로그인 유저 확인
-        Long userId = UserContextHolder.get().getUserId();
+        Long userId = SecurityUtil.getCurrentUserId();
         UserEntity userEntity = userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(AuthException::userNotFoundException);
 

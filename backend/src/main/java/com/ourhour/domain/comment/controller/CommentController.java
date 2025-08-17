@@ -1,5 +1,6 @@
 package com.ourhour.domain.comment.controller;
 
+import com.ourhour.global.util.SecurityUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,9 +18,7 @@ import com.ourhour.domain.comment.dto.CommentUpdateReqDTO;
 import com.ourhour.domain.comment.service.CommentService;
 import com.ourhour.domain.comment.service.CommentLikeService;
 import com.ourhour.global.common.dto.ApiResponse;
-import com.ourhour.global.jwt.util.UserContextHolder;
 import com.ourhour.global.jwt.annotation.OrgAuth;
-import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.org.enums.Role;
 
@@ -53,13 +52,11 @@ public class CommentController {
                         @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
-                // 현재 사용자 정보 가져오기
-                Claims claims = UserContextHolder.get();
-                Long currentMemberId = claims.getOrgAuthorityList().stream()
-                                .filter(org -> org.getOrgId().equals(orgId))
-                                .findFirst()
-                                .orElseThrow(() -> OrgException.orgNotFoundException())
-                                .getMemberId();
+        // 현재 사용자 정보 가져오기
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (currentMemberId == null) {
+            throw OrgException.orgNotFoundException();
+        }
 
                 CommentPageResDTO response = commentService.getComments(postId, issueId, currentPage, size,
                                 currentMemberId);
@@ -76,13 +73,11 @@ public class CommentController {
                         @PathVariable Long orgId,
                         @Valid @RequestBody CommentCreateReqDTO commentCreateReqDTO) {
 
-                // 현재 사용자 정보 가져오기
-                Claims claims = UserContextHolder.get();
-                Long currentMemberId = claims.getOrgAuthorityList().stream()
-                                .filter(org -> org.getOrgId().equals(orgId))
-                                .findFirst()
-                                .orElseThrow(() -> OrgException.orgNotFoundException())
-                                .getMemberId();
+        // 현재 사용자 정보 가져오기
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (currentMemberId == null) {
+            throw OrgException.orgNotFoundException();
+        }
 
                 commentService.createComment(commentCreateReqDTO, currentMemberId);
 
@@ -99,13 +94,11 @@ public class CommentController {
                         @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId,
                         @Valid @RequestBody CommentUpdateReqDTO commentUpdateReqDTO) {
 
-                // 현재 사용자 정보 가져오기
-                Claims claims = UserContextHolder.get();
-                Long currentMemberId = claims.getOrgAuthorityList().stream()
-                                .filter(org -> org.getOrgId().equals(orgId))
-                                .findFirst()
-                                .orElseThrow(() -> OrgException.orgNotFoundException())
-                                .getMemberId();
+        // 현재 사용자 정보 가져오기
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (currentMemberId == null) {
+            throw OrgException.orgNotFoundException();
+        }
 
                 commentService.updateComment(commentId, commentUpdateReqDTO, currentMemberId);
 
@@ -121,15 +114,12 @@ public class CommentController {
                         @PathVariable Long orgId,
                         @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
 
-                // 현재 사용자 정보 가져오기
-                Claims claims = UserContextHolder.get();
-                Long currentMemberId = claims.getOrgAuthorityList().stream()
-                                .filter(org -> org.getOrgId().equals(orgId))
-                                .findFirst()
-                                .orElseThrow(() -> OrgException.orgNotFoundException())
-                                .getMemberId();
-
-                commentService.deleteComment(orgId, commentId, currentMemberId);
+        // 현재 사용자 정보 가져오기
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (currentMemberId == null) {
+            throw OrgException.orgNotFoundException();
+        }
+        commentService.deleteComment(orgId,commentId, currentMemberId);
 
                 return ResponseEntity.ok(ApiResponse.success(null, "댓글 삭제에 성공했습니다."));
         }
@@ -143,13 +133,11 @@ public class CommentController {
                         @PathVariable Long orgId,
                         @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
 
-                // 현재 사용자 정보 가져오기
-                Claims claims = UserContextHolder.get();
-                Long currentMemberId = claims.getOrgAuthorityList().stream()
-                                .filter(org -> org.getOrgId().equals(orgId))
-                                .findFirst()
-                                .orElseThrow(() -> OrgException.orgNotFoundException())
-                                .getMemberId();
+        // 현재 사용자 정보 가져오기
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (currentMemberId == null) {
+            throw OrgException.orgNotFoundException();
+        }
 
                 commentLikeService.likeComment(commentId, currentMemberId);
 
@@ -165,13 +153,12 @@ public class CommentController {
                         @PathVariable Long orgId,
                         @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
 
-                // 현재 사용자 정보 가져오기
-                Claims claims = UserContextHolder.get();
-                Long currentMemberId = claims.getOrgAuthorityList().stream()
-                                .filter(org -> org.getOrgId().equals(orgId))
-                                .findFirst()
-                                .orElseThrow(() -> OrgException.orgNotFoundException())
-                                .getMemberId();
+        // 현재 사용자 정보 가져오기
+        // 현재 사용자 정보 가져오기
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (currentMemberId == null) {
+            throw OrgException.orgNotFoundException();
+        }
 
                 // 현재 사용자 권한 확인
                 commentLikeService.unlikeComment(commentId, currentMemberId);

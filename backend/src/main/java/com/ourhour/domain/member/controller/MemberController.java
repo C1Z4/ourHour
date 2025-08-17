@@ -13,10 +13,11 @@ import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
-import com.ourhour.global.jwt.util.UserContextHolder;
-import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.common.dto.PageResponse;
 
+import com.ourhour.global.jwt.dto.CustomUserDetails;
+import com.ourhour.global.jwt.dto.OrgAuthority;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -51,13 +52,13 @@ public class MemberController {
 
         Pageable pageable = PageRequest.of(currentPage - 1, size, Sort.by(Sort.Direction.ASC, "orgEntity.orgId"));
 
-        Claims claims = UserContextHolder.get();
-
-        if (claims == null) {
+        // 현재 인증된 사용자
+        CustomUserDetails userDetails = SecurityUtil.getCurrentUser();
+        if (userDetails == null) {
             throw AuthException.unauthorizedException();
         }
 
-        Long userId = claims.getUserId();
+        Long userId = userDetails.getUserId();
 
         PageResponse<MemberOrgSummaryResDTO> response = memberService.findOrgSummaryByUserId(userId, pageable);
 
@@ -71,18 +72,10 @@ public class MemberController {
     public ResponseEntity<ApiResponse<MemberOrgDetailResDTO>> findOrgDetailByMemberIdAndOrgId(
             @OrgId @PathVariable Long orgId) {
 
-        Claims claims = UserContextHolder.get();
-
-        if (claims == null) {
-            throw AuthException.unauthorizedException();
+        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (memberId == null) {
+            throw MemberException.memberAccessDeniedException();
         }
-
-        // 본인이 속하지 않은 회사 정보를 조회할 때
-        Long memberId = claims.getOrgAuthorityList().stream()
-                .filter(auth -> auth.getOrgId().equals(orgId))
-                .map(auth -> auth.getMemberId())
-                .findFirst()
-                .orElseThrow(() -> MemberException.memberAccessDeniedException());
 
         // 삭제된 회사나 없는 회사를 조회할 때
         OrgEntity orgEntity = orgRepository.findById(orgId)

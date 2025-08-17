@@ -33,7 +33,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("https://www.ourhour.cloud", "https://our-hour-test.vercel.app"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "https://www.ourhour.cloud", "https://our-hour-test.vercel.app"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("*"));
