@@ -15,21 +15,17 @@ import {
   useMilestoneDeleteMutation,
   useMilestoneUpdateMutation,
 } from '@/hooks/queries/project/useMilestoneMutations';
+import { useAppSelector } from '@/stores/hooks';
 
 interface MilestoneColumnProps {
   milestone: ProjectMilestone | { milestoneId: number | null; name: string };
   orgId: string;
   projectId: string;
-  isMyIssuesOnly?: boolean;
 }
 
-export const MilestoneColumn = ({
-  milestone,
-  orgId,
-  projectId,
-  isMyIssuesOnly = false,
-}: MilestoneColumnProps) => {
+export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumnProps) => {
   const router = useRouter();
+  const isMyIssuesOnly = useAppSelector((state) => state.projectName.isMyIssuesOnly);
 
   const { data: issueListData, refetch: refetchIssueList } = useProjectIssueListQuery(
     Number(orgId),
@@ -74,6 +70,7 @@ export const MilestoneColumn = ({
     router.navigate({
       to: '/org/$orgId/project/$projectId/issue/create',
       params: { orgId, projectId },
+      search: { milestoneId: milestone.milestoneId },
     });
   };
 

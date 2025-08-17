@@ -86,11 +86,9 @@ export const useLikeCommentMutation = (
   orgId: number,
   postId?: number | null,
   issueId?: number | null,
-  memberId?: number | null,
 ) =>
   useMutation({
-    mutationFn: (request: PostLikeCommentRequest) =>
-      postLikeComment(orgId, { ...request, memberId: memberId ?? 0 }),
+    mutationFn: (request: PostLikeCommentRequest) => postLikeComment(orgId, request),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [COMMENT_QUERY_KEYS.COMMENT_LIST, postId ?? null, issueId ?? null],
@@ -108,11 +106,9 @@ export const useUnlikeCommentMutation = (
   orgId: number,
   postId?: number | null,
   issueId?: number | null,
-  memberId?: number | null,
 ) =>
   useMutation({
-    mutationFn: (request: DeleteLikeCommentRequest) =>
-      deleteLikeComment(orgId, { ...request, memberId: memberId ?? 0 }),
+    mutationFn: (request: DeleteLikeCommentRequest) => deleteLikeComment(orgId, request),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [COMMENT_QUERY_KEYS.COMMENT_LIST, postId ?? null, issueId ?? null],

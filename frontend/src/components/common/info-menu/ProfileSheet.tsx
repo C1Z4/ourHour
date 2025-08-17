@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { useLocation, useRouter } from '@tanstack/react-router';
 import { Github, LogOut, Settings } from 'lucide-react';
@@ -13,7 +13,8 @@ import {
   useGithubDisconnectMutation,
   useGithubExchangeCodeMutation,
 } from '@/hooks/queries/user/useUserMutations';
-import { useAppSelector } from '@/stores/hooks';
+import { useAppDispatch, useAppSelector } from '@/stores/hooks';
+import { setCurrentOrgInfo } from '@/stores/orgSlice';
 import { getImageUrl } from '@/utils/file/imageUtils';
 import { showErrorToast } from '@/utils/toast';
 
@@ -30,9 +31,21 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
   const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID as string | undefined;
   const redirectUri = import.meta.env.VITE_GITHUB_REDIRECT_URI;
   const scope = import.meta.env.VITE_GITHUB_SCOPE;
+  const dispatch = useAppDispatch();
 
   const { data: myMemberInfoData } = useMyMemberInfoQuery(Number(orgId));
   const myMemberInfo = myMemberInfoData as unknown as MyMemberInfoDetail;
+
+  useEffect(() => {
+    if (myMemberInfo?.role && orgId) {
+      dispatch(
+        setCurrentOrgInfo({
+          orgId: Number(orgId),
+          role: myMemberInfo.role,
+        }),
+      );
+    }
+  }, [myMemberInfo?.role, orgId, dispatch]);
 
   const { mutate: logout } = useSignoutMutation();
   const { mutate: exchangeCode, isPending: isConnecting } = useGithubExchangeCodeMutation();

@@ -3,6 +3,7 @@ import { Info } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { handlePhoneInputChange } from '@/utils/phoneUtils';
 
 interface OrgBasicInfoProps {
   formData: {
@@ -93,7 +94,7 @@ export function OrgBasicInfo({ formData, onInputChange, isEditing }: OrgBasicInf
           id="phoneNumber"
           placeholder="전화번호를 입력하세요(ex: 010-1234-5678)"
           value={formData.phone}
-          onChange={(e) => onInputChange('phone', e.target.value)}
+          onChange={(e) => handlePhoneInputChange(e.target.value, onInputChange, 'phone')}
         />
       </div>
 
