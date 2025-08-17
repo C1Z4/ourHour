@@ -92,9 +92,6 @@ class CommentServiceTest {
                 issue = mock(IssueEntity.class);
                 comment = mock(CommentEntity.class);
 
-                given(member.getMemberId()).willReturn(1L);
-                given(comment.getAuthorEntity()).willReturn(member);
-
                 createReqDTO = new CommentCreateReqDTO();
                 updateReqDTO = new CommentUpdateReqDTO();
         }
@@ -289,6 +286,9 @@ class CommentServiceTest {
                 Long commentId = 1L;
                 Long currentMemberId = 1L;
                 updateReqDTO.setContent("테스트 댓글 수정");
+
+                given(member.getMemberId()).willReturn(1L);
+                given(comment.getAuthorEntity()).willReturn(member);
 
                 given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
                 given(commentRepository.save(any(CommentEntity.class))).willReturn(comment);
