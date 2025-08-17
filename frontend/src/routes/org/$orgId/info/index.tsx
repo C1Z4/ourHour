@@ -113,11 +113,18 @@ function OrgInfoPage() {
       { password },
       {
         onSuccess: () => {
-          deleteOrg();
-          setIsDeleteOrgModalOpen(false);
-          router.navigate({
-            to: '/start',
-            search: { page: 1 },
+          deleteOrg(undefined, {
+            onSuccess: () => {
+              setIsDeleteOrgModalOpen(false);
+              router.navigate({
+                to: '/start',
+                search: { page: 1 },
+              });
+            },
+            onError: () => {
+              setIsDeleteOrgModalOpen(false);
+              setPassword('');
+            },
           });
         },
         onError: () => {
