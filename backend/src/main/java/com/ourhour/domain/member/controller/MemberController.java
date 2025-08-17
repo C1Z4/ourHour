@@ -45,7 +45,7 @@ public class MemberController {
     // 본인이 속한 회사 목록 조회
     @GetMapping("/organizations")
     @Operation(summary = "내 조직 목록 조회", description = "현재 사용자 기준으로 참여 중인 조직 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<PageResponse<MemberOrgSummaryResDTO>>> findOrgListByMemberId(
+    public ResponseEntity<ApiResponse<PageResponse<MemberOrgSummaryResDTO>>> findOrgListByUserId(
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
@@ -57,15 +57,9 @@ public class MemberController {
             throw AuthException.unauthorizedException();
         }
 
-        List<Long> memberIds = claims.getOrgAuthorityList().stream()
-                .map(auth -> auth.getMemberId())
-                .collect(Collectors.toList());
+        Long userId = claims.getUserId();
 
-        if (memberIds.isEmpty()) {
-            throw MemberException.memberNotFoundException();
-        }
-
-        PageResponse<MemberOrgSummaryResDTO> response = memberService.findOrgSummaryByMemberIds(memberIds, pageable);
+        PageResponse<MemberOrgSummaryResDTO> response = memberService.findOrgSummaryByUserId(userId, pageable);
 
         return ResponseEntity.ok(ApiResponse.success(response, "현재 참여 중인 회사 목록 조회에 성공했습니다."));
     }

@@ -64,26 +64,17 @@ public class MemberService {
         return PageResponse.of(dtoPage);
     }
 
-    // 참여 중인 회사 목록 조회
-    public PageResponse<MemberOrgSummaryResDTO> findOrgSummaryByMemberIds(List<Long> memberIds, Pageable pageable) {
+    // 참여 중인 회사 목록 조회 (userId 기반)
+    public PageResponse<MemberOrgSummaryResDTO> findOrgSummaryByUserId(Long userId, Pageable pageable) {
 
         Page<OrgParticipantMemberEntity> orgParticipantMemberEntityPage = memberRepository
-                .findOrgListByMemberIdsAndStatus(memberIds, Status.ACTIVE, pageable);
+                .findOrgListByUserIdAndStatus(userId, Status.ACTIVE, pageable);
 
         if (orgParticipantMemberEntityPage.isEmpty()) {
             return PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize());
         }
 
-        // 활성 상태만 필터링
         List<MemberOrgSummaryResDTO> dtoList = orgParticipantMemberEntityPage.getContent().stream()
-                .filter(opm -> {
-                    try {
-                        findMyMemberInOrgHelper(opm.getOrgEntity().getOrgId());
-                        return true;
-                    } catch (Exception e) {
-                        throw OrgException.orgNotFoundException();
-                    }
-                })
                 .map(memberOrgMapper::toMemberOrgSummaryResDTO)
                 .toList();
 
