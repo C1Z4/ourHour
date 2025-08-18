@@ -132,10 +132,12 @@ public class ChatService {
                 .findParticipantToDelete(orgId, roomId, memberId)
                 .orElseThrow(ChatException::chatNotParticipantException);
 
+        chatParticipantRepository.delete(participantToDelete);
+
         if (chatParticipantRepository.countByChatRoomEntity_RoomId(roomId) == 0) {
+            chatMessageRepository.deleteAllByChatRoomEntity_RoomId(roomId);
             chatRoomRepository.deleteById(roomId);
         }
-        chatParticipantRepository.delete(participantToDelete);
     }
 
     @Transactional
