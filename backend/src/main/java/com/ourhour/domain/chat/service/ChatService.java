@@ -41,16 +41,6 @@ public class ChatService {
     private final OrgRepository orgRepository;
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
 
-    public List<ChatRoomListResDTO> findAllChatRooms(Long orgId, Long memberId) {
-
-        List<ChatParticipantEntity> participants = chatParticipantRepository.findChatRoomsByOrgAndMember(orgId,
-                memberId);
-
-        return participants.stream()
-                .map(chatMapper::toChatRoomListResDTO)
-                .collect(Collectors.toList());
-    }
-
     public Page<ChatRoomListResDTO> findAllChatRoomsOrderByLastMessage(Long orgId, Long memberId, Pageable pageable) {
 
         return chatParticipantRepository.findChatRoomsWithLastMessage(orgId, memberId, pageable);

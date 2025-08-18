@@ -14,13 +14,6 @@ import java.util.Optional;
 
 public interface ChatParticipantRepository extends JpaRepository<ChatParticipantEntity, ChatParticipantId> {
 
-    @Query("SELECT DISTINCT cp " +
-            "FROM ChatParticipantEntity cp " +
-            "JOIN FETCH cp.chatRoomEntity cr " +
-            "WHERE cr.orgEntity.orgId = :orgId " +
-            "AND cp.memberEntity.memberId = :memberId")
-    List<ChatParticipantEntity> findChatRoomsByOrgAndMember(@Param("orgId") Long orgId, @Param("memberId") Long memberId);
-
     @Query(value = "SELECT NEW com.ourhour.domain.chat.dto.ChatRoomListResDTO(" +
             "           cr.roomId, " +
             "           cr.name, " +
