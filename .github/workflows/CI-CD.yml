@@ -166,7 +166,7 @@ jobs:
             
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             
-            docker compose -f docker-compose.yml -f docker-compose.test.yml down || true
+            docker compose -f docker-compose.yml -f docker-compose.test.yml down -p ourhour-test || true
             
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
             
@@ -184,10 +184,8 @@ jobs:
             export MYSQL_PASSWORD=$(aws ssm get-parameter --name "/ourhour/test/db/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             
             export BACKEND_PORT=8081
-            
-            chmod +x ./backend/docker/mysql-init/02_grant_privileges.sh
-            
-            docker compose -f docker-compose.yml -f docker-compose.test.yml up -d
+                        
+            docker compose -f docker-compose.yml -f docker-compose.test.yml -p ourhour-test up -d
             
             docker image prune -f
   
@@ -219,7 +217,7 @@ jobs:
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
             # 기존 컨테이너 중지 및 제거
-            docker compose -f docker-compose.yml -f docker-compose.release.yml down || true
+            docker compose -f docker-compose.yml -f docker-compose.release.yml down -p ourhour-release || true
 
             # 최신 이미지 풀
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
@@ -237,10 +235,8 @@ jobs:
             export MYSQL_USER=$(aws ssm get-parameter --name "/ourhour/release/db/username" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             export MYSQL_PASSWORD=$(aws ssm get-parameter --name "/ourhour/release/db/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             
-            chmod +x ./backend/docker/mysql-init/02_grant_privileges.sh
-
             # 새 컨테이너 시작 (AWS Parameter Store에서 환경변수 자동 로드)
-            docker compose -f docker-compose.yml -f docker-compose.release.yml up -d
+            docker compose -f docker-compose.yml -f docker-compose.release.yml -p ourhour-release up -d
 
             # 불필요한 이미지 정리
             docker image prune -f
