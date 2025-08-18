@@ -28,7 +28,7 @@ services:
       retries: 10
     volumes:
       - ./backend/docker/mysql-init:/docker-entrypoint-initdb.d
-      - mysql-data:/var/lib/mysql
+      - test-mysql-data:/var/lib/mysql
 
   # prometheus
   prometheus:
@@ -91,4 +91,4 @@ services:
       - "--no-collect.slave_status"
 
 volumes:
-  mysql-data:
+  test-mysql-data:
