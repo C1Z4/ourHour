@@ -1,0 +1,14 @@
+# 웹 프레임워크
+fastapi
+
+# 실서비스용 웹 서버
+gunicorn
+uvicorn
+
+# Vector Store (Pinecone)
+pinecone-client
+sentence-transformers # 텍스트를 벡터로 변환하기 위해 여전히 필요
+
+# LLM 연동
+openai
+python-dotenv
