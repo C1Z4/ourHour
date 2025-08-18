@@ -99,9 +99,9 @@ public class ChatService {
         chatRoomRepository.deleteByOrgEntity_OrgIdAndRoomId(orgId, roomId);
     }
 
-    public List<ChatMessageResDTO> findAllMessages(Long orgId, Long roomId) {
+    public Page<ChatMessageResDTO> findAllMessages(Long orgId, Long roomId, Pageable pageable) {
 
-        return chatMessageRepository.findAllByOrgAndChatRoom(orgId, roomId);
+        return chatMessageRepository.findAllByOrgAndChatRoom(orgId, roomId, pageable);
     }
 
     public List<ChatParticipantResDTO> findAllParticipants(Long orgId, Long roomId) {

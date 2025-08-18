@@ -103,13 +103,15 @@ public class ChatRestController {
     @OrgAuth(accessLevel = Role.MEMBER)
     @GetMapping("/{roomId}/messages")
     @Operation(summary = "메시지 목록 조회", description = "특정 채팅방의 메시지 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<ChatMessageResDTO>>> getMessages(
+    public ResponseEntity<ApiResponse<PageResponse<ChatMessageResDTO>>> getMessages(
             @OrgId @PathVariable Long orgId,
-            @PathVariable Long roomId) {
+            @PathVariable Long roomId,
+            Pageable pageable) {
 
-        List<ChatMessageResDTO> chatMessages = chatService.findAllMessages(orgId, roomId);
+        Page<ChatMessageResDTO> chatMessages = chatService.findAllMessages(orgId, roomId, pageable);
+        System.out.println("Received Pageable: " + pageable);
 
-        return ResponseEntity.ok(ApiResponse.success(chatMessages, "채팅 메시지 조회에 성공했습니다."));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(chatMessages), "채팅 메시지 조회에 성공했습니다."));
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
