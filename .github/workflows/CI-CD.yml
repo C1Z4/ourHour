@@ -135,7 +135,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          dockerfile: docker/Dockerfile
           target: release
           push: true
           tags: ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.backend)) || format('myuser/{0}', steps['image-tags'].outputs.backend) }}
@@ -167,7 +166,7 @@ jobs:
             
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             
-            docker compose -f docker-compose.yml -f docker-compose.test.yml down -v|| true
+            docker compose -f docker-compose.yml -f docker-compose.test.yml down || true
             
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
             
@@ -180,7 +179,7 @@ jobs:
             
             # DB init parameter
             export MYSQL_ROOT_PASSWORD=$(aws ssm get-parameter --name "/ourhour/db/root-password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export MYSQL_DATABASE=$(aws ssm get-parameter --name "/ourhour/test/db/" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export MYSQL_DATABASE=$(aws ssm get-parameter --name "/ourhour/test/db" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             export MYSQL_USER=$(aws ssm get-parameter --name "/ourhour/test/db/username" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             export MYSQL_PASSWORD=$(aws ssm get-parameter --name "/ourhour/test/db/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             
@@ -218,7 +217,7 @@ jobs:
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
             # 기존 컨테이너 중지 및 제거
-            docker compose -f docker-compose.yml -f docker-compose.release.yml down -v|| true
+            docker compose -f docker-compose.yml -f docker-compose.release.yml down || true
 
             # 최신 이미지 풀
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
