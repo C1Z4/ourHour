@@ -16,8 +16,11 @@ import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
+import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.jwt.dto.Claims;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +49,11 @@ public class ChatService {
         return participants.stream()
                 .map(chatMapper::toChatRoomListResDTO)
                 .collect(Collectors.toList());
+    }
+
+    public Page<ChatRoomListResDTO> findAllChatRoomsOrderByLastMessage(Long orgId, Long memberId, Pageable pageable) {
+
+        return chatParticipantRepository.findChatRoomsWithLastMessage(orgId, memberId, pageable);
     }
 
     public ChatRoomDetailResDTO findChatRoom(Long orgId, Long roomId) {
