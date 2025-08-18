@@ -20,4 +20,12 @@ public final class AuthPath {
             "/webjars"
     };
 
+    public static final String[] STOMP_URLS = {
+            "/ws-stomp"
+    };
+
+    public static final String[] MONITORING_URLS = {
+            "/actuator"
+    };
+
 }
