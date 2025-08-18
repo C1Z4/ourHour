@@ -1,5 +1,6 @@
 package com.ourhour.domain.comment.controller;
 
+import com.ourhour.global.jwt.annotation.OrgId;
 import com.ourhour.global.util.SecurityUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,17 +47,17 @@ public class CommentController {
         @GetMapping
         @Operation(summary = "댓글 목록 조회", description = "게시글/이슈 기준으로 댓글 목록을 조회합니다.")
         public ResponseEntity<ApiResponse<CommentPageResDTO>> getComments(
-                        @PathVariable Long orgId,
+                        @OrgId @PathVariable Long orgId,
                         @RequestParam(required = false) Long postId,
                         @RequestParam(required = false) Long issueId,
                         @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
-        // 현재 사용자 정보 가져오기
-        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-        if (currentMemberId == null) {
-            throw OrgException.orgNotFoundException();
-        }
+                // 현재 사용자 정보 가져오기
+                Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+                if (currentMemberId == null) {
+                    throw OrgException.orgNotFoundException();
+                }
 
                 CommentPageResDTO response = commentService.getComments(postId, issueId, currentPage, size,
                                 currentMemberId);
@@ -70,12 +71,15 @@ public class CommentController {
         @PostMapping
         @Operation(summary = "댓글 등록", description = "새 댓글을 등록합니다.")
         public ResponseEntity<ApiResponse<Void>> createComment(
-                        @PathVariable Long orgId,
+                        @OrgId @PathVariable Long orgId,
                         @Valid @RequestBody CommentCreateReqDTO commentCreateReqDTO) {
 
-        // 현재 사용자 정보 가져오기
+                System.out.println("댓글 등록해봅니다잉");
+                // 현재 사용자 정보 가져오기
         Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-        if (currentMemberId == null) {
+                System.out.println(currentMemberId);
+
+                if (currentMemberId == null) {
             throw OrgException.orgNotFoundException();
         }
 
@@ -90,7 +94,7 @@ public class CommentController {
         @PutMapping("/{commentId}")
         @Operation(summary = "댓글 수정", description = "기존 댓글을 수정합니다.")
         public ResponseEntity<ApiResponse<Void>> updateComment(
-                        @PathVariable Long orgId,
+                        @OrgId @PathVariable Long orgId,
                         @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId,
                         @Valid @RequestBody CommentUpdateReqDTO commentUpdateReqDTO) {
 
@@ -111,7 +115,7 @@ public class CommentController {
         @DeleteMapping("/{commentId}")
         @Operation(summary = "댓글 삭제", description = "댓글을 삭제합니다.")
         public ResponseEntity<ApiResponse<Void>> deleteComment(
-                        @PathVariable Long orgId,
+                        @OrgId @PathVariable Long orgId,
                         @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
 
         // 현재 사용자 정보 가져오기
@@ -130,7 +134,7 @@ public class CommentController {
         @PostMapping("/{commentId}/like")
         @Operation(summary = "댓글 좋아요", description = "댓글에 좋아요를 추가합니다.")
         public ResponseEntity<ApiResponse<Void>> likeComment(
-                        @PathVariable Long orgId,
+                        @OrgId @PathVariable Long orgId,
                         @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
 
         // 현재 사용자 정보 가져오기
@@ -150,7 +154,7 @@ public class CommentController {
         @DeleteMapping("/{commentId}/like")
         @Operation(summary = "댓글 좋아요 취소", description = "댓글 좋아요를 취소합니다.")
         public ResponseEntity<ApiResponse<Void>> unlikeComment(
-                        @PathVariable Long orgId,
+                        @OrgId @PathVariable Long orgId,
                         @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
 
         // 현재 사용자 정보 가져오기
