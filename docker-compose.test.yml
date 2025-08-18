@@ -6,6 +6,9 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: test
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
 
   # db
   db:
@@ -24,7 +27,7 @@ services:
       timeout: 60s
       retries: 10
     volumes:
-      - ./docker/mysql-init:/docker-entrypoint-initdb.d
+      - ./backend/docker/mysql-init:/docker-entrypoint-initdb.d
       - mysql-data:/var/lib/mysql
 
   # prometheus
@@ -83,7 +86,7 @@ services:
     networks:
       - default
     command:
-      - "--mysqld.username=$DB_USERNAME:$DB_PASSWORD"
+      - "--mysqld.username=$MYSQL_USER:$MYSQL_PASSWORD"
       - "--mysqld.address=db:3306"
       - "--no-collect.slave_status"
 
