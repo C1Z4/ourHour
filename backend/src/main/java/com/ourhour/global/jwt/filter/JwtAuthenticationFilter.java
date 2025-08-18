@@ -2,10 +2,12 @@ package com.ourhour.global.jwt.filter;
 
 import com.ourhour.global.constant.AuthPath;
 import com.ourhour.global.jwt.JwtTokenProvider;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -15,13 +17,10 @@ import java.io.IOException;
 import java.util.Arrays;
 
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -33,8 +32,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         boolean isSwagger = Arrays.stream(AuthPath.SWAGGER_URLS)
                 .anyMatch(requestURI::startsWith);
 
-        // 비인증 요청 및 스웨거 필터 스킵
-        if (isPublic || isSwagger) {
+        boolean isStomp = Arrays.stream(AuthPath.STOMP_URLS)
+                .anyMatch(requestURI::startsWith);
+
+        boolean isMonitoring = Arrays.stream(AuthPath.MONITORING_URLS)
+                .anyMatch(requestURI::startsWith);
+
+        // 비인증 요청 스킵
+        if (isPublic || isSwagger || isStomp || isMonitoring) {
             filterChain.doFilter(request, response);
 
             return;

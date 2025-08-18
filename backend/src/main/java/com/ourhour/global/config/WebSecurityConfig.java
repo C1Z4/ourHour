@@ -34,7 +34,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/ws-stomp/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         // Swagger/OpenAPI 문서 경로 허용
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars").permitAll()
                         // 비인증 요청 허용
                         .requestMatchers(AuthPath.PUBLIC_URLS).permitAll()
                         .anyRequest().authenticated()
