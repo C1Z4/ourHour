@@ -47,4 +47,6 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
                                                              @Param("roomId") Long roomId,
                                                              @Param("memberId") Long memberId
     );
+
+    int countByChatRoomEntity_RoomId(Long roomId);
 }

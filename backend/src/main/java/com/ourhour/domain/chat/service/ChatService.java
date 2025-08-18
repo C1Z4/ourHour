@@ -132,6 +132,9 @@ public class ChatService {
                 .findParticipantToDelete(orgId, roomId, memberId)
                 .orElseThrow(ChatException::chatNotParticipantException);
 
+        if (chatParticipantRepository.countByChatRoomEntity_RoomId(roomId) == 0) {
+            chatRoomRepository.deleteById(roomId);
+        }
         chatParticipantRepository.delete(participantToDelete);
     }
 
