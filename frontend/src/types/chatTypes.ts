@@ -6,7 +6,7 @@ export interface ChatApiResponse<T> {
   data: T;
 }
 
-export interface ChatRoomListPage<T> {
+export interface ChatPageResponse<T> {
   data: T[];
   currentPage: number;
   size: number;

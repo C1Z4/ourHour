@@ -9,7 +9,6 @@ import { ChatRoom } from '@/types/chatTypes';
 import { ChatRoomDetailModal } from '@/components/chat/list/ChatRoomDetailModal.tsx';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { TableCell, TableRow } from '@/components/ui/table';
-import { useChatMessagesQuery } from '@/hooks/queries/chat/useChatMessagesQueries';
 import { useDeleteChatParticipantQuery } from '@/hooks/queries/chat/useDeleteChatParticipantMutation';
 import { useUpdateChatRoomQuery } from '@/hooks/queries/chat/useUpdateChatRoomQueries';
 import { CHAT_COLORS } from '@/styles/colors';
@@ -23,14 +22,13 @@ interface Props {
 }
 
 export const ChatRoomRow = ({ orgId, chatRoom }: Props) => {
-  const { data: messages = [], isLoading } = useChatMessagesQuery(Number(orgId), chatRoom?.roomId);
   const [isColorPopoverOpen, setIsColorPopoverOpen] = useState(false);
   const [isMoreOptionsOpen, setIsMoreOptionsOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 
-  const latestMessage = messages[messages.length - 1]?.message ?? '메시지가 없습니다.';
-  const latestMessageTime = messages[messages.length - 1]?.timestamp ?? '';
+  const latestMessage = chatRoom.lastMessage ?? '메시지가 없습니다.';
+  const latestMessageTime = chatRoom.lastMessageTimestamp ?? '';
 
   const { mutate: updateColor } = useUpdateChatRoomQuery(orgId, chatRoom?.roomId);
   const { mutate: exitRoom, isPending } = useDeleteChatParticipantQuery(
