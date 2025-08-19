@@ -89,3 +89,7 @@ app:
       max-size: 100  # 최대 캐시 항목 수
     presign:
       ttl: 600   # 10분 (초)
+
+# LLM fast api 서버
+python-server:
+  url: ${PYTHON_SERVER_URL:http://localhost:8000}
