@@ -56,12 +56,8 @@ public class OAuthService {
         String code = oAuthSigninReqDTO.getCode();
         Platform platform = oAuthSigninReqDTO.getPlatform();
 
-        System.out.println("code: " + code);
-        System.out.println("platform: "  + platform);
-
         // 코드 -> 액세스 토큰 교환
         String accessToken = getSocialAccessToken(code, platform);
-        System.out.println("accessToken: " + accessToken);
 
         // 액세스 토큰 사용자 정보 조회
         Map<String, Object> userInfo = getSocialUserInfo(platform, accessToken);
@@ -70,9 +66,6 @@ public class OAuthService {
         String oauthId = (String) userInfo.get("id");
         String email = (String) userInfo.get("email");
         String hashedPassword = passwordEncoder.encode(UUID.randomUUID().toString()); // 소셜 로그인은 비밀번호 저장 못함 -> 랜덤 문자열 추가
-
-        System.out.println("email: " + email);
-        System.out.println("oauthId: " + oauthId);
 
         // DB에서 기존 User 확인(로그인), 없을 시 새로 생성(자동 회원가입)
         UserEntity userEntity = userRepository.findByPlatformAndOauthId(platform, oauthId)
@@ -88,8 +81,6 @@ public class OAuthService {
         // JWT 토큰 발급
         String jwtAccessToken = jwtTokenProvider.generateAccessToken(authServiceHelper.createClaims(userEntity));
         String jwtRefreshToken = jwtTokenProvider.generateRefreshToken(authServiceHelper.createClaims(userEntity));
-        System.out.println("accessToken: " + jwtAccessToken);
-        System.out.println("refreshToken: " + jwtRefreshToken);
 
         // refresh token DB 저장
         authServiceHelper.saveRefreshToken(userEntity, jwtRefreshToken);
