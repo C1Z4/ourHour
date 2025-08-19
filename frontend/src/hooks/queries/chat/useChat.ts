@@ -1,13 +1,15 @@
 import { useEffect, useRef } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, InfiniteData } from '@tanstack/react-query';
 
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
-import type { ChatMessage } from '@/types/chatTypes.ts';
+import { ChatMessage, ChatPageResponse } from '@/types/chatTypes.ts';
 
 import { getAccessTokenFromStore } from '@/utils/auth/tokenUtils';
+
+const MESSAGE_PAGE_SIZE = 20;
 
 export function useChat(orgId: number, roomId: number) {
   const queryClient = useQueryClient();
@@ -24,13 +26,29 @@ export function useChat(orgId: number, roomId: number) {
           console.log('=== 웹소켓 연결 성공 ===');
           client.subscribe(`/sub/chat/room/${roomId}`, (message) => {
             const receivedMessage = JSON.parse(message.body) as ChatMessage;
-            queryClient.setQueryData<ChatMessage[]>(
-              ['chatMessages', orgId, roomId],
-              (oldData = []) => {
-                const exists = oldData.some(
-                  (m) => m.chatMessageId === receivedMessage.chatMessageId,
+            const queryKey = ['chatMessages', orgId, roomId, MESSAGE_PAGE_SIZE];
+
+            queryClient.setQueryData<InfiniteData<ChatPageResponse<ChatMessage>> | undefined>(
+              queryKey,
+              (oldData) => {
+                if (!oldData || !oldData.pages.length) {
+                  return oldData;
+                }
+                const newPages = [...oldData.pages];
+                const lastPageIndex = newPages.length - 1;
+                const lastPage = newPages[lastPageIndex];
+                const exists = lastPage.data.some(
+                  (msg) => msg.chatMessageId === receivedMessage.chatMessageId,
                 );
-                return exists ? oldData : [...oldData, receivedMessage];
+                if (!exists) {
+                  const newLastPage: ChatPageResponse<ChatMessage> = {
+                    ...lastPage,
+                    data: [...lastPage.data, receivedMessage],
+                  };
+                  newPages[lastPageIndex] = newLastPage;
+                }
+
+                return { ...oldData, pages: newPages };
               },
             );
           });

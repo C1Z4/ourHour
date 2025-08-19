@@ -36,9 +36,14 @@ export const getChatRoomList = async (
   return response.data;
 };
 
-export const getChatMessages = async (orgId: number, roomId: number) => {
-  const response = await axiosInstance.get<ChatMessage[]>(
-    `/api/orgs/${orgId}/chat-rooms/${roomId}/messages`,
+export const getChatMessages = async (
+  orgId: number,
+  roomId: number,
+  page: number,
+  size: number,
+): Promise<ChatPageResponse<ChatMessage>> => {
+  const response = await axiosInstance.get<ChatPageResponse<ChatMessage>>(
+    `/api/orgs/${orgId}/chat-rooms/${roomId}/messages?page=${page}&size=${size}`,
   );
   return response.data;
 };

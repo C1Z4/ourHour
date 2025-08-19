@@ -2,7 +2,7 @@ import { CHAT_COLORS } from '@/styles/colors';
 
 export interface ChatApiResponse<T> {
   status: string;
-  message: string;
+  messages: string;
   data: T;
 }
 
