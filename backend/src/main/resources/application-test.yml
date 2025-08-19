@@ -72,6 +72,17 @@ github:
   redirect-uri: ${github.redirect-uri}
   scope: ${github.scope}
 
+# Google OAuth 설정
+google:
+  client-id: ${google.client-id}
+  client-secret: ${google.client-secret}
+
+# 소셜 로그인 리다이렉트 URI
+signin:
+  redirect-uri: ${signin.redirect-uri}
+
+
+
 python-server:
   url: ${python-server.url}
 # Google OAuth 설정
