@@ -65,6 +65,11 @@ jwt:
   access-token-validity-in-seconds: ${JWT_ACCESS}
   refresh-token-validity-in-seconds: ${JWT_REFRESH}
 
+# Cookie 관련 설정
+cookie:
+  secure: ${COOKIE_SECURE}
+  same-site: ${COOKIE_SAMESITE}
+
 # 암호화 설정
 encryption:
   secret-key: ${ENCRYPTION_SECRET_KEY}
@@ -76,6 +81,14 @@ github:
   redirect-uri: ${APPLICATION_GITHUB_REDIRECT_URI}
   scope: ${APPLICATION_GITHUB_SCOPE}
 
+# Google OAuth 설정
+google:
+  client-id: ${APPLICATION_GOOGLE_CLIENT_ID}
+  client-secret: ${APPLICATION_GOOGLE_CLIENT_SECRET}
+
+# 소셜 로그인 리다이렉트 URI
+signin:
+  redirect-uri: ${APPLICATION_SIGNIN_REDIRECT_URI}
 
 # 이미지 캐시 관련 설정
 app:

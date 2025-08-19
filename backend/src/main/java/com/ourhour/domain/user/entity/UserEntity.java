@@ -43,6 +43,8 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private Platform platform;
 
+    private String oauthId;
+
     private boolean isEmailVerified;
 
     private LocalDateTime emailVerifiedAt;
@@ -50,11 +52,12 @@ public class UserEntity {
     private boolean isDeleted;
 
     @Builder
-    public UserEntity(String email, String password, Platform platform, boolean isEmailVerified,
+    public UserEntity(String email, String password, Platform platform, String oauthId, boolean isEmailVerified,
             LocalDateTime emailVerifiedAt) {
         this.email = email;
         this.password = password;
         this.platform = platform;
+        this.oauthId = oauthId;
         this.isEmailVerified = isEmailVerified;
         this.emailVerifiedAt = emailVerifiedAt;
     }
