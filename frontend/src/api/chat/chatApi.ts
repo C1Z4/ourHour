@@ -1,4 +1,11 @@
-import type { ChatRoom, ChatMessage, ChatRoomParticipant, ChatRoomDetail } from '@/types/chatTypes';
+import type {
+  ChatRoom,
+  ChatMessage,
+  ChatRoomParticipant,
+  ChatRoomDetail,
+  ChatPageResponse,
+  ChatApiResponse,
+} from '@/types/chatTypes';
 
 import { axiosInstance } from '@/api/axiosConfig.ts';
 import { CHAT_COLORS } from '@/styles/colors.ts';
@@ -18,14 +25,25 @@ export interface ChatParticipantAddPayload {
   memberIds: number[];
 }
 
-export const getChatRoomList = async (orgId: number) => {
-  const response = await axiosInstance.get<ChatRoom[]>(`/api/orgs/${orgId}/chat-rooms`);
+export const getChatRoomList = async (
+  orgId: number,
+  page: number,
+  size: number,
+): Promise<ChatApiResponse<ChatPageResponse<ChatRoom>>> => {
+  const response = await axiosInstance.get<ChatApiResponse<ChatPageResponse<ChatRoom>>>(
+    `/api/orgs/${orgId}/chat-rooms?page=${page}&size=${size}`,
+  );
   return response.data;
 };
 
-export const getChatMessages = async (orgId: number, roomId: number) => {
-  const response = await axiosInstance.get<ChatMessage[]>(
-    `/api/orgs/${orgId}/chat-rooms/${roomId}/messages`,
+export const getChatMessages = async (
+  orgId: number,
+  roomId: number,
+  page: number,
+  size: number,
+): Promise<ChatPageResponse<ChatMessage>> => {
+  const response = await axiosInstance.get<ChatPageResponse<ChatMessage>>(
+    `/api/orgs/${orgId}/chat-rooms/${roomId}/messages?page=${page}&size=${size}`,
   );
   return response.data;
 };
