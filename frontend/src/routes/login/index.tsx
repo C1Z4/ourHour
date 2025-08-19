@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 
+import { SocialPlatform } from '@/api/auth/signApi';
 import postAcceptInv from '@/api/org/postAcceptInv';
 import landingImage from '@/assets/images/landing-2.jpg';
 import ErrorMessage from '@/components/auth/ErrorMessage';
 import LoginForm from '@/components/auth/LoginForm';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
-import { AUTH_MESSAGES, PLATFORM_NAME } from '@/constants/messages';
+import { AUTH_MESSAGES, PLATFORM_NAME, SOCIAL_LOGIN_PLATFORMS } from '@/constants/messages';
 import { useSigninMutation } from '@/hooks/queries/auth/useAuthMutations';
 import { getInviteToken, clearInviteToken } from '@/utils/auth/inviteTokenStorage';
 import { requireGuest } from '@/utils/auth/routeGuards';
@@ -67,9 +68,29 @@ function LoginPage() {
     });
   };
 
-  const handleSocialLogin = (platform: string) => {
-    console.log(`${platform} 로그인 시도`);
-    // 소셜 로그인 로직 구현
+  const handleSocialLogin = (platform: SocialPlatform) => {
+    if (platform === SOCIAL_LOGIN_PLATFORMS.GOOGLE) {
+      const url =
+        'https://accounts.google.com/o/oauth2/v2/auth' +
+        `?client_id=${import.meta.env.VITE_GOOGLE_CLIENT_ID}` +
+        `&redirect_uri=${import.meta.env.VITE_REDIRECT_URI}` +
+        '&response_type=code' +
+        '&scope=email profile' +
+        '&state=GOOGLE';
+
+      window.location.href = url;
+    }
+
+    if (platform === SOCIAL_LOGIN_PLATFORMS.GITHUB) {
+      const url =
+        'https://github.com/login/oauth/authorize?' +
+        `client_id=${import.meta.env.VITE_GITHUB_CLIENT_ID}` +
+        `&redirect_uri=${import.meta.env.VITE_REDIRECT_URI}` +
+        '&scope=read:user%20user:email' +
+        '&state=GITHUB';
+
+      window.location.href = url;
+    }
   };
 
   const handleGoBack = () => {
@@ -104,7 +125,10 @@ function LoginPage() {
             isLoading={isSigninLoading}
           />
 
-          <SocialLoginButtons onSocialLogin={handleSocialLogin} isLoading={isSigninLoading} />
+          <SocialLoginButtons
+            onSocialLogin={(platform: string) => handleSocialLogin(platform as SocialPlatform)}
+            isLoading={isSigninLoading}
+          />
         </div>
       </div>
     </div>
