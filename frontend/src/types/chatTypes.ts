@@ -1,4 +1,13 @@
 import { CHAT_COLORS } from '@/styles/colors';
+
+export interface ChatRoomListPage<T> {
+  data: T[];
+  page: number;
+  size: number;
+  totalPages: number;
+  totalElements: number;
+  last: boolean;
+}
 export interface ChatMessage {
   chatRoomId: number;
   chatMessageId: number;
@@ -16,6 +25,8 @@ export interface ChatRoom {
   roomId: number;
   name: string;
   color: keyof typeof CHAT_COLORS;
+  lastMessage: string;
+  lastMessageTimestamp: string;
 }
 
 export interface ChatRoomDetail {

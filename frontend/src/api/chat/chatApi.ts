@@ -1,4 +1,10 @@
-import type { ChatRoom, ChatMessage, ChatRoomParticipant, ChatRoomDetail } from '@/types/chatTypes';
+import type {
+  ChatRoom,
+  ChatMessage,
+  ChatRoomParticipant,
+  ChatRoomDetail,
+  ChatRoomListPage,
+} from '@/types/chatTypes';
 
 import { axiosInstance } from '@/api/axiosConfig.ts';
 import { CHAT_COLORS } from '@/styles/colors.ts';
@@ -18,8 +24,14 @@ export interface ChatParticipantAddPayload {
   memberIds: number[];
 }
 
-export const getChatRoomList = async (orgId: number) => {
-  const response = await axiosInstance.get<ChatRoom[]>(`/api/orgs/${orgId}/chat-rooms`);
+export const getChatRoomList = async (
+  orgId: number,
+  page: number,
+  size: number,
+): Promise<ChatRoomListPage<ChatRoom>> => {
+  const response = await axiosInstance.get<ChatRoomListPage<ChatRoom>>(
+    `/api/orgs/${orgId}/chat-rooms?page=${page}&size=${size}`,
+  );
   return response.data;
 };
 

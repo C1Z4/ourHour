@@ -10,7 +10,7 @@ export const Route = createFileRoute('/org/$orgId/chat/')({
 function ChatListContainer() {
   const { orgId } = Route.useParams();
   const numOrgId = Number(orgId);
-  const { data: chatRooms = [], isLoading, isError, error } = useChatRoomListQuery(numOrgId);
+  const { data: chatRooms = [], isLoading, isError, error } = useChatRoomListQuery(numOrgId, page);
 
   if (isLoading) {
     return <span>채팅방 목록을 불러오는 중...</span>;
