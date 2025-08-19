@@ -29,7 +29,7 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
             ") " +
             "WHERE cp.memberEntity.memberId = :memberId " +
             "AND cr.orgEntity.orgId = :orgId " +
-            "ORDER BY COALESCE(cm.sentAt, cr.createdAt) DESC",
+            "ORDER BY COALESCE(cm.sentAt) DESC",
             countQuery = "SELECT COUNT(cp) FROM ChatParticipantEntity cp WHERE cp.memberEntity.memberId = :memberId AND cp.chatRoomEntity.orgEntity.orgId = :orgId")
     Page<ChatRoomListResDTO> findChatRoomsWithLastMessage(@Param("orgId") Long orgId, @Param("memberId") Long memberId, Pageable pageable);
 

@@ -20,7 +20,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessageEntity, 
             "       m.sentAt) " +
             "FROM   ChatMessageEntity m " +
             "WHERE  m.chatRoomEntity.orgEntity.orgId = :orgId AND m.chatRoomEntity.roomId = :roomId " +
-            "ORDER BY m.sentAt DESC")
+            "ORDER BY m.sentAt ASC")
     Page<ChatMessageResDTO> findAllByOrgAndChatRoom(@Param("orgId") Long orgId, @Param("roomId") Long roomId, Pageable pageable);
 
     @Modifying
