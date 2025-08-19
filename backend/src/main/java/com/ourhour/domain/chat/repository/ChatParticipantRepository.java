@@ -1,7 +1,10 @@
 package com.ourhour.domain.chat.repository;
 
+import com.ourhour.domain.chat.dto.ChatRoomListResDTO;
 import com.ourhour.domain.chat.entity.ChatParticipantEntity;
 import com.ourhour.domain.chat.entity.ChatParticipantId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,12 +14,24 @@ import java.util.Optional;
 
 public interface ChatParticipantRepository extends JpaRepository<ChatParticipantEntity, ChatParticipantId> {
 
-    @Query("SELECT DISTINCT cp " +
+    @Query(value = "SELECT NEW com.ourhour.domain.chat.dto.ChatRoomListResDTO(" +
+            "           cr.roomId, " +
+            "           cr.name, " +
+            "           cr.color, " +
+            "           cm.content, " +
+            "           cm.sentAt) " +
             "FROM ChatParticipantEntity cp " +
-            "JOIN FETCH cp.chatRoomEntity cr " +
-            "WHERE cr.orgEntity.orgId = :orgId " +
-            "AND cp.memberEntity.memberId = :memberId")
-    List<ChatParticipantEntity> findChatRoomsByOrgAndMember(@Param("orgId") Long orgId, @Param("memberId") Long memberId);
+            "JOIN cp.chatRoomEntity cr " +
+            "LEFT JOIN ChatMessageEntity cm ON cm.chatRoomEntity = cr AND cm.chatMessageId = (" +
+            "    SELECT MAX(cm2.chatMessageId) " +
+            "    FROM ChatMessageEntity cm2 " +
+            "    WHERE cm2.chatRoomEntity = cr" +
+            ") " +
+            "WHERE cp.memberEntity.memberId = :memberId " +
+            "AND cr.orgEntity.orgId = :orgId " +
+            "ORDER BY COALESCE(cm.sentAt, cr.createdAt) DESC",
+            countQuery = "SELECT COUNT(cp) FROM ChatParticipantEntity cp WHERE cp.memberEntity.memberId = :memberId AND cp.chatRoomEntity.orgEntity.orgId = :orgId")
+    Page<ChatRoomListResDTO> findChatRoomsWithLastMessage(@Param("orgId") Long orgId, @Param("memberId") Long memberId, Pageable pageable);
 
     @Query("SELECT DISTINCT cp FROM ChatParticipantEntity cp " +
             "JOIN FETCH cp.memberEntity " +
@@ -32,4 +47,6 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
                                                              @Param("roomId") Long roomId,
                                                              @Param("memberId") Long memberId
     );
+
+    int countByChatRoomEntity_RoomId(Long roomId);
 }
