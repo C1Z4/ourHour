@@ -5,10 +5,13 @@ import com.ourhour.domain.chat.service.ChatService;
 import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.global.common.dto.ApiResponse;
+import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
 import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,18 +36,19 @@ public class ChatRestController {
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @GetMapping
-    @Operation(summary = "채팅방 목록 조회", description = "조직 내 채팅방 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<ChatRoomListResDTO>>> getAllChatRooms(
-            @OrgId @PathVariable Long orgId) {
+    @Operation(summary = "채팅방 목록 조회", description = "조직 내 참여중인 채팅방 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<PageResponse<ChatRoomListResDTO>>> getAllChatRooms(
+            @OrgId @PathVariable Long orgId,
+            Pageable pageable) {
 
         Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
         if (memberId == null) {
             throw MemberException.memberAccessDeniedException();
         }
 
-        List<ChatRoomListResDTO> chatRooms = chatService.findAllChatRooms(orgId, memberId);
+        Page<ChatRoomListResDTO> chatRoomsPage = chatService.findAllChatRoomsOrderByLastMessage(orgId, memberId, pageable);
 
-        return ResponseEntity.ok(ApiResponse.success(chatRooms, "채팅방 목록 조회에 성공했습니다."));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(chatRoomsPage), "채팅방 목록 조회에 성공했습니다."));
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
@@ -99,13 +103,15 @@ public class ChatRestController {
     @OrgAuth(accessLevel = Role.MEMBER)
     @GetMapping("/{roomId}/messages")
     @Operation(summary = "메시지 목록 조회", description = "특정 채팅방의 메시지 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<ChatMessageResDTO>>> getMessages(
+    public ResponseEntity<ApiResponse<PageResponse<ChatMessageResDTO>>> getMessages(
             @OrgId @PathVariable Long orgId,
-            @PathVariable Long roomId) {
+            @PathVariable Long roomId,
+            Pageable pageable) {
 
-        List<ChatMessageResDTO> chatMessages = chatService.findAllMessages(orgId, roomId);
+        Page<ChatMessageResDTO> chatMessages = chatService.findAllMessages(orgId, roomId, pageable);
+        System.out.println("Received Pageable: " + pageable);
 
-        return ResponseEntity.ok(ApiResponse.success(chatMessages, "채팅 메시지 조회에 성공했습니다."));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(chatMessages), "채팅 메시지 조회에 성공했습니다."));
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)

@@ -16,8 +16,11 @@ import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
+import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.jwt.dto.Claims;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,14 +41,9 @@ public class ChatService {
     private final OrgRepository orgRepository;
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
 
-    public List<ChatRoomListResDTO> findAllChatRooms(Long orgId, Long memberId) {
+    public Page<ChatRoomListResDTO> findAllChatRoomsOrderByLastMessage(Long orgId, Long memberId, Pageable pageable) {
 
-        List<ChatParticipantEntity> participants = chatParticipantRepository.findChatRoomsByOrgAndMember(orgId,
-                memberId);
-
-        return participants.stream()
-                .map(chatMapper::toChatRoomListResDTO)
-                .collect(Collectors.toList());
+        return chatParticipantRepository.findChatRoomsWithLastMessage(orgId, memberId, pageable);
     }
 
     public ChatRoomDetailResDTO findChatRoom(Long orgId, Long roomId) {
@@ -91,9 +89,9 @@ public class ChatService {
         chatRoomRepository.deleteByOrgEntity_OrgIdAndRoomId(orgId, roomId);
     }
 
-    public List<ChatMessageResDTO> findAllMessages(Long orgId, Long roomId) {
+    public Page<ChatMessageResDTO> findAllMessages(Long orgId, Long roomId, Pageable pageable) {
 
-        return chatMessageRepository.findAllByOrgAndChatRoom(orgId, roomId);
+        return chatMessageRepository.findAllByOrgAndChatRoom(orgId, roomId, pageable);
     }
 
     public List<ChatParticipantResDTO> findAllParticipants(Long orgId, Long roomId) {
@@ -135,6 +133,11 @@ public class ChatService {
                 .orElseThrow(ChatException::chatNotParticipantException);
 
         chatParticipantRepository.delete(participantToDelete);
+
+        if (chatParticipantRepository.countByChatRoomEntity_RoomId(roomId) == 0) {
+            chatMessageRepository.deleteAllByChatRoomEntity_RoomId(roomId);
+            chatRoomRepository.deleteById(roomId);
+        }
     }
 
     @Transactional
