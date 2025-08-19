@@ -26,6 +26,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
 
+        if (requestURI.startsWith("/ws-stomp/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         boolean isPublic = Arrays.stream(AuthPath.PUBLIC_URLS)
                 .anyMatch(requestURI::startsWith);
 
