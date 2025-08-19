@@ -29,7 +29,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const myProjectList = Array.isArray(myProjectListData) ? myProjectListData : [];
 
   const { data: apiResponse } = useChatRoomListQuery(currentOrgId, 0, 5);
-  const chatRooms = apiResponse?.data || [];
+  const chatRooms = apiResponse?.data ?? [];
 
   const data = {
     navMain: [

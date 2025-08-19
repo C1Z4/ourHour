@@ -4,6 +4,7 @@ import type {
   ChatRoomParticipant,
   ChatRoomDetail,
   ChatRoomListPage,
+  ChatApiResponse,
 } from '@/types/chatTypes';
 
 import { axiosInstance } from '@/api/axiosConfig.ts';
@@ -28,8 +29,8 @@ export const getChatRoomList = async (
   orgId: number,
   page: number,
   size: number,
-): Promise<ChatRoomListPage<ChatRoom>> => {
-  const response = await axiosInstance.get<ChatRoomListPage<ChatRoom>>(
+): Promise<ChatApiResponse<ChatRoomListPage<ChatRoom>>> => {
+  const response = await axiosInstance.get<ChatApiResponse<ChatRoomListPage<ChatRoom>>>(
     `/api/orgs/${orgId}/chat-rooms?page=${page}&size=${size}`,
   );
   return response.data;

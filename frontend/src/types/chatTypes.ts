@@ -1,12 +1,19 @@
 import { CHAT_COLORS } from '@/styles/colors';
 
+export interface ChatApiResponse<T> {
+  status: string;
+  message: string;
+  data: T;
+}
+
 export interface ChatRoomListPage<T> {
   data: T[];
-  page: number;
+  currentPage: number;
   size: number;
   totalPages: number;
   totalElements: number;
-  last: boolean;
+  hasNext: boolean;
+  hasPrevious: boolean;
 }
 export interface ChatMessage {
   chatRoomId: number;
@@ -25,8 +32,8 @@ export interface ChatRoom {
   roomId: number;
   name: string;
   color: keyof typeof CHAT_COLORS;
-  lastMessage: string;
-  lastMessageTimestamp: string;
+  lastMessage: string | null;
+  lastMessageTimestamp: string | null;
 }
 
 export interface ChatRoomDetail {
