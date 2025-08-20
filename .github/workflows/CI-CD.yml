@@ -138,8 +138,8 @@ jobs:
             echo "backend=ourhour-backend:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           elif [[ "${GITHUB_REF}" == "refs/heads/release" ]]; then
             echo "backend=ourhour-backend:test-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-            echo "chatbot=ourhour-chatbot:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-            echo "chatbot=ourhour-chatbot:prod-latest" >> "$GITHUB_OUTPUT"
+            echo "chatbot_sha=ourhour-chatbot:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+            echo "chatbot_latest=ourhour-chatbot:prod-latest" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build and push Backend Docker image
