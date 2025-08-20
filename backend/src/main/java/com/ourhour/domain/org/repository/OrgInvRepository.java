@@ -20,6 +20,8 @@ public interface OrgInvRepository extends JpaRepository<OrgInvEntity, Long> {
         from OrgInvEntity oiv
         join fetch oiv.orgInvBatchEntity oivb
         where oivb.batchId in :batchIds
+        order by oiv.createdAt desc 
     """)
     List<OrgInvEntity> findAllByBatchIds(@Param("batchIds") List<Long> batchIds);
+
 }

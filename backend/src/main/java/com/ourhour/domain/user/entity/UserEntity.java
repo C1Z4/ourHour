@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name="tbl_user")
+@Table(name = "tbl_user")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserEntity {
@@ -33,12 +33,17 @@ public class UserEntity {
     @OneToMany(mappedBy = "acceptedUserEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrgInvEntity> orgInvEntityList = new ArrayList<>();
 
+    @OneToOne(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserGitHubMappingEntity githubMappingEntity;
+
     private String email;
 
     private String password;
 
     @Enumerated(EnumType.STRING)
     private Platform platform;
+
+    private String oauthId;
 
     private boolean isEmailVerified;
 
@@ -47,10 +52,12 @@ public class UserEntity {
     private boolean isDeleted;
 
     @Builder
-    public UserEntity(String email, String password, Platform platform, boolean isEmailVerified, LocalDateTime emailVerifiedAt) {
+    public UserEntity(String email, String password, Platform platform, String oauthId, boolean isEmailVerified,
+            LocalDateTime emailVerifiedAt) {
         this.email = email;
         this.password = password;
         this.platform = platform;
+        this.oauthId = oauthId;
         this.isEmailVerified = isEmailVerified;
         this.emailVerifiedAt = emailVerifiedAt;
     }
@@ -61,6 +68,10 @@ public class UserEntity {
 
     public void markAsDeleted() {
         this.isDeleted = true;
+    }
+
+    public void removeGithubMapping() {
+        this.githubMappingEntity = null;
     }
 
 }

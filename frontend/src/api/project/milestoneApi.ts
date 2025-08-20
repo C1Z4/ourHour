@@ -8,6 +8,7 @@ import { logError } from '@/utils/auth/errorUtils';
 // ======== 프로젝트 마일스톤 목록 조회 ========
 export interface GetProjectMilestoneListRequest {
   projectId: number;
+  myMilestonesOnly?: boolean;
   currentPage?: number;
   size?: number;
 }
@@ -24,8 +25,20 @@ export const getProjectMilestoneList = async (
   request: GetProjectMilestoneListRequest,
 ): Promise<ApiResponse<PageResponse<ProjectMilestone[]>>> => {
   try {
+    const params = new URLSearchParams();
+
+    if (request.myMilestonesOnly !== undefined) {
+      params.append('myMilestonesOnly', request.myMilestonesOnly.toString());
+    }
+    if (request.currentPage) {
+      params.append('currentPage', request.currentPage.toString());
+    }
+    if (request.size) {
+      params.append('size', request.size.toString());
+    }
+
     const response = await axiosInstance.get(
-      `/api/projects/${request.projectId}/milestones?currentPage=${request.currentPage}&size=${request.size}`,
+      `/api/projects/${request.projectId}/milestones?${params.toString()}`,
     );
 
     return response.data;

@@ -111,7 +111,11 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
 
           {!isInfoPage && (
             <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="icon">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.navigate({ to: '/org/$orgId/map', params: { orgId } })}
+              >
                 <Users className="w-4 h-4" />
               </Button>
               <Button variant="ghost" size="icon" className="relative">

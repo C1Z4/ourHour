@@ -1,17 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 
+import { SocialPlatform } from '@/api/auth/signApi';
+import postAcceptInv from '@/api/org/postAcceptInv';
 import landingImage from '@/assets/images/landing-2.jpg';
 import ErrorMessage from '@/components/auth/ErrorMessage';
 import LoginForm from '@/components/auth/LoginForm';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
-import { AUTH_MESSAGES, PLATFORM_NAME } from '@/constants/messages';
+import { AUTH_MESSAGES, PLATFORM_NAME, SOCIAL_LOGIN_PLATFORMS } from '@/constants/messages';
 import { useSigninMutation } from '@/hooks/queries/auth/useAuthMutations';
-import { useAppSelector } from '@/stores/hooks';
+import { getInviteToken, clearInviteToken } from '@/utils/auth/inviteTokenStorage';
+import { requireGuest } from '@/utils/auth/routeGuards';
 
 export const Route = createFileRoute('/login/')({
+  beforeLoad: async () => {
+    await requireGuest();
+  },
   component: LoginPage,
 });
 
@@ -19,28 +25,8 @@ function LoginPage() {
   const [loginError, setLoginError] = useState('');
 
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
-
   const signinMutation = useSigninMutation();
   const isSigninLoading = signinMutation.isPending;
-
-  // 로그인 상태일 때 홈페이지로 리다이렉트
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.navigate({ to: '/' });
-    }
-  }, [isAuthenticated, isLoading, router]);
-
-  // 로딩 중이거나 이미 로그인된 상태면 로딩 화면 표시
-  // if (isLoading || isAuthenticated) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <LoadingSpinner />
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   const handleLoginSubmit = (email: string, password: string) => {
     setLoginError('');
@@ -48,8 +34,22 @@ function LoginPage() {
     signinMutation.mutate(
       { email, password, platform: PLATFORM_NAME },
       {
-        onSuccess: () => {
-          router.navigate({ to: '/start', search: { page: 1 } });
+        onSuccess: async () => {
+          const inviteData = getInviteToken();
+          if (inviteData) {
+            try {
+              await postAcceptInv({ token: inviteData.token });
+              clearInviteToken();
+              router.navigate({
+                to: `/org/${inviteData.orgId}/info`,
+              });
+            } catch (e) {
+              // 실패해도 로그인은 된 상태이므로 기본 페이지로 이동 가능
+              router.navigate({ to: '/start', search: { page: 1 } });
+            }
+          } else {
+            router.navigate({ to: '/start', search: { page: 1 } });
+          }
         },
         onError: () => {
           setLoginError(AUTH_MESSAGES.LOGIN_FAILED);
@@ -68,9 +68,29 @@ function LoginPage() {
     });
   };
 
-  const handleSocialLogin = (platform: string) => {
-    console.log(`${platform} 로그인 시도`);
-    // 소셜 로그인 로직 구현
+  const handleSocialLogin = (platform: SocialPlatform) => {
+    if (platform === SOCIAL_LOGIN_PLATFORMS.GOOGLE) {
+      const url =
+        'https://accounts.google.com/o/oauth2/v2/auth' +
+        `?client_id=${import.meta.env.VITE_SIGNIN_GOOGLE_CLIENT_ID}` +
+        `&redirect_uri=${import.meta.env.VITE_SIGNIN_REDIRECT_URI}` +
+        '&response_type=code' +
+        '&scope=email profile' +
+        '&state=GOOGLE';
+
+      window.location.href = url;
+    }
+
+    if (platform === SOCIAL_LOGIN_PLATFORMS.GITHUB) {
+      const url =
+        'https://github.com/login/oauth/authorize?' +
+        `client_id=${import.meta.env.VITE_SIGNIN_GIHUB_CLIENT_ID}` +
+        `&redirect_uri=${import.meta.env.VITE_SIGNIN_REDIRECT_URI}` +
+        '&scope=read:user%20user:email' +
+        '&state=GITHUB';
+
+      window.location.href = url;
+    }
   };
 
   const handleGoBack = () => {
@@ -105,7 +125,10 @@ function LoginPage() {
             isLoading={isSigninLoading}
           />
 
-          <SocialLoginButtons onSocialLogin={handleSocialLogin} isLoading={isSigninLoading} />
+          <SocialLoginButtons
+            onSocialLogin={(platform: string) => handleSocialLogin(platform as SocialPlatform)}
+            isLoading={isSigninLoading}
+          />
         </div>
       </div>
     </div>

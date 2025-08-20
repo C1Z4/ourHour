@@ -3,49 +3,89 @@ import { useParams } from '@tanstack/react-router';
 import { CommentPageResponse } from '@/api/comment/commentApi';
 import { CommentForm } from '@/components/project/issue-detail/CommentForm';
 import { CommentItem } from '@/components/project/issue-detail/CommentItem';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   useCreateCommentMutation,
   useDeleteCommentMutation,
   useUpdateCommentMutation,
 } from '@/hooks/queries/comment/useCommentMutations';
 import { useCommentListQuery } from '@/hooks/queries/comment/useCommentQueries';
-import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 
 export const CommentSection = () => {
   const { orgId, postId } = useParams({ from: '/org/$orgId/board/$boardId/post/$postId/' });
 
-  const { data: commentsData } = useCommentListQuery({
+  const { data: commentsData, isLoading } = useCommentListQuery({
+    orgId: Number(orgId),
     postId: Number(postId),
   });
 
   const comments = (commentsData as unknown as CommentPageResponse)?.comments;
   const totalElements = (commentsData as unknown as CommentPageResponse)?.totalElements;
 
-  const { mutate: createComment } = useCreateCommentMutation(Number(postId), null);
-  const { mutate: updateComment } = useUpdateCommentMutation(Number(postId), null);
-  const { mutate: deleteComment } = useDeleteCommentMutation(Number(postId), null);
+  const { mutate: createComment } = useCreateCommentMutation(Number(orgId), Number(postId), null);
+  const { mutate: updateComment } = useUpdateCommentMutation(Number(orgId), Number(postId), null);
+  const { mutate: deleteComment } = useDeleteCommentMutation(Number(orgId), Number(postId), null);
 
-  const memberId = getMemberIdFromToken(Number(orgId));
-
-  const handleCreateComment = (content: string) => {
+  const handleCreateComment = (content: string, parentCommentId?: number) => {
     createComment({
       content,
       postId: Number(postId),
-      authorId: memberId,
+      parentCommentId,
     });
+  };
+
+  const handleReply = (parentCommentId: number, content: string) => {
+    handleCreateComment(content, parentCommentId);
   };
 
   const handleUpdateComment = (commentId: number, newContent: string) => {
     updateComment({
       commentId,
       content: newContent,
-      authorId: memberId,
     });
   };
 
   const handleDeleteComment = (commentId: number) => {
     deleteComment(commentId);
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-white">
+        <div className="border-b border-gray-200 pb-4 mb-6">
+          <Skeleton className="h-6 w-32" />
+        </div>
+
+        <div className="space-y-6">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="space-y-3">
+              <div className="flex items-start space-x-3">
+                <Skeleton className="w-8 h-8 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-20 w-full" />
+            <div className="flex justify-end">
+              <Skeleton className="h-9 w-20" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white">
@@ -61,12 +101,15 @@ export const CommentSection = () => {
             comment={comment}
             onUpdate={handleUpdateComment}
             onDelete={handleDeleteComment}
+            onReply={handleReply}
+            orgId={Number(orgId)}
+            postId={Number(postId)}
           />
         ))}
       </div>
 
       <div className="mt-8 pt-6 border-t border-gray-200">
-        <CommentForm orgId={Number(orgId)} onSubmit={handleCreateComment} />
+        <CommentForm orgId={Number(orgId)} onSubmit={(content) => handleCreateComment(content)} />
       </div>
     </div>
   );

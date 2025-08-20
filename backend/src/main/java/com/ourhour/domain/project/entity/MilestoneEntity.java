@@ -24,7 +24,7 @@ import java.util.List;
 @Table(name = "tbl_milestone")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MilestoneEntity {
+public class MilestoneEntity extends GitHubSyncableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,5 +48,10 @@ public class MilestoneEntity {
         this.projectEntity = projectEntity;
         this.name = name;
         this.progress = progress;
+    }
+
+    @Override
+    public Long getId() {
+        return milestoneId;
     }
 }

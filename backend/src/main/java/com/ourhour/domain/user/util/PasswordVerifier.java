@@ -3,8 +3,7 @@ package com.ourhour.domain.user.util;
 import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.domain.user.repository.UserRepository;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -21,8 +20,7 @@ public class PasswordVerifier {
     public UserEntity verifyPassword(String currentPwd) {
 
         // 사용자 조회
-        Claims claims = UserContextHolder.get();
-        Long userId = claims.getUserId();
+        Long userId = SecurityUtil.getCurrentUserId();
 
         UserEntity userEntity = userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(AuthException::userNotFoundException);

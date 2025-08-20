@@ -4,13 +4,13 @@ import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
-import com.ourhour.global.jwt.dto.Claims;
+import com.ourhour.global.jwt.dto.CustomUserDetails;
 import com.ourhour.global.jwt.util.AuthorizationUtil;
-import com.ourhour.global.jwt.util.UserContextHolder;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
@@ -23,9 +23,9 @@ public class JwtOrgAuthorizationAspect {
     public Object authorizeOrgAccess(ProceedingJoinPoint joinPoint, OrgAuth orgAuth) throws Throwable {
 
         // 현재 인증된 사용자 정보 조회
-        Claims currentUserClaims = UserContextHolder.get();
+        CustomUserDetails currentUser = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if (currentUserClaims == null || currentUserClaims.getUserId() == null) {
+        if (currentUser == null || currentUser.getUserId() == null) {
             throw AuthException.unauthorizedException();
         }
 
@@ -36,7 +36,7 @@ public class JwtOrgAuthorizationAspect {
         }
 
         // false: 해당 회사에 대해 가지고 있는 권한이 접근 권한보다 높지 않은 경우
-        if (!AuthorizationUtil.isHigherThan(currentUserClaims, orgId, orgAuth.accessLevel())) {
+        if (!AuthorizationUtil.hasOrgAccess(currentUser, orgId, orgAuth.accessLevel())) {
             throw OrgException.orgAccessDeniedException();
         }
 

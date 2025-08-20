@@ -20,72 +20,124 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrgParticipantMemberRepository
-        extends JpaRepository<OrgParticipantMemberEntity, OrgParticipantMemberId> {
+                extends JpaRepository<OrgParticipantMemberEntity, OrgParticipantMemberId> {
 
-    @Query("SELECT opm " +
-            "FROM OrgParticipantMemberEntity opm " +
-            "JOIN opm.memberEntity m " +
-            "LEFT JOIN opm.positionEntity p " +
-            "LEFT JOIN opm.departmentEntity d " +
-            "WHERE opm.orgEntity.orgId = :orgId " +
-            "ORDER BY m.memberId ASC")
-    Page<OrgParticipantMemberEntity> findByOrgId(@Param("orgId") Long orgId, Pageable pageable);
+        @Query("SELECT opm " +
+                        "FROM OrgParticipantMemberEntity opm " +
+                        "JOIN opm.memberEntity m " +
+                        "LEFT JOIN opm.positionEntity p " +
+                        "LEFT JOIN opm.departmentEntity d " +
+                        "WHERE opm.orgEntity.orgId = :orgId " +
+                        "ORDER BY m.memberId ASC")
+        Page<OrgParticipantMemberEntity> findByOrgId(@Param("orgId") Long orgId, Pageable pageable);
 
-    boolean existsByOrgEntity_OrgIdAndMemberEntity_MemberId(Long orgId, Long memberId);
+        @Query("SELECT opm " +
+                        "FROM OrgParticipantMemberEntity opm " +
+                        "JOIN opm.memberEntity m " +
+                        "LEFT JOIN opm.positionEntity p " +
+                        "LEFT JOIN opm.departmentEntity d " +
+                        "WHERE opm.orgEntity.orgId = :orgId " +
+                        "AND m.name LIKE %:search% " +
+                        "ORDER BY m.memberId ASC")
+        Page<OrgParticipantMemberEntity> findByOrgIdAndNameContaining(@Param("orgId") Long orgId,
+                        @Param("search") String search, Pageable pageable);
 
-    @Query("SELECT opm " +
-            "FROM OrgParticipantMemberEntity opm " +
-            "JOIN opm.memberEntity m " +
-            "LEFT JOIN opm.positionEntity p " +
-            "LEFT JOIN opm.departmentEntity d " +
-            "WHERE opm.orgEntity.orgId = :orgId " +
-            "AND opm.memberEntity.memberId=:memberId ")
-    MemberInfoResDTO findByOrgIdAndMemberId(@Param("orgId") Long orgId, @Param("memberId") Long memberId);
+        boolean existsByOrgEntity_OrgIdAndMemberEntity_MemberId(Long orgId, Long memberId);
 
+        // 특정 부서의 구성원 조회
+        @Query("SELECT opm " +
+                        "FROM OrgParticipantMemberEntity opm " +
+                        "JOIN opm.memberEntity m " +
+                        "LEFT JOIN opm.positionEntity p " +
+                        "LEFT JOIN opm.departmentEntity d " +
+                        "WHERE opm.orgEntity.orgId = :orgId " +
+                        "AND d.deptId = :deptId " +
+                        "ORDER BY m.memberId ASC")
+        List<OrgParticipantMemberEntity> findByOrgIdAndDeptId(@Param("orgId") Long orgId, @Param("deptId") Long deptId);
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("""
-        update OrgParticipantMemberEntity opm
-           set opm.status = :inactive,
-               opm.leftAt = :leftAt
-         where opm.memberEntity in :members
-           and opm.status = :active
-    """)
-    void updateDeactivateAllMembers(@Param("members") List<MemberEntity> memberEntity,
-                                    @Param("inactive") Status inactive,
-                                    @Param("leftAt") LocalDate leftAt,
-                                    @Param("active") Status active
-    );
+        // 특정 직책의 구성원 조회
+        @Query("SELECT opm " +
+                        "FROM OrgParticipantMemberEntity opm " +
+                        "JOIN opm.memberEntity m " +
+                        "LEFT JOIN opm.positionEntity p " +
+                        "LEFT JOIN opm.departmentEntity d " +
+                        "WHERE opm.orgEntity.orgId = :orgId " +
+                        "AND p.positionId = :positionId " +
+                        "ORDER BY m.memberId ASC")
+        List<OrgParticipantMemberEntity> findByOrgIdAndPositionId(@Param("orgId") Long orgId,
+                        @Param("positionId") Long positionId);
 
-    Optional<OrgParticipantMemberEntity> findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(Long orgId, Long memberId, Status status);
+        @Query("SELECT opm " +
+                        "FROM OrgParticipantMemberEntity opm " +
+                        "JOIN opm.memberEntity m " +
+                        "LEFT JOIN opm.positionEntity p " +
+                        "LEFT JOIN opm.departmentEntity d " +
+                        "WHERE opm.orgEntity.orgId = :orgId " +
+                        "AND opm.memberEntity.memberId=:memberId ")
+        MemberInfoResDTO findByOrgIdAndMemberId(@Param("orgId") Long orgId, @Param("memberId") Long memberId);
 
-    // 해당 회사의 권한에 따른 멤버 수 집계
-    int countByOrgEntity_OrgIdAndRole(Long orgId, Role role);
+        @Modifying(clearAutomatically = true, flushAutomatically = true)
+        @Query("""
+                            update OrgParticipantMemberEntity opm
+                               set opm.status = :inactive,
+                                   opm.leftAt = :leftAt
+                             where opm.memberEntity in :members
+                               and opm.status = :active
+                        """)
+        void updateDeactivateAllMembers(@Param("members") List<MemberEntity> memberEntity,
+                        @Param("inactive") Status inactive,
+                        @Param("leftAt") LocalDate leftAt,
+                        @Param("active") Status active);
 
-    // 권한이 루트 관리자인 멤버만 집계
-    default int countRootAdmins(Long orgId) {
-        return countByOrgEntity_OrgIdAndRole(orgId, Role.ROOT_ADMIN);
-    }
+        Optional<OrgParticipantMemberEntity> findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(Long orgId,
+                        Long memberId, Status status);
 
-    List<OrgParticipantMemberEntity> findAllByMemberEntity_MemberIdAndStatus(Long memberId, Status status);
+        // 해당 회사의 권한에 따른 멤버 수 집계
+        int countByOrgEntity_OrgIdAndRole(Long orgId, Role role);
 
-    boolean existsByOrgEntity_OrgIdAndMemberEntity_MemberIdAndRoleAndStatus(Long orgId, Long memberId, Role role, Status status);
+        // 권한이 루트 관리자인 멤버만 집계
+        default int countRootAdmins(Long orgId) {
+                return countByOrgEntity_OrgIdAndRole(orgId, Role.ROOT_ADMIN);
+        }
 
-    OrgParticipantMemberEntity findByOrgEntity_OrgIdAndMemberEntity_MemberId(Long orgEntityOrgId, Long memberEntityMemberId);
+        List<OrgParticipantMemberEntity> findAllByMemberEntity_MemberIdAndStatus(Long memberId, Status status);
 
-    // 조직 내 활성 루트 관리자 수 조회
-    int countByOrgEntity_OrgIdAndRoleAndStatus(Long orgId, Role role, Status status);
+        boolean existsByOrgEntity_OrgIdAndMemberEntity_MemberIdAndRoleAndStatus(Long orgId, Long memberId, Role role,
+                        Status status);
 
-    boolean existsByOrgEntityAndMemberEntity(OrgEntity orgEntity, MemberEntity memberToJoin);
+        OrgParticipantMemberEntity findByOrgEntity_OrgIdAndMemberEntity_MemberId(Long orgEntityOrgId,
+                        Long memberEntityMemberId);
 
-    Optional<OrgParticipantMemberEntity> findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(Long orgId, Long userId, Status status);
+        // 조직 내 활성 루트 관리자 수 조회
+        int countByOrgEntity_OrgIdAndRoleAndStatus(Long orgId, Role role, Status status);
 
-    @Query("SELECT opm " +
-            "FROM OrgParticipantMemberEntity opm " +
-            "JOIN opm.memberEntity m " +
-            "LEFT JOIN opm.positionEntity p " +
-            "LEFT JOIN opm.departmentEntity d " +
-            "WHERE opm.orgEntity.orgId = :orgId " +
-            "ORDER BY m.memberId ASC")
-   List<OrgParticipantMemberEntity> findAllByOrgEntity_OrgId(Long orgId);
+        boolean existsByOrgEntityAndMemberEntity(OrgEntity orgEntity, MemberEntity memberToJoin);
+
+        Optional<OrgParticipantMemberEntity> findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(Long orgId,
+                        Long userId, Status status);
+
+        @Query("SELECT opm " +
+                        "FROM OrgParticipantMemberEntity opm " +
+                        "JOIN opm.memberEntity m " +
+                        "LEFT JOIN opm.positionEntity p " +
+                        "LEFT JOIN opm.departmentEntity d " +
+                        "WHERE opm.orgEntity.orgId = :orgId " +
+                        "ORDER BY m.memberId ASC")
+        List<OrgParticipantMemberEntity> findAllByOrgEntity_OrgId(Long orgId);
+
+        // 부서별 구성원 수 조회
+        @Query("SELECT COUNT(opm) " +
+                        "FROM OrgParticipantMemberEntity opm " +
+                        "WHERE opm.orgEntity.orgId = :orgId " +
+                        "AND opm.departmentEntity.deptId = :deptId")
+        Long countByOrgIdAndDeptId(@Param("orgId") Long orgId, @Param("deptId") Long deptId);
+
+        // 직책별 구성원 수 조회
+        @Query("SELECT COUNT(opm) " +
+                        "FROM OrgParticipantMemberEntity opm " +
+                        "WHERE opm.orgEntity.orgId = :orgId " +
+                        "AND opm.positionEntity.positionId = :positionId")
+        Long countByOrgIdAndPositionId(@Param("orgId") Long orgId, @Param("positionId") Long positionId);
+
+        boolean existsByOrgEntity_OrgIdAndMemberEntity_Email(Long orgId, String email);
 }

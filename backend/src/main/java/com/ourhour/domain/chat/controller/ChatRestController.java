@@ -5,11 +5,13 @@ import com.ourhour.domain.chat.service.ChatService;
 import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.global.common.dto.ApiResponse;
+import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.global.jwt.annotation.OrgId;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,38 +21,39 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/orgs/{orgId}/chat-rooms")
 @RequiredArgsConstructor
+@Tag(name = "채팅(REST)", description = "채팅방/메시지/참가자 관리 API")
 public class ChatRestController {
 
     private final ChatService chatService;
 
-    private Long getMemberIdForOrg(Claims claims, Long orgId) {
-        return claims.getOrgAuthorityList().stream()
-                .filter(auth -> auth.getOrgId().equals(orgId))
-                .map(auth -> auth.getMemberId())
-                .findFirst()
-                .orElseThrow(() -> MemberException.memberAccessDeniedException());
-    }
-
     @OrgAuth(accessLevel = Role.MEMBER)
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ChatRoomListResDTO>>> getAllChatRooms(
-            @OrgId @PathVariable Long orgId) {
+    @Operation(summary = "채팅방 목록 조회", description = "조직 내 참여중인 채팅방 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<PageResponse<ChatRoomListResDTO>>> getAllChatRooms(
+            @OrgId @PathVariable Long orgId,
+            Pageable pageable) {
 
-        Claims claims = UserContextHolder.get();
-        Long memberId = getMemberIdForOrg(claims, orgId);
-        List<ChatRoomListResDTO> chatRooms = chatService.findAllChatRooms(orgId, memberId);
+        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (memberId == null) {
+            throw MemberException.memberAccessDeniedException();
+        }
 
-        return ResponseEntity.ok(ApiResponse.success(chatRooms, "채팅방 목록 조회에 성공했습니다."));
+        Page<ChatRoomListResDTO> chatRoomsPage = chatService.findAllChatRoomsOrderByLastMessage(orgId, memberId, pageable);
+
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(chatRoomsPage), "채팅방 목록 조회에 성공했습니다."));
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @GetMapping("/{roomId}")
+    @Operation(summary = "채팅방 상세 조회", description = "특정 채팅방 상세 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<ChatRoomDetailResDTO>> getChatRoom(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId) {
@@ -62,6 +65,7 @@ public class ChatRestController {
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @PostMapping
+    @Operation(summary = "채팅방 생성", description = "새 채팅방을 생성합니다.")
     public ResponseEntity<ApiResponse<Void>> registChatRoom(
             @OrgId @PathVariable Long orgId,
             @RequestBody ChatRoomCreateReqDTO request) {
@@ -73,6 +77,7 @@ public class ChatRestController {
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @PutMapping("/{roomId}")
+    @Operation(summary = "채팅방 수정", description = "채팅방 정보를 수정합니다.")
     public ResponseEntity<ApiResponse<Void>> modifyChatRoom(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId,
@@ -85,6 +90,7 @@ public class ChatRestController {
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @DeleteMapping("/{roomId}")
+    @Operation(summary = "채팅방 삭제", description = "채팅방을 삭제합니다.")
     public ResponseEntity<ApiResponse<Void>> deleteChatRoom(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId) {
@@ -96,17 +102,21 @@ public class ChatRestController {
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @GetMapping("/{roomId}/messages")
-    public ResponseEntity<ApiResponse<List<ChatMessageResDTO>>> getMessages(
+    @Operation(summary = "메시지 목록 조회", description = "특정 채팅방의 메시지 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<PageResponse<ChatMessageResDTO>>> getMessages(
             @OrgId @PathVariable Long orgId,
-            @PathVariable Long roomId) {
+            @PathVariable Long roomId,
+            Pageable pageable) {
 
-        List<ChatMessageResDTO> chatMessages = chatService.findAllMessages(orgId, roomId);
+        Page<ChatMessageResDTO> chatMessages = chatService.findAllMessages(orgId, roomId, pageable);
+        System.out.println("Received Pageable: " + pageable);
 
-        return ResponseEntity.ok(ApiResponse.success(chatMessages, "채팅 메시지 조회에 성공했습니다."));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(chatMessages), "채팅 메시지 조회에 성공했습니다."));
     }
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @GetMapping("/{roomId}/participants")
+    @Operation(summary = "참여자 목록 조회", description = "특정 채팅방의 참가자 목록을 조회합니다.")
     public ResponseEntity<ApiResponse<List<ChatParticipantResDTO>>> getChatRoomParticipants(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId) {
@@ -118,6 +128,7 @@ public class ChatRestController {
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @PostMapping("/{roomId}/participants")
+    @Operation(summary = "참여자 추가", description = "특정 채팅방에 참가자를 추가합니다.")
     public ResponseEntity<ApiResponse<Void>> addChatRoomParticipant(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId,
@@ -130,6 +141,7 @@ public class ChatRestController {
 
     @OrgAuth(accessLevel = Role.MEMBER)
     @DeleteMapping("/{roomId}/participants/{memberId}")
+    @Operation(summary = "참여자 삭제", description = "특정 채팅방에서 참가자를 제거합니다.")
     public ResponseEntity<ApiResponse<Void>> deleteChatRoomParticipant(
             @OrgId @PathVariable Long orgId,
             @PathVariable Long roomId,

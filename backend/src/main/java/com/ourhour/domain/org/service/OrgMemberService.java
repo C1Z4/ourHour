@@ -15,13 +15,12 @@ import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.domain.user.service.AnonymizeUserService;
 import com.ourhour.global.common.dto.PageResponse;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +37,7 @@ public class OrgMemberService {
     private final AnonymizeUserService anonymizeUserService;
 
     // 회사 구성원 목록 조회
-    public PageResponse<MemberInfoResDTO> getOrgMembers(Long orgId, Pageable pageable) {
+    public PageResponse<MemberInfoResDTO> getOrgMembers(Long orgId, String search, Pageable pageable) {
 
         if (orgId == null || orgId <= 0) {
             throw OrgException.orgNotFoundException();
@@ -49,7 +48,12 @@ public class OrgMemberService {
             throw OrgException.orgNotFoundException();
         }
 
-        Page<OrgParticipantMemberEntity> page = orgParticipantMemberRepository.findByOrgId(orgId, pageable);
+        Page<OrgParticipantMemberEntity> page;
+        if (search != null && !search.trim().isEmpty()) {
+            page = orgParticipantMemberRepository.findByOrgIdAndNameContaining(orgId, search.trim(), pageable);
+        } else {
+            page = orgParticipantMemberRepository.findByOrgId(orgId, pageable);
+        }
 
         Page<MemberInfoResDTO> memberInfoPage = page.map(entity -> {
             MemberInfoResDTO dto = new MemberInfoResDTO();
@@ -79,6 +83,79 @@ public class OrgMemberService {
 
         return memberInfoResDTO;
 
+    }
+
+    // 특정 부서의 구성원 목록 조회
+    public List<MemberInfoResDTO> getMembersByDepartment(Long orgId, Long deptId) {
+        if (orgId == null || orgId <= 0) {
+            throw OrgException.orgNotFoundException();
+        }
+
+        if (deptId == null || deptId <= 0) {
+            throw OrgException.departmentNotFoundException();
+        }
+
+        // 회사 존재 여부 확인
+        if (!orgRepository.existsById(orgId)) {
+            throw OrgException.orgNotFoundException();
+        }
+
+        List<OrgParticipantMemberEntity> members = orgParticipantMemberRepository.findByOrgIdAndDeptId(orgId, deptId);
+
+        return members.stream()
+                .map(entity -> {
+                    MemberInfoResDTO dto = new MemberInfoResDTO();
+                    dto.setMemberId(entity.getMemberEntity().getMemberId());
+                    dto.setName(entity.getMemberEntity().getName());
+                    dto.setEmail(entity.getMemberEntity().getEmail());
+                    dto.setPhone(entity.getMemberEntity().getPhone());
+                    dto.setPositionName(
+                            Optional.ofNullable(entity.getPositionEntity()).map(PositionEntity::getName).orElse(null));
+                    dto.setDeptName(
+                            Optional.ofNullable(entity.getDepartmentEntity()).map(DepartmentEntity::getName)
+                                    .orElse(null));
+                    dto.setProfileImgUrl(entity.getMemberEntity().getProfileImgUrl());
+                    dto.setRole(entity.getRole().getDescription());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    // 특정 직책의 구성원 목록 조회
+    public List<MemberInfoResDTO> getMembersByPosition(Long orgId, Long positionId) {
+        if (orgId == null || orgId <= 0) {
+            throw OrgException.orgNotFoundException();
+        }
+
+        if (positionId == null || positionId <= 0) {
+            throw OrgException.positionNotFoundException();
+        }
+
+        // 회사 존재 여부 확인
+        if (!orgRepository.existsById(orgId)) {
+            throw OrgException.orgNotFoundException();
+        }
+
+        List<OrgParticipantMemberEntity> members = orgParticipantMemberRepository.findByOrgIdAndPositionId(orgId,
+                positionId);
+
+        return members.stream()
+                .map(entity -> {
+                    MemberInfoResDTO dto = new MemberInfoResDTO();
+                    dto.setMemberId(entity.getMemberEntity().getMemberId());
+                    dto.setName(entity.getMemberEntity().getName());
+                    dto.setEmail(entity.getMemberEntity().getEmail());
+                    dto.setPhone(entity.getMemberEntity().getPhone());
+                    dto.setPositionName(
+                            Optional.ofNullable(entity.getPositionEntity()).map(PositionEntity::getName).orElse(null));
+                    dto.setDeptName(
+                            Optional.ofNullable(entity.getDepartmentEntity()).map(DepartmentEntity::getName)
+                                    .orElse(null));
+                    dto.setProfileImgUrl(entity.getMemberEntity().getProfileImgUrl());
+                    dto.setRole(entity.getRole().getDescription());
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     // 구성원 권한 변경
@@ -148,7 +225,7 @@ public class OrgMemberService {
     public void exitOrg(Long orgId) {
 
         // 현재 사용자 ID
-        Long userId = UserContextHolder.get().getUserId();
+        Long userId = SecurityUtil.getCurrentUserId();
 
         // 해당 회사에 속한 멤버 엔티티 찾기
         OrgParticipantMemberEntity opm = orgParticipantMemberRepository

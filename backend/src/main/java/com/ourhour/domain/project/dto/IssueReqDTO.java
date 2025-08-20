@@ -25,4 +25,6 @@ public class IssueReqDTO {
     private Long milestoneId;
 
     private Long assigneeId;
+
+    private Long issueTagId;
 }

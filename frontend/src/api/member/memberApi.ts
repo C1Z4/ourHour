@@ -11,11 +11,20 @@ interface GetMyMemberInfoRequest {
   orgId: number;
 }
 
-export interface MyMemberInfoDetail extends MemberInfoBase {
+export interface MyMemberInfoDetail {
   userId: number;
   memberId: number;
   orgId: number;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  profileImgUrl: string | null;
+  deptId: number | null;
+  positionId: number | null;
+  deptName: string | null;
+  positionName: string | null;
   role: MemberRoleKo;
+  isGithubLinked: boolean;
 }
 
 export const getMyMemberInfo = async (
@@ -40,6 +49,8 @@ export interface MemberInfoBase {
   phone: string | null;
   email: string | null;
   profileImgUrl: string | null;
+  deptId: number | null;
+  positionId: number | null;
   deptName: string | null;
   positionName: string | null;
 }

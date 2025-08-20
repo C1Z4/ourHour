@@ -1,0 +1,176 @@
+{
+  "title": "Ourhour Monitoring Dashboard",
+  "timezone": "browser",
+  "schemaVersion": 27,
+  "version": 2,
+  "panels": [
+    {
+      "type": "row",
+      "title": "HTTP 요청 모니터링",
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "type": "graph",
+      "title": "Endpoint Avg & P99 Response Time",
+      "description": "엔드포인트별 평균 응답 시간과 상위 99% 응답 시간을 보여줍니다.",
+      "targets": [
+        {
+          "expr": "sum by (uri) (rate(http_server_requests_seconds_sum{job=\"backend\"}[5m])) / sum by (uri) (rate(http_server_requests_seconds_count{job=\"backend\"}[5m]))",
+          "legendFormat": "{{uri}} avg"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, uri) (rate(http_server_requests_seconds_bucket{job=\"backend\"}[5m])))",
+          "legendFormat": "{{uri}} p99"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Endpoint Request Rate (RPS)",
+      "description": "엔드포인트별 초당 요청 수를 보여줍니다.",
+      "targets": [
+        {
+          "expr": "sum by (uri) (rate(http_server_requests_seconds_count{job=\"backend\"}[1m]))",
+          "legendFormat": "{{uri}}"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "5xx Error Rate (%)",
+      "description": "전체 요청 대비 5xx 에러 발생 비율을 보여줍니다.",
+      "targets": [
+        {
+          "expr": "(sum by (uri) (rate(http_server_requests_seconds_count{job=\"backend\", status=~\"5..\"}[5m])) / sum by (uri) (rate(http_server_requests_seconds_count{job=\"backend\"}[5m]))) * 100",
+          "legendFormat": "{{uri}}"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "JVM & 애플리케이션 성능",
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "type": "graph",
+      "title": "GC Pause Time",
+      "description": "GC로 인해 애플리케이션이 멈춘 시간의 비율을 보여줍니다.",
+      "targets": [
+        {
+          "expr": "sum by (gc) (rate(jvm_gc_pause_seconds_sum{job=\"backend\"}[5m]))",
+          "legendFormat": "{{gc}}"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Heap Memory Usage",
+      "description": "JVM의 힙 메모리 사용량을 보여줍니다.",
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{job=\"backend\", area=\"heap\"}",
+          "legendFormat": "{{id}}"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "시스템 리소스 모니터링 (Node Exporter)",
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "type": "graph",
+      "title": "CPU Usage (%)",
+      "description": "서버의 전체 CPU 사용률을 보여줍니다.",
+      "targets": [
+        {
+          "expr": "(1 - avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))) * 100",
+          "legendFormat": "{{instance}} usage"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Memory Usage (%)",
+      "description": "서버의 메모리 사용률을 보여줍니다.",
+      "targets": [
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory Usage"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Network Traffic (bytes/sec)",
+      "description": "서버의 네트워크 송수신량을 보여줍니다.",
+      "targets": [
+        {
+          "expr": "rate(node_network_receive_bytes_total{job=\"node-exporter\"}[5m])",
+          "legendFormat": "{{device}} RX"
+        },
+        {
+          "expr": "rate(node_network_transmit_bytes_total{job=\"node-exporter\"}[5m])",
+          "legendFormat": "{{device}} TX"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Disk I/O (bytes/sec)",
+      "description": "디스크 읽기/쓰기 처리량을 보여줍니다.",
+      "targets": [
+        {
+          "expr": "rate(node_disk_read_bytes_total{job=\"node-exporter\"}[5m])",
+          "legendFormat": "{{device}} read"
+        },
+        {
+          "expr": "rate(node_disk_written_bytes_total{job=\"node-exporter\"}[5m])",
+          "legendFormat": "{{device}} write"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "데이터베이스 모니터링 (MySQL Exporter)",
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "type": "graph",
+      "title": "Slow Query Rate",
+      "description": "Slow Query 발생 빈도를 보여줍니다.",
+      "targets": [
+        {
+          "expr": "rate(mysql_global_status_slow_queries[5m])",
+          "legendFormat": "Slow Queries"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Active Connections",
+      "description": "현재 활성화된 DB 커넥션 수를 보여줍니다.",
+      "targets": [
+        {
+          "expr": "mysql_global_status_threads_connected",
+          "legendFormat": "Connections"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "InnoDB Buffer Pool Hit Rate (%)",
+      "description": "InnoDB 버퍼 풀 히트율을 보여줍니다.",
+      "targets": [
+        {
+          "expr": "(1 - (rate(mysql_global_status_innodb_buffer_pool_reads[5m]) / rate(mysql_global_status_innodb_buffer_pool_read_requests[5m]))) * 100",
+          "legendFormat": "Hit Rate"
+        }
+      ]
+    }
+  ]
+}

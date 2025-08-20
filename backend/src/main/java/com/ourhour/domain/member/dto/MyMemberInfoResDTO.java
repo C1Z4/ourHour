@@ -17,8 +17,11 @@ public class MyMemberInfoResDTO {
     private String phone;
     private String email;
     private String profileImgUrl;
+    private Long deptId;
+    private Long positionId;
     private String deptName;
     private String positionName;
     private String role;
+    private Boolean isGithubLinked;
 
 }

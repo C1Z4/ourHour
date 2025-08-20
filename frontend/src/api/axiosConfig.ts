@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
   '/api/auth/check-email',
   '/api/auth/email-verification',
   '/api/auth/signin',
+  '/api/auth/oauth-signin',
   '/api/auth/password-reset',
 ];
 
@@ -57,7 +58,7 @@ const processQueue = (error: AxiosError | null, token: string | null = null) => 
 
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  timeout: 10000,
+  timeout: 60000,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -117,7 +118,7 @@ axiosInstance.interceptors.response.use(
     }
 
     if (isPublicRequest(originalRequest.url)) {
-      return true;
+      return Promise.reject(error);
     }
 
     logError(error, originalRequest);

@@ -6,23 +6,18 @@ import com.ourhour.domain.auth.entity.RefreshTokenEntity;
 import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.auth.repository.EmailVerificationRepository;
 import com.ourhour.domain.auth.repository.RefreshTokenRepository;
-import com.ourhour.domain.member.entity.MemberEntity;
-import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
+import com.ourhour.domain.auth.util.AuthServiceHelper;
 import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.domain.user.mapper.UserMapper;
 import com.ourhour.domain.user.repository.UserRepository;
 import com.ourhour.global.jwt.JwtTokenProvider;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.mapper.JwtClaimMapper;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.ourhour.domain.auth.exception.AuthException.*;
 
@@ -35,8 +30,8 @@ public class AuthService {
     private final UserMapper userMapper;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    private final JwtClaimMapper jwtClaimMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AuthServiceHelper authServiceHelper;
 
     // 이메일 중복 확인
     @Transactional(readOnly = true)
@@ -59,7 +54,6 @@ public class AuthService {
         if (!checkAvailEmail(signupReqDTO.getEmail())) {
             throw duplicateRequestException();
         }
-        ;
 
         boolean isVerified = emailVerificationRepository.existsByEmailAndIsUsedTrue(signupReqDTO.getEmail());
         if (!isVerified) {
@@ -93,53 +87,14 @@ public class AuthService {
         }
 
         // JWT token 발급
-        String accessToken = jwtTokenProvider.generateAccessToken(createClaims(userEntity));
-        String refreshToken = jwtTokenProvider.generateRefreshToken(createClaims(userEntity));
+        String accessToken = jwtTokenProvider.generateAccessToken(authServiceHelper.createClaims(userEntity));
+        String refreshToken = jwtTokenProvider.generateRefreshToken(authServiceHelper.createClaims(userEntity));
 
         // refresh token DB 저장
-        saveRefreshToken(userEntity, refreshToken);
+        authServiceHelper.saveRefreshToken(userEntity, refreshToken);
 
         // access token 반환
         return new SigninResDTO(accessToken, refreshToken);
-
-    }
-
-    // Claim 생성
-    private Claims createClaims(UserEntity userEntity) {
-
-        // UserEntity와 연결된 모든 MemberEntity 조회
-        List<MemberEntity> memberEntityList = userEntity.getMemberEntityList();
-
-        // MemberEntity에 연결된 모든 OrgParticipantMemberEntity 조회
-        List<OrgParticipantMemberEntity> orgParticipantMemberEntityList = new ArrayList<>();
-        for (MemberEntity memberEntity : memberEntityList) {
-
-            List<OrgParticipantMemberEntity> participantList = memberEntity.getOrgParticipantMemberEntityList();
-            orgParticipantMemberEntityList.addAll(participantList);
-
-        }
-
-        return jwtClaimMapper.createClaim(userEntity, orgParticipantMemberEntityList);
-
-    }
-
-    // refresh token 저장
-    private void saveRefreshToken(UserEntity userEntity, String refreshToken) {
-
-        // 기존 refresh token 있다면 삭제
-        refreshTokenRepository.findByUserEntity(userEntity).ifPresent(refreshTokenRepository::delete);
-
-        // refresh token DB 저장
-        LocalDateTime createdAt = jwtTokenProvider.getIatFromToken(refreshToken);
-        LocalDateTime expiredAt = jwtTokenProvider.getExpFromToken(refreshToken);
-        RefreshTokenEntity refreshTokenEntity = RefreshTokenEntity.builder()
-                .userEntity(userEntity)
-                .token(refreshToken)
-                .createdAt(createdAt)
-                .expiresAt(expiredAt)
-                .build();
-
-        refreshTokenRepository.save(refreshTokenEntity);
 
     }
 
@@ -167,7 +122,7 @@ public class AuthService {
         }
 
         // access token 재발급
-        String accessToken = jwtTokenProvider.generateAccessToken(createClaims(userEntity));
+        String accessToken = jwtTokenProvider.generateAccessToken(authServiceHelper.createClaims(userEntity));
 
         // access token 반환
         return new SigninResDTO(accessToken, null);
@@ -178,13 +133,11 @@ public class AuthService {
     public void signout() {
 
         // 인증 정보 확인
-        Claims claims = UserContextHolder.get();
-        if (claims == null) {
-            throw unauthorizedException();
+        Long userId = SecurityUtil.getCurrentUserId();
+        if(userId == null) {
+            throw AuthException.unauthorizedException();
         }
 
-        // db에서 refresh token 삭제
-        Long userId = claims.getUserId();
         RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findByUserEntity_UserId(userId);
         if (refreshTokenEntity != null) {
             refreshTokenRepository.delete(refreshTokenEntity);

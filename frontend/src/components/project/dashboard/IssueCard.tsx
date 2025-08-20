@@ -2,13 +2,19 @@ import { useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
 
+import { IssueStatusEng } from '@/types/issueTypes';
+
 import { ProjectIssueSummary } from '@/api/project/issueApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { MoreOptionsPopover } from '@/components/common/MoreOptionsPopover';
-import { StatusBadge } from '@/components/common/StatusBadge';
+import { StatusDropdown } from '@/components/common/StatusDropdown';
+import { computeHexColor } from '@/components/project/issue-form/TagSelect';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useIssueDeleteMutation } from '@/hooks/queries/project/useIssueMutations';
+import {
+  useIssueDeleteMutation,
+  useIssueStatusUpdateMutation,
+} from '@/hooks/queries/project/useIssueMutations';
 
 interface IssueCardProps {
   issue: ProjectIssueSummary;
@@ -22,6 +28,11 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
 
   const { mutate: deleteIssue } = useIssueDeleteMutation(
     issue.issueId,
+    Number(orgId),
+    Number(projectId),
+  );
+
+  const { mutate: updateStatus, isPending: isStatusUpdating } = useIssueStatusUpdateMutation(
     Number(orgId),
     Number(projectId),
   );
@@ -48,13 +59,29 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
     e.stopPropagation();
   };
 
+  const handleStatusChange = (newStatus: IssueStatusEng) => {
+    updateStatus({
+      issueId: issue.issueId,
+      status: newStatus,
+      projectId: Number(projectId),
+    });
+  };
+
   return (
     <div
       className="group bg-white rounded-lg border border-gray-200 p-3 mb-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
       onClick={handleIssueClick}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-500 font-medium">{issue.tag || '태그없음'}</span>
+        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+          {issue.tagColor && (
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: computeHexColor(issue.tagColor) }}
+            />
+          )}
+          {issue.tagName || '태그없음'}
+        </div>
         <div onClick={handlePopoverClick}>
           <MoreOptionsPopover
             className="w-32"
@@ -81,7 +108,13 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
           </Avatar>
           <span className="text-xs text-gray-700">{issue.assigneeName}</span>
         </div>
-        <StatusBadge type="issue" status={issue.status} />
+        <div onClick={(e) => e.stopPropagation()}>
+          <StatusDropdown
+            currentStatus={issue.status}
+            onStatusChange={handleStatusChange}
+            disabled={isStatusUpdating}
+          />
+        </div>
       </div>
 
       {isDeleteModalOpen && (

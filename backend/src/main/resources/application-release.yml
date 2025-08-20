@@ -1,12 +1,11 @@
 spring:
-
   config:
     import:
-      - aws-parameterstore:/ourhour/
+      - aws-parameterstore:/ourhour/release/
 
   # DB 관련 설정
   datasource:
-    url: ${db.url}
+    url: ${db.url}?serverTimezone=Asia/Seoul
     username: ${db.username}
     password: ${db.password}
 
@@ -24,11 +23,31 @@ spring:
           starttls:
             enable: true
 
+  # AWS 설정 (지역 및 인증 프로파일)
+  cloud:
+    aws:
+      parameterstore:
+        recursive: true
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: ${aws.s3.bucket}
+      stack:
+        auto: false
+
   # 프론트엔드 관련 설정
   service:
     url:
       front: ${url.front}
-    base-url-email: http://localhost:8080
+
+  # Redis 설정
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
+      ssl:
+        enabled: true
 
 # JWT 관련 설정
 jwt:
@@ -36,13 +55,36 @@ jwt:
   access-token-validity-in-seconds: ${jwt.access-token}
   refresh-token-validity-in-seconds: ${jwt.refresh-token}
 
+# Cookie 관련 설정
+cookie:
+  secure: ${cookie.secure}
+  same-site: ${cookie.same-site}
 
-# AWS 설정 (지역 및 인증 프로파일)
-cloud:
-  aws:
-    region:
-      static: ap-northeast-2
-    credentials:
-      profile:
-        name: default
+# 암호화 설정
+encryption:
+  secret-key: ${encryption.secret-key}
 
+# GitHub OAuth 설정
+github:
+  client-id: ${github.client-id}
+  client-secret: ${github.client-secret}
+  redirect-uri: ${github.redirect-uri}
+  scope: ${github.scope}
+
+# 소셜 로그인 OAuth 설정
+signin:
+  github:
+    client-id: ${signin.github.client-id}
+    client-secret: ${signin.github.client-secret}
+  google:
+    client-id: ${google.client-id}
+    client-secret: ${google.client-secret}
+  redirect-uri: ${signin.redirect-uri}
+
+app:
+  cache:
+    image:
+      max-size: 1000 
+
+python-server:
+  url: ${python-server.url}

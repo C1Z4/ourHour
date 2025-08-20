@@ -3,25 +3,15 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { OrgBaseInfo } from '@/api/org/orgApi';
+import { uploadImageWithCompression } from '@/api/storage/uploadApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { LogoUpload } from '@/components/org/LogoUpload';
 import { OrgBasicInfo } from '@/components/org/OrgBasicInfo';
+import { OrgStructureManager } from '@/components/org/OrgStructureManager';
 import { RootState } from '@/stores/store';
-import { compressAndSaveImage, validateFileSize, validateFileType } from '@/utils/file/fileStorage';
+import { validateFileSize, validateFileType } from '@/utils/file/fileStorage';
 import { showErrorToast } from '@/utils/toast';
-
-// import { DepartmentPositionManager } from './DepartmentPositionManager';
-
-// interface Department {
-//   id: string;
-//   name: string;
-// }
-
-// interface Position {
-//   id: string;
-//   name: string;
-// }
 
 interface OrgModalProps {
   isOpen: boolean;
@@ -39,8 +29,6 @@ export interface OrgFormData {
   businessNumber: string;
   representativeName: string;
   phone: string;
-  //   departments: Department[];
-  //   positions: Position[];
 }
 
 export function OrgModal({ isOpen, onClose, onSubmit, initialInfoData }: OrgModalProps) {
@@ -57,8 +45,6 @@ export function OrgModal({ isOpen, onClose, onSubmit, initialInfoData }: OrgModa
     businessNumber: initialInfoData?.businessNumber || '',
     representativeName: initialInfoData?.representativeName || '',
     phone: '',
-    // departments: [{ id: '1', name: '' }],
-    // positions: [{ id: '1', name: '' }],
   });
 
   useEffect(() => {
@@ -88,41 +74,26 @@ export function OrgModal({ isOpen, onClose, onSubmit, initialInfoData }: OrgModa
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setLogoPreview(result);
-        setFormData((prev) => ({
-          ...prev,
-          logoImgUrl: result,
-        }));
-      };
-      reader.readAsDataURL(file);
+      setLogoPreview(URL.createObjectURL(file));
     }
   };
 
   const handleFileSelect = async (file: File) => {
     try {
-      // 파일 검증
       if (!validateFileType(file)) {
         showErrorToast('지원하지 않는 파일 형식입니다. (JPG, PNG, GIF만 가능)');
         return;
       }
-
       if (!validateFileSize(file, 5)) {
         showErrorToast('파일 크기는 5MB 이하여야 합니다.');
         return;
       }
 
-      // 미리보기를 위한 이미지 압축 및 저장(메모리에 임시 저장)
-      const compressedImageUrl = await compressAndSaveImage(file, 800, 0.8);
-      setLogoPreview(compressedImageUrl);
-      setFormData((prev) => ({
-        ...prev,
-        logoImgUrl: compressedImageUrl,
-      }));
+      const cdnUrl = await uploadImageWithCompression(file);
+      setLogoPreview(cdnUrl);
+      setFormData((prev) => ({ ...prev, logoImgUrl: cdnUrl }));
     } catch (error) {
-      showErrorToast('이미지 처리 중 오류가 발생했습니다.');
+      showErrorToast('이미지 업로드 중 오류가 발생했습니다.');
     }
   };
 
@@ -175,16 +146,8 @@ export function OrgModal({ isOpen, onClose, onSubmit, initialInfoData }: OrgModa
           onInputChange={handleInputChange}
           isEditing={isEditing}
         />
-
-        {/* <DepartmentPositionManager
-          departments={formData.departments}
-          positions={formData.positions}
-          onDepartmentsChange={(departments) =>
-            setFormData((prev) => ({ ...prev, departments }))
-          }
-          onPositionsChange={(positions) => setFormData((prev) => ({ ...prev, positions }))}
-        /> */}
       </form>
+      {isEditing && initialInfoData?.orgId && <OrgStructureManager orgId={initialInfoData.orgId} />}
     </ModalComponent>
   );
 }

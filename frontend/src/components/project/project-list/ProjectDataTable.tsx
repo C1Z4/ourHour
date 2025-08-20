@@ -16,6 +16,7 @@ import {
 import { ProjectSummary } from '@/api/project/projectApi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { PaginationComponent } from '@/components/common/PaginationComponent';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -25,11 +26,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useProjectSummaryListQuery } from '@/hooks/queries/project/useProjectQueries';
-import { setCurrentProjectName } from '@/stores/projectSlice';
+import { setCurrentProjectId, setCurrentProjectName } from '@/stores/projectSlice';
 
 import { ProjectColumns } from './ProjectColumns';
 
-export function ProjectDataTable() {
+export function ProjectDataTable({ isMyProjectsOnly }: { isMyProjectsOnly: boolean }) {
   const dispatch = useDispatch();
   const router = useRouter();
   const { orgId } = useParams({ from: '/org/$orgId/project/' });
@@ -41,7 +42,10 @@ export function ProjectDataTable() {
 
   const { data: projectSummaryList, isLoading } = useProjectSummaryListQuery(
     Number(orgId),
+    undefined,
     currentPage,
+    undefined,
+    isMyProjectsOnly,
   );
 
   const tableData = useMemo(
@@ -76,6 +80,7 @@ export function ProjectDataTable() {
       to: '/org/$orgId/project/$projectId',
       params: { orgId, projectId },
     });
+    dispatch(setCurrentProjectId(projectId));
     dispatch(setCurrentProjectName(projectName));
   };
 
@@ -97,7 +102,63 @@ export function ProjectDataTable() {
   // };
 
   if (isLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="w-full space-y-4">
+        <div className="rounded-lg border border-gray-200 overflow-hidden">
+          <Table>
+            <TableHeader className="bg-gray-100">
+              <TableRow>
+                <TableHead className="pl-3">
+                  <Skeleton className="h-4 w-20" />
+                </TableHead>
+                <TableHead className="pl-3">
+                  <Skeleton className="h-4 w-24" />
+                </TableHead>
+                <TableHead className="pl-3">
+                  <Skeleton className="h-4 w-16" />
+                </TableHead>
+                <TableHead className="pl-3">
+                  <Skeleton className="h-4 w-20" />
+                </TableHead>
+                <TableHead className="pl-3">
+                  <Skeleton className="h-4 w-16" />
+                </TableHead>
+                <TableHead className="pl-3">
+                  <Skeleton className="h-4 w-16" />
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell className="py-4 pl-3">
+                    <Skeleton className="h-4 w-32" />
+                  </TableCell>
+                  <TableCell className="py-4 pl-3">
+                    <Skeleton className="h-4 w-24" />
+                  </TableCell>
+                  <TableCell className="py-4 pl-3">
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell className="py-4 pl-3">
+                    <Skeleton className="h-4 w-16" />
+                  </TableCell>
+                  <TableCell className="py-4 pl-3">
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell className="py-4 pl-3">
+                    <Skeleton className="h-4 w-16" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="flex justify-center pt-4">
+          <Skeleton className="h-10 w-64" />
+        </div>
+      </div>
+    );
   }
 
   return (

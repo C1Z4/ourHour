@@ -20,3 +20,9 @@ export const MEMBER_ROLE_STYLES = {
   일반회원: 'bg-blue-100 text-blue-800',
   게스트: 'bg-gray-100 text-gray-800',
 } as const;
+
+export const INV_STATUS_STYLES = {
+  대기중: 'bg-yellow-100 text-yellow-800',
+  수락됨: 'bg-green-100 text-green-800',
+  만료됨: 'bg-gray-100 text-gray-800',
+} as const;

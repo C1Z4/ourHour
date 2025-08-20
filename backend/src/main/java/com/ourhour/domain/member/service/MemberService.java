@@ -8,14 +8,16 @@ import com.ourhour.domain.org.entity.DepartmentEntity;
 import com.ourhour.domain.org.entity.PositionEntity;
 import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.mapper.OrgParticipantMemberMapper;
+import com.ourhour.domain.org.repository.DepartmentRepository;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
+import com.ourhour.domain.org.repository.PositionRepository;
 import com.ourhour.domain.member.dto.MemberOrgDetailResDTO;
 import com.ourhour.domain.member.dto.MemberOrgSummaryResDTO;
 import com.ourhour.domain.member.mapper.MemberOrgMapper;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.exception.OrgException;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +39,8 @@ public class MemberService {
     private final MemberOrgMapper memberOrgMapper;
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
     private final OrgParticipantMemberMapper orgParticipantMemberMapper;
+    private final DepartmentRepository departmentRepository;
+    private final PositionRepository positionRepository;
     private final ImageService imageService;
 
     public MemberOrgSummaryResDTO findOrgSummaryByMemberId(Long memberId) {
@@ -60,30 +64,21 @@ public class MemberService {
         return PageResponse.of(dtoPage);
     }
 
-    // 참여 중인 회사 목록 조회
-    public PageResponse<MemberOrgSummaryResDTO> findOrgSummaryByMemberIds(List<Long> memberIds, Pageable pageable) {
+    // 참여 중인 회사 목록 조회 (userId 기반)
+    public PageResponse<MemberOrgSummaryResDTO> findOrgSummaryByUserId(Long userId, Pageable pageable) {
 
         Page<OrgParticipantMemberEntity> orgParticipantMemberEntityPage = memberRepository
-                .findOrgListByMemberIdsAndStatus(memberIds, Status.ACTIVE, pageable);
+                .findOrgListByUserIdAndStatus(userId, Status.ACTIVE, pageable);
 
         if (orgParticipantMemberEntityPage.isEmpty()) {
             return PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize());
         }
 
-        // 활성 상태만 필터링
         List<MemberOrgSummaryResDTO> dtoList = orgParticipantMemberEntityPage.getContent().stream()
-                .filter(opm -> {
-                    try {
-                        findMyMemberInOrgHelper(opm.getOrgEntity().getOrgId());
-                        return true;
-                    } catch (Exception e) {
-                        throw OrgException.orgNotFoundException();
-                    }
-                })
                 .map(memberOrgMapper::toMemberOrgSummaryResDTO)
                 .toList();
 
-        Page<MemberOrgSummaryResDTO> dtoPage = new PageImpl<>(dtoList, pageable, dtoList.size());
+        Page<MemberOrgSummaryResDTO> dtoPage = new PageImpl<>(dtoList, pageable, orgParticipantMemberEntityPage.getTotalElements());
 
         return PageResponse.of(dtoPage);
     }
@@ -120,9 +115,9 @@ public class MemberService {
 
         // 해당 회사 내에 내 정보가 있고 활성 상태인지 조회
         OrgParticipantMemberEntity opm = findMyMemberInOrgHelper(orgId);
+
+        // 내 정보 조회
         MemberEntity memberEntity = opm.getMemberEntity();
-        DepartmentEntity deptEntity = opm.getDepartmentEntity();
-        PositionEntity positionEntity = opm.getPositionEntity();
 
         // 이미지 처리
         String profileImgUrl = myInfoReqDTO.getProfileImgUrl();
@@ -140,23 +135,37 @@ public class MemberService {
                     .phone(myInfoReqDTO.getPhone())
                     .email(myInfoReqDTO.getEmail())
                     .profileImgUrl(profileImgUrl)
-                    .deptName(myInfoReqDTO.getDeptName())
-                    .positionName(myInfoReqDTO.getPositionName())
+                    .deptId(myInfoReqDTO.getDeptId())
+                    .positionId(myInfoReqDTO.getPositionId())
                     .build();
         }
 
         // memberEntity 업데이트
-        memberEntity.changeMyMemberInfo(updatedInfoReqDTO.getName(), updatedInfoReqDTO.getPhone(),
-                updatedInfoReqDTO.getEmail(),
-                updatedInfoReqDTO.getProfileImgUrl());
+        memberEntity.changeMyMemberInfo(
+            updatedInfoReqDTO.getName(),
+            updatedInfoReqDTO.getPhone(),
+            updatedInfoReqDTO.getEmail(),
+            updatedInfoReqDTO.getProfileImgUrl()
+        );
 
         // 부서 재할당
-        if (updatedInfoReqDTO.getDeptName() != null) {
+        if (updatedInfoReqDTO.getDeptId() != null) {
+            DepartmentEntity newDepartment = departmentRepository.findById(updatedInfoReqDTO.getDeptId())
+                    .orElseThrow(OrgException::departmentNotFoundException);
+            opm.changeDepartment(newDepartment);
+        } else {
+            // 부서 없음으로 설정
+            opm.changeDepartment(null);
         }
 
-        // 직책 재할당
-        if (updatedInfoReqDTO.getPositionName() != null) {
-
+        // 직책 재할당  
+        if (updatedInfoReqDTO.getPositionId() != null) {
+            PositionEntity newPosition = positionRepository.findById(updatedInfoReqDTO.getPositionId())
+                    .orElseThrow(OrgException::positionNotFoundException);
+            opm.changePosition(newPosition);
+        } else {
+            // 직책 없음으로 설정
+            opm.changePosition(null);
         }
 
         // Entity -> DTO 변환
@@ -172,7 +181,7 @@ public class MemberService {
         return orgParticipantMemberRepository
                 .findByOrgEntity_OrgIdAndMemberEntity_UserEntity_UserIdAndStatus(
                         orgId,
-                        UserContextHolder.get().getUserId(),
+                        SecurityUtil.getCurrentUserId(),
                         Status.ACTIVE)
                 .orElseThrow(MemberException::memberNotFoundException);
     }

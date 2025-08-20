@@ -6,10 +6,11 @@ import { MEMBER_ROLE_KO_TO_ENG, MemberRoleKo } from '@/types/memberTypes';
 
 import { OrgBaseInfo } from '@/api/org/orgApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { MembersTable } from '@/components/common/MembersTable';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { OrgModal } from '@/components/org/OrgModal';
-import { ProjectMembersTable } from '@/components/project/info/ProjectMembersTable';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   useMemberDeleteMutation,
   useOrgDeleteMutation,
@@ -18,6 +19,7 @@ import {
 } from '@/hooks/queries/org/useOrgMutations';
 import { useOrgInfoQuery, useOrgMemberListQuery } from '@/hooks/queries/org/useOrgQueries';
 import { usePasswordVerificationMutation } from '@/hooks/queries/user/useUserMutations';
+import { useAppSelector } from '@/stores/hooks';
 import { getImageUrl } from '@/utils/file/imageUtils';
 
 export const Route = createFileRoute('/org/$orgId/info/')({
@@ -29,17 +31,17 @@ function OrgInfoPage() {
 
   const router = useRouter();
 
+  const currentUserRole = useAppSelector((state) => state.activeOrgId.currentRole);
+
   const [currentPage, setCurrentPage] = useState(1);
-  // 회사 구성원 삭제
-  const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
-
-  // 비밀번호 확인
-  const [password, setPassword] = useState('');
-
+  const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]); // 회사 구성원 삭제
+  const [password, setPassword] = useState(''); // 비밀번호 확인
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteMemberModalOpen, setIsDeleteMemberModalOpen] = useState(false);
   const [isDeleteOrgModalOpen, setIsDeleteOrgModalOpen] = useState(false);
   const [isRoleChangeModalOpen, setIsRoleChangeModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
 
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
@@ -49,11 +51,16 @@ function OrgInfoPage() {
     newRole: MemberRoleKo;
   } | null>(null);
 
-  const { data: orgInfoData } = useOrgInfoQuery(Number(orgId));
+  const { data: orgInfoData, isLoading: isLoadingOrgInfo } = useOrgInfoQuery(Number(orgId));
 
   const orgInfo = orgInfoData as OrgBaseInfo | undefined;
 
-  const { data: orgMembersData } = useOrgMemberListQuery(Number(orgId), currentPage);
+  const { data: orgMembersData, isLoading: isLoadingOrgMembers } = useOrgMemberListQuery(
+    Number(orgId),
+    currentPage,
+    10,
+    activeSearchQuery || undefined,
+  );
 
   const orgMembers = Array.isArray(orgMembersData?.data) ? orgMembersData.data : [];
 
@@ -66,6 +73,75 @@ function OrgInfoPage() {
   const { mutate: deleteMember } = useMemberDeleteMutation(Number(orgId));
 
   const { mutate: patchMemberRole } = usePatchMemberRoleMutation(Number(orgId));
+
+  const isLoading = isLoadingOrgInfo || isLoadingOrgMembers;
+
+  if (isLoading) {
+    return (
+      <div className="bg-white p-6">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* 조직 기본 정보 스켈레톤 */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-8 w-48" />
+              <div className="flex space-x-3">
+                <Skeleton className="h-9 w-20" />
+                <Skeleton className="h-9 w-20" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          </div>
+
+          {/* 조직 구성원 스켈레톤 */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-32" />
+              <div className="flex space-x-3">
+                <Skeleton className="h-9 w-24" />
+                <Skeleton className="h-9 w-20" />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Skeleton className="w-8 h-8 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleEditProject = () => {
     setIsEditModalOpen(true);
@@ -110,11 +186,18 @@ function OrgInfoPage() {
       { password },
       {
         onSuccess: () => {
-          deleteOrg();
-          setIsDeleteOrgModalOpen(false);
-          router.navigate({
-            to: '/start',
-            search: { page: 1 },
+          deleteOrg(undefined, {
+            onSuccess: () => {
+              setIsDeleteOrgModalOpen(false);
+              router.navigate({
+                to: '/start',
+                search: { page: 1 },
+              });
+            },
+            onError: () => {
+              setIsDeleteOrgModalOpen(false);
+              setPassword('');
+            },
           });
         },
         onError: () => {
@@ -199,6 +282,24 @@ function OrgInfoPage() {
     setPendingRoleChange(null);
   };
 
+  // 검색 관련 핸들러
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleSearchSubmit = () => {
+    setActiveSearchQuery(searchQuery);
+    setCurrentPage(1); // 검색 시 첫 페이지로 이동
+    setSelectedMemberIds([]); // 선택된 멤버 초기화
+  };
+
+  const handleSearchClear = () => {
+    setSearchQuery('');
+    setActiveSearchQuery('');
+    setCurrentPage(1);
+    setSelectedMemberIds([]);
+  };
+
   return (
     <>
       <div className="bg-white">
@@ -226,22 +327,25 @@ function OrgInfoPage() {
                 </div>
                 <h1 className="text-3xl font-bold text-gray-900">{orgInfo?.name}</h1>
               </div>
-              <div className="flex items-center gap-4">
-                <ButtonComponent variant="secondary" onClick={handleEditProject}>
-                  회사 정보 수정
-                </ButtonComponent>
-                <ButtonComponent
-                  variant="danger"
-                  onClick={openDeleteOrgModal}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      openDeleteOrgModal();
-                    }
-                  }}
-                >
-                  회사 삭제
-                </ButtonComponent>
-              </div>
+              {currentUserRole === '관리자' ||
+                (currentUserRole === '루트관리자' && (
+                  <div className="flex items-center gap-4">
+                    <ButtonComponent variant="secondary" onClick={handleEditProject}>
+                      회사 정보 수정
+                    </ButtonComponent>
+                    <ButtonComponent
+                      variant="danger"
+                      onClick={openDeleteOrgModal}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          openDeleteOrgModal();
+                        }
+                      }}
+                    >
+                      회사 삭제
+                    </ButtonComponent>
+                  </div>
+                ))}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -258,9 +362,9 @@ function OrgInfoPage() {
             </div>
           </div>
 
-          <ProjectMembersTable
+          <MembersTable
             type="org"
-            projectMembers={orgMembers}
+            members={orgMembers}
             selectedMemberIds={selectedMemberIds}
             onSelectionChange={handleMemberSelectionChange}
             onDeleteSelected={handleDeleteSelectedMembers}
@@ -269,6 +373,10 @@ function OrgInfoPage() {
             setCurrentPage={setCurrentPage}
             onRoleChange={handleRoleChange}
             onDelete={handleDeleteMembers}
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+            onSearchSubmit={handleSearchSubmit}
+            onSearchClear={handleSearchClear}
           />
         </div>
       </div>

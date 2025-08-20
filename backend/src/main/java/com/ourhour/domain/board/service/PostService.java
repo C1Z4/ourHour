@@ -1,6 +1,5 @@
 package com.ourhour.domain.board.service;
 
-import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.board.dto.PostCreateUpdateReqDTO;
 import com.ourhour.domain.board.dto.PostDTO;
 import com.ourhour.domain.board.entity.BoardEntity;
@@ -10,11 +9,13 @@ import com.ourhour.domain.board.exception.PostException;
 import com.ourhour.domain.board.mapper.PostMapper;
 import com.ourhour.domain.board.repository.BoardRepository;
 import com.ourhour.domain.board.repository.PostRepository;
+import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
+import com.ourhour.domain.org.enums.Role;
+import com.ourhour.domain.org.enums.Status;
 import com.ourhour.global.common.dto.PageResponse;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -30,6 +31,7 @@ public class PostService {
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
     private final PostMapper postMapper;
+    private final OrgParticipantMemberRepository orgParticipantMemberRepository;
 
     public PageResponse<PostDTO> getAllPosts(Long orgId, Pageable pageable) {
 
@@ -69,11 +71,10 @@ public class PostService {
     @Transactional
     public PostDTO createPost(Long orgId, Long boardId, PostCreateUpdateReqDTO request) {
 
-        Long currentMemberId = UserContextHolder.get().getOrgAuthorityList().stream()
-                .filter(auth -> auth.getOrgId().equals(orgId))
-                .map(auth -> auth.getMemberId())
-                .findFirst()
-                .orElseThrow(() -> PostException.postAuthorNotFoundException());
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (currentMemberId == null) {
+            throw PostException.postAuthorNotFoundException();
+        }
 
         MemberEntity author = memberRepository.findById(currentMemberId)
                 .orElseThrow(() -> PostException.postAuthorNotFoundException());
@@ -96,7 +97,10 @@ public class PostService {
     @Transactional
     public void updatePost(Long orgId, Long boardId, Long postId, PostCreateUpdateReqDTO request) {
 
-        Long currentMemberId = getCurrentMemberId(orgId);
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (currentMemberId == null) {
+            throw PostException.postAuthorNotFoundException();
+        }
 
         PostEntity postToUpdate = postRepository.findById(postId)
                 .orElseThrow(() -> PostException.postNotFoundException());
@@ -116,7 +120,10 @@ public class PostService {
     @Transactional
     public void deletePost(Long orgId, Long boardId, Long postId) {
 
-        Long currentMemberId = getCurrentMemberId(orgId);
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (currentMemberId == null) {
+            throw PostException.postAuthorNotFoundException();
+        }
 
         PostEntity postToDelete = postRepository.findById(postId)
                 .orElseThrow(() -> PostException.postNotFoundException());
@@ -126,23 +133,24 @@ public class PostService {
             throw PostException.postAuthorAccessDeniedException();
         }
 
-        if (!postToDelete.getAuthorEntity().getMemberId().equals(currentMemberId)) {
+        if (!canDeletePost(orgId, postToDelete, currentMemberId)) {
             throw PostException.postAuthorAccessDeniedException();
         }
 
         postRepository.delete(postToDelete);
     }
 
-    private Long getCurrentMemberId(Long orgId) {
-        Claims claims = UserContextHolder.get();
-        if (claims == null) {
-            throw AuthException.unauthorizedException();
+    private boolean canDeletePost(Long orgId, PostEntity postEntity, Long currentMemberId) {
+        // 본인이 작성한 게시글인 경우
+        if (postEntity.getAuthorEntity().getMemberId().equals(currentMemberId)) {
+            return true;
         }
 
-        return claims.getOrgAuthorityList().stream()
-                .filter(auth -> auth.getOrgId().equals(orgId))
-                .map(auth -> auth.getMemberId())
-                .findFirst()
-                .orElseThrow(() -> PostException.postAuthorNotFoundException());
+        // 현재 사용자의 해당 조직에서의 권한 확인
+        return orgParticipantMemberRepository
+                .findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, currentMemberId, Status.ACTIVE)
+                .map(opm -> opm.getRole().equals(Role.ADMIN) || opm.getRole().equals(Role.ROOT_ADMIN))
+                .orElse(false);
     }
+
 }

@@ -1,0 +1,86 @@
+spring:
+
+  config:
+    import:
+      - aws-parameterstore:/ourhour/test/
+
+  # DB 관련 설정
+  datasource:
+    url: ${db.url}
+    username: ${db.username}
+    password: ${db.password}
+
+  # 메일 관련 설정
+  mail:
+    from: ${mail.from}
+    host: smtp.gmail.com
+    port: 587
+    username: ${mail.username}
+    password: ${mail.password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # AWS 설정 (지역 및 인증 프로파일)
+  cloud:
+    aws:
+      parameterstore:
+        recursive: true
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: ${aws.s3.bucket}
+      stack:
+        auto: false
+
+  # 프론트엔드 관련 설정
+  service:
+    url:
+      front: ${url.front}
+
+  # Redis 설정
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
+      ssl:
+        enabled: true
+
+# JWT 관련 설정
+jwt:
+  secret: ${jwt.secret}
+  access-token-validity-in-seconds: ${jwt.access-token}
+  refresh-token-validity-in-seconds: ${jwt.refresh-token}
+
+# Cookie 관련 설정
+cookie:
+  secure: ${cookie.secure}
+  same-site: ${cookie.same-site}
+
+# 암호화 설정
+encryption:
+  secret-key: ${encryption.secret-key}
+
+# GitHub OAuth 설정
+github:
+  client-id: ${github.client-id}
+  client-secret: ${github.client-secret}
+  redirect-uri: ${github.redirect-uri}
+  scope: ${github.scope}
+
+# 소셜 로그인 OAuth 설정
+signin:
+  github:
+    client-id: ${signin.github.client-id}
+    client-secret: ${signin.github.client-secret}
+  google:
+    client-id: ${google.client-id}
+    client-secret: ${google.client-secret}
+  redirect-uri: ${signin.redirect-uri}
+
+python-server:
+  url: ${python-server.url}

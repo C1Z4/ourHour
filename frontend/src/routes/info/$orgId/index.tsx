@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 import { createFileRoute, useParams } from '@tanstack/react-router';
 
 import { MyMemberInfoDetail, MemberInfoBase } from '@/api/member/memberApi';
+import { Department, Position } from '@/api/org/orgStructureApi';
+import { uploadImageWithCompression, deleteImage } from '@/api/storage/uploadApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { MemberInfoForm } from '@/components/member/MemberInfoForm';
@@ -13,9 +15,10 @@ import {
   useQuitOrgMutation,
 } from '@/hooks/queries/member/useMemberMutations';
 import { useMyMemberInfoQuery } from '@/hooks/queries/member/useMemberQueries';
+import { useDepartmentsQuery, usePositionsQuery } from '@/hooks/queries/org/useOrgStructureQueries';
 import { usePasswordVerificationMutation } from '@/hooks/queries/user/useUserMutations';
-import { compressAndSaveImage, validateFileSize, validateFileType } from '@/utils/file/fileStorage';
-import { showErrorToast } from '@/utils/toast';
+import { validateFileSize, validateFileType } from '@/utils/file/fileStorage';
+import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 export const Route = createFileRoute('/info/$orgId/')({
   component: MemberInfoPage,
@@ -25,7 +28,13 @@ function MemberInfoPage() {
   const params = useParams({ strict: false });
   const orgId = params.orgId;
 
-  const { data: myMemberInfoData } = useMyMemberInfoQuery(Number(orgId));
+  const { data: myMemberInfoData, isLoading: memberInfoLoading } = useMyMemberInfoQuery(
+    Number(orgId),
+  );
+  const { data: departmentsResponse } = useDepartmentsQuery(Number(orgId));
+  const { data: positionsResponse } = usePositionsQuery(Number(orgId));
+  const departments = (departmentsResponse as unknown as Department[]) || [];
+  const positions = (positionsResponse as unknown as Position[]) || [];
 
   const { mutate: updateMyMemberInfo } = useMyMemberInfoUpdateMutation(Number(orgId));
 
@@ -36,28 +45,65 @@ function MemberInfoPage() {
   const myMemberInfo = myMemberInfoData as unknown as MyMemberInfoDetail;
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [hasUploadedImage, setHasUploadedImage] = useState(false);
+  const isInitializedRef = useRef(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [password, setPassword] = useState('');
 
   useEffect(() => {
     if (myMemberInfo) {
-      setFormData({
-        name: myMemberInfo.name,
-        email: myMemberInfo.email,
-        profileImgUrl: myMemberInfo.profileImgUrl,
-        deptName: myMemberInfo.deptName,
-        positionName: myMemberInfo.positionName,
-        phone: myMemberInfo.phone === '' ? null : myMemberInfo.phone,
-      });
+      if (!isInitializedRef.current) {
+        setFormData({
+          name: myMemberInfo.name,
+          email: myMemberInfo.email,
+          profileImgUrl: myMemberInfo.profileImgUrl,
+          deptId: myMemberInfo.deptId,
+          positionId: myMemberInfo.positionId,
+          deptName: myMemberInfo.deptName,
+          positionName: myMemberInfo.positionName,
+          phone: myMemberInfo.phone === '' ? null : myMemberInfo.phone,
+        });
+        isInitializedRef.current = true;
+      } else if (!hasUploadedImage) {
+        // 초기화 이후이지만 업로드한 이미지가 없으면 서버 데이터로 업데이트
+        setFormData((prev) => ({
+          ...prev,
+          profileImgUrl: myMemberInfo.profileImgUrl,
+        }));
+      }
+      // hasUploadedImage가 true이면 현재 업로드된 이미지 유지
     }
-  }, [myMemberInfo]);
+  }, [myMemberInfo, hasUploadedImage]);
+
+  // orgId 변경 시 상태 초기화
+  useEffect(() => {
+    // 이전 미리보기 URL 메모리 해제
+    if (logoPreview && logoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(logoPreview);
+    }
+    setLogoPreview(null);
+    setHasUploadedImage(false);
+    isInitializedRef.current = false;
+  }, [orgId]);
+
+  // 컴포넌트 언마운트 시 메모리 정리
+  useEffect(
+    () => () => {
+      if (logoPreview) {
+        URL.revokeObjectURL(logoPreview);
+      }
+    },
+    [logoPreview],
+  );
 
   const [formData, setFormData] = useState<MemberInfoBase>({
     name: '',
     email: '',
     profileImgUrl: '',
-    deptName: '',
-    positionName: '',
+    deptId: null,
+    positionId: null,
+    deptName: null,
+    positionName: null,
     phone: '',
   });
 
@@ -65,41 +111,91 @@ function MemberInfoPage() {
     e.preventDefault();
 
     updateMyMemberInfo({ ...formData, orgId: Number(orgId) });
+    // 저장 후 잠시 후에 업로드 상태 리셋 (서버 응답 후)
+    setTimeout(() => {
+      setHasUploadedImage(false);
+    }, 1000);
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | number | null) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setLogoPreview(URL.createObjectURL(file));
-    }
-  };
+  const handleLogoUpload = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        // 이전 미리보기 URL 메모리 해제
+        if (logoPreview && logoPreview.startsWith('blob:')) {
+          URL.revokeObjectURL(logoPreview);
+        }
+        // 즉시 미리보기 표시 (업로드 전)
+        setLogoPreview(URL.createObjectURL(file));
+      }
+    },
+    [logoPreview],
+  );
 
-  const handleFileSelect = async (file: File) => {
+  const handleFileSelect = useCallback(
+    async (file: File) => {
+      try {
+        if (!validateFileType(file)) {
+          showErrorToast('지원하지 않는 파일 형식입니다. (JPG, PNG, GIF만 가능)');
+          return;
+        }
+        if (!validateFileSize(file, 5)) {
+          showErrorToast('파일 크기는 5MB 이하여야 합니다.');
+          return;
+        }
+
+        // 업로드 시작 상태 설정
+        setHasUploadedImage(true);
+
+        const cdnUrl = await uploadImageWithCompression(file);
+
+        // 업로드 결과 검증
+        if (!cdnUrl || cdnUrl.trim() === '') {
+          throw new Error('업로드된 이미지 URL이 비어있습니다');
+        }
+
+        // blob URL 해제 (이제 CDN URL을 사용)
+        if (logoPreview && logoPreview.startsWith('blob:')) {
+          URL.revokeObjectURL(logoPreview);
+        }
+
+        // 한 번에 모든 상태 업데이트
+        setLogoPreview(cdnUrl);
+        setFormData((prev) => ({ ...prev, profileImgUrl: cdnUrl }));
+      } catch (error) {
+        setHasUploadedImage(false);
+
+        // 에러 메시지 상세화
+        const errorMessage =
+          error instanceof Error ? error.message : '이미지 업로드 중 오류가 발생했습니다.';
+        showErrorToast(errorMessage);
+      }
+    },
+    [logoPreview],
+  );
+
+  const handleImageDelete = async () => {
     try {
-      // 파일 검증
-      if (!validateFileType(file)) {
-        showErrorToast('지원하지 않는 파일 형식입니다. (JPG, PNG, GIF만 가능)');
+      const currentImageUrl = logoPreview || formData.profileImgUrl;
+      if (!currentImageUrl) {
         return;
       }
 
-      if (!validateFileSize(file, 5)) {
-        showErrorToast('파일 크기는 5MB 이하여야 합니다.');
-        return;
-      }
+      await deleteImage(currentImageUrl);
 
-      // 미리보기를 위한 이미지 압축 및 저장(메모리에 임시 저장)
-      const compressedImageUrl = await compressAndSaveImage(file, 800, 0.8);
-      setLogoPreview(compressedImageUrl);
-      setFormData((prev) => ({
-        ...prev,
-        profileImgUrl: compressedImageUrl,
-      }));
-    } catch (error) {
-      showErrorToast('이미지 처리 중 오류가 발생했습니다.');
+      // 미리보기 URL 메모리 해제
+      if (logoPreview) {
+        URL.revokeObjectURL(logoPreview);
+      }
+      setLogoPreview(null);
+      setFormData((prev) => ({ ...prev, profileImgUrl: '' }));
+      showSuccessToast('이미지가 삭제되었습니다.');
+    } catch {
+      showErrorToast('이미지 삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -127,6 +223,18 @@ function MemberInfoPage() {
     setIsDeleteModalOpen(false);
   };
 
+  // 핵심 데이터가 로딩 중이면 로딩 표시
+  if (memberInfoLoading || !myMemberInfo) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto" />
+          <p className="mt-4 text-gray-600">정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 flex flex-col gap-6">
       <form
@@ -138,18 +246,15 @@ function MemberInfoPage() {
           logoPreview={logoPreview ?? ''}
           onLogoUpload={handleLogoUpload}
           onFileSelect={handleFileSelect}
+          onImageDelete={handleImageDelete}
         />
 
-        <MemberInfoForm formData={formData} onInputChange={handleInputChange} />
-
-        {/* <DepartmentPositionManager
-    departments={formData.departments}
-    positions={formData.positions}
-    onDepartmentsChange={(departments) =>
-      setFormData((prev) => ({ ...prev, departments }))
-    }
-    onPositionsChange={(positions) => setFormData((prev) => ({ ...prev, positions }))}
-    /> */}
+        <MemberInfoForm
+          formData={formData}
+          onInputChange={handleInputChange}
+          departments={departments}
+          positions={positions}
+        />
         <ButtonComponent className="w-full max-w-lg" type="submit">
           저장
         </ButtonComponent>

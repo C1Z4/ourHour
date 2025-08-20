@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { useLocation, useRouter } from '@tanstack/react-router';
-import { LogOut, Settings } from 'lucide-react';
+import { Github, LogOut, Settings } from 'lucide-react';
 
 import { MyMemberInfoDetail } from '@/api/member/memberApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
@@ -9,8 +9,14 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import { MEMBER_ROLE_STYLES } from '@/constants/badges';
 import { useSignoutMutation } from '@/hooks/queries/auth/useAuthMutations';
 import { useMyMemberInfoQuery } from '@/hooks/queries/member/useMemberQueries';
-import { useAppSelector } from '@/stores/hooks';
+import {
+  useGithubDisconnectMutation,
+  useGithubExchangeCodeMutation,
+} from '@/hooks/queries/user/useUserMutations';
+import { useAppDispatch, useAppSelector } from '@/stores/hooks';
+import { setCurrentOrgInfo } from '@/stores/orgSlice';
 import { getImageUrl } from '@/utils/file/imageUtils';
+import { showErrorToast } from '@/utils/toast';
 
 interface ProfileSheetProps {
   children: React.ReactNode;
@@ -22,12 +28,28 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
   const [imageError, setImageError] = useState(false);
   const location = useLocation();
   const orgId = location.pathname.split('/')[2];
+  const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID as string | undefined;
+  const redirectUri = import.meta.env.VITE_GITHUB_REDIRECT_URI;
+  const scope = import.meta.env.VITE_GITHUB_SCOPE;
+  const dispatch = useAppDispatch();
 
   const { data: myMemberInfoData } = useMyMemberInfoQuery(Number(orgId));
   const myMemberInfo = myMemberInfoData as unknown as MyMemberInfoDetail;
 
-  const { mutate: logout } = useSignoutMutation();
+  useEffect(() => {
+    if (myMemberInfo?.role && orgId) {
+      dispatch(
+        setCurrentOrgInfo({
+          orgId: Number(orgId),
+          role: myMemberInfo.role,
+        }),
+      );
+    }
+  }, [myMemberInfo?.role, orgId, dispatch]);
 
+  const { mutate: logout } = useSignoutMutation();
+  const { mutate: exchangeCode, isPending: isConnecting } = useGithubExchangeCodeMutation();
+  const { mutate: disconnectGithub } = useGithubDisconnectMutation();
   const handleLogout = () => {
     logout(undefined, {
       onSuccess: () => {
@@ -43,6 +65,35 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
       to: `/info/${activeOrgId}`,
     });
   };
+
+  const handleGithubConnect = () => {
+    if (!clientId) {
+      showErrorToast('GitHub 클라이언트 설정이 없습니다.');
+      return;
+    }
+
+    // 현재 탭에서 깃허브 인증 페이지로 이동 (콜백 라우트에서 code 파싱 후 교환 요청)
+    const authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      redirectUri,
+    )}&scope=${encodeURIComponent(scope)}`;
+
+    window.location.href = authUrl;
+  };
+
+  if (typeof window !== 'undefined' && window.location.pathname === '/oauth/github/callback') {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code && !isConnecting) {
+      exchangeCode(
+        { code, redirectUri },
+        {
+          onSuccess: () => {
+            window.history.replaceState({}, '', '/');
+          },
+        },
+      );
+    }
+  }
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -89,7 +140,9 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
               </div>
               <div>
                 <p
-                  className={`w-fit rounded-full px-2 py-1 text-sm ${MEMBER_ROLE_STYLES[myMemberInfo?.role as keyof typeof MEMBER_ROLE_STYLES]}`}
+                  className={`w-fit rounded-full px-2 py-1 text-sm ${
+                    MEMBER_ROLE_STYLES[myMemberInfo?.role as keyof typeof MEMBER_ROLE_STYLES]
+                  }`}
                 >
                   {myMemberInfo?.role ? myMemberInfo.role : ''}
                 </p>
@@ -102,6 +155,28 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
                   {myMemberInfo?.phone ? myMemberInfo.phone : ''}
                 </p>
               </div>
+              {myMemberInfo?.isGithubLinked ? (
+                <ButtonComponent
+                  variant="danger"
+                  size="sm"
+                  onClick={() => disconnectGithub()}
+                  className="w-full"
+                >
+                  <Github className="w-4 h-4 mr-2" />
+                  깃허브 연동해제
+                </ButtonComponent>
+              ) : (
+                <ButtonComponent
+                  variant="primary"
+                  size="sm"
+                  onClick={handleGithubConnect}
+                  className="w-full"
+                  disabled={isConnecting}
+                >
+                  <Github className="w-4 h-4 mr-2" />
+                  깃허브 연동하기
+                </ButtonComponent>
+              )}
             </div>
           </div>
 

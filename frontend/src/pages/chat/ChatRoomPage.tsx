@@ -1,5 +1,3 @@
-import { ChatMessage } from '@/types/chatTypes.ts';
-
 import { ChatMessageInput } from '@/components/chat/room/ChatMessageInput.tsx';
 import { ChatMessageList } from '@/components/chat/room/ChatMessageList.tsx';
 import { RenamePopover } from '@/components/chat/room/ChatRoomRenamePopover';
@@ -8,16 +6,22 @@ import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator';
 import { Sidebar, SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { useChat } from '@/hooks/queries/chat/useChat';
+import { useChatMessagesQuery } from '@/hooks/queries/chat/useChatMessagesQueries';
 import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 interface ChatRoomPageProps {
-  messages: ChatMessage[];
   orgId: number;
   roomId: number;
 }
 
-export function ChatRoomPage({ messages, orgId, roomId }: ChatRoomPageProps) {
+export function ChatRoomPage({ orgId, roomId }: ChatRoomPageProps) {
   const { sendMessage } = useChat(orgId, roomId);
   const currentMemberId = getMemberIdFromToken(orgId);
+  const { data, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage } = useChatMessagesQuery(
+    orgId,
+    roomId,
+  );
+
+  const messages = data?.pages.flatMap((p) => p.data) ?? [];
 
   return (
     <SidebarProvider>
@@ -32,8 +36,14 @@ export function ChatRoomPage({ messages, orgId, roomId }: ChatRoomPageProps) {
 
               <Separator />
 
-              <CardContent className="bg-white p-6 overflow-y-auto grow min-h-0 w-full">
-                <ChatMessageList messages={messages} currentMemberId={currentMemberId} />
+              <CardContent className="bg-white p-6 grow min-h-0 w-full">
+                <ChatMessageList
+                  messages={messages}
+                  currentMemberId={currentMemberId}
+                  onLoadMorePrev={fetchPreviousPage}
+                  hasPreviousPage={hasPreviousPage}
+                  isFetchingPreviousPage={isFetchingPreviousPage}
+                />{' '}
               </CardContent>
               <CardFooter className="w-full px-4 py-3 border-t">
                 <ChatMessageInput onSendMessage={sendMessage} />

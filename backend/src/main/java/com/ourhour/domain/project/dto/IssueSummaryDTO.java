@@ -20,5 +20,8 @@ public class IssueSummaryDTO {
     private Long assigneeId;
     private String assigneeName;
     private String assigneeProfileImgUrl;
+    private String tagName;
+    private String tagColor;
+    private Long issueTagId;
 
 }

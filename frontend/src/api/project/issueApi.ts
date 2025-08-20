@@ -10,6 +10,7 @@ import { logError } from '@/utils/auth/errorUtils';
 export interface GetProjectIssueListRequest {
   projectId: number;
   milestoneId?: number | null;
+  myIssuesOnly?: boolean;
   currentPage?: number;
   size?: number;
 }
@@ -17,7 +18,9 @@ export interface GetProjectIssueListRequest {
 export interface ProjectIssueSummary {
   issueId: number;
   name: string;
-  tag: string | null;
+  tagName: string | null;
+  tagColor: string | null;
+  issueTagId: number | null;
   status: IssueStatusKo;
   milestoneId: number | null;
   assigneeId: number | null;
@@ -34,7 +37,9 @@ export const getProjectIssueList = async (
     if (request.milestoneId) {
       params.append('milestoneId', request.milestoneId.toString());
     }
-
+    if (request.myIssuesOnly !== undefined) {
+      params.append('myIssuesOnly', request.myIssuesOnly.toString());
+    }
     if (request.currentPage) {
       params.append('currentPage', request.currentPage.toString());
     }
@@ -83,6 +88,7 @@ export interface PostCreateIssueRequest {
   name: string;
   content: string;
   status: IssueStatusEng | null;
+  issueTagId: number | null;
 }
 
 export const postCreateIssue = async (
@@ -108,6 +114,7 @@ export interface PutUpdateIssueRequest {
   name: string;
   content: string;
   status: IssueStatusEng | null;
+  issueTagId: number | null;
 }
 
 export const putUpdateIssue = async (
@@ -126,6 +133,30 @@ export const putUpdateIssue = async (
   }
 };
 
+// ======== 프로젝트 이슈 상태 변경 ========
+export interface PutUpdateIssueStatusRequest {
+  issueId: number;
+  status: IssueStatusEng;
+  projectId: number;
+}
+
+export const putUpdateIssueStatus = async (
+  request: PutUpdateIssueStatusRequest,
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.put(
+      `/api/projects/${request.projectId}/issues/${request.issueId}/status`,
+      {
+        status: request.status,
+      },
+    );
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
 // ======== 프로젝트 이슈 삭제 ========
 export interface DeleteIssueRequest {
   issueId: number;
@@ -134,6 +165,97 @@ export interface DeleteIssueRequest {
 export const deleteIssue = async (request: DeleteIssueRequest): Promise<ApiResponse<void>> => {
   try {
     const response = await axiosInstance.delete(`/api/projects/issues/${request.issueId}`);
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 프로젝트 이슈 태그 목록 조회 ========
+export interface GetIssueTagListRequest {
+  projectId: number;
+}
+
+export interface IssueTag {
+  issueTagId: number;
+  name: string;
+  color: string;
+}
+
+export const getIssueTagList = async (
+  request: GetIssueTagListRequest,
+): Promise<ApiResponse<IssueTag[]>> => {
+  try {
+    const response = await axiosInstance.get(`/api/projects/${request.projectId}/issues/tags`);
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 프로젝트 이슈 태그 생성 ========
+export interface PostCreateIssueTagRequest {
+  projectId: number;
+  name: string;
+  color: string;
+}
+
+export const postCreateIssueTag = async (
+  request: PostCreateIssueTagRequest,
+): Promise<ApiResponse<void>> => {
+  const { projectId, ...requestBody } = request;
+  try {
+    const response = await axiosInstance.post(
+      `/api/projects/${projectId}/issues/tags`,
+      requestBody,
+    );
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 프로젝트 이슈 태그 수정 ========
+export interface PutUpdateIssueTagRequest {
+  projectId: number;
+  issueTagId: number;
+  name: string;
+  color: string;
+}
+
+export const putUpdateIssueTag = async (
+  request: PutUpdateIssueTagRequest,
+): Promise<ApiResponse<void>> => {
+  const { projectId, issueTagId, ...requestBody } = request;
+  try {
+    const response = await axiosInstance.put(
+      `/api/projects/${projectId}/issues/tags/${issueTagId}`,
+      requestBody,
+    );
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 프로젝트 이슈 태그 삭제 ========
+export interface DeleteIssueTagRequest {
+  projectId: number;
+  issueTagId: number;
+}
+
+export const deleteIssueTag = async (
+  request: DeleteIssueTagRequest,
+): Promise<ApiResponse<void>> => {
+  const { projectId, issueTagId } = request;
+  try {
+    const response = await axiosInstance.delete(
+      `/api/projects/${projectId}/issues/tags/${issueTagId}`,
+    );
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);

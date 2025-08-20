@@ -9,37 +9,39 @@ import {
   useUpdateCommentMutation,
 } from '@/hooks/queries/comment/useCommentMutations';
 import { useCommentListQuery } from '@/hooks/queries/comment/useCommentQueries';
-import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 
 export const CommentSection = () => {
   const { orgId, issueId } = useParams({ from: '/org/$orgId/project/$projectId/issue/$issueId' });
 
   const { data: commentsData } = useCommentListQuery({
+    orgId: Number(orgId),
+    postId: null,
     issueId: Number(issueId),
   });
 
   const comments = (commentsData as unknown as CommentPageResponse)?.comments;
   const totalElements = (commentsData as unknown as CommentPageResponse)?.totalElements;
 
-  const { mutate: createComment } = useCreateCommentMutation(null, Number(issueId));
-  const { mutate: updateComment } = useUpdateCommentMutation(null, Number(issueId));
-  const { mutate: deleteComment } = useDeleteCommentMutation(null, Number(issueId));
+  const { mutate: createComment } = useCreateCommentMutation(Number(orgId), null, Number(issueId));
+  const { mutate: updateComment } = useUpdateCommentMutation(Number(orgId), null, Number(issueId));
+  const { mutate: deleteComment } = useDeleteCommentMutation(Number(orgId), null, Number(issueId));
 
-  const memberId = getMemberIdFromToken(Number(orgId));
-
-  const handleCreateComment = (content: string) => {
+  const handleCreateComment = (content: string, parentCommentId?: number) => {
     createComment({
       content,
       issueId: Number(issueId),
-      authorId: memberId,
+      parentCommentId,
     });
+  };
+
+  const handleReply = (parentCommentId: number, content: string) => {
+    handleCreateComment(content, parentCommentId);
   };
 
   const handleUpdateComment = (commentId: number, newContent: string) => {
     updateComment({
       commentId,
       content: newContent,
-      authorId: memberId,
     });
   };
 
@@ -61,12 +63,15 @@ export const CommentSection = () => {
             comment={comment}
             onUpdate={handleUpdateComment}
             onDelete={handleDeleteComment}
+            onReply={handleReply}
+            orgId={Number(orgId)}
+            issueId={Number(issueId)}
           />
         ))}
       </div>
 
       <div className="mt-8 pt-6 border-t border-gray-200">
-        <CommentForm orgId={Number(orgId)} onSubmit={handleCreateComment} />
+        <CommentForm orgId={Number(orgId)} onSubmit={(content) => handleCreateComment(content)} />
       </div>
     </div>
   );

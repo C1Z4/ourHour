@@ -12,6 +12,8 @@ export interface Comment {
   profileImgUrl: string;
   content: string;
   createdAt: string;
+  likeCount: number;
+  isLikedByCurrentUser: boolean;
   childComments: Comment[];
 }
 
@@ -36,6 +38,7 @@ export interface CommentPageResponse {
 }
 
 export const getCommentList = async (
+  orgId: number,
   request: GetCommentListRequest,
 ): Promise<ApiResponse<CommentPageResponse>> => {
   try {
@@ -56,7 +59,7 @@ export const getCommentList = async (
       params.append('size', request.size.toString());
     }
 
-    const response = await axiosInstance.get(`/api/comments?${params.toString()}`);
+    const response = await axiosInstance.get(`/api/org/${orgId}/comments?${params.toString()}`);
 
     return response.data;
   } catch (error: unknown) {
@@ -69,16 +72,16 @@ export const getCommentList = async (
 export interface PostCreateCommentRequest {
   postId?: number;
   issueId?: number;
-  authorId: number;
   parentCommentId?: number;
   content: string;
 }
 
 export const postCreateComment = async (
+  orgId: number,
   request: PostCreateCommentRequest,
 ): Promise<ApiResponse<void>> => {
   try {
-    const response = await axiosInstance.post('/api/comments', request);
+    const response = await axiosInstance.post(`/api/org/${orgId}/comments`, request);
 
     return response.data;
   } catch (error: unknown) {
@@ -90,16 +93,19 @@ export const postCreateComment = async (
 // ======== 댓글 수정 ========
 export interface PutUpdateCommentRequest {
   commentId: number;
-  authorId: number;
   content: string;
 }
 
 export const putUpdateComment = async (
+  orgId: number,
   request: PutUpdateCommentRequest,
 ): Promise<ApiResponse<void>> => {
   try {
     const { commentId, ...requestBody } = request;
-    const response = await axiosInstance.put(`/api/comments/${commentId}`, requestBody);
+    const response = await axiosInstance.put(
+      `/api/org/${orgId}/comments/${commentId}`,
+      requestBody,
+    );
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);
@@ -112,9 +118,52 @@ export interface DeleteCommentRequest {
   commentId: number;
 }
 
-export const deleteComment = async (request: DeleteCommentRequest): Promise<ApiResponse<void>> => {
+export const deleteComment = async (
+  orgId: number,
+  request: DeleteCommentRequest,
+): Promise<ApiResponse<void>> => {
   try {
-    const response = await axiosInstance.delete(`/api/comments/${request.commentId}`);
+    const response = await axiosInstance.delete(`/api/org/${orgId}/comments/${request.commentId}`);
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 댓글 좋아요 ========
+export interface PostLikeCommentRequest {
+  commentId: number;
+}
+
+export const postLikeComment = async (
+  orgId: number,
+  request: PostLikeCommentRequest,
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.post(
+      `/api/org/${orgId}/comments/${request.commentId}/like`,
+    );
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 댓글 좋아요 취소 ========
+export interface DeleteLikeCommentRequest {
+  commentId: number;
+}
+
+export const deleteLikeComment = async (
+  orgId: number,
+  request: DeleteLikeCommentRequest,
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.delete(
+      `/api/org/${orgId}/comments/${request.commentId}/like`,
+    );
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);

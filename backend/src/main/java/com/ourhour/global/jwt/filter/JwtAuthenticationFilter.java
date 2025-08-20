@@ -1,43 +1,50 @@
 package com.ourhour.global.jwt.filter;
 
+import com.ourhour.global.constant.AuthPath;
 import com.ourhour.global.jwt.JwtTokenProvider;
-import com.ourhour.global.jwt.dto.Claims;
-import com.ourhour.global.jwt.util.UserContextHolder;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.Arrays;
 
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    private static final Set<String> EXCLUDE_URI_PREFIXES = Set.of(
-            "/api/auth/check-email",
-            "/api/auth/signup",
-            "/api/auth/signin",
-            "/api/auth/email-verification",
-            "/api/auth/token",
-            "/api/auth/password-reset"
-    );
-
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
         String requestURI = request.getRequestURI();
-        boolean skipFilter = EXCLUDE_URI_PREFIXES.stream().anyMatch(requestURI::startsWith);
 
-        if (skipFilter) {
+        if (requestURI.startsWith("/ws-stomp/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        boolean isPublic = Arrays.stream(AuthPath.PUBLIC_URLS)
+                .anyMatch(requestURI::startsWith);
+
+        boolean isSwagger = Arrays.stream(AuthPath.SWAGGER_URLS)
+                .anyMatch(requestURI::startsWith);
+
+        boolean isStomp = Arrays.stream(AuthPath.STOMP_URLS)
+                .anyMatch(requestURI::startsWith);
+
+        boolean isMonitoring = Arrays.stream(AuthPath.MONITORING_URLS)
+                .anyMatch(requestURI::startsWith);
+
+        // 비인증 요청 스킵
+        if (isPublic || isSwagger || isStomp || isMonitoring) {
             filterChain.doFilter(request, response);
 
             return;
@@ -48,26 +55,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setHeader("Cache-Control", "no-store");
         }
 
-        try {
+        // HttpRequest -> token 추출
+        String token = getToken(request);
 
-            String token = getToken(request);
-
-            if (token != null && jwtTokenProvider.validateToken(token)) {
-                Claims claims = jwtTokenProvider.parseAccessToken(token);
-                UserContextHolder.set(claims);
-            } else {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-
-                return;
-            }
-
-            // 필터 체인의 다음 필터로 전달. 필터가 없다면 서블릿으로 전달
-            filterChain.doFilter(request, response);
-        } finally {
-            // 메모리 누수 방지
-            UserContextHolder.clear();
+        // 토큰 유효성 검사
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
 
+        // token -> Authentication 객체 파싱
+        Authentication authentication = jwtTokenProvider.getAuthenticationFromToken(token);
+
+        // Authentication 객체 유효성 검사
+        if (authentication == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        // 정상 토큰이면 SecurityContext 등록
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        filterChain.doFilter(request, response);
     }
 
     // request header => Authorization: Bearer accessToken
@@ -81,4 +90,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         return null;
     }
+
 }

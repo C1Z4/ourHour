@@ -1,0 +1,53 @@
+services:
+  # backend
+  backend:
+    image: ${BACKEND_IMAGE:-ourhour-backend:test}
+    container_name: test-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # db
+  db:
+    image: mysql:8.0
+    container_name: test-db
+    ports:
+      - "3307:3306"
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 60s
+      retries: 10
+    volumes:
+      - ./backend/docker/mysql-init:/docker-entrypoint-initdb.d
+      - test-mysql-data:/var/lib/mysql
+
+  # ai chatbot
+  chatbot:
+    image: ${CHATBOT_IMAGE:-ourhour-chatbot:prod}
+    container_name: release-chatbot
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - backend
+    environment:
+      - CHATBOT_DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
+      - OURHOUR_API_URL=${OURHOUR_API_URL}
+      - PYTHON_SERVER_URL=${PYTHON_SERVER_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./llm:/app
+    networks:
+      - default
+
+volumes:
+  test-mysql-data:

@@ -63,4 +63,12 @@ public class OrgParticipantMemberEntity {
     public void markLeftNow() {
         this.leftAt = LocalDate.now();
     }
+    
+    public void changeDepartment(DepartmentEntity departmentEntity) {
+        this.departmentEntity = departmentEntity;
+    }
+    
+    public void changePosition(PositionEntity positionEntity) {
+        this.positionEntity = positionEntity;
+    }
 }

@@ -16,16 +16,16 @@ public class CommentPageResDTO {
     private Long postId;
     private Long issueId;
     private List<CommentDTO> comments;
-    
+
     private int currentPage;
     private int size;
     private int totalPages;
     private long totalElements;
     private boolean hasNext;
     private boolean hasPrevious;
-    
-    public static CommentPageResDTO of(CommentResDTO commentResDTO, int currentPage, int size, 
-                                      int totalPages, long totalElements, boolean hasNext, boolean hasPrevious) {
+
+    public static CommentPageResDTO of(CommentResDTO commentResDTO, int currentPage, int size,
+            int totalPages, long totalElements, boolean hasNext, boolean hasPrevious) {
         return CommentPageResDTO.builder()
                 .postId(commentResDTO.getPostId())
                 .issueId(commentResDTO.getIssueId())
@@ -38,7 +38,7 @@ public class CommentPageResDTO {
                 .hasPrevious(hasPrevious)
                 .build();
     }
-    
+
     public static CommentPageResDTO empty(Long postId, Long issueId, int currentPage, int size) {
         return CommentPageResDTO.builder()
                 .postId(postId)
@@ -49,7 +49,7 @@ public class CommentPageResDTO {
                 .totalPages(0)
                 .totalElements(0)
                 .hasNext(false)
-                .hasPrevious(currentPage > 0)
+                .hasPrevious(currentPage > 1)
                 .build();
     }
-} 
+}
