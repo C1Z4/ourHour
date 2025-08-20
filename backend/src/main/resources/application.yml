@@ -46,16 +46,6 @@ logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
-# 프로메테우스 관련 설정
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "prometheus, health"
-  endpoint:
-    health:
-      show-details: always
-
 # 이미지 업로드 설정
 app:
   upload:
