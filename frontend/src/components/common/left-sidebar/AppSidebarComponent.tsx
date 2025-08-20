@@ -11,6 +11,8 @@ import { Sidebar, SidebarContent, SidebarHeader, SidebarRail } from '@/component
 import { useBoardListQuery } from '@/hooks/queries/board/useBoardQueries';
 import { useChatRoomListQuery } from '@/hooks/queries/chat/useChatRoomListQueries';
 import { useMyProjectListQuery } from '@/hooks/queries/org/useOrgQueries';
+import { useAppDispatch } from '@/stores/hooks';
+import { setCurrentProjectId, setCurrentProjectName } from '@/stores/projectSlice';
 import { CHAT_COLORS } from '@/styles/colors';
 
 const ColoredCircle = ({ color }: { color: string }) => (
@@ -21,6 +23,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams({ strict: false });
 
   const currentOrgId = Number(params.orgId);
+
+  const dispatch = useAppDispatch();
 
   const { data: myProjectListData } = useMyProjectListQuery(currentOrgId);
 
@@ -40,6 +44,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         items: myProjectList?.map((project) => ({
           title: project.name,
           url: `/org/${currentOrgId}/project/${project.projectId}`,
+          onClick: () => {
+            dispatch(setCurrentProjectId(project.projectId.toString()));
+            dispatch(setCurrentProjectName(project.name));
+          },
         })),
       },
       {
