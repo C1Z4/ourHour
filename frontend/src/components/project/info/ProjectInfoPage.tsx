@@ -9,6 +9,7 @@ import { ModalComponent } from '@/components/common/ModalComponent';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { ProjectModal } from '@/components/project/modal/ProjectModal';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ORG_QUERY_KEYS } from '@/constants/queryKeys';
 import {
   useProjectDeleteMutation,
@@ -47,15 +48,18 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSearchQuery, setActiveSearchQuery] = useState('');
 
-  const { data: projectInfoData } = useProjectInfoQuery(Number(projectId));
-
-  const { data: projectMembersData } = useProjectParticipantListQuery(
+  const { data: projectInfoData, isLoading: isLoadingProjectInfo } = useProjectInfoQuery(
     Number(projectId),
-    Number(orgId),
-    currentPage,
-    10,
-    activeSearchQuery || undefined,
   );
+
+  const { data: projectMembersData, isLoading: isLoadingProjectMembers } =
+    useProjectParticipantListQuery(
+      Number(projectId),
+      Number(orgId),
+      currentPage,
+      10,
+      activeSearchQuery || undefined,
+    );
 
   const { mutate: passwordVerification } = usePasswordVerificationMutation();
   const { mutate: updateProject } = useProjectUpdateMutation(Number(projectId), Number(orgId));
@@ -68,6 +72,75 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
 
   const projectInfo = projectInfoData as ProjectBaseInfo | undefined;
   const projectMembers = Array.isArray(projectMembersData?.data) ? projectMembersData.data : [];
+
+  const isLoading = isLoadingProjectInfo || isLoadingProjectMembers;
+
+  if (isLoading) {
+    return (
+      <div className="bg-white p-6">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* 프로젝트 기본 정보 스켈레톤 */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-8 w-48" />
+              <div className="flex space-x-3">
+                <Skeleton className="h-9 w-20" />
+                <Skeleton className="h-9 w-20" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          </div>
+
+          {/* 프로젝트 구성원 스켈레톤 */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-32" />
+              <div className="flex space-x-3">
+                <Skeleton className="h-9 w-24" />
+                <Skeleton className="h-9 w-20" />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Skeleton className="w-8 h-8 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleEditProject = () => {
     setIsEditModalOpen(true);

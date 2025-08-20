@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import { Board } from '@/types/boardTypes';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableHeader,
@@ -52,13 +53,16 @@ export const BoardCard = ({ orgId, boardId, board }: Props) => {
         <TableBody>
           {(() => {
             if (isLoading) {
-              return (
-                <TableRow>
-                  <TableCell colSpan={2} className="h-32 text-center text-muted-foreground">
-                    게시글을 불러오는 중...
+              return Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={`skeleton-${index}`}>
+                  <TableCell>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                  <TableCell className="text-right w-1/2">
+                    <Skeleton className="h-4 w-20 ml-auto" />
                   </TableCell>
                 </TableRow>
-              );
+              ));
             }
 
             if (!postList || postList.length === 0) {
