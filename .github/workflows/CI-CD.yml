@@ -202,10 +202,14 @@ jobs:
             export REDIS_PASSWORD=$(aws ssm get-parameter --name "/ourhour/test/redis/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
 
             # chatbot 환경변수
-            export PYTHON_SERVER_URL=$(aws ssm get-parameter --name "/ourhour/test/python-server/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export OURHOUR_API_URL=$(aws ssm get-parameter --name "/ourhour/test/ourhour-api/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export OPENAI_API_KEY=$(aws ssm get-parameter --name "/ourhour/test/openai/api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-
+            export OPENAI_API_KEY=$(aws ssm get-parameter --name "/ourhour/llm/openai-api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export CHATBOT_DATABASE_URL=$(aws ssm get-parameter --name "/ourhour/test/llm/chatbot-db" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export OURHOUR_API_URL=$(aws ssm get-parameter --name "/ourhour/test/llm/ourhour-api/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export PINECONE_API_KEY=$(aws ssm get-parameter --name "/ourhour/llm/pinecone-api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export PINECONE_INDEX_NAME=$(aws ssm get-parameter --name "/ourhour/llm/pinecone-index-name" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export PINECONE_ENVIRONMENT=$(aws ssm get-parameter --name "/ourhour/llm/pinecone-environment" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export JWT_SECRET=$(aws ssm get-parameter --name "/ourhour/test/jwt/secret" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            
             # DB init parameter
             export MYSQL_ROOT_PASSWORD=$(aws ssm get-parameter --name "/ourhour/db/root-password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             export MYSQL_DATABASE=$(aws ssm get-parameter --name "/ourhour/test/db" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
@@ -262,10 +266,14 @@ jobs:
             export REDIS_PASSWORD=$(aws ssm get-parameter --name "/ourhour/release/redis/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
 
             # chatbot 환경변수
-            export PYTHON_SERVER_URL=$(aws ssm get-parameter --name "/ourhour/release/python-server/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export OURHOUR_API_URL=$(aws ssm get-parameter --name "/ourhour/release/ourhour-api/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export OPENAI_API_KEY=$(aws ssm get-parameter --name "/ourhour/release/openai/api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-
+            export OPENAI_API_KEY=$(aws ssm get-parameter --name "/ourhour/llm/openai-api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export CHATBOT_DATABASE_URL=$(aws ssm get-parameter --name "/ourhour/release/llm/chatbot-db" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export OURHOUR_API_URL=$(aws ssm get-parameter --name "/ourhour/release/llm/ourhour-api/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export PINECONE_API_KEY=$(aws ssm get-parameter --name "/ourhour/llm/pinecone-api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export PINECONE_INDEX_NAME=$(aws ssm get-parameter --name "/ourhour/llm/pinecone-index-name" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export PINECONE_ENVIRONMENT=$(aws ssm get-parameter --name "/ourhour/llm/pinecone-environment" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export JWT_SECRET=$(aws ssm get-parameter --name "/ourhour/release/jwt/secret" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+          
             # DB init parameter
             export MYSQL_ROOT_PASSWORD=$(aws ssm get-parameter --name "/ourhour/db/root-password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             export MYSQL_DATABASE=$(aws ssm get-parameter --name "/ourhour/release/db" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
