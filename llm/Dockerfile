@@ -20,7 +20,7 @@ ENV PIP_CACHE_DIR=/root/.cache/pip
 
 # 의존성 설치 (캐시 활용)
 RUN pip install --upgrade pip \
-    && pip install -r requirements.txt
+    && pip install --cache-dir $PIP_CACHE_DIR -r requirements.txt
 
 # Copy application code
 COPY --chown=app:app . .
