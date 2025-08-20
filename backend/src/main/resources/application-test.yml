@@ -72,6 +72,8 @@ github:
   redirect-uri: ${github.redirect-uri}
   scope: ${github.scope}
 
+python-server:
+  url: ${python-server.url}
 # Google OAuth 설정
 google:
   client-id: ${google.client-id}

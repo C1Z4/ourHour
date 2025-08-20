@@ -3,7 +3,3 @@ services:
   backend:
     ports:
       - "${BACKEND_PORT:-8080}:8080"
-  llm:
-    ports:
-      - "${LLM_PORT:-8000}:8000"
-    restart: always
