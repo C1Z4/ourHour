@@ -40,7 +40,6 @@ spring:
         auto: false
 
   service:
-    base-url-email: localhost
     url:
       front: localhost
 
@@ -70,6 +69,11 @@ jwt:
   access-token-validity-in-seconds: 300
   refresh-token-validity-in-seconds: 1000000
 
+# Cookie 관련 설정
+cookie:
+  secure: false
+  same-site: Lax
+
 encryption:
   secret-key: thisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecret
 
@@ -80,12 +84,15 @@ github:
   redirect-uri: http://localhost:5173/auth/github/callback
   scope: repo,read:user,user:email
 
-
-  cache:
-    type: redis
-    redis:
-      time-to-live: 60000
-      cache-null-values: false
+# 소셜 로그인 OAuth 설정
+signin:
+  github:
+    client-id: 1234567890
+    client-secret: 1234567890
+  google:
+    client-id: 1234567890
+    client-secret: 1234567890
+  redirect-uri: http://localhost:5173/oauth
 
 # 이미지 업로드 설정
 app:

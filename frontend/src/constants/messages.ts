@@ -5,6 +5,7 @@ export const AUTH_MESSAGES = {
 } as const;
 
 export const SOCIAL_LOGIN_PLATFORMS = {
+  OURHOUR: 'OURHOUR',
   GOOGLE: 'GOOGLE',
   KAKAO: 'KAKAO',
   GITHUB: 'GITHUB',
