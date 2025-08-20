@@ -122,16 +122,8 @@ public class ProjectService {
 
     private Page<ProjectEntity> getProjectPage(Long orgId, boolean myProjectsOnly, Pageable pageable) {
         if (myProjectsOnly) {
-            Claims claims = UserContextHolder.get(); // 수정 예정
-            if (claims == null) {
-                throw MemberException.memberAccessDeniedException();
-            }
 
-            Long memberId = claims.getOrgAuthorityList().stream()
-                    .filter(auth -> auth.getOrgId().equals(orgId))
-                    .map(auth -> auth.getMemberId())
-                    .findFirst()
-                    .orElseThrow(() -> MemberException.memberAccessDeniedException());
+            Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
 
             return projectRepository.findByOrgEntity_OrgIdAndParticipantMemberId(orgId, memberId, pageable);
         } else {
@@ -170,6 +162,26 @@ public class ProjectService {
         ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
 
         projectRepository.save(projectEntity);
+
+        // 본인도 프로젝트 참여자로 등록
+        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (memberId == null) {
+            throw MemberException.memberAccessDeniedException();
+        }
+
+        if (!memberRepository.existsById(memberId)) {
+            throw MemberException.memberNotFoundException();
+        }
+
+        ProjectParticipantId participantId = new ProjectParticipantId(projectEntity.getProjectId(), memberId);
+
+        ProjectParticipantEntity participant = ProjectParticipantEntity.builder()
+                .projectParticipantId(participantId)
+                .projectEntity(projectEntity)
+                .memberEntity(memberRepository.getReferenceById(memberId))
+                .build();
+
+        projectParticipantRepository.save(participant);
 
         return ApiResponse.success(null, "프로젝트 등록이 완료되었습니다.");
     }
