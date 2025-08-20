@@ -146,10 +146,10 @@ Thumbs.db
 ###########################
 # ✅ AI Chatbot          #
 ###########################
-/ourHour-chatbot/.env
-/ourHour-chatbot/venv/
-/ourHour-chatbot/__pycache__/
-/ourHour-chatbot/**/__pycache__/
-/ourHour-chatbot/.pytest_cache/
-/ourHour-chatbot/organization_context_*.json
-/ourHour-chatbot/organization_summary_*.txt
+/llm/.env
+/llm/venv/
+/llm/__pycache__/
+/llm/**/__pycache__/
+/llm/.pytest_cache/
+/llm/organization_context_*.json
+/llm/organization_summary_*.txt
