@@ -29,7 +29,7 @@ import { setCurrentProjectId, setCurrentProjectName } from '@/stores/projectSlic
 
 import { ProjectColumns } from './ProjectColumns';
 
-export function ProjectDataTable() {
+export function ProjectDataTable({ isMyProjectsOnly }: { isMyProjectsOnly: boolean }) {
   const dispatch = useDispatch();
   const router = useRouter();
   const { orgId } = useParams({ from: '/org/$orgId/project/' });
@@ -41,7 +41,10 @@ export function ProjectDataTable() {
 
   const { data: projectSummaryList, isLoading } = useProjectSummaryListQuery(
     Number(orgId),
+    undefined,
     currentPage,
+    undefined,
+    isMyProjectsOnly,
   );
 
   const tableData = useMemo(

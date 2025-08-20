@@ -31,7 +31,7 @@ export const COMMENT_QUERY_KEYS = {
 
 export const BOARD_QUERY_KEYS = {
   BOARD_LIST: 'boardList',
-
+  ALL_POST_LIST: 'allPostList',
   POST_LIST: 'postList',
   POST_DETAIL: 'postDetail',
 } as const;
