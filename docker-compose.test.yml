@@ -45,29 +45,29 @@ services:
       - test-redis-data:/data
     restart: unless-stopped
 
-  # ai chatbot
-  chatbot:
-    image: ${CHATBOT_IMAGE:-ourhour-chatbot:test}
-    container_name: test-chatbot
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
-      - backend
-      - redis
-    environment:
-      - CHATBOT_DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
-      - OURHOUR_API_URL=${OURHOUR_API_URL}
-      - PYTHON_SERVER_URL=${PYTHON_SERVER_URL}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - PINECONE_API_KEY=${PINECONE_API_KEY}
-      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}
-      - PINECONE_ENVIRONMENT=${PINECONE_ENVIRONMENT}
-      - JWT_SECRET=${JWT_SECRET}
-    volumes:
-      - ./llm:/app
-    networks:
-      - default
+#  # ai chatbot
+#  chatbot:
+#    image: ${CHATBOT_IMAGE:-ourhour-chatbot:test}
+#    container_name: test-chatbot
+#    ports:
+#      - "8000:8000"
+#    depends_on:
+#      - db
+#      - backend
+#      - redis
+#    environment:
+#      - CHATBOT_DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
+#      - OURHOUR_API_URL=${OURHOUR_API_URL}
+#      - PYTHON_SERVER_URL=${PYTHON_SERVER_URL}
+#      - OPENAI_API_KEY=${OPENAI_API_KEY}
+#      - PINECONE_API_KEY=${PINECONE_API_KEY}
+#      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}
+#      - PINECONE_ENVIRONMENT=${PINECONE_ENVIRONMENT}
+#      - JWT_SECRET=${JWT_SECRET}
+#    volumes:
+#      - ./llm:/app
+#    networks:
+#      - default
 
 volumes:
   test-mysql-data:
