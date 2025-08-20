@@ -10,6 +10,7 @@ import { AllMembersSection } from '@/components/org/map/AllMembersSection';
 import { DepartmentsSection } from '@/components/org/map/DepartmentsSection';
 import { FilterTabs, FilterType } from '@/components/org/map/FilterTabs';
 import { PositionsSection } from '@/components/org/map/PositionsSection';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useOrgMemberListQuery } from '@/hooks/queries/org/useOrgQueries';
 import { useDepartmentsQuery, usePositionsQuery } from '@/hooks/queries/org/useOrgStructureQueries';
 
@@ -70,7 +71,42 @@ function RouteComponent() {
   const isLoading = isLoadingMembers || isLoadingDepartments || isLoadingPositions;
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">로딩 중...</div>;
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-32" />
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex space-x-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Skeleton key={index} className="h-10 w-24" />
+            ))}
+          </div>
+
+          <div className="space-y-4">
+            <div className="text-sm text-gray-600">
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Skeleton className="w-10 h-10 rounded-full" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

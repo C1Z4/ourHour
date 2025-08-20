@@ -10,6 +10,7 @@ import { MembersTable } from '@/components/common/MembersTable';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { OrgModal } from '@/components/org/OrgModal';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   useMemberDeleteMutation,
   useOrgDeleteMutation,
@@ -50,11 +51,11 @@ function OrgInfoPage() {
     newRole: MemberRoleKo;
   } | null>(null);
 
-  const { data: orgInfoData } = useOrgInfoQuery(Number(orgId));
+  const { data: orgInfoData, isLoading: isLoadingOrgInfo } = useOrgInfoQuery(Number(orgId));
 
   const orgInfo = orgInfoData as OrgBaseInfo | undefined;
 
-  const { data: orgMembersData } = useOrgMemberListQuery(
+  const { data: orgMembersData, isLoading: isLoadingOrgMembers } = useOrgMemberListQuery(
     Number(orgId),
     currentPage,
     10,
@@ -72,6 +73,75 @@ function OrgInfoPage() {
   const { mutate: deleteMember } = useMemberDeleteMutation(Number(orgId));
 
   const { mutate: patchMemberRole } = usePatchMemberRoleMutation(Number(orgId));
+
+  const isLoading = isLoadingOrgInfo || isLoadingOrgMembers;
+
+  if (isLoading) {
+    return (
+      <div className="bg-white p-6">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* 조직 기본 정보 스켈레톤 */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-8 w-48" />
+              <div className="flex space-x-3">
+                <Skeleton className="h-9 w-20" />
+                <Skeleton className="h-9 w-20" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          </div>
+
+          {/* 조직 구성원 스켈레톤 */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-32" />
+              <div className="flex space-x-3">
+                <Skeleton className="h-9 w-24" />
+                <Skeleton className="h-9 w-20" />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Skeleton className="w-8 h-8 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleEditProject = () => {
     setIsEditModalOpen(true);
