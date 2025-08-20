@@ -99,3 +99,6 @@ app:
       max-size: 100
     presign:
       ttl: 30
+
+python-server:
+  url: http://localhost:8000

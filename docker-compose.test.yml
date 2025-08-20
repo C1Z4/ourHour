@@ -90,5 +90,24 @@ services:
       - "--mysqld.address=db:3306"
       - "--no-collect.slave_status"
 
+  # ai chatbot
+  chatbot:
+    image: ${CHATBOT_IMAGE:-ourhour-chatbot:prod}
+    container_name: release-chatbot
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - backend
+    environment:
+      - CHATBOT_DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
+      - OURHOUR_API_URL=${OURHOUR_API_URL}
+      - PYTHON_SERVER_URL=${PYTHON_SERVER_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./ourHour-chatbot:/app
+    networks:
+      - default
+
 volumes:
   test-mysql-data:

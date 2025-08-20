@@ -67,5 +67,5 @@ github:
   redirect-uri: ${github.redirect-uri}
   scope: ${github.scope}
 
-
-
+python-server:
+  url: ${python-server.url}
