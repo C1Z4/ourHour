@@ -9,6 +9,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   # db
   db:
@@ -30,6 +32,19 @@ services:
       - ./backend/docker/mysql-init:/docker-entrypoint-initdb.d
       - test-mysql-data:/var/lib/mysql
 
+  # redis
+  redis:
+    image: redis:7-alpine
+    container_name: test-redis
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - test-redis-data:/data
+    restart: unless-stopped
+
   # ai chatbot
   chatbot:
     image: ${CHATBOT_IMAGE:-ourhour-chatbot:test}
@@ -39,6 +54,7 @@ services:
     depends_on:
       - db
       - backend
+      - redis
     environment:
       - CHATBOT_DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
       - OURHOUR_API_URL=${OURHOUR_API_URL}
@@ -51,3 +67,4 @@ services:
 
 volumes:
   test-mysql-data:
+  test-redis-data:
