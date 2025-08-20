@@ -50,6 +50,10 @@ spring:
       ssl:
         enabled: true
 
+management:
+  metrics:
+    enable:
+      processormetrics: false
 # JWT 관련 설정
 jwt:
   secret: ${jwt.secret}
