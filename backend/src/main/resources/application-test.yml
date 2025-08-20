@@ -84,6 +84,3 @@ signin:
 
 python-server:
   url: ${python-server.url}
-
-
-
