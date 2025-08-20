@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
   '/api/auth/check-email',
   '/api/auth/email-verification',
   '/api/auth/signin',
+  '/api/auth/oauth-signin',
   '/api/auth/password-reset',
 ];
 
@@ -117,7 +118,7 @@ axiosInstance.interceptors.response.use(
     }
 
     if (isPublicRequest(originalRequest.url)) {
-      return true;
+      return Promise.reject(error);
     }
 
     logError(error, originalRequest);

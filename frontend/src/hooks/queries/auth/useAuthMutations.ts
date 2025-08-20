@@ -4,11 +4,13 @@ import { AxiosError } from 'axios';
 
 import { postSendEmailVerification, SendEmailVerificationRequest } from '@/api/auth/emailApi';
 import {
+  postOauthSignin,
   postSignin,
   postSignout,
   postSignup,
   SigninRequest,
   SignupRequest,
+  SocialSigninRequest,
 } from '@/api/auth/signApi';
 import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
@@ -21,7 +23,18 @@ export const useSigninMutation = () =>
       showSuccessToast(TOAST_MESSAGES.AUTH.LOGIN_SUCCESS);
     },
     onError: (error: AxiosError) => {
-      logError(error);
+      showErrorToast(getErrorMessage(error));
+    },
+  });
+
+// ========소셜 로그인 ========
+export const useSocialSigninMutation = () =>
+  useMutation({
+    mutationFn: (request: SocialSigninRequest) => postOauthSignin(request),
+    onSuccess: () => {
+      showSuccessToast(TOAST_MESSAGES.AUTH.LOGIN_SUCCESS);
+    },
+    onError: (error: AxiosError) => {
       showErrorToast(getErrorMessage(error));
     },
   });

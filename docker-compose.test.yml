@@ -30,65 +30,24 @@ services:
       - ./backend/docker/mysql-init:/docker-entrypoint-initdb.d
       - test-mysql-data:/var/lib/mysql
 
-  # prometheus
-  prometheus:
-    image: prom/prometheus
+  # ai chatbot
+  chatbot:
+    image: ${CHATBOT_IMAGE:-ourhour-chatbot:prod}
+    container_name: release-chatbot
     ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    command: --config.file=/etc/prometheus/prometheus.yml
-    restart: always
-    networks:
-      - default
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-  # grafana
-  grafana:
-    image: grafana/grafana
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
-      - ./monitoring/grafana/dashboards/:/etc/grafana/dashboards/
-    depends_on:
-      - prometheus
-    restart: always
-    networks:
-      - default
-
-  # node-exporter
-  node-exporter:
-    image: prom/node-exporter:v1.7.0
-    container_name: node-exporter
-    ports:
-      - "9100:9100"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/rootfs'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    restart: always
-    networks:
-      - default
-
-  # mysqld-exporter
-  mysqld-exporter:
-    image: prom/mysqld-exporter:v0.15.1
-    container_name: mysqld-exporter
+      - "8000:8000"
     depends_on:
       - db
+      - backend
+    environment:
+      - CHATBOT_DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
+      - OURHOUR_API_URL=${OURHOUR_API_URL}
+      - PYTHON_SERVER_URL=${PYTHON_SERVER_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./ourHour-chatbot:/app
     networks:
       - default
-    command:
-      - "--mysqld.username=$MYSQL_USER:$MYSQL_PASSWORD"
-      - "--mysqld.address=db:3306"
-      - "--no-collect.slave_status"
 
 volumes:
   test-mysql-data:

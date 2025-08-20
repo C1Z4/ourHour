@@ -65,6 +65,11 @@ jwt:
   access-token-validity-in-seconds: ${JWT_ACCESS}
   refresh-token-validity-in-seconds: ${JWT_REFRESH}
 
+# Cookie 관련 설정
+cookie:
+  secure: ${COOKIE_SECURE}
+  same-site: ${COOKIE_SAMESITE}
+
 # 암호화 설정
 encryption:
   secret-key: ${ENCRYPTION_SECRET_KEY}
@@ -76,6 +81,15 @@ github:
   redirect-uri: ${APPLICATION_GITHUB_REDIRECT_URI}
   scope: ${APPLICATION_GITHUB_SCOPE}
 
+# 소셜 로그인 OAuth 설정
+signin:
+  github:
+    client-id: ${SIGNIN_GITHUB_CLIENT_ID}
+    client-secret: ${SIGNIN_GITHUB_CLIENT_SECRET}
+  google:
+    client-id: ${SIGNIN_GOOGLE_CLIENT_ID}
+    client-secret: ${SIGNIN_GOOGLE_CLIENT_SECRET}
+  redirect-uri: ${SIGNIN_REDIRECT_URI}
 
 # 이미지 캐시 관련 설정
 app:
@@ -89,3 +103,17 @@ app:
       max-size: 100  # 최대 캐시 항목 수
     presign:
       ttl: 600   # 10분 (초)
+
+# 프로메테우스 관련 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "prometheus, health"
+  endpoint:
+    health:
+      show-details: always
+
+# LLM fast api 서버
+python-server:
+  url: ${PYTHON_SERVER_URL:http://localhost:8000}
