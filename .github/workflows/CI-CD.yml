@@ -150,7 +150,8 @@ jobs:
     environment: development
 
     steps:
-      - name: Deploy with Docker to Development
+      - name: Deploy with Docker to test
+        timeout-minutes: 30
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PROD_EC2_HOST }}
@@ -204,6 +205,7 @@ jobs:
 
     steps:
       - name: Deploy with Docker to Production
+        timeout-minutes: 30
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PROD_EC2_HOST }}
