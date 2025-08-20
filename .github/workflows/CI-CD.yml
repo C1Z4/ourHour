@@ -158,7 +158,7 @@ jobs:
           context: ./llm
           push: true
           tags: | 
-            ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.chatbot)) || format('myuser/{0}', steps['image-tags'].outputs.chatbot) }}
+            ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.chatbot_sha)) || format('myuser/{0}', steps['image-tags'].outputs.chatbot_sha) }}
             ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.chatbot_latest)) || format('myuser/{0}', steps['image-tags'].outputs.chatbot_latest) }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
