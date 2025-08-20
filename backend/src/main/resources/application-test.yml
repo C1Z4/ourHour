@@ -75,8 +75,8 @@ github:
 # 소셜 로그인 OAuth 설정
 signin:
   github:
-    client-id: ${github.client-id}
-    client-secret: ${github.client-secret}
+    client-id: ${signin.github.client-id}
+    client-secret: ${signin.github.client-secret}
   google:
     client-id: ${google.client-id}
     client-secret: ${google.client-secret}
