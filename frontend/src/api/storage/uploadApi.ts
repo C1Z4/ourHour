@@ -27,7 +27,8 @@ export const uploadToPresignedUrl = async (url: string, file: File, contentType:
 
 export const resolveCdnUrlFromKey = (key: string) => {
   const cdnBase = (import.meta.env.VITE_CDN_URL as string | undefined)?.replace(/\/$/, '') || '';
-  return cdnBase && key ? `${cdnBase}/${key.replace(/^\//, '')}` : key;
+  const result = cdnBase && key ? `${cdnBase}/${key.replace(/^\//, '')}` : key;
+  return result;
 };
 
 export const uploadImageWithCompression = async (
@@ -37,12 +38,38 @@ export const uploadImageWithCompression = async (
 ): Promise<string> => {
   const compressedFile = await compressImageFile(file, maxWidth, quality);
 
-  const { url, key } = await requestPresignedPutUrl({
+  const presignResponse = await requestPresignedPutUrl({
     fileName: compressedFile.name,
     contentType: compressedFile.type,
   });
 
+  const { url, key, cdnUrl } = presignResponse;
+
   await uploadToPresignedUrl(url, compressedFile, compressedFile.type);
 
-  return resolveCdnUrlFromKey(key);
+  // 백엔드에서 제공하는 cdnUrl을 우선 사용, 없으면 key로 구성
+  const finalUrl = cdnUrl || resolveCdnUrlFromKey(key);
+
+  if (!finalUrl || finalUrl.trim() === '') {
+    throw new Error('CDN URL이 생성되지 않았습니다');
+  }
+
+  return finalUrl;
+};
+
+export interface DeleteImageRequest {
+  imageUrl: string;
+}
+
+export interface DeleteImageResponse {
+  status: string;
+  message: string;
+  data: null;
+}
+
+export const deleteImage = async (imageUrl: string): Promise<DeleteImageResponse> => {
+  const { data } = await axiosInstance.delete('/api/storage/images', {
+    data: { imageUrl },
+  });
+  return data;
 };
