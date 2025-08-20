@@ -70,3 +70,6 @@ app:
   cache:
     image:
       max-size: 1000 
+
+python-server:
+  url: ${python-server.url}
