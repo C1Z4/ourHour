@@ -18,15 +18,18 @@ function RouteComponent() {
   const [isApiCalled, setIsApiCalled] = useState(false);
 
   useEffect(() => {
-    // code와 platform이 모두 존재할 때만 로그인 로직 실행
-    if (code && state && !isApiCalled) {
+    if (!code || !state) {
+      router.navigate({ to: '/login' });
+      return;
+    }
+
+    if (!isApiCalled) {
+      setIsApiCalled(true);
+
       socialSigninMutation.mutate(
         { code, platform: state },
         {
           onSuccess: () => {
-            // 백엔드 API 재호출 방지 로직
-            setIsApiCalled(true);
-            // 소셜 로그인 성공 시 /start 페이지로 이동
             router.navigate({ to: '/start', search: { page: 1 } });
           },
           onError: () => {
@@ -37,9 +40,6 @@ function RouteComponent() {
           },
         },
       );
-    } else {
-      // code나 platform이 없을 경우, 비정상적인 접근으로 간주하고 로그인 페이지로 리디렉션
-      router.navigate({ to: '/login' });
     }
   }, [code, state, router, isApiCalled]);
 
@@ -47,7 +47,7 @@ function RouteComponent() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <LoadingSpinner />
-      <p className="mt-4 text-gray-600">소셜 로그인 처리 중...</p>
+      <p className="mt-4 text-gray-600">로그인 중...</p>
     </div>
   );
 }

@@ -72,8 +72,8 @@ function LoginPage() {
     if (platform === SOCIAL_LOGIN_PLATFORMS.GOOGLE) {
       const url =
         'https://accounts.google.com/o/oauth2/v2/auth' +
-        `?client_id=${import.meta.env.VITE_GOOGLE_CLIENT_ID}` +
-        `&redirect_uri=${import.meta.env.VITE_REDIRECT_URI}` +
+        `?client_id=${import.meta.env.VITE_SIGNIN_GOOGLE_CLIENT_ID}` +
+        `&redirect_uri=${import.meta.env.VITE_SIGNIN_REDIRECT_URI}` +
         '&response_type=code' +
         '&scope=email profile' +
         '&state=GOOGLE';
@@ -84,8 +84,8 @@ function LoginPage() {
     if (platform === SOCIAL_LOGIN_PLATFORMS.GITHUB) {
       const url =
         'https://github.com/login/oauth/authorize?' +
-        `client_id=${import.meta.env.VITE_GITHUB_CLIENT_ID}` +
-        `&redirect_uri=${import.meta.env.VITE_REDIRECT_URI}` +
+        `client_id=${import.meta.env.VITE_SIGNIN_GIHUB_CLIENT_ID}` +
+        `&redirect_uri=${import.meta.env.VITE_SIGNIN_REDIRECT_URI}` +
         '&scope=read:user%20user:email' +
         '&state=GITHUB';
 
