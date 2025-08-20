@@ -183,6 +183,7 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
             
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
+            export CHATBOT_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:prod-${{ github.sha }}
             
             # Redis 환경변수를 AWS Parameter Store에서 가져오기
             export REDIS_HOST=$(aws ssm get-parameter --name "/ourhour/test/redis/host" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
@@ -239,9 +240,9 @@ jobs:
             
             # 최신 이미지 풀
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
-            export CHATBOT_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:prod-latest
-
+            
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
+            export CHATBOT_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:prod-latest
 
             # Redis 환경변수를 AWS Parameter Store에서 가져오기
             export REDIS_HOST=$(aws ssm get-parameter --name "/ourhour/release/redis/host" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
