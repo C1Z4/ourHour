@@ -24,6 +24,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   # db
   db:
@@ -35,7 +37,7 @@ services:
       - ./backend/.env
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - PYTHON_SERVER_URL=http://llm:8000
+      - PYTHON_SERVER_URL=http://localhost:8000
 
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -43,16 +45,6 @@ services:
       retries: 10
     volumes:
       - mysql-data:/var/lib/mysql
-
-  # llm
-  llm:
-    build:
-      context: ./llm
-    container_name: dev_llm
-    env_file:
-      - ./llm/.env
-    environment:
-      SPRING_PROFILES_ACTIVE: dev
 
   # prometheus
   prometheus:
@@ -72,7 +64,6 @@ services:
 
   # grafana
   grafana:
-
     image: grafana/grafana
 
     ports:
@@ -98,10 +89,10 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
     command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/rootfs'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
     restart: always
     networks:
       - default
@@ -133,6 +124,26 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
+  # ai chatbot
+  chatbot:
+    build:
+      context: ./ourHour-chatbot
+    container_name: ourhour-dev-chatbot
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - ./ourHour-chatbot/.env
+    environment:
+      - PYTHON_SERVER_URL=${PYTHON_SERVER_URL}
+      - OURHOUR_API_URL=${OURHOUR_API_URL}
+    volumes:
+      - ./ourHour-chatbot:/app
+    networks:
+      - default
+    restart: unless-stopped
+
 volumes:
   gradle-cache:
   build-cache:
@@ -142,4 +153,3 @@ volumes:
 networks:
   default:
     name: monitoring-net
-

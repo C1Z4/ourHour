@@ -176,7 +176,12 @@ jobs:
             export REDIS_HOST=$(aws ssm get-parameter --name "/ourhour/test/redis/host" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             export REDIS_PORT=$(aws ssm get-parameter --name "/ourhour/test/redis/port" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             export REDIS_PASSWORD=$(aws ssm get-parameter --name "/ourhour/test/redis/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            
+  
+            # chatbot 환경변수
+            export PYTHON_SERVER_URL=$(aws ssm get-parameter --name "/ourhour/test/python-server/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export OURHOUR_API_URL=$(aws ssm get-parameter --name "/ourhour/test/ourhour-api/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export OPENAI_API_KEY=$(aws ssm get-parameter --name "/ourhour/test/openai/api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+
             # DB init parameter
             export MYSQL_ROOT_PASSWORD=$(aws ssm get-parameter --name "/ourhour/db/root-password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             export MYSQL_DATABASE=$(aws ssm get-parameter --name "/ourhour/test/db" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
@@ -229,6 +234,11 @@ jobs:
             export REDIS_PORT=$(aws ssm get-parameter --name "/ourhour/release/redis/port" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             export REDIS_PASSWORD=$(aws ssm get-parameter --name "/ourhour/release/redis/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             
+            # chatbot 환경변수
+            export PYTHON_SERVER_URL=$(aws ssm get-parameter --name "/ourhour/release/python-server/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export OURHOUR_API_URL=$(aws ssm get-parameter --name "/ourhour/release/ourhour-api/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export OPENAI_API_KEY=$(aws ssm get-parameter --name "/ourhour/release/openai/api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+
             # DB init parameter
             export MYSQL_ROOT_PASSWORD=$(aws ssm get-parameter --name "/ourhour/db/root-password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             export MYSQL_DATABASE=$(aws ssm get-parameter --name "/ourhour/release/db" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
