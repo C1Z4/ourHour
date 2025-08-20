@@ -136,10 +136,10 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "backend=ourhour-backend:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-#            echo "chatbot=ourhour-chatbot:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+            echo "chatbot=ourhour-chatbot:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           elif [[ "${GITHUB_REF}" == "refs/heads/release" ]]; then
             echo "backend=ourhour-backend:test-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-#            echo "chatbot=ourhour-chatbot:test-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+            echo "chatbot=ourhour-chatbot:test-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build and push Backend Docker image
@@ -191,10 +191,10 @@ jobs:
             docker compose -f docker-compose.yml -f docker-compose.test.yml down -p ourhour-test || true            
 
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
-#            docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:test-${{ github.sha }}
+            # docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:test-${{ github.sha }}
 
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
-#            export CHATBOT_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:test-${{ github.sha }}
+            # export CHATBOT_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:test-${{ github.sha }}
 
             # Redis 환경변수를 AWS Parameter Store에서 가져오기
             export REDIS_HOST=$(aws ssm get-parameter --name "/ourhour/test/redis/host" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
