@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Upload } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 
 import { getImageUrl } from '@/utils/file/imageUtils';
 
@@ -9,6 +9,7 @@ interface LogoUploadProps {
   logoPreview: string;
   onLogoUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onFileSelect?: (file: File) => void;
+  onImageDelete?: () => void;
 }
 
 export function LogoUpload({
@@ -16,6 +17,7 @@ export function LogoUpload({
   logoPreview,
   onLogoUpload,
   onFileSelect,
+  onImageDelete,
 }: LogoUploadProps) {
   const [imageError, setImageError] = useState(false);
 
@@ -51,6 +53,15 @@ export function LogoUpload({
           <Upload className="w-4 h-4 text-gray-600" />
           <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
         </label>
+        {(logoPreview || logoImgUrl) && !imageError && onImageDelete && (
+          <button
+            type="button"
+            onClick={onImageDelete}
+            className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 rounded-full p-1 shadow-md"
+          >
+            <X className="w-4 h-4 text-white" />
+          </button>
+        )}
       </div>
     </div>
   );

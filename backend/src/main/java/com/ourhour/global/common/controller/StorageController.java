@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import com.ourhour.global.common.dto.ApiResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,13 +46,21 @@ public class StorageController {
     public record PresignResponse(String url, String key, String cdnUrl) {
     }
 
+    public record DeleteImageRequest(String imageUrl) {
+    }
+
     @PostMapping(value = "/presign", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PresignResponse> presign(@RequestBody PresignRequest request) {
 
-        // 캐시에서 먼저 확인   
-        String cachedUrl = imageCacheService.getPresignedUrl(request.fileName(), request.contentType());
-        if (cachedUrl != null) {
-            return ResponseEntity.ok(new PresignResponse(cachedUrl, "", ""));
+        // 캐시에서 먼저 확인 (PresignResponse 전체)
+        String[] cachedResponse = imageCacheService.getPresignResponse(request.fileName(), request.contentType());
+        if (cachedResponse != null) {
+            // 캐시된 응답이 있으면 그대로 반환
+            String presignedUrl = cachedResponse[0];
+            String key = cachedResponse[1];
+            String cdnUrl = cachedResponse[2];
+
+            return ResponseEntity.ok(new PresignResponse(presignedUrl, key, cdnUrl));
         }
 
         // 캐시에 없으면 새로 생성
@@ -75,8 +84,8 @@ public class StorageController {
 
         String cdnUrl = imageService.buildCdnUrl(key);
 
-        // 캐시에 저장
-        imageCacheService.savePresignedUrl(request.fileName(), request.contentType(), presignedUrl);
+        // 캐시에 저장 (PresignResponse 전체)
+        imageCacheService.savePresignResponse(request.fileName(), request.contentType(), presignedUrl, key, cdnUrl);
 
         return ResponseEntity.ok(new PresignResponse(presignedUrl, key, cdnUrl));
     }
@@ -110,6 +119,32 @@ public class StorageController {
     public ResponseEntity<Long> getCacheSize() {
         long size = cacheEvictionService.getCacheSize();
         return ResponseEntity.ok(size);
+    }
+
+    // 이미지 삭제 API
+    @DeleteMapping("/images")
+    public ResponseEntity<ApiResponse<Void>> deleteImage(@RequestBody DeleteImageRequest request) {
+        try {
+            String key = imageService.extractKeyFromCdnUrl(request.imageUrl());
+
+            if (key == null) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.fail("유효하지 않은 이미지 URL입니다."));
+            }
+
+            boolean deleted = imageService.deleteImageFromS3(key);
+
+            if (deleted) {
+                return ResponseEntity.ok(ApiResponse.success(null, "이미지가 성공적으로 삭제되었습니다."));
+            } else {
+                // 이 경우는 이제 발생하지 않지만, 안전을 위해 유지
+                return ResponseEntity.ok(ApiResponse.success(null, "이미지가 이미 삭제되었거나 존재하지 않습니다."));
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(ApiResponse.fail("이미지 삭제 중 오류가 발생했습니다: " + e.getMessage()));
+        }
     }
 
     // 컨텐트 타입에 따라 확장자 반환

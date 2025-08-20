@@ -20,7 +20,7 @@ export function useChat(orgId: number, roomId: number) {
       const accessToken = getAccessTokenFromStore();
 
       const client = new Client({
-        webSocketFactory: () => new SockJS('http://localhost:8080/ws-stomp'),
+        webSocketFactory: () => new SockJS(`${import.meta.env.VITE_API_URL}/ws-stomp`),
         connectHeaders: { Authorization: `Bearer ${accessToken}` },
         onConnect: () => {
           console.log('=== 웹소켓 연결 성공 ===');

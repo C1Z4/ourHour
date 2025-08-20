@@ -26,6 +26,8 @@ public class ImageCacheEvictionService {
     @Scheduled(fixedRate = 3600000) // 1시간마다 실행
     public void evictLeastUsedImages() {
         try {
+            // Redis 연결 상태 확인
+            redisTemplate.getConnectionFactory().getConnection().ping();
             Set<String> metadataKeys = redisTemplate.keys(IMAGE_METADATA_PREFIX);
             if (metadataKeys == null || metadataKeys.size() <= maxCacheSize) {
                 return;
@@ -51,7 +53,7 @@ public class ImageCacheEvictionService {
             log.info("{}개의 이미지 메타데이터가 캐시에서 제거되었습니다", toEvict);
             
         } catch (Exception e) {
-            log.error("이미지 캐시 정리 중 오류 발생", e);
+            log.warn("Redis 연결 실패로 이미지 캐시 정리를 건너뜁니다: {}", e.getMessage());
         }
     }
 
@@ -59,6 +61,8 @@ public class ImageCacheEvictionService {
     @Scheduled(fixedRate = 1800000) // 30분마다 실행  
     public void cleanupExpiredPresignedUrls() {
         try {
+            // Redis 연결 상태 확인
+            redisTemplate.getConnectionFactory().getConnection().ping();
             Set<String> presignKeys = redisTemplate.keys("image:presign:*");
             if (presignKeys == null) {
                 return;
@@ -77,7 +81,7 @@ public class ImageCacheEvictionService {
             }
             
         } catch (Exception e) {
-            log.error("Presigned URL 정리 중 오류 발생", e);
+            log.warn("Redis 연결 실패로 Presigned URL 정리를 건너뜁니다: {}", e.getMessage());
         }
     }
 
