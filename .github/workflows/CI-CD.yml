@@ -136,10 +136,10 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "backend=ourhour-backend:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+            echo "chatbot=ourhour-chatbot:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           elif [[ "${GITHUB_REF}" == "refs/heads/release" ]]; then
             echo "backend=ourhour-backend:test-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-            echo "chatbot_sha=ourhour-chatbot:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-            echo "chatbot_latest=ourhour-chatbot:prod-latest" >> "$GITHUB_OUTPUT"
+            echo "chatbot=ourhour-chatbot:test-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build and push Backend Docker image
@@ -157,9 +157,7 @@ jobs:
         with:
           context: ./llm
           push: true
-          tags: |
-            ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.chatbot_sha)) || format('myuser/{0}', steps['image-tags'].outputs.chatbot_sha) }}
-            ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.chatbot_latest)) || format('myuser/{0}', steps['image-tags'].outputs.chatbot_latest) }}
+          tags: ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.chatbot)) || format('myuser/{0}', steps['image-tags'].outputs.chatbot) }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -193,8 +191,10 @@ jobs:
             docker compose -f docker-compose.yml -f docker-compose.test.yml down -p ourhour-test || true            
 
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:test-${{ github.sha }}
 
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
+            export CHATBOT_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:test-${{ github.sha }}
 
             # Redis 환경변수를 AWS Parameter Store에서 가져오기
             export REDIS_HOST=$(aws ssm get-parameter --name "/ourhour/test/redis/host" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
@@ -222,7 +222,7 @@ jobs:
   deploy-docker-prod:
     needs: [build-test, build-docker]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
 
     steps:
@@ -251,9 +251,10 @@ jobs:
 
             # 최신 이미지 풀
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:prod-${{ github.sha }}
 
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
-            export CHATBOT_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:prod-latest
+            export CHATBOT_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:prod-${{ github.sha }}
 
             # Redis 환경변수를 AWS Parameter Store에서 가져오기
             export REDIS_HOST=$(aws ssm get-parameter --name "/ourhour/release/redis/host" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)

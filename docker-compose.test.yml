@@ -32,8 +32,8 @@ services:
 
   # ai chatbot
   chatbot:
-    image: ${CHATBOT_IMAGE:-ourhour-chatbot:prod}
-    container_name: release-chatbot
+    image: ${CHATBOT_IMAGE:-ourhour-chatbot:test}
+    container_name: test-chatbot
     ports:
       - "8000:8000"
     depends_on:
