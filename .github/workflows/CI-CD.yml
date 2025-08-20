@@ -136,10 +136,10 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "backend=ourhour-backend:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-            echo "chatbot=ourhour-chatbot:prod-latest" >> "$GITHUB_OUTPUT"
           elif [[ "${GITHUB_REF}" == "refs/heads/release" ]]; then
             echo "backend=ourhour-backend:test-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
             echo "chatbot=ourhour-chatbot:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+            echo "chatbot=ourhour-chatbot:prod-latest" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build and push Backend Docker image
@@ -152,6 +152,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Build and push Chatbot Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./llm
+          push: true
+          tags: | 
+            ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.chatbot)) || format('myuser/{0}', steps['image-tags'].outputs.chatbot) }}
+            ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.chatbot_latest)) || format('myuser/{0}', steps['image-tags'].outputs.chatbot_latest) }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   # 배포 태스트용 Docker (release 브랜치)
   deploy-docker-test:
