@@ -81,14 +81,15 @@ github:
   redirect-uri: ${APPLICATION_GITHUB_REDIRECT_URI}
   scope: ${APPLICATION_GITHUB_SCOPE}
 
-# Google OAuth 설정
-google:
-  client-id: ${APPLICATION_GOOGLE_CLIENT_ID}
-  client-secret: ${APPLICATION_GOOGLE_CLIENT_SECRET}
-
-# 소셜 로그인 리다이렉트 URI
+# 소셜 로그인 OAuth 설정
 signin:
-  redirect-uri: ${APPLICATION_SIGNIN_REDIRECT_URI}
+  github:
+    client-id: ${SIGNIN_GITHUB_CLIENT_ID}
+    client-secret: ${SIGNIN_GITHUB_CLIENT_SECRET}
+  google:
+    client-id: ${SIGNIN_GOOGLE_CLIENT_ID}
+    client-secret: ${SIGNIN_GOOGLE_CLIENT_SECRET}
+  redirect-uri: ${SIGNIN_REDIRECT_URI}
 
 # 이미지 캐시 관련 설정
 app:

@@ -71,13 +71,14 @@ github:
   redirect-uri: ${github.redirect-uri}
   scope: ${github.scope}
 
-# Google OAuth 설정
-google:
-  client-id: ${google.client-id}
-  client-secret: ${google.client-secret}
-
-# 소셜 로그인 리다이렉트 URI
+# 소셜 로그인 OAuth 설정
 signin:
+  github:
+    client-id: ${github.client-id}
+    client-secret: ${github.client-secret}
+  google:
+    client-id: ${google.client-id}
+    client-secret: ${google.client-secret}
   redirect-uri: ${signin.redirect-uri}
 
 app:

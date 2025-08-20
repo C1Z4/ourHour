@@ -84,13 +84,14 @@ github:
   redirect-uri: http://localhost:5173/auth/github/callback
   scope: repo,read:user,user:email
 
-# Google OAuth 설정
-google:
-  client-id: 1234567890
-  client-secret: 1234567890
-
-# 소셜 로그인 리다이렉트 URI
+# 소셜 로그인 OAuth 설정
 signin:
+  github:
+    client-id: 1234567890
+    client-secret: 1234567890
+  google:
+    client-id: 1234567890
+    client-secret: 1234567890
   redirect-uri: http://localhost:5173/oauth
 
 # 이미지 업로드 설정
