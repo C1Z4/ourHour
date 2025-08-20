@@ -103,6 +103,16 @@ app:
     presign:
       ttl: 600   # 10분 (초)
 
+# 프로메테우스 관련 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "prometheus, health"
+  endpoint:
+    health:
+      show-details: always
+
 # LLM fast api 서버
 python-server:
   url: ${PYTHON_SERVER_URL:http://localhost:8000}
