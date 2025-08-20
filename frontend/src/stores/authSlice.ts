@@ -36,10 +36,6 @@ const authSlice = createSlice({
       state.accessToken = null;
       state.isAuthenticated = false;
       state.isLoading = false;
-      // 로그아웃 시 저장된 이메일 데이터 삭제
-      storageUtils.clearEmailData();
-      state.rememberedEmail = null;
-      state.shouldRememberEmail = false;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;

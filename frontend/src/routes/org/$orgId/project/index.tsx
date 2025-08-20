@@ -70,7 +70,7 @@ function ProjectListPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <ProjectDataTable />
+          <ProjectDataTable isMyProjectsOnly={isMyProjectsOnly} />
         </div>
         {isModalOpen && (
           <ProjectModal

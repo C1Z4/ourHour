@@ -21,10 +21,19 @@ export const useProjectSummaryListQuery = (
   participantLimit: number = 3,
   currentPage: number = 1,
   size: number = 10,
+  myProjectsOnly: boolean = false,
 ) =>
   useQuery({
-    queryKey: [PROJECT_QUERY_KEYS.SUMMARY_LIST, participantLimit, orgId, currentPage, size],
-    queryFn: () => getProjectSummaryList({ orgId, participantLimit, currentPage, size }),
+    queryKey: [
+      PROJECT_QUERY_KEYS.SUMMARY_LIST,
+      participantLimit,
+      orgId,
+      currentPage,
+      size,
+      myProjectsOnly,
+    ],
+    queryFn: () =>
+      getProjectSummaryList({ orgId, participantLimit, currentPage, size, myProjectsOnly }),
     enabled: !!orgId,
   });
 
