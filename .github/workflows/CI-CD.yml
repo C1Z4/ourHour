@@ -246,8 +246,8 @@ jobs:
 
             # 최신 release 브랜치 pull
             git fetch origin
-            git checkout release
-            git reset --hard origin/release
+            git checkout test
+            git reset --hard origin/test
 
             # Docker 로그인
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
