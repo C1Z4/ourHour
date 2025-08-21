@@ -225,9 +225,11 @@ public class UserService {
                     .POST(HttpRequest.BodyPublishers.ofString(body))
                     .build();
 
+            log.info("깃허브 토큰 교환 요청 - redirectUri: {}, clientId: {}", redirectUri, githubClientId);
+            
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() / 100 != 2) {
-                log.error("깃허브 토큰 교환 실패, 응답 코드: {}", response.statusCode());
+                log.error("깃허브 토큰 교환 실패, 응답 코드: {}, 응답 내용: {}", response.statusCode(), response.body());
                 throw GithubException.githubTokenNotAuthorizedException();
             }
 
