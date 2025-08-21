@@ -5,7 +5,8 @@ from langchain_pinecone import PineconeVectorStore
 from langchain.docstore.document import Document
 from pinecone import Pinecone
 
-load_dotenv()
+if os.path.exists('/etc/secrets/env'):
+    load_dotenv('/etc/secrets/env')
 
 embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
 

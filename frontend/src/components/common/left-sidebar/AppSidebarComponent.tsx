@@ -68,7 +68,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: '채팅',
         icon: MessageCircle,
         isActive: true,
-        items: chatRooms.map((chatRoom) => {
+        items: chatRooms?.map((chatRoom) => {
           const iconColor = CHAT_COLORS[chatRoom.color as keyof typeof CHAT_COLORS] || '#808080';
 
           return {

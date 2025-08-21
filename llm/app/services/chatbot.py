@@ -4,7 +4,10 @@ from langchain.chains import ConversationChain
 import os
 import asyncio
 from .context_service import context_service
+from dotenv import load_dotenv
 
+if os.path.exists('/etc/secrets/env'):
+    load_dotenv('/etc/secrets/env')
 
 class ChatbotService:
     def __init__(self):
