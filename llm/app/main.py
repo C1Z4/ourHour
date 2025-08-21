@@ -1,44 +1,33 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
-from typing import Optional
 import os
-from .services.chatbot import chatbot_service
-from .services.pinecone_service import pinecone_service
+from .routes.chat import router as chat_router
 
 load_dotenv()
 
-app = FastAPI(title="OURHOUR AI 챗봇")
+app = FastAPI(
+    title="OURHOUR AI 챗봇",
+    description="JWT 인증이 필요한 AI 챗봇 서비스",
+    version="1.0.0"
+)
 
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # 프론트엔드 개발 서버 주소
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "https://www.ourhour.cloud", "https://our-hour-test.vercel.app"],  # 프론트엔드 개발 서버 주소
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-class ChatRequest(BaseModel):
-    message: str
-    user_id: Optional[str] = None
-    auth_token: Optional[str] = None  # 사용자의 JWT 토큰
-
-class ChatResponse(BaseModel):
-    response: str
+# 라우터 등록
+app.include_router(chat_router, prefix="/api", tags=["Chat"])
 
 @app.get("/")
 def read_root():
     return {"message": "OURHOUR AI 챗봇 서버가 실행 중입니다!"}
-
-@app.post("/chat", response_model=ChatResponse)
-async def chat_with_bot(request: ChatRequest):
-    try:
-        response = await chatbot_service.get_response(request.message, request.user_id, request.auth_token)
-        return ChatResponse(response=response)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"챗봇 오류: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
