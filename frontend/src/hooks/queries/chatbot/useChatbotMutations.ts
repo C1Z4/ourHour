@@ -4,11 +4,12 @@ import { sendChatMessage } from '@/api/chatbot/chatbotApi';
 
 export interface SendChatMessageParams {
   message: string;
-  accessToken?: string;
+  orgId: number;
+  accessToken: string; // JWT 인증 필수
 }
 
 export const useSendChatMessageMutation = () =>
   useMutation({
-    mutationFn: ({ message, accessToken }: SendChatMessageParams) =>
-      sendChatMessage(message, accessToken),
+    mutationFn: ({ message, orgId, accessToken }: SendChatMessageParams) =>
+      sendChatMessage(message, orgId, accessToken),
   });

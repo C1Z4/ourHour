@@ -127,19 +127,19 @@ services:
   # ai chatbot
   chatbot:
     build:
-      context: ./ourHour-chatbot
+      context: llm
     container_name: ourhour-dev-chatbot
     ports:
       - "8000:8000"
     depends_on:
       - db
     env_file:
-      - ./ourHour-chatbot/.env
+      - llm/.env
     environment:
       - PYTHON_SERVER_URL=${PYTHON_SERVER_URL}
       - OURHOUR_API_URL=${OURHOUR_API_URL}
     volumes:
-      - ./ourHour-chatbot:/app
+      - ./llm:/app
     networks:
       - default
     restart: unless-stopped

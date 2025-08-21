@@ -5,6 +5,7 @@ import os
 import asyncio
 from .context_service import context_service
 
+
 class ChatbotService:
     def __init__(self):
         self.llm = ChatOpenAI(
@@ -18,9 +19,29 @@ class ChatbotService:
             verbose=True
         )
     
-    async def get_response(self, user_message: str, user_id: str = None, auth_token: str = None) -> str:
+    async def get_response(
+        self, 
+        user_message: str, 
+        member_id: str = None, 
+        org_id: int = None, 
+        auth_token: str = None
+    ) -> str:
+        """
+        사용자 메시지에 대한 AI 응답 생성
+        
+        Args:
+            user_message: 사용자 질문
+            member_id: JWT에서 추출한 멤버 ID
+            org_id: 클라이언트에서 전달받은 조직 ID
+            auth_token: JWT 토큰
+        """
         # OURHOUR 컨텍스트 정보 수집
-        ourhour_context = await context_service.get_comprehensive_context(user_message, user_id, auth_token)
+        ourhour_context = await context_service.get_comprehensive_context(
+            user_message=user_message,
+            member_id=member_id,
+            org_id=org_id,
+            auth_token=auth_token
+        )
         
         # 강화된 컨텍스트 구성
         context = f"""
@@ -49,5 +70,6 @@ class ChatbotService:
         
         response = self.conversation.predict(input=context)
         return response
+
 
 chatbot_service = ChatbotService()

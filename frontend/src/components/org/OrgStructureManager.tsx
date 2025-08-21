@@ -33,8 +33,10 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
     item: null,
   });
 
-  const { data: departments = [] } = useDepartmentsQuery(orgId);
-  const { data: positions = [] } = usePositionsQuery(orgId);
+  const { data: departmentsData } = useDepartmentsQuery(orgId);
+  const { data: positionsData } = usePositionsQuery(orgId);
+  const departments = departmentsData as unknown as Department[];
+  const positions = positionsData as unknown as Position[];
 
   const { mutate: createDepartmentMutation } = useCreateDepartmentMutation(orgId);
   const { mutate: createPositionMutation } = useCreatePositionMutation(orgId);

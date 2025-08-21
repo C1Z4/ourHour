@@ -3,6 +3,7 @@ import { useParams } from '@tanstack/react-router';
 import { CommentPageResponse } from '@/api/comment/commentApi';
 import { CommentForm } from '@/components/project/issue-detail/CommentForm';
 import { CommentItem } from '@/components/project/issue-detail/CommentItem';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   useCreateCommentMutation,
   useDeleteCommentMutation,
@@ -13,7 +14,7 @@ import { useCommentListQuery } from '@/hooks/queries/comment/useCommentQueries';
 export const CommentSection = () => {
   const { orgId, postId } = useParams({ from: '/org/$orgId/board/$boardId/post/$postId/' });
 
-  const { data: commentsData } = useCommentListQuery({
+  const { data: commentsData, isLoading } = useCommentListQuery({
     orgId: Number(orgId),
     postId: Number(postId),
   });
@@ -47,6 +48,44 @@ export const CommentSection = () => {
   const handleDeleteComment = (commentId: number) => {
     deleteComment(commentId);
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-white">
+        <div className="border-b border-gray-200 pb-4 mb-6">
+          <Skeleton className="h-6 w-32" />
+        </div>
+
+        <div className="space-y-6">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="space-y-3">
+              <div className="flex items-start space-x-3">
+                <Skeleton className="w-8 h-8 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-20 w-full" />
+            <div className="flex justify-end">
+              <Skeleton className="h-9 w-20" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white">

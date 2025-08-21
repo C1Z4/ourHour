@@ -50,11 +50,20 @@ spring:
       ssl:
         enabled: true
 
+management:
+  metrics:
+    enable:
+      processormetrics: false
 # JWT 관련 설정
 jwt:
   secret: ${jwt.secret}
   access-token-validity-in-seconds: ${jwt.access-token}
   refresh-token-validity-in-seconds: ${jwt.refresh-token}
+
+# Cookie 관련 설정
+cookie:
+  secure: ${cookie.secure}
+  same-site: ${cookie.same-site}
 
 # 암호화 설정
 encryption:
@@ -66,6 +75,16 @@ github:
   client-secret: ${github.client-secret}
   redirect-uri: ${github.redirect-uri}
   scope: ${github.scope}
+
+# 소셜 로그인 OAuth 설정
+signin:
+  github:
+    client-id: ${signin.github.client-id}
+    client-secret: ${signin.github.client-secret}
+  google:
+    client-id: ${google.client-id}
+    client-secret: ${google.client-secret}
+  redirect-uri: ${signin.redirect-uri}
 
 python-server:
   url: ${python-server.url}
