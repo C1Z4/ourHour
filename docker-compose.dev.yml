@@ -139,7 +139,7 @@ services:
       - PYTHON_SERVER_URL=${PYTHON_SERVER_URL}
       - OURHOUR_API_URL=${OURHOUR_API_URL}
     volumes:
-      - ./ourHour-chatbot:/app
+      - ./llm:/app
     networks:
       - default
     restart: unless-stopped

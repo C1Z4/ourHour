@@ -5,6 +5,8 @@ import * as React from 'react';
 import { useParams } from '@tanstack/react-router';
 import { ClipboardList, FolderGit2, MessageCircle } from 'lucide-react';
 
+import { ChatRoom } from '@/types/chatTypes';
+
 import { NavMain } from '@/components/common/left-sidebar/NavMain';
 import { TeamSwitcher } from '@/components/common/left-sidebar/TeamSwitcher';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
@@ -29,7 +31,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const myProjectList = Array.isArray(myProjectListData) ? myProjectListData : [];
 
   const { data: apiResponse } = useChatRoomListQuery(currentOrgId, 0, 5);
-  const chatRooms = apiResponse?.data ?? [];
+  const chatRooms = apiResponse?.data as unknown as ChatRoom[];
 
   const data = {
     navMain: [
