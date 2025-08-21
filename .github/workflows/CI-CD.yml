@@ -175,7 +175,7 @@ jobs:
             
             # 환경 변수 세팅
             chmod +x ./generate-env.sh
-            ./generate-env.sh test aws > .env
+            ./generate-env.sh test aws 
             
             # 백엔드 이미지 pull
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
