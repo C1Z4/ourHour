@@ -1,0 +1,10 @@
+services:
+  chatbot:
+    build:
+      context: ./llm
+    ports:
+     - "8000:8000"
+    volumes:
+      - ./llm:/app
+    networks:
+      - default
