@@ -29,7 +29,7 @@ function GitHubCallbackPage() {
     }
 
     exchangeCode(
-      { code, redirectUri: `${window.location.origin}/oauth/github/callback` },
+      { code, redirectUri: `${window.location.origin}/github/callback` },
       {
         onSuccess: () => {
           sessionStorage.setItem('toast:github_connected', '1');
