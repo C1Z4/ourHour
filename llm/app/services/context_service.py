@@ -5,6 +5,7 @@ OurHour 그룹웨어 시스템의 조직/멤버 정보를 수집하여 챗봇이
 
 import json
 import os
+import jwt 
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from .ourhour_api import OurHourAPIClient, MemberInfo, DepartmentInfo, PositionInfo
@@ -278,10 +279,16 @@ class ContextGenerator:
 
 def main():
     """메인 실행 함수"""
-    # 설정값들 (실제 사용시에는 환경변수나 설정파일에서 읽어올 것)
-    BASE_URL = "http://localhost:8080"  # 실제 API 서버 URL로 변경
-    AUTH_TOKEN = "your_jwt_token_here"   # 실제 JWT 토큰으로 변경
-    ORG_ID = 1                           # 실제 조직 ID로 변경
+    # 환경변수에서 설정값 읽기
+    BASE_URL = os.getenv("OURHOUR_API_URL", "http://localhost:8080")
+    AUTH_TOKEN = os.getenv("OURHOUR_JWT_TOKEN")  # 환경변수에서 읽기
+    ORG_ID = int(os.getenv("OURHOUR_ORG_ID", "1"))
+    
+    if not AUTH_TOKEN:
+        print("ERROR: OURHOUR_JWT_TOKEN 환경변수가 설정되지 않았습니다.")
+        print("다음과 같이 환경변수를 설정해주세요:")
+        print("export OURHOUR_JWT_TOKEN=your_jwt_token_here")
+        return
     
     # 로깅 설정
     logging.basicConfig(
@@ -290,6 +297,10 @@ def main():
     )
     
     try:
+        print(f"API URL: {BASE_URL}")
+        print(f"조직 ID: {ORG_ID}")
+        print(f"JWT 토큰 길이: {len(AUTH_TOKEN)}")
+        
         # API 클라이언트 초기화
         api_client = OurHourAPIClient(BASE_URL, AUTH_TOKEN)
         
@@ -300,7 +311,10 @@ def main():
         context = context_generator.generate_organization_context()
         
         # 파일로 저장
-        output_file = f'organization_context_{ORG_ID}.json'
+        output_dir = os.getenv("CONTEXT_OUTPUT_DIR", "./output")
+        os.makedirs(output_dir, exist_ok=True)
+        
+        output_file = os.path.join(output_dir, f'organization_context_{ORG_ID}.json')
         context_generator.save_context_to_file(context, output_file)
         
         # 요약 텍스트 생성 및 출력
@@ -311,7 +325,7 @@ def main():
         print(summary)
         
         # 요약을 별도 파일로도 저장
-        summary_file = f'organization_summary_{ORG_ID}.txt'
+        summary_file = os.path.join(output_dir, f'organization_summary_{ORG_ID}.txt')
         with open(summary_file, 'w', encoding='utf-8') as f:
             f.write(summary)
         
@@ -326,40 +340,62 @@ class ContextService:
     """FastAPI 애플리케이션용 컨텍스트 서비스"""
     
     def __init__(self):
-        self.api_client = None
-        self.context_generator = None
-        self._initialize_client()
+        pass
     
-    def _initialize_client(self):
-        """API 클라이언트 초기화"""
-        try:
-            base_url = os.getenv("OURHOUR_API_URL", "http://backend:8080")
-            auth_token = os.getenv("OURHOUR_JWT_TOKEN", "")
-            
-            print(f"DEBUG: base_url = {base_url}")
-            print(f"DEBUG: auth_token length = {len(auth_token) if auth_token else 0}")
-            
-            if auth_token:
-                self.api_client = OurHourAPIClient(base_url, auth_token)
-                print("DEBUG: API client initialized successfully")
-            else:
-                print("DEBUG: No auth token found")
-        except Exception as e:
-            print(f"ERROR: Failed to initialize API client: {str(e)}")
-            logging.warning(f"Failed to initialize API client: {str(e)}")
-    
-    async def get_comprehensive_context(self, user_message: str, user_id: str = None, auth_token: str = None) -> str:
+    async def get_comprehensive_context(
+        self, 
+        user_message: str, 
+        member_id: str = None, 
+        org_id: int = None, 
+        auth_token: str = None
+    ) -> str:
         """사용자 질문에 대한 종합적인 컨텍스트 정보 반환"""
         try:
             # auth_token이 제공된 경우 동적으로 API 클라이언트 생성
-            if auth_token:
-                base_url = os.getenv("OURHOUR_API_URL", "http://backend:8080")
-                temp_api_client = OurHourAPIClient(base_url, auth_token)
-                temp_context_generator = ContextGenerator(temp_api_client, 1)  # org_id는 JWT에서 추출해야 함
+            if auth_token and org_id:
+                base_url = os.getenv("BASE_URL", "http://backend:8080")
+                
+                # API 클라이언트 생성
+                api_client = OurHourAPIClient(base_url, auth_token)
+                context_generator = ContextGenerator(api_client, org_id)
                 
                 # 조직 컨텍스트 생성
-                context = temp_context_generator.generate_organization_context()
-                context_summary = temp_context_generator.generate_context_summary(context)
+                context = context_generator.generate_organization_context()
+                context_summary = context_generator.generate_context_summary(context)
+                
+                # 현재 사용자 정보 추가 (member_id 활용)
+                if member_id:
+                    try:
+                        # JWT 토큰 검증 및 사용자 정보 추출 (백엔드와 동일한 설정)
+                        import base64
+                        jwt_secret_base64 = os.getenv("JWT_SECRET")
+                        jwt_algorithm = "HS512"
+                        jwt_secret = base64.b64decode(jwt_secret_base64)
+                        payload = jwt.decode(auth_token, jwt_secret, algorithms=[jwt_algorithm])
+                        
+                        # 현재 사용자 컨텍스트 추가
+                        current_user_context = f"\n\n=== 현재 사용자 정보 ===\n"
+                        current_user_context += f"사용자 ID: {member_id}\n"
+                        current_user_context += f"조직 ID: {org_id}\n"
+                        
+                        # 사용자가 해당 조직의 멤버인지 확인
+                        members = context['members']['member_index']
+                        user_found = False
+                        for member_name, member_info in members.items():
+                            if str(member_info.get('id', '')) == str(member_id) or str(member_info.get('memberId', '')) == str(member_id):
+                                current_user_context += f"현재 사용자: {member_name}\n"
+                                current_user_context += f"부서: {member_info['department']}\n"
+                                current_user_context += f"직책: {member_info['position']}\n"
+                                user_found = True
+                                break
+                        
+                        if not user_found:
+                            current_user_context += "주의: 현재 사용자의 상세 정보를 찾을 수 없습니다.\n"
+                        
+                        context_summary += current_user_context
+                        
+                    except Exception as e:
+                        logging.warning(f"Failed to add current user context: {str(e)}")
                 
                 # 특정 사람에 대한 질문인지 확인하고 향상된 컨텍스트 제공
                 person_name = extract_person_name_from_question(user_message)
@@ -371,88 +407,60 @@ class ContextService:
                 
                 return context_summary
             
-            elif self.api_client:
-                # 기존 방식 (환경변수 토큰 사용)
-                if not self.context_generator:
-                    self.context_generator = ContextGenerator(self.api_client, 1)
-                
-                # 조직 컨텍스트 생성
-                context = self.context_generator.generate_organization_context()
-                context_summary = self.context_generator.generate_context_summary(context)
-                
-                # 특정 사람에 대한 질문인지 확인
-                person_name = extract_person_name_from_question(user_message)
-                if person_name:
-                    enhanced_context = self._enhance_context_for_person_query(
-                        context, context_summary, person_name, user_message
-                    )
-                    return enhanced_context
-                
-                return context_summary
-            
             else:
-                return "조직 정보 API에 연결할 수 없습니다. 일반적인 도움을 제공하겠습니다."
+                return "인증 정보가 부족합니다. 로그인 후 다시 시도해주세요."
             
+        except jwt.ExpiredSignatureError:
+            return "인증 토큰이 만료되었습니다. 다시 로그인해주세요."
+        except jwt.InvalidTokenError:
+            return "유효하지 않은 인증 토큰입니다. 다시 로그인해주세요."
         except Exception as e:
             logging.error(f"Error getting comprehensive context: {str(e)}")
-            return "조직 정보를 가져올 수 없습니다. 일반적인 도움을 제공하겠습니다."
+            return "조직 정보를 가져올 수 없습니다. 관리자에게 문의해주세요."
     
-    def _enhance_context_for_person_query(self, context: Dict[str, Any], base_context: str, person_name: str, user_message: str) -> str:
-        """특정 사람에 대한 질문을 위한 컨텍스트 향상"""
+    def _enhance_context_for_person_query(self, context: dict, base_context: str, person_name: str, question: str) -> str:
+        """특정 사람에 대한 질문을 위해 컨텍스트를 향상시킴"""
         try:
-            members = context['members']['member_index']
-            member_names = list(members.keys())
+            members = context.get('members', {})
+            member_index = members.get('member_index', {})
             
-            # 이름 매처 생성
-            name_matcher = NameMatcher(member_names)
+            # 정확한 이름 매칭
+            if person_name in member_index:
+                member_info = member_index[person_name]
+                enhanced_context = f"{base_context}\n\n=== {person_name}에 대한 상세 정보 ===\n"
+                enhanced_context += f"이름: {person_name}\n"
+                enhanced_context += f"이메일: {member_info.get('email', '정보 없음')}\n"
+                enhanced_context += f"전화번호: {member_info.get('phone', '정보 없음')}\n"
+                enhanced_context += f"부서: {member_info.get('department', '정보 없음')}\n"
+                enhanced_context += f"직책: {member_info.get('position', '정보 없음')}\n"
+                enhanced_context += f"역할: {member_info.get('role', '정보 없음')}\n"
+                return enhanced_context
             
-            # 최적의 매칭 찾기
-            match_result = name_matcher.find_best_match(person_name)
+            # 유사한 이름 찾기
+            name_variations = members.get('name_variations', {})
+            possible_matches = []
             
-            enhanced_context = base_context + "\n\n=== 특정 인물 질문 관련 추가 정보 ===\n"
+            for variation, full_name in name_variations.items():
+                if person_name.lower() in variation.lower():
+                    if isinstance(full_name, list):
+                        possible_matches.extend(full_name)
+                    else:
+                        possible_matches.append(full_name)
             
-            if match_result:
-                matched_name, similarity = match_result
-                member_info = members[matched_name]
-                
-                enhanced_context += f"질문 대상: '{person_name}' -> 매칭된 인물: '{matched_name}' (유사도: {similarity:.2f})\n"
-                enhanced_context += f"상세 정보:\n"
-                enhanced_context += f"- 이름: {matched_name}\n"
-                enhanced_context += f"- 직책: {member_info['position']}\n"
-                enhanced_context += f"- 부서: {member_info['department']}\n"
-                enhanced_context += f"- 이메일: {member_info['email']}\n"
-                enhanced_context += f"- 전화번호: {member_info['phone']}\n"
-                enhanced_context += f"- 역할: {member_info['role']}\n"
-                
-                # 유사도가 낮은 경우 다른 후보들도 제안
-                if similarity < 0.8:
-                    suggestions = name_matcher.suggest_names(person_name, max_suggestions=3)
-                    if len(suggestions) > 1:
-                        enhanced_context += f"\n혹시 다음 인물들 중 하나를 찾고 계신가요?\n"
-                        for suggestion in suggestions:
-                            if suggestion != matched_name:
-                                suggestion_info = members[suggestion]
-                                enhanced_context += f"- {suggestion} ({suggestion_info['position']}, {suggestion_info['department']})\n"
+            if possible_matches:
+                enhanced_context = f"{base_context}\n\n'{person_name}'과 유사한 이름을 찾았습니다:\n"
+                for match in possible_matches[:3]:  # 최대 3개만 표시
+                    if match in member_index:
+                        member_info = member_index[match]
+                        enhanced_context += f"- {match}: {member_info.get('position', '정보없음')}, {member_info.get('department', '정보없음')}\n"
+                return enhanced_context
             
-            else:
-                # 매칭되는 사람이 없는 경우
-                enhanced_context += f"'{person_name}'과 정확히 일치하는 인물을 찾을 수 없습니다.\n"
-                
-                # 유사한 이름 제안
-                suggestions = name_matcher.suggest_names(person_name, max_suggestions=5)
-                if suggestions:
-                    enhanced_context += "혹시 다음 인물들 중 하나를 찾고 계신가요?\n"
-                    for suggestion in suggestions:
-                        suggestion_info = members[suggestion]
-                        enhanced_context += f"- {suggestion} ({suggestion_info['position']}, {suggestion_info['department']})\n"
-                else:
-                    enhanced_context += "유사한 이름의 인물도 찾을 수 없습니다.\n"
-            
-            return enhanced_context
+            return f"{base_context}\n\n'{person_name}'에 해당하는 직원을 찾을 수 없습니다."
             
         except Exception as e:
             logging.error(f"Error enhancing context for person query: {str(e)}")
-            return base_context + f"\n\n특정 인물 '{person_name}'에 대한 정보 처리 중 오류가 발생했습니다."
+            return base_context
+
 
 # 전역 서비스 인스턴스
 context_service = ContextService()
