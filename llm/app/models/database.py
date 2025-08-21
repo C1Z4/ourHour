@@ -3,10 +3,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import os
-from dotenv import load_dotenv
+from ..utils.secret_manager import load_secret_env
 
-if os.path.exists('/etc/secrets/env'):
-    load_dotenv('/etc/secrets/env')
+# 환경변수 로드
+load_secret_env()
 
 DATABASE_URL = os.getenv("CHATBOT_DATABASE_URL")
 engine = create_engine(DATABASE_URL)
