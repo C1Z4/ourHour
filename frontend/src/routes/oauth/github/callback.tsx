@@ -17,7 +17,8 @@ function GitHubCallbackPage() {
     if (typeof window !== 'undefined' && window.history.length > 1) {
       window.history.back();
     } else {
-      router.navigate({ to: '/' });
+      console.log('goBack');
+      // router.navigate({ to: '/' });
     }
   }, [router]);
 
