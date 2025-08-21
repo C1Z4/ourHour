@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
+import { AiChatbot } from '@/components/common/AiChatbot';
 import { AppSidebar } from '@/components/common/left-sidebar/AppSidebarComponent';
 import { NavigationMenuComponent } from '@/components/common/navigation-menu/NavigationMenuComponent';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
@@ -22,6 +23,7 @@ function DefaultLayoutComponent() {
           <Outlet />
         </SidebarInset>
       </SidebarProvider>
+      <AiChatbot />
     </div>
   );
 }
