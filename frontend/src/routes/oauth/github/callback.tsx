@@ -23,9 +23,12 @@ function GitHubCallbackPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    console.log('params', params);
     const code = params.get('code');
+    console.log('code', code);
 
     if (!code) {
+      console.error('No code found');
       goBack();
       return;
     }
@@ -34,10 +37,12 @@ function GitHubCallbackPage() {
       { code, redirectUri: `${window.location.origin}/oauth/github/callback` },
       {
         onSuccess: () => {
+          console.log('onSuccess');
           sessionStorage.setItem('toast:github_connected', '1');
           goBack();
         },
         onError: () => {
+          console.log('onError');
           sessionStorage.setItem('toast:github_failed', '1');
           goBack();
         },

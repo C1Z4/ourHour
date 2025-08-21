@@ -1,7 +1,6 @@
 export interface ChatbotRequest {
   message: string;
-  user_id?: string;
-  auth_token?: string;
+  org_id: number;
 }
 
 export interface ChatbotResponse {
@@ -10,23 +9,36 @@ export interface ChatbotResponse {
 
 export const sendChatMessage = async (
   message: string,
-  accessToken?: string,
+  orgId: number,
+  accessToken: string,
 ): Promise<ChatbotResponse> => {
+  // JWT 인증 필수 체크
+  if (!accessToken) {
+    throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+  }
+
   const requestData: ChatbotRequest = {
     message,
-    auth_token: accessToken,
+    org_id: orgId,
   };
 
-  const response = await fetch(`${import.meta.env.VITE_PYTHON_SERVER_URL}/chat`, {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${accessToken}`,
+  };
+
+  const response = await fetch(`${import.meta.env.VITE_PYTHON_SERVER_URL}/api/chat`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(requestData),
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    // 에러 상세 정보 포함
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      `HTTP error! status: ${response.status}, message: ${errorData.detail || response.statusText}`,
+    );
   }
 
   const data = await response.json();
