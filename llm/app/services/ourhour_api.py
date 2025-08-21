@@ -6,6 +6,10 @@ import logging
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from ..models.ourhour_models import Member, Project, Issue, Post, OurhourResponse, MemberInfo, DepartmentInfo, PositionInfo
+from dotenv import load_dotenv
+
+if os.path.exists('/etc/secrets/env'):
+    load_dotenv('/etc/secrets/env')
 
 class OurHourAPIClient:
     """OurHour API 클라이언트"""

@@ -3,8 +3,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 
-DATABASE_URL = os.getenv("CHATBOT_DATABASE_URL") or os.getenv("DATABASE_URL")
+if os.path.exists('/etc/secrets/env'):
+    load_dotenv('/etc/secrets/env')
+
+DATABASE_URL = os.getenv("CHATBOT_DATABASE_URL")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
