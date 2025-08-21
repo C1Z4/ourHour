@@ -5,6 +5,8 @@ services:
       context: ./backend
       target: dev
     container_name: dev-backend
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
     working_dir: /app
     # 두 프로세스 모두 gradlew 사용 + 캐시 디렉터리 분리
     command: >
