@@ -6,7 +6,7 @@ OurHour AI 챗봇 사용 예시
 import json
 from ourhour_api import OurHourAPIClient
 from context_service import ContextGenerator
-
+    
 class OurHourChatbot:
     """OurHour 그룹웨어 정보를 활용하는 간단한 챗봇 클래스"""
     
