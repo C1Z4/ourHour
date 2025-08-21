@@ -38,7 +38,7 @@ services:
   # redis
   redis:
     image: redis:7-alpine
-    container_name: test-redis
+    container_name: ${SPRING_PROFILES_ACTIVE}-redis
     ports:
       - "${REDIS_PORT:-6379}:6379"
     env_file:
