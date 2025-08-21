@@ -59,13 +59,13 @@ public class UserService {
     private final UserGitHubMappingRepository userGitHubMappingRepository;
     private final EncryptionUtil encryptionUtil;
 
-    @Value("${github.oauth.client-id:${APPLICATION_GITHUB_CLIENT_ID:}}")
+    @Value("${github.client-id:${APPLICATION_GITHUB_CLIENT_ID:}}")
     private String githubClientId;
 
-    @Value("${github.oauth.client-secret:${APPLICATION_GITHUB_CLIENT_SECRET:}}")
+    @Value("${github.client-secret:${APPLICATION_GITHUB_CLIENT_SECRET:}}")
     private String githubClientSecret;
 
-    @Value("${github.oauth.redirect-uri:${APPLICATION_GITHUB_REDIRECT_URI:}}")
+    @Value("${github.redirect-uri:${APPLICATION_GITHUB_REDIRECT_URI:}}")
     private String githubRedirectUri;
 
     // 비밀번호 변경
