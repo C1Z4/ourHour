@@ -26,8 +26,8 @@ export const useProjectSummaryListQuery = (
   useQuery({
     queryKey: [
       PROJECT_QUERY_KEYS.SUMMARY_LIST,
-      participantLimit,
       orgId,
+      participantLimit,
       currentPage,
       size,
       myProjectsOnly,
