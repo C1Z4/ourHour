@@ -28,6 +28,10 @@ def load_secret_env():
                 os.environ[key.strip()] = value.strip()
                 
         print("Secret Manager에서 환경변수 로드 완료")
+        
+        # Cloud SQL 연결을 위한 데이터베이스 URL 수정
+        _fix_cloud_sql_database_url()
+        
         return True
         
     except Exception as e:
@@ -45,6 +49,28 @@ def load_secret_env():
         else:
             print("환경변수 로드 실패 - 모든 fallback 실패")
             return False
+
+
+def _fix_cloud_sql_database_url():
+    """
+    Cloud SQL unix socket 연결을 위해 데이터베이스 URL을 수정
+    """
+    database_url = os.getenv("CHATBOT_DATABASE_URL")
+    if not database_url:
+        return
+    
+    # Cloud SQL unix socket 형식 처리
+    if "unix_socket=" in database_url:
+        print(f"원본 DB URL: {database_url}")
+        
+        # PyMySQL Cloud SQL Connector 형식으로 변경
+        # mysql+pymysql://user:password@/database?unix_socket=/cloudsql/instance
+        # -> mysql+pymysql://user:password@localhost/database?unix_socket=/cloudsql/instance
+        if "@/" in database_url:
+            # @/ -> @localhost/ 로 변경하여 PyMySQL이 인식할 수 있도록 함
+            fixed_url = database_url.replace("@/", "@localhost/")
+            os.environ["CHATBOT_DATABASE_URL"] = fixed_url
+            print(f"수정된 DB URL: {fixed_url}")
 
 
 def get_required_env(key: str, default: str = None) -> str:

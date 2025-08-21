@@ -3,15 +3,86 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import os
+from google.cloud.sql.connector import Connector
+import pymysql
 from ..utils.secret_manager import load_secret_env
 
 # 환경변수 로드
 load_secret_env()
 
-DATABASE_URL = os.getenv("CHATBOT_DATABASE_URL")
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+def get_cloud_sql_connection():
+    """Cloud SQL Python Connector를 사용한 연결 함수"""
+    def getconn():
+        connector = Connector()
+        conn = connector.connect(
+            "ourhour-469702:asia-northeast3:ourhour-db",  # Cloud SQL 인스턴스 연결 이름
+            "pymysql",
+            user="ourhour-user",
+            password="ourhour",
+            db="ourhour"
+        )
+        return conn
+    return getconn
+
+def get_database_engine():
+    """데이터베이스 엔진을 지연 초기화로 생성"""    
+    try:
+        # Cloud SQL Python Connector 사용
+        getconn = get_cloud_sql_connection()
+        engine = create_engine(
+            "mysql+pymysql://",
+            creator=getconn,
+            pool_pre_ping=True,
+            pool_recycle=3600,  # 1시간마다 연결 재생성
+            echo=False
+        )
+        
+        # 연결 테스트
+        with engine.connect() as conn:
+            conn.execute("SELECT 1")
+        
+        print("Cloud SQL 데이터베이스 연결 성공")
+        return engine
+        
+    except Exception as e:
+        print(f"Cloud SQL 연결 실패: {e}")
+        
+        # fallback: 기존 URL 방식 시도
+        database_url = os.getenv("CHATBOT_DATABASE_URL")
+        if database_url:
+            try:
+                print("기존 URL 방식으로 연결 시도...")
+                engine = create_engine(database_url, pool_pre_ping=True)
+                return engine
+            except Exception as e2:
+                print(f"기존 URL 연결도 실패: {e2}")
+        
+        print("데이터베이스 연결 불가 - 기능 비활성화")
+        return None
+
+def get_session_local():
+    """데이터베이스 세션 팩토리 생성"""
+    engine = get_database_engine()
+    if engine is None:
+        return None
+    return sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# 전역 변수로 지연 초기화
+_engine = None
+_SessionLocal = None
+
+def get_db_session():
+    """데이터베이스 세션 가져오기"""
+    global _SessionLocal
+    if _SessionLocal is None:
+        _SessionLocal = get_session_local()
+    
+    if _SessionLocal is None:
+        return None
+    
+    return _SessionLocal()
 
 class ChatHistory(Base):
     __tablename__ = "chat_history"
@@ -30,5 +101,14 @@ class User(Base):
     department = Column(String(100))
     created_at = Column(DateTime, default=datetime.utcnow)
 
-# 테이블 생성
-Base.metadata.create_all(bind=engine)
+def create_tables():
+    """테이블 생성 (지연 실행)"""
+    engine = get_database_engine()
+    if engine is not None:
+        try:
+            Base.metadata.create_all(bind=engine)
+            print("데이터베이스 테이블이 성공적으로 생성되었습니다.")
+        except Exception as e:
+            print(f"테이블 생성 실패: {e}")
+
+# 필요시에만 테이블 생성 (앱 시작시 자동 호출하지 않음)
