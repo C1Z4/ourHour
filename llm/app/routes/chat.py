@@ -11,7 +11,8 @@ from app.services.chatbot import chatbot_service
 from app.models.database import SessionLocal, ChatHistory
 
 # .env 파일 로드 확인
-load_dotenv()
+if os.path.exists('/etc/secrets/env'):
+    load_dotenv('/etc/secrets/env')
 
 
 router = APIRouter()

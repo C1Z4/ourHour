@@ -6,6 +6,10 @@ import logging
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from ..models.ourhour_models import Member, Project, Issue, Post, OurhourResponse, MemberInfo, DepartmentInfo, PositionInfo
+from dotenv import load_dotenv
+
+if os.path.exists('/etc/secrets/env'):
+    load_dotenv('/etc/secrets/env')
 
 class OurHourAPIClient:
     """OurHour API 클라이언트"""
@@ -18,7 +22,7 @@ class OurHourAPIClient:
             base_url: API 서버의 기본 URL (예: "https://api.ourhour.com")
             auth_token: 인증 토큰 (JWT)
         """
-        self.base_url = base_url.rstrip('/')
+        self.base_url = os.getenv('OURHOUR_BASE_URL')
         self.auth_token = auth_token
         self.session = requests.Session()
         self.session.headers.update({

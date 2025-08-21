@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 import os
 from .routes.chat import router as chat_router
 
-load_dotenv()
+if os.path.exists('/etc/secrets/env'):
+    load_dotenv('/etc/secrets/env')
 
 app = FastAPI(
     title="OURHOUR AI 챗봇",

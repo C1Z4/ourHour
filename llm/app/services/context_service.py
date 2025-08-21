@@ -11,6 +11,10 @@ from typing import Dict, List, Any, Optional
 from .ourhour_api import OurHourAPIClient, MemberInfo, DepartmentInfo, PositionInfo
 from .name_matcher import NameMatcher, extract_person_name_from_question
 import logging
+from dotenv import load_dotenv
+
+if os.path.exists('/etc/secrets/env'):
+    load_dotenv('/etc/secrets/env')
 
 class ContextGenerator:
     """AI 챗봇용 컨텍스트 생성기"""
