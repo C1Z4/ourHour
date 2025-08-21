@@ -4,7 +4,7 @@ import { createFileRoute, useRouter } from '@tanstack/react-router';
 
 import { useGithubExchangeCodeMutation } from '@/hooks/queries/user/useUserMutations';
 
-export const Route = createFileRoute('/oauth/github/callback')({
+export const Route = createFileRoute('/github/callback')({
   component: GitHubCallbackPage,
 });
 
