@@ -136,10 +136,10 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "backend=ourhour-backend:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-            echo "chatbot=ourhour-chatbot:prod-latest" >> "$GITHUB_OUTPUT"
+            echo "chatbot=ourhour-chatbot:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           elif [[ "${GITHUB_REF}" == "refs/heads/release" ]]; then
             echo "backend=ourhour-backend:test-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-            echo "chatbot=ourhour-chatbot:prod-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+            echo "chatbot=ourhour-chatbot:test-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build and push Backend Docker image
@@ -152,6 +152,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+#      - name: Build and push Chatbot Docker image
+#        uses: docker/build-push-action@v5
+#        with:
+#          context: ./llm
+#          push: true
+#          tags: ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.chatbot)) || format('myuser/{0}', steps['image-tags'].outputs.chatbot) }}
+#          cache-from: type=gha
+#          cache-to: type=gha,mode=max
+
   # 배포 태스트용 Docker (release 브랜치)
   deploy-docker-test:
     needs: [build-test, build-docker]
@@ -163,6 +172,7 @@ jobs:
       - name: Deploy with Docker to test
         timeout-minutes: 30
         uses: appleboy/ssh-action@v1.0.3
+        continue-on-error: true
         with:
           host: ${{ secrets.PROD_EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
@@ -181,8 +191,10 @@ jobs:
             docker compose -f docker-compose.yml -f docker-compose.test.yml down -p ourhour-test || true            
 
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
+            # docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:test-${{ github.sha }}
 
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
+            # export CHATBOT_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:test-${{ github.sha }}
 
             # Redis 환경변수를 AWS Parameter Store에서 가져오기
             export REDIS_HOST=$(aws ssm get-parameter --name "/ourhour/test/redis/host" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
@@ -190,10 +202,14 @@ jobs:
             export REDIS_PASSWORD=$(aws ssm get-parameter --name "/ourhour/test/redis/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
 
             # chatbot 환경변수
-            export PYTHON_SERVER_URL=$(aws ssm get-parameter --name "/ourhour/test/python-server/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export OURHOUR_API_URL=$(aws ssm get-parameter --name "/ourhour/test/ourhour-api/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export OPENAI_API_KEY=$(aws ssm get-parameter --name "/ourhour/test/openai/api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-
+            export OPENAI_API_KEY=$(aws ssm get-parameter --name "/ourhour/llm/openai-api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export CHATBOT_DATABASE_URL=$(aws ssm get-parameter --name "/ourhour/test/llm/chatbot-db" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export OURHOUR_API_URL=$(aws ssm get-parameter --name "/ourhour/test/llm/ourhour-api/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export PINECONE_API_KEY=$(aws ssm get-parameter --name "/ourhour/llm/pinecone-api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export PINECONE_INDEX_NAME=$(aws ssm get-parameter --name "/ourhour/llm/pinecone-index-name" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export PINECONE_ENVIRONMENT=$(aws ssm get-parameter --name "/ourhour/llm/pinecone-environment" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export JWT_SECRET=$(aws ssm get-parameter --name "/ourhour/test/jwt/secret" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            
             # DB init parameter
             export MYSQL_ROOT_PASSWORD=$(aws ssm get-parameter --name "/ourhour/db/root-password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             export MYSQL_DATABASE=$(aws ssm get-parameter --name "/ourhour/test/db" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
@@ -226,10 +242,10 @@ jobs:
             # 애플리케이션 디렉토리로 이동
             cd /home/ubuntu/ourHour
 
-            # 최신 main 브랜치 pull
+            # 최신 release 브랜치 pull
             git fetch origin
-            git checkout main
-            git reset --hard origin/main
+            git checkout release
+            git reset --hard origin/release
 
             # Docker 로그인
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
@@ -239,9 +255,10 @@ jobs:
 
             # 최신 이미지 풀
             docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
-            export CHATBOT_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:prod-latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:prod-${{ github.sha }}
 
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:prod-${{ github.sha }}
+            export CHATBOT_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-chatbot:prod-${{ github.sha }}
 
             # Redis 환경변수를 AWS Parameter Store에서 가져오기
             export REDIS_HOST=$(aws ssm get-parameter --name "/ourhour/release/redis/host" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
@@ -249,10 +266,14 @@ jobs:
             export REDIS_PASSWORD=$(aws ssm get-parameter --name "/ourhour/release/redis/password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
 
             # chatbot 환경변수
-            export PYTHON_SERVER_URL=$(aws ssm get-parameter --name "/ourhour/release/python-server/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export OURHOUR_API_URL=$(aws ssm get-parameter --name "/ourhour/release/ourhour-api/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-            export OPENAI_API_KEY=$(aws ssm get-parameter --name "/ourhour/release/openai/api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
-
+            export OPENAI_API_KEY=$(aws ssm get-parameter --name "/ourhour/llm/openai-api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export CHATBOT_DATABASE_URL=$(aws ssm get-parameter --name "/ourhour/release/llm/chatbot-db" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export OURHOUR_API_URL=$(aws ssm get-parameter --name "/ourhour/release/llm/ourhour-api/url" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export PINECONE_API_KEY=$(aws ssm get-parameter --name "/ourhour/llm/pinecone-api-key" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export PINECONE_INDEX_NAME=$(aws ssm get-parameter --name "/ourhour/llm/pinecone-index-name" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export PINECONE_ENVIRONMENT=$(aws ssm get-parameter --name "/ourhour/llm/pinecone-environment" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+            export JWT_SECRET=$(aws ssm get-parameter --name "/ourhour/release/jwt/secret" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
+          
             # DB init parameter
             export MYSQL_ROOT_PASSWORD=$(aws ssm get-parameter --name "/ourhour/db/root-password" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)
             export MYSQL_DATABASE=$(aws ssm get-parameter --name "/ourhour/release/db" --with-decryption --query 'Parameter.Value' --output text --region ap-northeast-2)

@@ -4,10 +4,12 @@ WORKDIR /app
 COPY .. .
 
 # Runtime Stage - 배포용
-FROM openjdk:17-jdk-slim AS release
+FROM eclipse-temurin:17-jdk AS release
 WORKDIR /app
+
 COPY --from=build /app/build/libs/backend-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
+
 CMD ["java", "-jar", "app.jar"]
 
 # Runtime Stage - 개발용

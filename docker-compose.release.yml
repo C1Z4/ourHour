@@ -5,6 +5,11 @@ services:
     container_name: release-backend
     environment:
       SPRING_PROFILES_ACTIVE: release
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   # db
   db:
@@ -26,6 +31,19 @@ services:
       - ./backend/docker/mysql-init:/docker-entrypoint-initdb.d
       - release-mysql-data:/var/lib/mysql
 
+  # redis
+  redis:
+    image: redis:7-alpine
+    container_name: release-redis
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - release-redis-data:/data
+    restart: unless-stopped
+
   # ai chatbot
   chatbot:
     image: ${CHATBOT_IMAGE:-ourhour-chatbot:prod}
@@ -35,15 +53,17 @@ services:
     depends_on:
       - db
       - backend
+      - redis
     environment:
       - CHATBOT_DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
       - OURHOUR_API_URL=${OURHOUR_API_URL}
       - PYTHON_SERVER_URL=${PYTHON_SERVER_URL}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
-      - ./ourHour-chatbot:/app
+      - ./llm:/app
     networks:
       - default
 
 volumes:
   release-mysql-data:
+  release-redis-data:
