@@ -129,7 +129,7 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
             {departments?.length === 0 ? (
               <div className="text-center text-gray-500 py-4">등록된 부서가 없습니다.</div>
             ) : (
-              departments.map((dept: Department) => (
+              departments?.map((dept: Department) => (
                 <div
                   key={dept.deptId}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -185,7 +185,7 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
             {positions?.length === 0 ? (
               <div className="text-center text-gray-500 py-4">등록된 직책이 없습니다.</div>
             ) : (
-              positions.map((position: Position) => (
+              positions?.map((position: Position) => (
                 <div
                   key={position.positionId}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
