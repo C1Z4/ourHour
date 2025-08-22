@@ -11,7 +11,11 @@ export const Route = createFileRoute('/org/$orgId/project/$projectId/issue/edit/
 function IssueEdit() {
   const { orgId, projectId, issueId } = Route.useParams();
 
-  const { data: issueData } = useProjectIssueDetailQuery(Number(issueId));
+  const { data: issueData } = useProjectIssueDetailQuery(
+    Number(orgId),
+    Number(projectId),
+    Number(issueId),
+  );
 
   const issue = issueData as IssueDetail | undefined;
 

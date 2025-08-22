@@ -53,7 +53,7 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
 
   const { data: memberInfo } = useMyMemberInfoQuery(Number(orgId));
   const { data: githubSyncStatus } = useGithubSyncStatusQuery(Number(projectId));
-  const { mutate: createMilestone } = useMilestoneCreateMutation(Number(projectId));
+  const { mutate: createMilestone } = useMilestoneCreateMutation(Number(orgId), Number(projectId));
   const { mutate: getRepositories, isPending: isLoadingRepositories } =
     useGithubRepositoryListByTokenMutation();
   const { mutate: connectGithub, isPending: isConnecting } = useGithubConnectMutation();
@@ -76,8 +76,9 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
 
   const handleCreateMilestone = () => {
     createMilestone({
-      name: milestoneName,
+      orgId: Number(orgId),
       projectId: Number(projectId),
+      name: milestoneName,
     });
 
     setIsCreateMilestoneModalOpen(false);

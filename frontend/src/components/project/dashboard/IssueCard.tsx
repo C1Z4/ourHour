@@ -61,6 +61,7 @@ export const IssueCard = ({ issue, orgId, projectId }: IssueCardProps) => {
 
   const handleStatusChange = (newStatus: IssueStatusEng) => {
     updateStatus({
+      orgId: Number(orgId),
       issueId: issue.issueId,
       status: newStatus,
       projectId: Number(projectId),

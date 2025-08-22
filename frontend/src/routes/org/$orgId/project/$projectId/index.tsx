@@ -16,6 +16,7 @@ function ProjectDashboard() {
   const isMyIssuesOnly = useAppSelector((state) => state.projectName.isMyIssuesOnly);
 
   const { data: milestoneList, isLoading } = useProjectMilestoneListQuery(
+    Number(orgId),
     Number(projectId),
     isMyIssuesOnly,
   );
