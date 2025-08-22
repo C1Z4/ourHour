@@ -2,11 +2,12 @@
 
 import * as React from 'react';
 
-import { useParams } from '@tanstack/react-router';
-import { ClipboardList, FolderGit2, MessageCircle } from 'lucide-react';
+import { useParams, useRouter } from '@tanstack/react-router';
+import { ClipboardList, FolderGit2, MessageCircle, Settings } from 'lucide-react';
 
 import { ChatRoom } from '@/types/chatTypes';
 
+import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { NavMain } from '@/components/common/left-sidebar/NavMain';
 import { TeamSwitcher } from '@/components/common/left-sidebar/TeamSwitcher';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
@@ -23,7 +24,7 @@ const ColoredCircle = ({ color }: { color: string }) => (
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams({ strict: false });
-
+  const router = useRouter();
   const currentOrgId = Number(params.orgId);
 
   const dispatch = useAppDispatch();
@@ -81,14 +82,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ],
   };
 
+  const handleOrgInfo = () => {
+    router.navigate({
+      to: '/org/$orgId/info',
+      params: { orgId: currentOrgId.toString() },
+    });
+  };
   return (
     <Sidebar collapsible="icon" className="mt-16" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher />
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} activeItemId={currentOrgId} />
-      </SidebarContent>
+      <div className="flex flex-col h-[calc(100vh-4rem)]">
+        <SidebarHeader>
+          <TeamSwitcher />
+        </SidebarHeader>
+        <SidebarContent className="flex-1 overflow-auto">
+          <NavMain items={data.navMain} activeItemId={currentOrgId} />
+        </SidebarContent>
+        <div className="shrink-0 p-4 border-t border-gray-200">
+          <ButtonComponent
+            variant="ghost"
+            size="sm"
+            className="w-full justify-center"
+            onClick={handleOrgInfo}
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            회사 정보 관리
+          </ButtonComponent>
+        </div>
+      </div>
       <SidebarRail />
     </Sidebar>
   );
