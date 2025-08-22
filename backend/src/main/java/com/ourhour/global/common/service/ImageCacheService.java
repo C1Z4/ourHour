@@ -32,65 +32,132 @@ public class ImageCacheService {
 
     @Cacheable(value = "imageMetadata", key = "#key")
     public ImageMetadataDTO getImageMetadata(String key) {
-        String redisKey = IMAGE_METADATA_PREFIX + key;
-        return (ImageMetadataDTO) redisTemplate.opsForValue().get(redisKey);
+        try {
+            String redisKey = IMAGE_METADATA_PREFIX + key;
+            return (ImageMetadataDTO) redisTemplate.opsForValue().get(redisKey);
+        } catch (Exception e) {
+            log.warn("Redis 연결 오류로 인해 캐시에서 이미지 메타데이터를 가져올 수 없습니다: {}", e.getMessage());
+            return null;
+        }
     }
 
     @CachePut(value = "imageMetadata", key = "#metadata.key")
     public ImageMetadataDTO saveImageMetadata(ImageMetadataDTO metadata) {
-        String redisKey = IMAGE_METADATA_PREFIX + metadata.getKey();
-        redisTemplate.opsForValue().set(redisKey, metadata, imageCacheTtl, TimeUnit.SECONDS);
-        log.debug("이미지 메타데이터 캐시 저장: {}", metadata.getKey());
+        try {
+            String redisKey = IMAGE_METADATA_PREFIX + metadata.getKey();
+            redisTemplate.opsForValue().set(redisKey, metadata, imageCacheTtl, TimeUnit.SECONDS);
+            log.debug("이미지 메타데이터 캐시 저장: {}", metadata.getKey());
+        } catch (Exception e) {
+            log.warn("Redis 연결 오류로 인해 이미지 메타데이터를 캐시에 저장할 수 없습니다: {}", e.getMessage());
+        }
         return metadata;
     }
 
     public String getPresignedUrl(String fileName, String contentType) {
-        String cacheKey = PRESIGN_URL_PREFIX + fileName + ":" + contentType;
-        return (String) redisTemplate.opsForValue().get(cacheKey);
+        try {
+            String cacheKey = PRESIGN_URL_PREFIX + fileName + ":" + contentType;
+            return (String) redisTemplate.opsForValue().get(cacheKey);
+        } catch (Exception e) {
+            log.warn("Redis 연결 오류로 인해 Presigned URL을 캐시에서 가져올 수 없습니다: {}", e.getMessage());
+            return null;
+        }
     }
 
     public void savePresignedUrl(String fileName, String contentType, String presignedUrl) {
-        String cacheKey = PRESIGN_URL_PREFIX + fileName + ":" + contentType;
-        redisTemplate.opsForValue().set(cacheKey, presignedUrl, presignCacheTtl, TimeUnit.SECONDS);
-        log.debug("Presigned URL 캐시 저장: {}", fileName);
+        try {
+            String cacheKey = PRESIGN_URL_PREFIX + fileName + ":" + contentType;
+            redisTemplate.opsForValue().set(cacheKey, presignedUrl, presignCacheTtl, TimeUnit.SECONDS);
+            log.debug("Presigned URL 캐시 저장: {}", fileName);
+        } catch (Exception e) {
+            log.warn("Redis 연결 오류로 인해 Presigned URL을 캐시에 저장할 수 없습니다: {}", e.getMessage());
+        }
+    }
+
+    // PresignResponse 전체를 캐시하는 메서드 추가
+    public void savePresignResponse(String fileName, String contentType, String presignedUrl, String key,
+            String cdnUrl) {
+        try {
+            String cacheKey = PRESIGN_URL_PREFIX + fileName + ":" + contentType;
+            // PresignResponse 객체를 JSON으로 직렬화하여 저장
+            String cacheValue = presignedUrl + "|" + key + "|" + cdnUrl;
+            redisTemplate.opsForValue().set(cacheKey, cacheValue, presignCacheTtl, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.warn("Redis 연결 오류로 인해 PresignResponse를 캐시에 저장할 수 없습니다: {}", e.getMessage());
+        }
+    }
+
+    // PresignResponse 전체를 캐시에서 가져오는 메서드 추가
+    public String[] getPresignResponse(String fileName, String contentType) {
+        try {
+            String cacheKey = PRESIGN_URL_PREFIX + fileName + ":" + contentType;
+            String cachedValue = (String) redisTemplate.opsForValue().get(cacheKey);
+            if (cachedValue != null) {
+                String[] parts = cachedValue.split("\\|");
+                if (parts.length == 3) {
+                    return parts;
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            log.warn("Redis 연결 오류로 인해 PresignResponse를 캐시에서 가져올 수 없습니다: {}", e.getMessage());
+            return null;
+        }
     }
 
     public void incrementAccessCount(String key) {
-        String countKey = ACCESS_COUNT_PREFIX + key;
-        redisTemplate.opsForValue().increment(countKey);
-        redisTemplate.expire(countKey, imageCacheTtl, TimeUnit.SECONDS);
-        
-        ImageMetadataDTO metadata = getImageMetadata(key);
-        if (metadata != null) {
-            Integer currentCount = (Integer) redisTemplate.opsForValue().get(countKey);
-            metadata.setAccessCount(currentCount != null ? currentCount : 1);
-            saveImageMetadata(metadata);
+        try {
+            String countKey = ACCESS_COUNT_PREFIX + key;
+            redisTemplate.opsForValue().increment(countKey);
+            redisTemplate.expire(countKey, imageCacheTtl, TimeUnit.SECONDS);
+
+            ImageMetadataDTO metadata = getImageMetadata(key);
+            if (metadata != null) {
+                Integer currentCount = (Integer) redisTemplate.opsForValue().get(countKey);
+                metadata.setAccessCount(currentCount != null ? currentCount : 1);
+                saveImageMetadata(metadata);
+            }
+        } catch (Exception e) {
+            log.warn("Redis 연결 오류로 인해 접근 횟수를 증가시킬 수 없습니다: {}", e.getMessage());
         }
     }
 
     public Integer getAccessCount(String key) {
-        String countKey = ACCESS_COUNT_PREFIX + key;
-        Integer count = (Integer) redisTemplate.opsForValue().get(countKey);
-        return count != null ? count : 0;
+        try {
+            String countKey = ACCESS_COUNT_PREFIX + key;
+            Integer count = (Integer) redisTemplate.opsForValue().get(countKey);
+            return count != null ? count : 0;
+        } catch (Exception e) {
+            log.warn("Redis 연결 오류로 인해 접근 횟수를 가져올 수 없습니다: {}", e.getMessage());
+            return 0;
+        }
     }
 
     @CacheEvict(value = "imageMetadata", key = "#key")
     public void evictImageMetadata(String key) {
-        String redisKey = IMAGE_METADATA_PREFIX + key;
-        String countKey = ACCESS_COUNT_PREFIX + key;
-        
-        redisTemplate.delete(redisKey);
-        redisTemplate.delete(countKey);
-        log.debug("이미지 메타데이터 캐시 삭제: {}", key);
+        try {
+            String redisKey = IMAGE_METADATA_PREFIX + key;
+            String countKey = ACCESS_COUNT_PREFIX + key;
+
+            redisTemplate.delete(redisKey);
+            redisTemplate.delete(countKey);
+            log.debug("이미지 메타데이터 캐시 삭제: {}", key);
+        } catch (Exception e) {
+            log.warn("Redis 연결 오류로 인해 이미지 메타데이터 캐시를 삭제할 수 없습니다: {}", e.getMessage());
+        }
     }
 
     public void evictPresignedUrl(String fileName, String contentType) {
-        String cacheKey = PRESIGN_URL_PREFIX + fileName + ":" + contentType;
-        redisTemplate.delete(cacheKey);
-        log.debug("Presigned URL 캐시 삭제: {}", fileName);
+        try {
+            String cacheKey = PRESIGN_URL_PREFIX + fileName + ":" + contentType;
+            redisTemplate.delete(cacheKey);
+            log.debug("Presigned URL 캐시 삭제: {}", fileName);
+        } catch (Exception e) {
+            log.warn("Redis 연결 오류로 인해 Presigned URL 캐시를 삭제할 수 없습니다: {}", e.getMessage());
+        }
     }
 
-    public ImageMetadataDTO createImageMetadata(String key, String fileName, String cdnUrl, String contentType, Long size) {
+    public ImageMetadataDTO createImageMetadata(String key, String fileName, String cdnUrl, String contentType,
+            Long size) {
         return ImageMetadataDTO.builder()
                 .key(key)
                 .fileName(fileName)

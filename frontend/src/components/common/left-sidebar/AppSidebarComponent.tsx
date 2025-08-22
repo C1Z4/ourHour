@@ -3,15 +3,9 @@
 import * as React from 'react';
 
 import { useParams } from '@tanstack/react-router';
-import {
-  CircleUserRound,
-  ClipboardList,
-  FolderGit2,
-  // Mail,
-  MessageCircle,
-  MoreHorizontal,
-  Plus,
-} from 'lucide-react';
+import { ClipboardList, FolderGit2, MessageCircle } from 'lucide-react';
+
+import { ChatRoom } from '@/types/chatTypes';
 
 import { NavMain } from '@/components/common/left-sidebar/NavMain';
 import { TeamSwitcher } from '@/components/common/left-sidebar/TeamSwitcher';
@@ -25,10 +19,6 @@ const ColoredCircle = ({ color }: { color: string }) => (
   <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
 );
 
-const PlusIcon = () => <Plus className="h-4 w-4" />;
-const UserIcon = () => <CircleUserRound className="h-4 w-4" />;
-const MoreHorizontalIcon = () => <MoreHorizontal className="h-4 w-4" />;
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams({ strict: false });
 
@@ -40,7 +30,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const myBoardList = [{ boardId: 0, name: '전체 글 보기' }, ...boardList];
   const myProjectList = Array.isArray(myProjectListData) ? myProjectListData : [];
 
-  const { data: chatRooms = [] } = useChatRoomListQuery(currentOrgId);
+  const { data: apiResponse } = useChatRoomListQuery(currentOrgId, 0, 5);
+  const chatRooms = apiResponse?.data as unknown as ChatRoom[];
 
   const data = {
     navMain: [
@@ -65,35 +56,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               : `/org/${currentOrgId}/board/${board.boardId}?boardName=${encodeURIComponent(board.name)}`,
         })),
       },
-      // {
-      //   title: '메일',
-      //   url: '#',
-      //   icon: Mail,
-      //   items: [
-      //     {
-      //       title: '보낸 메일함',
-      //       url: '#',
-      //     },
-      //     {
-      //       title: '받은 메일함',
-      //       url: '#',
-      //     },
-      //   ],
-      // },
       {
         title: '채팅',
         icon: MessageCircle,
         isActive: true,
-        items: chatRooms.map((chatRoom) => {
+        items: chatRooms?.map((chatRoom) => {
           const iconColor = CHAT_COLORS[chatRoom.color as keyof typeof CHAT_COLORS] || '#808080';
 
           return {
             title: chatRoom.name,
             leftIcon: () => <ColoredCircle color={iconColor} />,
-            // rightIcon: MoreHorizontalIcon,
             url: `/org/${currentOrgId}/chat/${chatRoom.roomId}`,
-            // onEdit: () => RenamePopover,
-            // onDelete: () => ChatRoomDeleteAlert,
           };
         }),
       },

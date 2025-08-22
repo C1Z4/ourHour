@@ -24,6 +24,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   # db
   db:
@@ -34,7 +36,9 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      - SPRING_PROFILES_ACTIVE=dev
+      - PYTHON_SERVER_URL=http://localhost:8000
+
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 60s
@@ -60,7 +64,6 @@ services:
 
   # grafana
   grafana:
-
     image: grafana/grafana
 
     ports:
@@ -86,10 +89,10 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
     command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/rootfs'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
     restart: always
     networks:
       - default
@@ -121,6 +124,26 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
+  # ai chatbot
+  chatbot:
+    build:
+      context: llm
+    container_name: ourhour-dev-chatbot
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - llm/.env
+    environment:
+      - PYTHON_SERVER_URL=${PYTHON_SERVER_URL}
+      - OURHOUR_API_URL=${OURHOUR_API_URL}
+    volumes:
+      - ./llm:/app
+    networks:
+      - default
+    restart: unless-stopped
+
 volumes:
   gradle-cache:
   build-cache:
@@ -130,4 +153,3 @@ volumes:
 networks:
   default:
     name: monitoring-net
-

@@ -7,7 +7,7 @@ import { AxiosError } from 'axios';
 import { INV_STATUS_ENG_TO_KO, InvStatusEng, InvStatusKo } from '@/types/invTypes';
 import { MEMBER_ROLE_ENG_TO_KO, MEMBER_ROLE_KO_TO_ENG, MemberRoleKo } from '@/types/memberTypes';
 
-import { getInvList } from '@/api/org/getInvList';
+import { GetInvList, getInvList } from '@/api/org/getInvList';
 import postInv from '@/api/org/postInv';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
@@ -57,11 +57,13 @@ export function MemberInvModal({
   }, [currentUserRole]);
 
   // 초대 리스트 조회 (초대 상태별 필터 가능)
-  const { data: inviteList, refetch } = useQuery({
+  const { data: inviteListData, refetch } = useQuery({
     queryKey: ['invitations', orgId],
     queryFn: () => getInvList({ orgId }),
     enabled: isOpen,
   });
+
+  const inviteList = inviteListData as unknown as GetInvList[];
 
   const addEmail = () => {
     const emailTrim = currentEmail.trim();
@@ -200,7 +202,7 @@ export function MemberInvModal({
               {!inviteList || inviteList.length === 0 ? (
                 <div className="text-xs text-gray-400 px-1">현재 초대된 사용자가 없습니다.</div>
               ) : (
-                inviteList.map((invite) => {
+                inviteList.map((invite, index) => {
                   const roleKo =
                     invite.role in MEMBER_ROLE_STYLES
                       ? invite.role
@@ -212,7 +214,7 @@ export function MemberInvModal({
 
                   return (
                     <div
-                      key={invite.id}
+                      key={index}
                       className="flex justify-start items-center text-sm py-1 border-b last:border-none"
                     >
                       <span className="flex-1 min-w-0 break-words">{invite.email}</span>

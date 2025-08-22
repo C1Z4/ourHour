@@ -4,7 +4,7 @@ import { createFileRoute, useRouter } from '@tanstack/react-router';
 
 import { useGithubExchangeCodeMutation } from '@/hooks/queries/user/useUserMutations';
 
-export const Route = createFileRoute('/oauth/github/callback')({
+export const Route = createFileRoute('/github/callback')({
   component: GitHubCallbackPage,
 });
 
@@ -15,9 +15,7 @@ function GitHubCallbackPage() {
 
   const goBack = useCallback(() => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
-      window.history.back();
-    } else {
-      router.navigate({ to: '/' });
+      router.navigate({ to: '/start', search: { page: 1 } });
     }
   }, [router]);
 
@@ -31,7 +29,7 @@ function GitHubCallbackPage() {
     }
 
     exchangeCode(
-      { code, redirectUri: `${window.location.origin}/oauth/github/callback` },
+      { code, redirectUri: `${window.location.origin}/github/callback` },
       {
         onSuccess: () => {
           sessionStorage.setItem('toast:github_connected', '1');

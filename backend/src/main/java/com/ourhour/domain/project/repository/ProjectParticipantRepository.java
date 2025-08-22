@@ -4,14 +4,12 @@ import com.ourhour.domain.project.dto.ProjectNameResDTO;
 import com.ourhour.domain.project.entity.ProjectParticipantEntity;
 import com.ourhour.domain.project.entity.ProjectParticipantId;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
-
-import java.util.List;
 
 public interface ProjectParticipantRepository extends JpaRepository<ProjectParticipantEntity, ProjectParticipantId> {
 
@@ -53,4 +51,13 @@ public interface ProjectParticipantRepository extends JpaRepository<ProjectParti
                         "AND proj.orgEntity.orgId = :orgId " +
                         "ORDER BY proj.projectId ASC")
         List<ProjectNameResDTO> findMemberProjectsByOrg(@Param("memberId") Long memberId, @Param("orgId") Long orgId);
+
+        // 여러 프로젝트의 참여자 목록을 한 번에 조회
+        @Query("SELECT p FROM ProjectParticipantEntity p " +
+                        "JOIN FETCH p.memberEntity m " +
+                        "JOIN FETCH p.projectEntity proj " +
+                        "WHERE p.projectParticipantId.projectId IN :projectIds " +
+                        "ORDER BY p.projectParticipantId.projectId, p.projectParticipantId.memberId")
+        List<ProjectParticipantEntity> findLimitedParticipantsByProjectIds(@Param("projectIds") List<Long> projectIds,
+                        @Param("limit") int limit);
 }

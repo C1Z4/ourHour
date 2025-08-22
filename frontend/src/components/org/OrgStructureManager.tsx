@@ -33,8 +33,10 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
     item: null,
   });
 
-  const { data: departments = [] } = useDepartmentsQuery(orgId);
-  const { data: positions = [] } = usePositionsQuery(orgId);
+  const { data: departmentsData } = useDepartmentsQuery(orgId);
+  const { data: positionsData } = usePositionsQuery(orgId);
+  const departments = departmentsData as unknown as Department[];
+  const positions = positionsData as unknown as Position[];
 
   const { mutate: createDepartmentMutation } = useCreateDepartmentMutation(orgId);
   const { mutate: createPositionMutation } = useCreatePositionMutation(orgId);
@@ -95,13 +97,11 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
 
   return (
     <div className="space-y-6 mt-4">
-      {/* 부서 관리 */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold">부서 관리</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* 부서 추가 */}
           <div className="flex gap-2">
             <Input
               placeholder="새 부서명을 입력하세요"
@@ -125,12 +125,11 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
             </ButtonComponent>
           </div>
 
-          {/* 부서 목록 */}
           <div className="space-y-2">
-            {departments.length === 0 ? (
+            {departments?.length === 0 ? (
               <div className="text-center text-gray-500 py-4">등록된 부서가 없습니다.</div>
             ) : (
-              departments.map((dept: Department) => (
+              departments?.map((dept: Department) => (
                 <div
                   key={dept.deptId}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -154,13 +153,11 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
         </CardContent>
       </Card>
 
-      {/* 직책 관리 */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold">직책 관리</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* 직책 추가 */}
           <div className="flex gap-2">
             <Input
               placeholder="새 직책명을 입력하세요"
@@ -184,12 +181,11 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
             </ButtonComponent>
           </div>
 
-          {/* 직책 목록 */}
           <div className="space-y-2">
-            {positions.length === 0 ? (
+            {positions?.length === 0 ? (
               <div className="text-center text-gray-500 py-4">등록된 직책이 없습니다.</div>
             ) : (
-              positions.map((position: Position) => (
+              positions?.map((position: Position) => (
                 <div
                   key={position.positionId}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -212,8 +208,6 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
           </div>
         </CardContent>
       </Card>
-
-      {/* 삭제 확인 모달 */}
 
       <ModalComponent
         isOpen={deleteConfirmModal.isOpen}

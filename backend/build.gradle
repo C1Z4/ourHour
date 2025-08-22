@@ -82,6 +82,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     implementation 'org.kohsuke:github-api:1.327'
+
+    // fastapi와 HTTP 통신하기 위한 의존성
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 tasks.named('test') {
