@@ -14,12 +14,14 @@ import org.kohsuke.github.GHMilestone;
 import org.kohsuke.github.GHMilestoneState;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GHIssueComment;
+import org.kohsuke.github.GHUser;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
 import org.kohsuke.github.PagedIterable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ourhour.domain.member.entity.MemberEntity;
 import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.IssueEntity;
@@ -156,6 +158,43 @@ public class GithubIntegrationService {
         }
     }
 
+    // GitHub 할당자를 우리 서비스 멤버로 매핑하는 헬퍼 메서드
+    private MemberEntity findAssigneeFromGithubUsers(List<GHUser> githubAssignees, Long projectId) {
+        if (githubAssignees == null || githubAssignees.isEmpty()) {
+            return null;
+        }
+
+        // 첫 번째 할당자만 처리 (우리 서비스는 단일 할당자만 지원)
+        for (GHUser assignee : githubAssignees) {
+            try {
+                String githubUsername = assignee.getLogin();
+                if (githubUsername == null) {
+                    continue;
+                }
+
+                // GitHub username으로 우리 서비스 유저 매핑 조회
+                var mappingOpt = userGitHubMappingRepository.findByGithubUsername(githubUsername);
+                if (mappingOpt.isPresent()) {
+                    Long userId = mappingOpt.get().getUserId();
+
+                    // 해당 프로젝트의 조직에서 멤버인지 확인
+                    var projectOpt = projectRepository.findById(projectId);
+                    if (projectOpt.isPresent()) {
+                        Long orgId = projectOpt.get().getOrgEntity().getOrgId();
+                        var memberOpt = memberRepository.findMemberInOrgByUserId(orgId, userId);
+                        if (memberOpt.isPresent()) {
+                            return memberOpt.get();
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("GitHub 할당자 매핑 중 오류 발생 - assignee: {}", assignee.getLogin(), e);
+            }
+        }
+
+        return null;
+    }
+
     // GitHub 이슈 동기화 처리
     private IssueEntity processGithubIssue(GHIssue githubIssue, Long projectId) throws IOException {
         // GitHub ID로 기존 이슈 찾기
@@ -171,6 +210,9 @@ public class GithubIntegrationService {
                     .orElse(null);
         }
 
+        // GitHub 할당자 매핑
+        MemberEntity mappedAssignee = findAssigneeFromGithubUsers(githubIssue.getAssignees(), projectId);
+
         if (existingIssue.isPresent()) {
             // 기존 이슈 업데이트
             IssueEntity issue = existingIssue.get();
@@ -180,6 +222,8 @@ public class GithubIntegrationService {
                     githubIssue.getState() == GHIssueState.OPEN ? IssueStatus.IN_PROGRESS : IssueStatus.COMPLETED);
             // 마일스톤 매핑 갱신
             issue.setMilestoneEntity(mappedMilestone);
+            // 할당자 매핑 갱신
+            issue.setAssigneeEntity(mappedAssignee);
             issue.updateLastSyncTime();
             return issue;
         } else {
@@ -188,6 +232,7 @@ public class GithubIntegrationService {
                     .projectEntity(projectRepository.findById(projectId)
                             .orElseThrow(() -> ProjectException.projectNotFoundException()))
                     .milestoneEntity(mappedMilestone)
+                    .assigneeEntity(mappedAssignee)
                     .name(githubIssue.getTitle())
                     .content(githubIssue.getBody())
                     .status(githubIssue.getState() == GHIssueState.OPEN ? IssueStatus.IN_PROGRESS
