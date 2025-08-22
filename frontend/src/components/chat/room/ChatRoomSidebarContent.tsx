@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
+import { ChatRoomParticipant } from '@/types/chatTypes';
+
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { SidebarContent, SidebarHeader, SidebarFooter } from '@/components/ui/sidebar';
-import { useChatRoomParticipantsQuery } from '@/hooks/queries/chat/useChatRoomParticipantsQueries';
 import { useDeleteChatParticipantQuery } from '@/hooks/queries/chat/useDeleteChatParticipantMutation';
 import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 
@@ -13,11 +14,18 @@ import { ChatParticipantAddModal } from './ChatParticipantAddModal';
 interface Props {
   orgId: number;
   roomId: number;
+  participants: ChatRoomParticipant[];
+  isLoading: boolean;
   onClose: () => void;
 }
 
-export const ChatRoomSidebarContent = ({ orgId, roomId, onClose }: Props) => {
-  const { data: participants, isLoading } = useChatRoomParticipantsQuery(orgId, roomId);
+export const ChatRoomSidebarContent = ({
+  orgId,
+  roomId,
+  participants,
+  isLoading,
+  onClose,
+}: Props) => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   const memberId = getMemberIdFromToken(orgId);

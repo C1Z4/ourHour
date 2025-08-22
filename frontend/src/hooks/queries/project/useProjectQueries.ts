@@ -8,11 +8,11 @@ import {
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 
 // ======== 프로젝트 정보 조회 ========
-export const useProjectInfoQuery = (projectId: number) =>
+export const useProjectInfoQuery = (orgId: number, projectId: number) =>
   useQuery({
-    queryKey: [PROJECT_QUERY_KEYS.PROJECT_INFO, projectId],
-    queryFn: () => getProjectInfo({ projectId }),
-    enabled: !!projectId,
+    queryKey: [PROJECT_QUERY_KEYS.PROJECT_INFO, orgId, projectId],
+    queryFn: () => getProjectInfo({ orgId, projectId }),
+    enabled: !!orgId && !!projectId,
   });
 
 // ======== 프로젝트 요약 목록 조회 ========
@@ -46,7 +46,7 @@ export const useProjectParticipantListQuery = (
   search?: string,
 ) =>
   useQuery({
-    queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, projectId, orgId, currentPage, size, search],
+    queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, orgId, projectId, currentPage, size, search],
     queryFn: () => getProjectParticipantList({ projectId, orgId, currentPage, size, search }),
     enabled: !!orgId && !!projectId,
   });
@@ -59,7 +59,7 @@ export const useInfiniteProjectParticipantListQuery = (
   search?: string,
 ) =>
   useInfiniteQuery({
-    queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, 'infinite', projectId, orgId, size, search],
+    queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, 'infinite', orgId, projectId, size, search],
     queryFn: ({ pageParam = 1 }) =>
       getProjectParticipantList({ projectId, orgId, currentPage: pageParam, size, search }),
     enabled: !!orgId && !!projectId,

@@ -209,7 +209,7 @@ export function ProjectDataTable({ isMyProjectsOnly }: { isMyProjectsOnly: boole
       <div className="flex justify-center pt-4">
         <PaginationComponent
           currentPage={currentPage}
-          totalPages={projectSummaryList?.data.totalPages || 1}
+          totalPages={projectSummaryList?.data?.totalPages || 1}
           onPageChange={handlePageChange}
         />
       </div>

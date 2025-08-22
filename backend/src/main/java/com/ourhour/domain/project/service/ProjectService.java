@@ -236,8 +236,8 @@ public class ProjectService {
     }
 
     // 특정 프로젝트의 마일스톤 목록 조회
-    public ApiResponse<PageResponse<MileStoneInfoDTO>> getProjectMilestones(Long projectId, boolean myMilestonesOnly,
-            Pageable pageable) {
+    public ApiResponse<PageResponse<MileStoneInfoDTO>> getProjectMilestones(Long orgId, Long projectId,
+            boolean myMilestonesOnly, Pageable pageable) {
         if (projectId <= 0) {
             throw ProjectException.projectNotFoundException();
         }
@@ -250,11 +250,6 @@ public class ProjectService {
         Page<MilestoneEntity> milestonePage;
 
         if (myMilestonesOnly) {
-            Long orgId = projectRepository.findById(projectId)
-                    .orElseThrow(() -> ProjectException.projectNotFoundException())
-                    .getOrgEntity()
-                    .getOrgId();
-
             Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
             if (memberId == null) {
                 throw MemberException.memberAccessDeniedException();
