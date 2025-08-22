@@ -8,10 +8,12 @@ import type { ChatMessage } from '@/types/chatTypes';
 import '@/styles/chat-bubble.css';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { getImageUrl } from '@/utils/file/imageUtils';
 
 interface ChatMessageListProps {
   messages: ChatMessage[];
   currentMemberId: number;
+  memberInfoMap: Map<number, { memberName: string; profileImgUrl?: string | null }>;
   onLoadMorePrev: () => void;
   hasPreviousPage?: boolean;
   isFetchingPreviousPage?: boolean;
@@ -20,6 +22,7 @@ interface ChatMessageListProps {
 export function ChatMessageList({
   messages,
   currentMemberId,
+  memberInfoMap,
   onLoadMorePrev,
   hasPreviousPage,
   isFetchingPreviousPage,
@@ -103,9 +106,10 @@ export function ChatMessageList({
     <div className="flex text-xs pl-1 m-1">{formatTime(timestamp)}</div>
   );
 
-  const renderAvatar = (senderName: string) => (
+  const renderAvatar = (senderName: string, profileImgUrl?: string | null) => (
     <Avatar className="h-8 w-8">
-      <AvatarImage src={senderName} />
+      {/* AvatarImage src가 유효하면 이미지를, 아니면 Fallback을 자동으로 보여줌 */}
+      <AvatarImage src={profileImgUrl ? getImageUrl(profileImgUrl) : undefined} />
       <AvatarFallback>{senderName.charAt(0)}</AvatarFallback>
     </Avatar>
   );
@@ -134,6 +138,8 @@ export function ChatMessageList({
         )}
       </div>
       {messages.map((msg, idx) => {
+        const senderInfo = memberInfoMap.get(msg.senderId);
+
         const isMyMessage = msg.senderId === currentMemberId;
         const prevMessage = messages[idx - 1];
 
@@ -168,7 +174,9 @@ export function ChatMessageList({
               )}
             >
               {/* 내가 보낸 메시지가 아니고, 이전과 다른 사람이 보낸 첫 메시지일 때만 아바타 표시 */}
-              {!isMyMessage && !isSameSender && renderAvatar(msg.senderName)}
+              {!isMyMessage &&
+                !isSameSender &&
+                renderAvatar(senderInfo?.memberName ?? '(알 수 없음)', senderInfo?.profileImgUrl)}
 
               {/* 연속 메시지일 경우 아바타 공간만큼 빈 공간을 줌 */}
               {!isMyMessage && isSameSender && <div className="w-8" />}
@@ -181,7 +189,9 @@ export function ChatMessageList({
               >
                 {/* 내가 보낸 메시지가 아니고, 이전과 다른 사람이 보낸 첫 메시지일 때만 이름 표시 */}
                 {!isMyMessage && !isSameSender && (
-                  <span className="text-xs text-muted-foreground mb-1">{msg.senderName}</span>
+                  <span className="text-xs text-muted-foreground mb-1">
+                    {senderInfo?.memberName}
+                  </span>
                 )}
 
                 <div className="flex flex-row items-end">

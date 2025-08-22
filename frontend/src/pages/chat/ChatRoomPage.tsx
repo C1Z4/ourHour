@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Sidebar, SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { useChat } from '@/hooks/queries/chat/useChat';
 import { useChatMessagesQuery } from '@/hooks/queries/chat/useChatMessagesQueries';
+import { useChatRoomParticipantsQuery } from '@/hooks/queries/chat/useChatRoomParticipantsQueries';
 import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 interface ChatRoomPageProps {
   orgId: number;
@@ -20,8 +21,13 @@ export function ChatRoomPage({ orgId, roomId }: ChatRoomPageProps) {
     orgId,
     roomId,
   );
-
   const messages = data?.pages.flatMap((p) => p.data) ?? [];
+  const { data: participants = [], isLoading } = useChatRoomParticipantsQuery(orgId, roomId);
+
+  const memberInfoMap = new Map();
+  participants?.forEach((member) => {
+    memberInfoMap.set(member.memberId, member);
+  });
 
   return (
     <SidebarProvider>
@@ -40,6 +46,7 @@ export function ChatRoomPage({ orgId, roomId }: ChatRoomPageProps) {
                 <ChatMessageList
                   messages={messages}
                   currentMemberId={currentMemberId}
+                  memberInfoMap={memberInfoMap}
                   onLoadMorePrev={fetchPreviousPage}
                   hasPreviousPage={hasPreviousPage}
                   isFetchingPreviousPage={isFetchingPreviousPage}
@@ -54,7 +61,13 @@ export function ChatRoomPage({ orgId, roomId }: ChatRoomPageProps) {
       </SidebarInset>
 
       <Sidebar variant="sidebar" side="right" className="mt-16 h-[calc(100vh-65px)]">
-        <ChatRoomSidebarContent orgId={orgId} roomId={roomId} onClose={() => {}} />
+        <ChatRoomSidebarContent
+          orgId={orgId}
+          roomId={roomId}
+          participants={participants}
+          isLoading={isLoading}
+          onClose={() => {}}
+        />
       </Sidebar>
     </SidebarProvider>
   );
