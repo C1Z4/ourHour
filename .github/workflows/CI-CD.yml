@@ -134,12 +134,12 @@ jobs:
   deploy-docker-test:
     needs: [build-test, build-docker]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/test' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/release' && github.event_name == 'push'
     environment: development
 
     # 백엔드, db, redis
     steps:
-      - name: Deploy with Docker to test on aws
+      - name: Deploy with Docker to test
         timeout-minutes: 30
         uses: appleboy/ssh-action@v1.0.3
         continue-on-error: true
