@@ -97,13 +97,11 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
 
   return (
     <div className="space-y-6 mt-4">
-      {/* 부서 관리 */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold">부서 관리</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* 부서 추가 */}
           <div className="flex gap-2">
             <Input
               placeholder="새 부서명을 입력하세요"
@@ -127,9 +125,8 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
             </ButtonComponent>
           </div>
 
-          {/* 부서 목록 */}
           <div className="space-y-2">
-            {departments.length === 0 ? (
+            {departments?.length === 0 ? (
               <div className="text-center text-gray-500 py-4">등록된 부서가 없습니다.</div>
             ) : (
               departments.map((dept: Department) => (
@@ -156,13 +153,11 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
         </CardContent>
       </Card>
 
-      {/* 직책 관리 */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold">직책 관리</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* 직책 추가 */}
           <div className="flex gap-2">
             <Input
               placeholder="새 직책명을 입력하세요"
@@ -186,9 +181,8 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
             </ButtonComponent>
           </div>
 
-          {/* 직책 목록 */}
           <div className="space-y-2">
-            {positions.length === 0 ? (
+            {positions?.length === 0 ? (
               <div className="text-center text-gray-500 py-4">등록된 직책이 없습니다.</div>
             ) : (
               positions.map((position: Position) => (
@@ -214,8 +208,6 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
           </div>
         </CardContent>
       </Card>
-
-      {/* 삭제 확인 모달 */}
 
       <ModalComponent
         isOpen={deleteConfirmModal.isOpen}
