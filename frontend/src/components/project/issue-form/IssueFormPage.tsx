@@ -232,7 +232,7 @@ export const IssueFormPage = ({
               value={formData.content}
               onChange={(e) => handleInputChange('content', e.target.value)}
               placeholder="이슈 내용을 입력하세요"
-              className={`min-h-[120px] ${errors.content ? 'border-red-500' : ''}`}
+              className={`min-h-[300px] ${errors.content ? 'border-red-500' : ''}`}
             />
             {errors.content && <p className="mt-1 text-sm text-red-600">{errors.content}</p>}
           </div>
