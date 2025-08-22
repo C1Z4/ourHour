@@ -44,6 +44,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: '프로젝트',
         icon: FolderGit2,
         isActive: true,
+        url: `/org/${currentOrgId}/project?currentPage=1`,
         items: myProjectList?.map((project) => ({
           title: project.name,
           url: `/org/${currentOrgId}/project/${project.projectId}`,
@@ -57,6 +58,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: '게시판',
         icon: ClipboardList,
         isActive: true,
+        url: `/org/${currentOrgId}/board`,
         items: myBoardList?.map((board) => ({
           title: board.name,
           url:
@@ -69,6 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: '채팅',
         icon: MessageCircle,
         isActive: true,
+        url: `/org/${currentOrgId}/chat`,
         items: chatRooms?.map((chatRoom) => {
           const iconColor = CHAT_COLORS[chatRoom.color as keyof typeof CHAT_COLORS] || '#808080';
 
