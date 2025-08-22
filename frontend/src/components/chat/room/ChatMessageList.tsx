@@ -8,10 +8,12 @@ import type { ChatMessage } from '@/types/chatTypes';
 import '@/styles/chat-bubble.css';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { getImageUrl } from '@/utils/file/imageUtils';
 
 interface ChatMessageListProps {
   messages: ChatMessage[];
   currentMemberId: number;
+  memberInfoMap: Map<number, { memberName: string; profileImgUrl?: string | null }>;
   onLoadMorePrev: () => void;
   hasPreviousPage?: boolean;
   isFetchingPreviousPage?: boolean;
@@ -20,6 +22,7 @@ interface ChatMessageListProps {
 export function ChatMessageList({
   messages,
   currentMemberId,
+  memberInfoMap,
   onLoadMorePrev,
   hasPreviousPage,
   isFetchingPreviousPage,
@@ -103,9 +106,10 @@ export function ChatMessageList({
     <div className="flex text-xs pl-1 m-1">{formatTime(timestamp)}</div>
   );
 
-  const renderAvatar = (senderName: string) => (
+  const renderAvatar = (senderName: string, profileImgUrl?: string | null) => (
     <Avatar className="h-8 w-8">
-      <AvatarImage src={senderName} />
+      {/* AvatarImage src가 유효하면 이미지를, 아니면 Fallback을 자동으로 보여줌 */}
+      <AvatarImage src={profileImgUrl ? getImageUrl(profileImgUrl) : undefined} />
       <AvatarFallback>{senderName.charAt(0)}</AvatarFallback>
     </Avatar>
   );
@@ -114,7 +118,7 @@ export function ChatMessageList({
     <div
       ref={scrollRef}
       onScroll={onScroll}
-      className="relative flex flex-col space-y-3 h-full overflow-y-auto px-6 py-4"
+      className="relative flex flex-col h-full overflow-y-auto px-4 py-4"
     >
       {/* {showScrollButton && (
         <button
@@ -134,29 +138,65 @@ export function ChatMessageList({
         )}
       </div>
       {messages.map((msg, idx) => {
+        const senderInfo = memberInfoMap.get(msg.senderId);
+
         const isMyMessage = msg.senderId === currentMemberId;
         const prevMessage = messages[idx - 1];
+
+        const isSameSender = prevMessage && prevMessage.senderId === msg.senderId;
+        const isSameMinute =
+          isSameSender && formatTime(prevMessage.timestamp) === formatTime(msg.timestamp);
+
+        const nextMessage = messages[idx + 1];
+        const isNextSameMinute =
+          nextMessage &&
+          nextMessage.senderId === msg.senderId &&
+          formatTime(nextMessage.timestamp) === formatTime(msg.timestamp);
+
         const isNewDate =
           !prevMessage || formatDate(prevMessage.timestamp) !== formatDate(msg.timestamp);
+
         return (
           <div key={msg.chatMessageId}>
             {isNewDate && (
               <div className="flex justify-center my-4">
-                <span className="text-xs text-muted-foreground px-2 py-1 bg-muted rounded-full">
+                <span className="text-xs text-muted-foreground px-2 py-1 mt-2 bg-muted rounded-full">
                   {formatDate(msg.timestamp)}
                 </span>
               </div>
             )}
-            <div className={cn('flex gap-2', isMyMessage ? 'flex-row-reverse' : 'flex-row')}>
-              {!isMyMessage && <div>{renderAvatar(msg.senderName)}</div>}
+            <div
+              className={cn(
+                'flex gap-2',
+                isMyMessage ? 'flex-row-reverse' : 'flex-row',
+                // 이전 메시지와 보낸 사람이 같으면 위쪽 여백을 줄여 메시지를 가깝게 붙임
+                isSameMinute && !isNewDate ? 'mt-1' : 'mt-5',
+              )}
+            >
+              {/* 내가 보낸 메시지가 아니고, 이전과 다른 사람이 보낸 첫 메시지일 때만 아바타 표시 */}
+              {!isMyMessage &&
+                !isSameSender &&
+                renderAvatar(senderInfo?.memberName ?? '(알 수 없음)', senderInfo?.profileImgUrl)}
+
+              {/* 연속 메시지일 경우 아바타 공간만큼 빈 공간을 줌 */}
+              {!isMyMessage && isSameSender && <div className="w-8" />}
+
               <div
-                className={cn('flex flex-col w-[70%]', isMyMessage ? 'items-end' : 'items-start')}
-              >
-                {!isMyMessage && (
-                  <span className="text-xs text-muted-foreground mb-1">{msg.senderName}</span>
+                className={cn(
+                  'flex flex-col max-w-[70%]',
+                  isMyMessage ? 'items-end' : 'items-start',
                 )}
+              >
+                {/* 내가 보낸 메시지가 아니고, 이전과 다른 사람이 보낸 첫 메시지일 때만 이름 표시 */}
+                {!isMyMessage && !isSameSender && (
+                  <span className="text-xs text-muted-foreground mb-1">
+                    {senderInfo?.memberName}
+                  </span>
+                )}
+
                 <div className="flex flex-row items-end">
-                  {isMyMessage && renderTimestamp(msg.timestamp)}
+                  {/* 내가 보낸 메시지일 때는 항상 시간 표시 (또는 isSameMinute 조건 추가 가능) */}
+                  {isMyMessage && !isNextSameMinute && renderTimestamp(msg.timestamp)}
                   <div
                     className={cn(
                       'flex flex-col w-max-xs gap-2 px-3 py-2 text-sm break-words overflow-wrap break-word',
@@ -167,7 +207,7 @@ export function ChatMessageList({
                   >
                     {msg.message}
                   </div>
-                  {!isMyMessage && renderTimestamp(msg.timestamp)}
+                  {!isMyMessage && !isNextSameMinute && renderTimestamp(msg.timestamp)}
                 </div>
               </div>
             </div>
