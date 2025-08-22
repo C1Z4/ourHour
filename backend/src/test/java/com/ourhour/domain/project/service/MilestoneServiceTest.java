@@ -191,7 +191,7 @@ class MilestoneServiceTest {
                     .thenReturn(Role.ADMIN);
 
             // when
-            ApiResponse<Void> result = milestoneService.deleteMilestone(milestoneId);
+            ApiResponse<Void> result = milestoneService.deleteMilestone(orgId, milestoneId);
 
             // then
             assertThat(result).isNotNull();
@@ -208,7 +208,7 @@ class MilestoneServiceTest {
         Long invalidMilestoneId = 0L;
 
         // when & then
-        assertThatThrownBy(() -> milestoneService.deleteMilestone(invalidMilestoneId))
+        assertThatThrownBy(() -> milestoneService.deleteMilestone(1L, invalidMilestoneId))
                 .isInstanceOf(MilestoneException.class);
     }
 
@@ -221,7 +221,7 @@ class MilestoneServiceTest {
         given(milestoneRepository.findById(milestoneId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> milestoneService.deleteMilestone(milestoneId))
+        assertThatThrownBy(() -> milestoneService.deleteMilestone(1L, milestoneId))
                 .isInstanceOf(MilestoneException.class);
     }
 
@@ -242,7 +242,7 @@ class MilestoneServiceTest {
                     .thenReturn(null);
 
             // when & then
-            assertThatThrownBy(() -> milestoneService.deleteMilestone(milestoneId))
+            assertThatThrownBy(() -> milestoneService.deleteMilestone(1L, milestoneId))
                     .isInstanceOf(MemberException.class);
         }
     }
@@ -267,7 +267,7 @@ class MilestoneServiceTest {
                     .thenReturn(Role.MEMBER);
 
             // when & then
-            assertThatThrownBy(() -> milestoneService.deleteMilestone(milestoneId))
+            assertThatThrownBy(() -> milestoneService.deleteMilestone(1L, milestoneId))
                     .isInstanceOf(ProjectException.class);
         }
     }

@@ -356,6 +356,7 @@ class ProjectServiceTest {
         @DisplayName("프로젝트 마일스톤 목록 조회 성공")
         void getProjectMilestones_Success() {
                 // given
+                Long orgId = 1L;
                 Long projectId = 1L;
                 boolean myMilestonesOnly = false;
                 Pageable pageable = PageRequest.of(0, 10);
@@ -374,7 +375,7 @@ class ProjectServiceTest {
 
                 // when
                 ApiResponse<PageResponse<MileStoneInfoDTO>> result = projectService
-                                .getProjectMilestones(projectId, myMilestonesOnly, pageable);
+                                .getProjectMilestones(orgId, projectId, myMilestonesOnly, pageable);
 
                 // then
                 assertThat(result).isNotNull();
@@ -389,13 +390,11 @@ class ProjectServiceTest {
                 // given
                 Long projectId = 1L;
                 Long memberId = 1L;
+                Long orgId = 1L;
                 boolean myMilestonesOnly = true;
                 Pageable pageable = PageRequest.of(0, 10);
 
                 given(projectRepository.existsById(projectId)).willReturn(true);
-                given(projectRepository.findById(projectId)).willReturn(Optional.of(project));
-                given(project.getOrgEntity()).willReturn(org);
-                given(org.getOrgId()).willReturn(1L);
 
                 Page<MilestoneEntity> milestonePage = new PageImpl<>(List.of(milestone), pageable, 1);
                 given(milestoneRepository.findByProjectEntity_ProjectIdWithAssignedIssues(projectId, memberId,
@@ -409,12 +408,12 @@ class ProjectServiceTest {
                                 .willReturn(5L);
 
                 try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-                        mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(1L))
+                        mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))
                                         .thenReturn(memberId);
 
                         // when
                         ApiResponse<PageResponse<MileStoneInfoDTO>> result = projectService
-                                        .getProjectMilestones(projectId, myMilestonesOnly, pageable);
+                                        .getProjectMilestones(orgId, projectId, myMilestonesOnly, pageable);
 
                         // then
                         assertThat(result).isNotNull();
@@ -429,13 +428,14 @@ class ProjectServiceTest {
         @DisplayName("프로젝트 마일스톤 목록 조회 시 잘못된 프로젝트 ID로 예외 발생")
         void getProjectMilestones_InvalidProjectId_ThrowsException() {
                 // given
+                Long orgId = 1L;
                 Long invalidProjectId = 0L;
                 boolean myMilestonesOnly = false;
                 Pageable pageable = PageRequest.of(0, 10);
 
                 // when & then
                 assertThatThrownBy(
-                                () -> projectService.getProjectMilestones(invalidProjectId, myMilestonesOnly, pageable))
+                                () -> projectService.getProjectMilestones(orgId, invalidProjectId, myMilestonesOnly, pageable))
                                 .isInstanceOf(ProjectException.class);
         }
 
@@ -443,6 +443,7 @@ class ProjectServiceTest {
         @DisplayName("프로젝트 마일스톤 목록 조회 시 존재하지 않는 프로젝트로 예외 발생")
         void getProjectMilestones_ProjectNotFound_ThrowsException() {
                 // given
+                Long orgId = 1L;
                 Long projectId = 999L;
                 boolean myMilestonesOnly = false;
                 Pageable pageable = PageRequest.of(0, 10);
@@ -450,7 +451,7 @@ class ProjectServiceTest {
                 given(projectRepository.existsById(projectId)).willReturn(false);
 
                 // when & then
-                assertThatThrownBy(() -> projectService.getProjectMilestones(projectId, myMilestonesOnly, pageable))
+                assertThatThrownBy(() -> projectService.getProjectMilestones(orgId, projectId, myMilestonesOnly, pageable))
                                 .isInstanceOf(ProjectException.class);
         }
 
@@ -458,21 +459,19 @@ class ProjectServiceTest {
         @DisplayName("내 마일스톤 조회 시 권한 없는 사용자로 예외 발생")
         void getProjectMilestones_MyMilestonesOnly_NoPermission_ThrowsException() {
                 // given
+                Long orgId = 1L;
                 Long projectId = 1L;
                 boolean myMilestonesOnly = true;
                 Pageable pageable = PageRequest.of(0, 10);
 
                 given(projectRepository.existsById(projectId)).willReturn(true);
-                given(projectRepository.findById(projectId)).willReturn(Optional.of(project));
-                given(project.getOrgEntity()).willReturn(org);
-                given(org.getOrgId()).willReturn(1L);
 
                 try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-                        mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(1L))
+                        mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))
                                         .thenReturn(null);
 
                         // when & then
-                        assertThatThrownBy(() -> projectService.getProjectMilestones(projectId, myMilestonesOnly,
+                        assertThatThrownBy(() -> projectService.getProjectMilestones(orgId, projectId, myMilestonesOnly,
                                         pageable))
                                         .isInstanceOf(MemberException.class);
                 }

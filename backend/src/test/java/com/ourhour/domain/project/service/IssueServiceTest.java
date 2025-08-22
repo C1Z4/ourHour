@@ -406,7 +406,7 @@ class IssueServiceTest {
             given(projectParticipantService.isProjectParticipant(projectId, memberId)).willReturn(true);
 
             // when
-            ApiResponse<IssueDetailDTO> result = issueService.updateIssue(issueId, issueReqDTO);
+            ApiResponse<IssueDetailDTO> result = issueService.updateIssue(1L, issueId, issueReqDTO);
 
             // then
             assertThat(result).isNotNull();
@@ -421,7 +421,7 @@ class IssueServiceTest {
         Long invalidIssueId = 0L;
 
         // when & then
-        assertThatThrownBy(() -> issueService.updateIssue(invalidIssueId, issueReqDTO))
+        assertThatThrownBy(() -> issueService.updateIssue(1L, invalidIssueId, issueReqDTO))
                 .isInstanceOf(IssueException.class);
     }
 
@@ -434,7 +434,7 @@ class IssueServiceTest {
         given(issueRepository.findById(issueId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> issueService.updateIssue(issueId, issueReqDTO))
+        assertThatThrownBy(() -> issueService.updateIssue(1L, issueId, issueReqDTO))
                 .isInstanceOf(IssueException.class);
     }
 
@@ -457,7 +457,7 @@ class IssueServiceTest {
                     .thenReturn(null);
 
             // when & then
-            assertThatThrownBy(() -> issueService.updateIssue(issueId, issueReqDTO))
+            assertThatThrownBy(() -> issueService.updateIssue(1L, issueId, issueReqDTO))
                     .isInstanceOf(MemberException.class);
         }
     }
@@ -534,7 +534,7 @@ class IssueServiceTest {
             given(projectParticipantService.isProjectParticipant(projectId, memberId)).willReturn(true);
 
             // when
-            ApiResponse<Void> result = issueService.deleteIssue(issueId);
+            ApiResponse<Void> result = issueService.deleteIssue(1L, issueId);
 
             // then
             assertThat(result).isNotNull();
@@ -551,7 +551,7 @@ class IssueServiceTest {
         Long invalidIssueId = 0L;
 
         // when & then
-        assertThatThrownBy(() -> issueService.deleteIssue(invalidIssueId))
+        assertThatThrownBy(() -> issueService.deleteIssue(1L, invalidIssueId))
                 .isInstanceOf(IssueException.class);
     }
 
@@ -564,7 +564,7 @@ class IssueServiceTest {
         given(issueRepository.findById(issueId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> issueService.deleteIssue(issueId))
+        assertThatThrownBy(() -> issueService.deleteIssue(1L, issueId))
                 .isInstanceOf(IssueException.class);
     }
 
@@ -587,7 +587,7 @@ class IssueServiceTest {
                     .thenReturn(null);
 
             // when & then
-            assertThatThrownBy(() -> issueService.deleteIssue(issueId))
+            assertThatThrownBy(() -> issueService.deleteIssue(1L, issueId))
                     .isInstanceOf(MemberException.class);
         }
     }
