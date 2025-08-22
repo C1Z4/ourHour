@@ -388,30 +388,7 @@ function OrgInfoPage() {
           onSubmit={handleProjectSubmit}
         />
       )}
-      {/* 구성원 삭제 모달 */}
-      {isDeleteMemberModalOpen && (
-        <ModalComponent
-          isOpen={isDeleteMemberModalOpen}
-          onClose={handleDeleteMemberModalClose}
-          title="구성원 삭제 확인"
-          children={
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600">선택한 구성원을 정말 삭제하시겠습니까?</p>
-            </div>
-          }
-          footer={
-            <div className="flex flex-row items-center justify-center gap-2">
-              <ButtonComponent variant="danger" onClick={handleDeleteMemberModalClose}>
-                취소
-              </ButtonComponent>
-              <ButtonComponent variant="primary" onClick={handleDeleteMembers}>
-                삭제
-              </ButtonComponent>
-            </div>
-          }
-        />
-      )}
-      {/* 회사 삭제 모달 */}
+
       {isDeleteOrgModalOpen && (
         <ModalComponent
           isOpen={isDeleteOrgModalOpen}
