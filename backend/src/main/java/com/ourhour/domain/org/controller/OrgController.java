@@ -77,7 +77,7 @@ public class OrgController {
 
     // 본인이 참여 중인 프로젝트 이름 목록 조회(좌측 사이드바)
     @OrgAuth
-    @GetMapping("/{orgId}/projects")
+    @GetMapping("/{orgId}/my-projects")
     @Operation(summary = "내 프로젝트 목록 조회", description = "조직 내 본인이 참여 중인 프로젝트 이름 목록을 조회합니다.")
     public ResponseEntity<ApiResponse<List<ProjectNameResDTO>>> getMyProjects(@OrgId @PathVariable Long orgId) {
 
