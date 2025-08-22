@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
-import { Github, Info, Plus, RefreshCw } from 'lucide-react';
+import { Github, Plus, RefreshCw } from 'lucide-react';
 
+import type { MyMemberInfoDetail } from '@/api/member/memberApi';
 import type { GithubRepository } from '@/api/project/githubApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { ModalComponent } from '@/components/common/ModalComponent';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -27,6 +29,7 @@ import { useGithubSyncStatusQuery } from '@/hooks/queries/project/useGithubQueri
 import { useMilestoneCreateMutation } from '@/hooks/queries/project/useMilestoneMutations';
 import { useAppDispatch, useAppSelector } from '@/stores/hooks';
 import { toggleIsMyIssuesOnly } from '@/stores/projectSlice';
+import { showErrorToast } from '@/utils/toast';
 
 interface ProjectDashboardHeaderProps {
   orgId: string;
@@ -51,7 +54,8 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
   const [repositoryOptions, setRepositoryOptions] = useState<GithubRepository[]>([]);
   const [isGithubSyncing, setIsGithubSyncing] = useState(false);
 
-  const { data: memberInfo } = useMyMemberInfoQuery(Number(orgId));
+  const { data: memberInfoData } = useMyMemberInfoQuery(Number(orgId));
+  const memberInfo = memberInfoData as unknown as MyMemberInfoDetail;
   const { data: githubSyncStatus } = useGithubSyncStatusQuery(Number(projectId));
   const { mutate: createMilestone } = useMilestoneCreateMutation(Number(projectId));
   const { mutate: getRepositories, isPending: isLoadingRepositories } =
@@ -99,6 +103,11 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
   };
 
   const handleGithubConnect = () => {
+    if (!memberInfo?.isGithubLinked) {
+      showErrorToast('깃허브 연동이 필요합니다. 우측 상단의 프로필 조회에서 연동해주세요.');
+      return;
+    }
+
     setIsGithubConnectModalOpen(true);
     setGithubStep('token');
     setGithubToken('');
@@ -189,51 +198,72 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
   };
 
   return (
-    <div className="border-b border-gray-200 bg-white px-6 py-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center space-x-3">
-          <h1 className="text-2xl font-bold text-gray-900">{currentProjectName}</h1>
-          <Info
-            className="size-5 text-muted-foreground cursor-pointer"
-            onClick={handleProjectInfo}
-          />
-          {isGithubSyncing ? (
-            <div className="flex items-center gap-2">
+    <div className="bg-white px-6 py-4">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <h1 className="text-2xl font-bold text-gray-900">{currentProjectName}</h1>
+            {isGithubSyncing ? (
+              <div className="flex items-center gap-2">
+                <ButtonComponent
+                  variant="secondary"
+                  size="icon"
+                  className="cursor-pointer"
+                  onClick={handleSyncAll}
+                  aria-label="GitHub 데이터 동기화"
+                  title="데이터 동기화"
+                  disabled={isSyncingAll}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isSyncingAll ? 'animate-spin' : ''}`} />
+                </ButtonComponent>
+                <ButtonComponent
+                  variant="danger"
+                  size="sm"
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={handleGithubDisconnect}
+                >
+                  <Github className="size-5 text-muted-foreground text-white" />
+                  깃허브 연동해제
+                </ButtonComponent>
+              </div>
+            ) : (
               <ButtonComponent
-                variant="secondary"
-                size="icon"
-                className="cursor-pointer"
-                onClick={handleSyncAll}
-                aria-label="GitHub 데이터 동기화"
-                title="데이터 동기화"
-                disabled={isSyncingAll}
-              >
-                <RefreshCw className={`h-4 w-4 ${isSyncingAll ? 'animate-spin' : ''}`} />
-              </ButtonComponent>
-              <ButtonComponent
-                variant="danger"
+                variant="primary"
                 size="sm"
                 className="flex items-center gap-2 cursor-pointer"
-                onClick={handleGithubDisconnect}
+                onClick={handleGithubConnect}
               >
                 <Github className="size-5 text-muted-foreground text-white" />
-                깃허브 연동해제
+                깃허브 연동
               </ButtonComponent>
-            </div>
-          ) : (
-            <ButtonComponent
-              variant="primary"
-              size="sm"
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={handleGithubConnect}
-            >
-              <Github className="size-5 text-muted-foreground text-white" />
-              깃허브 연동
-            </ButtonComponent>
-          )}
+            )}
+          </div>
+
+          <ButtonComponent variant="primary" size="sm" onClick={handleProjectInfo}>
+            프로젝트 정보
+          </ButtonComponent>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="border-t border-gray-200" />
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <h1 className="text-xl font-bold text-gray-900 mr-2">이슈 목록</h1>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="my-issues-only"
+                checked={isMyIssuesOnly}
+                onCheckedChange={() => dispatch(toggleIsMyIssuesOnly())}
+              />
+              <label
+                htmlFor="my-issues-only"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                내 이슈만 보기
+              </label>
+            </div>
+          </div>
+
           <div className="flex gap-2">
             <ButtonComponent
               variant="primary"
@@ -246,24 +276,6 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
             <ButtonComponent variant="primary" size="sm" onClick={handleCreateIssue}>
               <Plus className="h-4 w-4" />
               이슈 등록
-            </ButtonComponent>
-          </div>
-          <div className="flex items-center bg-gray-100 rounded-lg p-1">
-            <ButtonComponent
-              variant={!isMyIssuesOnly ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => dispatch(toggleIsMyIssuesOnly())}
-              className="px-3"
-            >
-              전체보기
-            </ButtonComponent>
-            <ButtonComponent
-              variant={isMyIssuesOnly ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => dispatch(toggleIsMyIssuesOnly())}
-              className="px-3"
-            >
-              내 이슈만 보기
             </ButtonComponent>
           </div>
         </div>
