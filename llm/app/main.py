@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from dotenv import load_dotenv
 import os
 from .routes.chat import router as chat_router
+from .utils.secret_manager import load_secret_env
 
-if os.path.exists('/etc/secrets/env'):
-    load_dotenv('/etc/secrets/env')
+# 환경변수 로드
+load_secret_env()
 
 app = FastAPI(
     title="OURHOUR AI 챗봇",

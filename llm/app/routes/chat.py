@@ -6,13 +6,12 @@ from typing import Optional
 import jwt
 import os
 import base64
-from dotenv import load_dotenv
 from app.services.chatbot import chatbot_service
-from app.models.database import SessionLocal, ChatHistory
+from app.models.database import get_db_session, ChatHistory
+from ..utils.secret_manager import load_secret_env
 
-# .env 파일 로드 확인
-if os.path.exists('/etc/secrets/env'):
-    load_dotenv('/etc/secrets/env')
+# 환경변수 로드
+load_secret_env()
 
 
 router = APIRouter()
@@ -29,11 +28,16 @@ class ChatResponse(BaseModel):
 
 
 def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    """데이터베이스 세션 의존성"""
+    db = get_db_session()
+    if db is None:
+        # 데이터베이스 사용 불가 시 None 반환
+        yield None
+    else:
+        try:
+            yield db
+        finally:
+            db.close()
 
 
 def extract_and_verify_jwt_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
@@ -104,14 +108,19 @@ async def chat_endpoint(
             auth_token=token
         )
         
-        # 대화 이력 저장
-        chat_record = ChatHistory(
-            user_id=str(member_id),
-            message=request.message,
-            response=response
-        )
-        db.add(chat_record)
-        db.commit()
+        # 대화 이력 저장 (데이터베이스가 사용 가능한 경우에만)
+        if db is not None:
+            try:
+                chat_record = ChatHistory(
+                    user_id=str(member_id),
+                    message=request.message,
+                    response=response
+                )
+                db.add(chat_record)
+                db.commit()
+            except Exception as e:
+                print(f"대화 이력 저장 실패: {e}")
+                # 데이터베이스 저장 실패해도 응답은 반환
         
         return ChatResponse(response=response)
         

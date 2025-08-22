@@ -1,12 +1,12 @@
 import os
-from dotenv import load_dotenv
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain.docstore.document import Document
 from pinecone import Pinecone
+from ..utils.secret_manager import load_secret_env
 
-if os.path.exists('/etc/secrets/env'):
-    load_dotenv('/etc/secrets/env')
+# 환경변수 로드
+load_secret_env()
 
 embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
 
