@@ -32,13 +32,7 @@ export const NewChatRoomModal = ({ orgId }: Props) => {
   const { mutate: createRoom } = useCreateChatRoomQuery(orgId);
   const { currentUser, otherMembers, isLoading, isError } = useOrgMembersWithoutMe(orgId);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // if (!currentUser) {
-    //   return;
-    // }
-
+  const submitProcess = () => {
     let savedName = inputName.trim();
     const savedMembers = [currentUser, ...selectedMembers];
 
@@ -67,6 +61,11 @@ export const NewChatRoomModal = ({ orgId }: Props) => {
     );
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitProcess();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -82,7 +81,11 @@ export const NewChatRoomModal = ({ orgId }: Props) => {
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            <ChatRoomNameInput name={inputName} onChangeName={setInputName} />
+            <ChatRoomNameInput
+              name={inputName}
+              onChangeName={setInputName}
+              onSubmit={submitProcess}
+            />
             <ChatRoomColorPicker selectedColor={selectedColor} onChangeColor={setSelectedColor} />
             <ChatRoomParticipantSelector
               members={otherMembers}
