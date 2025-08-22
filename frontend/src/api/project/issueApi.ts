@@ -8,6 +8,7 @@ import { logError } from '@/utils/auth/errorUtils';
 
 // ======== 프로젝트 이슈 목록 조회 ========
 export interface GetProjectIssueListRequest {
+  orgId: number;
   projectId: number;
   milestoneId?: number | null;
   myIssuesOnly?: boolean;
@@ -30,7 +31,7 @@ export interface ProjectIssueSummary {
 
 export const getProjectIssueList = async (
   request: GetProjectIssueListRequest,
-): Promise<ApiResponse<PageResponse<ProjectIssueSummary[]>>> => {
+): Promise<ApiResponse<PageResponse<ProjectIssueSummary>>> => {
   try {
     const params = new URLSearchParams();
 
@@ -48,7 +49,7 @@ export const getProjectIssueList = async (
     }
 
     const response = await axiosInstance.get(
-      `/api/projects/${request.projectId}/issues?${params.toString()}`,
+      `/api/organizations/${request.orgId}/projects/${request.projectId}/issues?${params.toString()}`,
     );
 
     return response.data;
@@ -60,6 +61,7 @@ export const getProjectIssueList = async (
 
 // ======== 프로젝트 이슈 상세 조회 ========
 interface GetIssueDetailRequest {
+  orgId: number;
   issueId: number;
 }
 
@@ -72,7 +74,9 @@ export const getProjectIssueDetail = async (
   request: GetIssueDetailRequest,
 ): Promise<ApiResponse<IssueDetail>> => {
   try {
-    const response = await axiosInstance.get(`/api/projects/issues/${request.issueId}`);
+    const response = await axiosInstance.get(
+      `/api/organizations/${request.orgId}/projects/issues/${request.issueId}`,
+    );
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);
@@ -82,6 +86,7 @@ export const getProjectIssueDetail = async (
 
 // ======== 프로젝트 이슈 생성 ========
 export interface PostCreateIssueRequest {
+  orgId: number;
   projectId: number;
   milestoneId: number | null;
   assigneeId: number | null;
@@ -95,8 +100,11 @@ export const postCreateIssue = async (
   request: PostCreateIssueRequest,
 ): Promise<ApiResponse<void>> => {
   try {
-    const { projectId, ...requestBody } = request;
-    const response = await axiosInstance.post(`/api/projects/${projectId}/issues`, requestBody);
+    const { orgId, projectId, ...requestBody } = request;
+    const response = await axiosInstance.post(
+      `/api/organizations/${orgId}/projects/${projectId}/issues`,
+      requestBody,
+    );
 
     return response.data;
   } catch (error: unknown) {
@@ -107,6 +115,7 @@ export const postCreateIssue = async (
 
 // ======== 프로젝트 이슈 수정 ========
 export interface PutUpdateIssueRequest {
+  orgId: number;
   issueId: number;
   projectId: number | null;
   milestoneId: number | null;
@@ -121,9 +130,9 @@ export const putUpdateIssue = async (
   request: PutUpdateIssueRequest,
 ): Promise<ApiResponse<void>> => {
   try {
-    const { issueId, projectId, ...requestBody } = request;
+    const { orgId, issueId, projectId, ...requestBody } = request;
     const response = await axiosInstance.put(
-      `/api/projects/${projectId}/issues/${issueId}`,
+      `/api/organizations/${orgId}/projects/${projectId}/issues/${issueId}`,
       requestBody,
     );
     return response.data;
@@ -135,6 +144,7 @@ export const putUpdateIssue = async (
 
 // ======== 프로젝트 이슈 상태 변경 ========
 export interface PutUpdateIssueStatusRequest {
+  orgId: number;
   issueId: number;
   status: IssueStatusEng;
   projectId: number;
@@ -145,7 +155,7 @@ export const putUpdateIssueStatus = async (
 ): Promise<ApiResponse<void>> => {
   try {
     const response = await axiosInstance.put(
-      `/api/projects/${request.projectId}/issues/${request.issueId}/status`,
+      `/api/organizations/${request.orgId}/projects/${request.projectId}/issues/${request.issueId}/status`,
       {
         status: request.status,
       },
@@ -159,12 +169,15 @@ export const putUpdateIssueStatus = async (
 
 // ======== 프로젝트 이슈 삭제 ========
 export interface DeleteIssueRequest {
+  orgId: number;
   issueId: number;
 }
 
 export const deleteIssue = async (request: DeleteIssueRequest): Promise<ApiResponse<void>> => {
   try {
-    const response = await axiosInstance.delete(`/api/projects/issues/${request.issueId}`);
+    const response = await axiosInstance.delete(
+      `/api/organizations/${request.orgId}/projects/issues/${request.issueId}`,
+    );
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);
@@ -174,6 +187,7 @@ export const deleteIssue = async (request: DeleteIssueRequest): Promise<ApiRespo
 
 // ======== 프로젝트 이슈 태그 목록 조회 ========
 export interface GetIssueTagListRequest {
+  orgId: number;
   projectId: number;
 }
 
@@ -187,7 +201,9 @@ export const getIssueTagList = async (
   request: GetIssueTagListRequest,
 ): Promise<ApiResponse<IssueTag[]>> => {
   try {
-    const response = await axiosInstance.get(`/api/projects/${request.projectId}/issues/tags`);
+    const response = await axiosInstance.get(
+      `/api/organizations/${request.orgId}/projects/${request.projectId}/issues/tags`,
+    );
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);
@@ -197,6 +213,7 @@ export const getIssueTagList = async (
 
 // ======== 프로젝트 이슈 태그 생성 ========
 export interface PostCreateIssueTagRequest {
+  orgId: number;
   projectId: number;
   name: string;
   color: string;
@@ -205,10 +222,10 @@ export interface PostCreateIssueTagRequest {
 export const postCreateIssueTag = async (
   request: PostCreateIssueTagRequest,
 ): Promise<ApiResponse<void>> => {
-  const { projectId, ...requestBody } = request;
+  const { orgId, projectId, ...requestBody } = request;
   try {
     const response = await axiosInstance.post(
-      `/api/projects/${projectId}/issues/tags`,
+      `/api/organizations/${orgId}/projects/${projectId}/issues/tags`,
       requestBody,
     );
     return response.data;
@@ -220,6 +237,7 @@ export const postCreateIssueTag = async (
 
 // ======== 프로젝트 이슈 태그 수정 ========
 export interface PutUpdateIssueTagRequest {
+  orgId: number;
   projectId: number;
   issueTagId: number;
   name: string;
@@ -229,10 +247,10 @@ export interface PutUpdateIssueTagRequest {
 export const putUpdateIssueTag = async (
   request: PutUpdateIssueTagRequest,
 ): Promise<ApiResponse<void>> => {
-  const { projectId, issueTagId, ...requestBody } = request;
+  const { orgId, projectId, issueTagId, ...requestBody } = request;
   try {
     const response = await axiosInstance.put(
-      `/api/projects/${projectId}/issues/tags/${issueTagId}`,
+      `/api/organizations/${orgId}/projects/${projectId}/issues/tags/${issueTagId}`,
       requestBody,
     );
     return response.data;
@@ -244,6 +262,7 @@ export const putUpdateIssueTag = async (
 
 // ======== 프로젝트 이슈 태그 삭제 ========
 export interface DeleteIssueTagRequest {
+  orgId: number;
   projectId: number;
   issueTagId: number;
 }
@@ -251,10 +270,10 @@ export interface DeleteIssueTagRequest {
 export const deleteIssueTag = async (
   request: DeleteIssueTagRequest,
 ): Promise<ApiResponse<void>> => {
-  const { projectId, issueTagId } = request;
+  const { orgId, projectId, issueTagId } = request;
   try {
     const response = await axiosInstance.delete(
-      `/api/projects/${projectId}/issues/tags/${issueTagId}`,
+      `/api/organizations/${orgId}/projects/${projectId}/issues/tags/${issueTagId}`,
     );
     return response.data;
   } catch (error: unknown) {

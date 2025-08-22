@@ -14,14 +14,14 @@ import { queryClient } from '@/main';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 // ======== 마일스톤 생성 ========
-export const useMilestoneCreateMutation = (projectId: number) =>
+export const useMilestoneCreateMutation = (orgId: number, projectId: number) =>
   useMutation({
     mutationFn: (request: PostCreateMilestoneRequest) => postCreateMilestone(request),
 
     onSuccess: () => {
       showSuccessToast('새 마일스톤 생성에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, orgId, projectId],
         exact: false,
       });
     },
@@ -32,14 +32,14 @@ export const useMilestoneCreateMutation = (projectId: number) =>
   });
 
 // ======== 마일스톤 수정 ========
-export const useMilestoneUpdateMutation = (projectId: number) =>
+export const useMilestoneUpdateMutation = (orgId: number, projectId: number) =>
   useMutation({
     mutationFn: (request: PutUpdateMilestoneRequest) => putUpdateMilestone(request),
 
     onSuccess: () => {
       showSuccessToast('마일스톤 수정에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, orgId, projectId],
         exact: false,
       });
     },
@@ -50,14 +50,18 @@ export const useMilestoneUpdateMutation = (projectId: number) =>
   });
 
 // ======== 마일스톤 삭제 ========
-export const useMilestoneDeleteMutation = (milestoneId: number | null, projectId: number) =>
+export const useMilestoneDeleteMutation = (
+  orgId: number,
+  milestoneId: number | null,
+  projectId: number,
+) =>
   useMutation({
-    mutationFn: () => deleteMilestone({ milestoneId }),
+    mutationFn: () => deleteMilestone({ orgId, milestoneId }),
 
     onSuccess: () => {
       showSuccessToast('마일스톤 삭제에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, orgId, projectId],
         exact: false,
       });
     },
