@@ -228,7 +228,7 @@ public class ProjectController {
 
         // 마일스톤 삭제
         @OrgAuth(accessLevel = Role.MEMBER)
-        @DeleteMapping("/milestones/{milestoneId}")
+        @DeleteMapping("/{projectId}/milestones/{milestoneId}")
         @Operation(summary = "마일스톤 삭제", description = "마일스톤을 삭제합니다.")
         public ResponseEntity<ApiResponse<Void>> deleteMilestone(
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
@@ -241,10 +241,11 @@ public class ProjectController {
 
         // 이슈 상세 조회
         @OrgAuth(accessLevel = Role.MEMBER)
-        @GetMapping("/issues/{issueId}")
+        @GetMapping("/{projectId}/issues/{issueId}")
         @Operation(summary = "이슈 상세 조회", description = "특정 이슈의 상세 정보를 조회합니다.")
         public ResponseEntity<ApiResponse<IssueDetailDTO>> getIssueInfo(
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId) {
 
                 ApiResponse<IssueDetailDTO> response = issueService.getIssueDetail(issueId);
@@ -302,10 +303,11 @@ public class ProjectController {
 
         // 이슈 삭제
         @OrgAuth(accessLevel = Role.MEMBER)
-        @DeleteMapping("/issues/{issueId}")
+        @DeleteMapping("/{projectId}/issues/{issueId}")
         @Operation(summary = "이슈 삭제", description = "이슈를 삭제합니다.")
         public ResponseEntity<ApiResponse<Void>> deleteIssue(
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId) {
 
                 ApiResponse<Void> response = issueService.deleteIssue(orgId, issueId);

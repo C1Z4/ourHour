@@ -180,9 +180,6 @@ class MilestoneServiceTest {
         Long memberId = 1L;
 
         given(milestoneRepository.findById(milestoneId)).willReturn(Optional.of(milestone));
-        given(milestone.getProjectEntity()).willReturn(project);
-        given(project.getOrgEntity()).willReturn(org);
-        given(org.getOrgId()).willReturn(orgId);
 
         try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
             mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))
@@ -233,9 +230,6 @@ class MilestoneServiceTest {
         Long orgId = 1L;
 
         given(milestoneRepository.findById(milestoneId)).willReturn(Optional.of(milestone));
-        given(milestone.getProjectEntity()).willReturn(project);
-        given(project.getOrgEntity()).willReturn(org);
-        given(org.getOrgId()).willReturn(orgId);
 
         try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
             mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))
@@ -256,9 +250,6 @@ class MilestoneServiceTest {
         Long memberId = 1L;
 
         given(milestoneRepository.findById(milestoneId)).willReturn(Optional.of(milestone));
-        given(milestone.getProjectEntity()).willReturn(project);
-        given(project.getOrgEntity()).willReturn(org);
-        given(org.getOrgId()).willReturn(orgId);
 
         try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
             mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))

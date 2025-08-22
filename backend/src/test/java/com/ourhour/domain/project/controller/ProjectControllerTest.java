@@ -144,7 +144,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "프로젝트 등록이 완료되었습니다."));
 
                 // When & Then
-                mockMvc.perform(post("/api/projects/{orgId}", ORG_ID)
+                mockMvc.perform(post("/api/organizations/{orgId}/projects", ORG_ID)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(projectReqDTO)))
                                 .andExpect(status().isOk());
@@ -167,7 +167,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "프로젝트 수정이 완료되었습니다."));
 
                 // When & Then
-                mockMvc.perform(put("/api/projects/{orgId}/{projectId}", ORG_ID, PROJECT_ID)
+                mockMvc.perform(put("/api/organizations/{orgId}/projects/{projectId}", ORG_ID, PROJECT_ID)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(updateReqDTO)))
                                 .andExpect(status().isOk());
@@ -186,7 +186,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "프로젝트 삭제가 완료되었습니다."));
 
                 // When & Then
-                mockMvc.perform(delete("/api/projects/{orgId}/{projectId}", ORG_ID, PROJECT_ID))
+                mockMvc.perform(delete("/api/organizations/{orgId}/projects/{projectId}", ORG_ID, PROJECT_ID))
                                 .andExpect(status().isOk());
 
                 then(projectService).should().deleteProject(PROJECT_ID);
@@ -207,7 +207,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(projectInfo, "프로젝트 정보 조회에 성공했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/{projectId}/info", PROJECT_ID))
+                mockMvc.perform(get("/api/organizations/{orgId}/projects/{projectId}/info", ORG_ID, PROJECT_ID))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.data.projectId").value(PROJECT_ID))
                                 .andExpect(jsonPath("$.data.name").value("테스트 프로젝트"));
@@ -243,7 +243,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "마일스톤 삭제가 완료되었습니다."));
 
                 // When & Then
-                mockMvc.perform(delete("/api/projects/milestones/{milestoneId}", MILESTONE_ID))
+                mockMvc.perform(delete("/api/organizations/{orgId}/projects/{projectId}/milestones/{milestoneId}", ORG_ID, PROJECT_ID, MILESTONE_ID))
                                 .andExpect(status().isOk());
 
                 then(milestoneService).should().deleteMilestone(ORG_ID, MILESTONE_ID);
@@ -267,7 +267,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(pageResponse, "프로젝트 요약 목록을 조회했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/{orgId}", ORG_ID)
+                mockMvc.perform(get("/api/organizations/{orgId}/projects", ORG_ID)
                                 .param("currentPage", String.valueOf(currentPage))
                                 .param("size", String.valueOf(size))
                                 .param("participantLimit", String.valueOf(participantLimit))
@@ -297,7 +297,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(pageResponse, "프로젝트 참가자 목록을 조회했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/{projectId}/{orgId}/participants", PROJECT_ID, ORG_ID)
+                mockMvc.perform(get("/api/organizations/{orgId}/projects/{projectId}/participants", ORG_ID, PROJECT_ID)
                                 .param("currentPage", String.valueOf(currentPage))
                                 .param("size", String.valueOf(size))
                                 .param("search", search))
@@ -318,7 +318,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "프로젝트 참가자가 삭제되었습니다."));
 
                 // When & Then
-                mockMvc.perform(delete("/api/projects/{orgId}/{projectId}/participants/{memberId}", ORG_ID, PROJECT_ID,
+                mockMvc.perform(delete("/api/organizations/{orgId}/projects/{projectId}/participants/{memberId}", ORG_ID, PROJECT_ID,
                                 MEMBER_ID))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("OK"))
@@ -344,7 +344,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(pageResponse, "마일스톤 목록을 조회했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/{projectId}/milestones", PROJECT_ID)
+                mockMvc.perform(get("/api/organizations/{orgId}/projects/{projectId}/milestones", ORG_ID, PROJECT_ID)
                                 .param("myMilestonesOnly", String.valueOf(myMilestonesOnly))
                                 .param("currentPage", String.valueOf(currentPage))
                                 .param("size", String.valueOf(size)))
@@ -374,7 +374,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(pageResponse, "이슈 목록을 조회했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/{projectId}/issues", PROJECT_ID)
+                mockMvc.perform(get("/api/organizations/{orgId}/projects/{projectId}/issues", ORG_ID, PROJECT_ID)
                                 .param("milestoneId", String.valueOf(milestoneId))
                                 .param("myIssuesOnly", String.valueOf(myIssuesOnly))
                                 .param("currentPage", String.valueOf(currentPage))
@@ -417,7 +417,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(issueDetail, "이슈 상세 정보를 조회했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/issues/{issueId}", ISSUE_ID))
+                mockMvc.perform(get("/api/organizations/{orgId}/projects/{projectId}/issues/{issueId}", ORG_ID, PROJECT_ID, ISSUE_ID))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("OK"))
                                 .andExpect(jsonPath("$.message").value("이슈 상세 정보를 조회했습니다."));
@@ -500,7 +500,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "이슈가 삭제되었습니다."));
 
                 // When & Then
-                mockMvc.perform(delete("/api/projects/issues/{issueId}", ISSUE_ID))
+                mockMvc.perform(delete("/api/organizations/{orgId}/projects/{projectId}/issues/{issueId}", ORG_ID, PROJECT_ID, ISSUE_ID))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("OK"))
                                 .andExpect(jsonPath("$.message").value("이슈가 삭제되었습니다."));
@@ -519,7 +519,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(issueTags, "이슈 태그 목록을 조회했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/{projectId}/issues/tags", PROJECT_ID))
+                mockMvc.perform(get("/api/organizations/{orgId}/projects/{projectId}/issues/tags", ORG_ID, PROJECT_ID))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("OK"))
                                 .andExpect(jsonPath("$.message").value("이슈 태그 목록을 조회했습니다."));
@@ -572,7 +572,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "이슈 태그가 삭제되었습니다."));
 
                 // When & Then
-                mockMvc.perform(delete("/api/projects/{projectId}/issues/tags/{issueTagId}", PROJECT_ID, ISSUE_TAG_ID))
+                mockMvc.perform(delete("/api/organizations/{orgId}/projects/{projectId}/issues/tags/{issueTagId}", ORG_ID, PROJECT_ID, ISSUE_TAG_ID))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("OK"))
                                 .andExpect(jsonPath("$.message").value("이슈 태그가 삭제되었습니다."));
