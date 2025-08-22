@@ -17,7 +17,11 @@ interface IssueDetailPageProps {
 
 export const IssueDetailPage = ({ orgId, projectId, issueId }: IssueDetailPageProps) => {
   const router = useRouter();
-  const { data: issueData, isLoading } = useProjectIssueDetailQuery(Number(orgId), Number(issueId));
+  const { data: issueData, isLoading } = useProjectIssueDetailQuery(
+    Number(orgId),
+    Number(projectId),
+    Number(issueId),
+  );
 
   const issue = issueData as IssueDetail | undefined;
 

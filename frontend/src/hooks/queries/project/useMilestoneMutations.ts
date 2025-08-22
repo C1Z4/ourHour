@@ -56,7 +56,7 @@ export const useMilestoneDeleteMutation = (
   projectId: number,
 ) =>
   useMutation({
-    mutationFn: () => deleteMilestone({ orgId, milestoneId }),
+    mutationFn: () => deleteMilestone({ orgId, projectId, milestoneId }),
 
     onSuccess: () => {
       showSuccessToast('마일스톤 삭제에 성공하였습니다.');

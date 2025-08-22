@@ -97,9 +97,10 @@ export const putUpdateMilestone = async (
   }
 };
 
-// ======== 프로젝트 마일스톤 삭제제 ========
+// ======== 프로젝트 마일스톤 삭제 ========
 export interface DeleteMilestoneRequest {
   orgId: number;
+  projectId: number;
   milestoneId: number | null;
 }
 
@@ -108,7 +109,7 @@ export const deleteMilestone = async (
 ): Promise<ApiResponse<void>> => {
   try {
     const response = await axiosInstance.delete(
-      `/api/organizations/${request.orgId}/projects/milestones/${request.milestoneId}`,
+      `/api/organizations/${request.orgId}/projects/${request.projectId}/milestones/${request.milestoneId}`,
     );
     return response.data;
   } catch (error: unknown) {

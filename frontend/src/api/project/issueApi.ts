@@ -62,6 +62,7 @@ export const getProjectIssueList = async (
 // ======== 프로젝트 이슈 상세 조회 ========
 interface GetIssueDetailRequest {
   orgId: number;
+  projectId: number;
   issueId: number;
 }
 
@@ -75,7 +76,7 @@ export const getProjectIssueDetail = async (
 ): Promise<ApiResponse<IssueDetail>> => {
   try {
     const response = await axiosInstance.get(
-      `/api/organizations/${request.orgId}/projects/issues/${request.issueId}`,
+      `/api/organizations/${request.orgId}/projects/${request.projectId}/issues/${request.issueId}`,
     );
     return response.data;
   } catch (error: unknown) {
@@ -170,13 +171,14 @@ export const putUpdateIssueStatus = async (
 // ======== 프로젝트 이슈 삭제 ========
 export interface DeleteIssueRequest {
   orgId: number;
+  projectId: number;
   issueId: number;
 }
 
 export const deleteIssue = async (request: DeleteIssueRequest): Promise<ApiResponse<void>> => {
   try {
     const response = await axiosInstance.delete(
-      `/api/organizations/${request.orgId}/projects/issues/${request.issueId}`,
+      `/api/organizations/${request.orgId}/projects/${request.projectId}/issues/${request.issueId}`,
     );
     return response.data;
   } catch (error: unknown) {

@@ -32,10 +32,10 @@ export const useProjectIssueListQuery = (
   });
 
 // ======== 프로젝트 이슈 상세 조회 ========
-export const useProjectIssueDetailQuery = (orgId: number, issueId: number) =>
+export const useProjectIssueDetailQuery = (orgId: number, projectId: number, issueId: number) =>
   useQuery({
     queryKey: [PROJECT_QUERY_KEYS.ISSUE_DETAIL, orgId, issueId],
-    queryFn: () => getProjectIssueDetail({ orgId, issueId }),
+    queryFn: () => getProjectIssueDetail({ orgId, projectId, issueId }),
     enabled: !!orgId && !!issueId,
   });
 

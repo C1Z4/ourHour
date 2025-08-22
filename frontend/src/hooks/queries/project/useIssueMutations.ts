@@ -84,7 +84,7 @@ export const useIssueStatusUpdateMutation = (orgId: number, projectId: number) =
 // ======== 이슈 삭제 ========
 export const useIssueDeleteMutation = (issueId: number, orgId: number, projectId: number) =>
   useMutation({
-    mutationFn: () => deleteIssue({ orgId, issueId }),
+    mutationFn: () => deleteIssue({ orgId, projectId, issueId }),
 
     onSuccess: () => {
       showSuccessToast('이슈 삭제에 성공하였습니다.');
