@@ -180,9 +180,6 @@ class MilestoneServiceTest {
         Long memberId = 1L;
 
         given(milestoneRepository.findById(milestoneId)).willReturn(Optional.of(milestone));
-        given(milestone.getProjectEntity()).willReturn(project);
-        given(project.getOrgEntity()).willReturn(org);
-        given(org.getOrgId()).willReturn(orgId);
 
         try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
             mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))
@@ -191,7 +188,7 @@ class MilestoneServiceTest {
                     .thenReturn(Role.ADMIN);
 
             // when
-            ApiResponse<Void> result = milestoneService.deleteMilestone(milestoneId);
+            ApiResponse<Void> result = milestoneService.deleteMilestone(orgId, milestoneId);
 
             // then
             assertThat(result).isNotNull();
@@ -208,7 +205,7 @@ class MilestoneServiceTest {
         Long invalidMilestoneId = 0L;
 
         // when & then
-        assertThatThrownBy(() -> milestoneService.deleteMilestone(invalidMilestoneId))
+        assertThatThrownBy(() -> milestoneService.deleteMilestone(1L, invalidMilestoneId))
                 .isInstanceOf(MilestoneException.class);
     }
 
@@ -221,7 +218,7 @@ class MilestoneServiceTest {
         given(milestoneRepository.findById(milestoneId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> milestoneService.deleteMilestone(milestoneId))
+        assertThatThrownBy(() -> milestoneService.deleteMilestone(1L, milestoneId))
                 .isInstanceOf(MilestoneException.class);
     }
 
@@ -233,16 +230,13 @@ class MilestoneServiceTest {
         Long orgId = 1L;
 
         given(milestoneRepository.findById(milestoneId)).willReturn(Optional.of(milestone));
-        given(milestone.getProjectEntity()).willReturn(project);
-        given(project.getOrgEntity()).willReturn(org);
-        given(org.getOrgId()).willReturn(orgId);
 
         try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
             mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))
                     .thenReturn(null);
 
             // when & then
-            assertThatThrownBy(() -> milestoneService.deleteMilestone(milestoneId))
+            assertThatThrownBy(() -> milestoneService.deleteMilestone(1L, milestoneId))
                     .isInstanceOf(MemberException.class);
         }
     }
@@ -256,9 +250,6 @@ class MilestoneServiceTest {
         Long memberId = 1L;
 
         given(milestoneRepository.findById(milestoneId)).willReturn(Optional.of(milestone));
-        given(milestone.getProjectEntity()).willReturn(project);
-        given(project.getOrgEntity()).willReturn(org);
-        given(org.getOrgId()).willReturn(orgId);
 
         try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
             mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))
@@ -267,7 +258,7 @@ class MilestoneServiceTest {
                     .thenReturn(Role.MEMBER);
 
             // when & then
-            assertThatThrownBy(() -> milestoneService.deleteMilestone(milestoneId))
+            assertThatThrownBy(() -> milestoneService.deleteMilestone(1L, milestoneId))
                     .isInstanceOf(ProjectException.class);
         }
     }

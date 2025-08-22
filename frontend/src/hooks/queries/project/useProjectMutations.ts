@@ -45,11 +45,11 @@ export const useProjectUpdateMutation = (projectId: number, orgId: number) =>
     onSuccess: () => {
       showSuccessToast('프로젝트 수정에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.PROJECT_INFO, projectId],
+        queryKey: [PROJECT_QUERY_KEYS.PROJECT_INFO, orgId, projectId],
         exact: false,
       });
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, projectId, orgId],
+        queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, orgId, projectId],
         exact: false,
       });
       queryClient.invalidateQueries({
@@ -93,7 +93,7 @@ export const useProjectParticipantDeleteMutation = (projectId: number, orgId: nu
     onSuccess: () => {
       showSuccessToast('프로젝트 참여자 삭제에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, projectId, orgId],
+        queryKey: [PROJECT_QUERY_KEYS.PARTICIPANT_LIST, orgId, projectId],
         exact: false,
       });
     },

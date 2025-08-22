@@ -44,18 +44,20 @@ export const MilestoneColumn = ({ milestone, orgId, projectId }: MilestoneColumn
   const [isDeleteMilestoneModalOpen, setIsDeleteMilestoneModalOpen] = useState(false);
   const [milestoneName, setMilestoneName] = useState(milestone.name);
 
-  const { mutate: updateMilestone } = useMilestoneUpdateMutation(Number(projectId));
+  const { mutate: updateMilestone } = useMilestoneUpdateMutation(Number(orgId), Number(projectId));
 
   const { mutate: deleteMilestone } = useMilestoneDeleteMutation(
+    Number(orgId),
     milestone.milestoneId || null,
     Number(projectId),
   );
 
   const handleEditMilestone = () => {
     updateMilestone({
-      name: milestoneName,
+      orgId: Number(orgId),
       milestoneId: milestone.milestoneId || null,
       projectId: Number(projectId),
+      name: milestoneName,
     });
     setIsEditMilestoneModalOpen(false);
     setMilestoneName(milestoneName);

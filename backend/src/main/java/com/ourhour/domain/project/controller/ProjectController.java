@@ -46,7 +46,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping("/api/organizations/{orgId}/projects")
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "프로젝트", description = "프로젝트/마일스톤/이슈 관리 API")
@@ -59,7 +59,7 @@ public class ProjectController {
 
         // 프로젝트 등록
         @OrgAuth(accessLevel = Role.ADMIN)
-        @PostMapping("/{orgId}")
+        @PostMapping("")
         @Operation(summary = "프로젝트 등록", description = "조직 내 프로젝트를 생성합니다.")
         public ResponseEntity<ApiResponse<Void>> createProject(
                         @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
@@ -70,7 +70,7 @@ public class ProjectController {
 
         // 프로젝트 수정(정보, 참가자)
         @OrgAuth(accessLevel = Role.ADMIN)
-        @PutMapping("/{orgId}/{projectId}")
+        @PutMapping("/{projectId}")
         @Operation(summary = "프로젝트 수정", description = "프로젝트 정보와 참가자를 수정합니다.")
         public ResponseEntity<ApiResponse<Void>> updateProject(
                         @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
@@ -82,7 +82,7 @@ public class ProjectController {
 
         // 프로젝트 참가자 삭제
         @OrgAuth(accessLevel = Role.ADMIN)
-        @DeleteMapping("/{orgId}/{projectId}/participants/{memberId}")
+        @DeleteMapping("/{projectId}/participants/{memberId}")
         @Operation(summary = "프로젝트 참가자 삭제", description = "프로젝트 참가자를 삭제합니다.")
         public ResponseEntity<ApiResponse<Void>> deleteProjectParticipant(
                         @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
@@ -95,7 +95,7 @@ public class ProjectController {
 
         // 프로젝트 삭제
         @OrgAuth(accessLevel = Role.ADMIN)
-        @DeleteMapping("/{orgId}/{projectId}")
+        @DeleteMapping("/{projectId}")
         @Operation(summary = "프로젝트 삭제", description = "프로젝트를 삭제합니다.")
         public ResponseEntity<ApiResponse<Void>> deleteProject(
                         @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
@@ -105,10 +105,11 @@ public class ProjectController {
         }
 
         // 프로젝트 요약 목록 조회
-        @GetMapping("/{orgId}")
+        @OrgAuth(accessLevel = Role.MEMBER)
+        @GetMapping("")
         @Operation(summary = "프로젝트 요약 목록 조회", description = "조직 내 프로젝트 요약 목록을 페이지네이션으로 조회합니다.")
         public ResponseEntity<ApiResponse<PageResponse<ProjectSummaryResDTO>>> getProjectsSummary(
-                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
                         @RequestParam(defaultValue = "3") @Min(value = 1, message = "참여자 제한은 1 이상이어야 합니다.") @Max(value = 10, message = "참여자 제한은 10 이하여야 합니다.") int participantLimit,
                         @RequestParam(defaultValue = "false") boolean myProjectsOnly,
                         @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
@@ -123,11 +124,12 @@ public class ProjectController {
         }
 
         // 프로젝트 참여자 목록 조회
-        @GetMapping("/{projectId}/{orgId}/participants")
+        @OrgAuth(accessLevel = Role.MEMBER)
+        @GetMapping("/{projectId}/participants")
         @Operation(summary = "프로젝트 참가자 목록 조회", description = "프로젝트 참가자 목록을 페이지네이션으로 조회합니다.")
         public ResponseEntity<ApiResponse<PageResponse<ProjectParticipantDTO>>> getProjectParticipants(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
-                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
                         @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다 .") int currentPage,
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = " 페이지 크기는 100이하여야 합니다.") int size,
                         @RequestParam(required = false) String search) {
@@ -141,37 +143,43 @@ public class ProjectController {
         }
 
         // 프로젝트 정보 조회
+        @OrgAuth(accessLevel = Role.MEMBER)
         @GetMapping("/{projectId}/info")
         @Operation(summary = "프로젝트 정보 조회", description = "특정 프로젝트의 상세 정보를 조회합니다.")
         public ResponseEntity<ApiResponse<ProjectInfoDTO>> getProjectInfo(
-                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId) {
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId) {
                 ApiResponse<ProjectInfoDTO> response = projectService.getProjectInfo(projectId);
 
                 return ResponseEntity.ok(response);
         }
 
         // 특정 프로젝트의 마일스톤 목록 조회
+        @OrgAuth(accessLevel = Role.MEMBER)
         @GetMapping("/{projectId}/milestones")
         @Operation(summary = "마일스톤 목록 조회", description = "프로젝트의 마일스톤 목록을 페이지네이션으로 조회합니다.")
         public ResponseEntity<ApiResponse<PageResponse<MileStoneInfoDTO>>> getProjectMilestones(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
                         @RequestParam(defaultValue = "false") boolean myMilestonesOnly,
                         @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
                 Pageable pageable = PageRequest.of(currentPage - 1, size, Sort.by(Sort.Direction.ASC, "milestoneId"));
 
-                ApiResponse<PageResponse<MileStoneInfoDTO>> response = projectService.getProjectMilestones(projectId,
-                                myMilestonesOnly, pageable);
+                ApiResponse<PageResponse<MileStoneInfoDTO>> response = projectService.getProjectMilestones(orgId,
+                                projectId, myMilestonesOnly, pageable);
 
                 return ResponseEntity.ok(response);
         }
 
         // 특정 마일스톤의 이슈 목록 조회 (milestoneId가 없으면 프로젝트의 모든 이슈 조회)
+        @OrgAuth(accessLevel = Role.MEMBER)
         @GetMapping("/{projectId}/issues")
         @Operation(summary = "이슈 목록 조회", description = "프로젝트의 이슈 목록을 필터/페이지네이션으로 조회합니다.")
         public ResponseEntity<ApiResponse<PageResponse<IssueSummaryDTO>>> getMilestoneIssues(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
                         @RequestParam(required = false) Long milestoneId,
                         @RequestParam(required = false) boolean myIssuesOnly,
                         @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
@@ -189,9 +197,11 @@ public class ProjectController {
 
         // 마일스톤 등록
         @ProjectParticipantOnly
+        @OrgAuth(accessLevel = Role.MEMBER)
         @PostMapping("/{projectId}/milestones")
         @Operation(summary = "마일스톤 등록", description = "프로젝트에 마일스톤을 생성합니다.")
         public ResponseEntity<ApiResponse<Void>> createMilestone(
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @Valid @RequestBody MilestoneReqDTO milestoneReqDTO) {
 
@@ -202,9 +212,11 @@ public class ProjectController {
 
         // 마일스톤 수정(마일스톤 이름)
         @ProjectParticipantOnly
+        @OrgAuth(accessLevel = Role.MEMBER)
         @PutMapping("/{projectId}/milestones/{milestoneId}")
         @Operation(summary = "마일스톤 수정", description = "마일스톤 이름을 수정합니다.")
         public ResponseEntity<ApiResponse<Void>> updateMilestone(
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @PathVariable @Min(value = 1, message = "마일스톤 ID는 1 이상이어야 합니다.") Long milestoneId,
                         @Valid @RequestBody MilestoneReqDTO milestoneReqDTO) {
@@ -215,19 +227,25 @@ public class ProjectController {
         }
 
         // 마일스톤 삭제
-        @DeleteMapping("/milestones/{milestoneId}")
+        @OrgAuth(accessLevel = Role.MEMBER)
+        @DeleteMapping("/{projectId}/milestones/{milestoneId}")
         @Operation(summary = "마일스톤 삭제", description = "마일스톤을 삭제합니다.")
         public ResponseEntity<ApiResponse<Void>> deleteMilestone(
-                        @PathVariable Long milestoneId) {
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "마일스톤 ID는 1 이상이어야 합니다.") Long milestoneId) {
 
-                ApiResponse<Void> response = milestoneService.deleteMilestone(milestoneId);
+                ApiResponse<Void> response = milestoneService.deleteMilestone(orgId, milestoneId);
                 return ResponseEntity.ok(response);
         }
 
         // 이슈 상세 조회
-        @GetMapping("/issues/{issueId}")
+        @OrgAuth(accessLevel = Role.MEMBER)
+        @GetMapping("/{projectId}/issues/{issueId}")
         @Operation(summary = "이슈 상세 조회", description = "특정 이슈의 상세 정보를 조회합니다.")
         public ResponseEntity<ApiResponse<IssueDetailDTO>> getIssueInfo(
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId) {
 
                 ApiResponse<IssueDetailDTO> response = issueService.getIssueDetail(issueId);
@@ -237,9 +255,11 @@ public class ProjectController {
 
         // 이슈 등록
         @ProjectParticipantOnly
+        @OrgAuth(accessLevel = Role.MEMBER)
         @PostMapping("/{projectId}/issues")
         @Operation(summary = "이슈 등록", description = "프로젝트에 이슈를 생성합니다.")
         public ResponseEntity<ApiResponse<IssueDetailDTO>> createIssue(
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @Valid @RequestBody IssueReqDTO issueReqDTO) {
 
@@ -250,23 +270,28 @@ public class ProjectController {
 
         // 이슈 수정
         @ProjectParticipantOnly
+        @OrgAuth(accessLevel = Role.MEMBER)
         @PutMapping("/{projectId}/issues/{issueId}")
         @Operation(summary = "이슈 수정", description = "이슈의 내용을 수정합니다.")
         public ResponseEntity<ApiResponse<IssueDetailDTO>> updateIssue(
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId,
                         @Valid @RequestBody IssueReqDTO issueReqDTO) {
 
-                ApiResponse<IssueDetailDTO> response = issueService.updateIssue(issueId, issueReqDTO);
+                ApiResponse<IssueDetailDTO> response = issueService.updateIssue(orgId, issueId,
+                                issueReqDTO);
 
                 return ResponseEntity.ok(response);
         }
 
         // 이슈 상태 수정
         @ProjectParticipantOnly
+        @OrgAuth(accessLevel = Role.MEMBER)
         @PutMapping("/{projectId}/issues/{issueId}/status")
         @Operation(summary = "이슈 상태 수정", description = "이슈의 상태를 수정합니다.")
         public ResponseEntity<ApiResponse<IssueDetailDTO>> updateIssueStatus(
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId,
                         @Valid @RequestBody IssueStatusReqDTO issueStatusReqDTO) {
@@ -277,21 +302,26 @@ public class ProjectController {
         }
 
         // 이슈 삭제
-        @DeleteMapping("/issues/{issueId}")
+        @OrgAuth(accessLevel = Role.MEMBER)
+        @DeleteMapping("/{projectId}/issues/{issueId}")
         @Operation(summary = "이슈 삭제", description = "이슈를 삭제합니다.")
         public ResponseEntity<ApiResponse<Void>> deleteIssue(
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId) {
 
-                ApiResponse<Void> response = issueService.deleteIssue(issueId);
+                ApiResponse<Void> response = issueService.deleteIssue(orgId, issueId);
 
                 return ResponseEntity.ok(response);
         }
 
         // 이슈 태그 목록 조회
+        @OrgAuth(accessLevel = Role.MEMBER)
         @GetMapping("/{projectId}/issues/tags")
         @Operation(summary = "이슈 태그 목록 조회", description = "프로젝트의 이슈 태그 목록을 조회합니다.")
         public ResponseEntity<ApiResponse<List<IssueTagDTO>>> getIssueTags(
-                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId) {
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId) {
 
                 ApiResponse<List<IssueTagDTO>> response = issueService.getIssueTags(projectId);
 
@@ -299,10 +329,12 @@ public class ProjectController {
         }
 
         // 이슈 태그 등록
+        @OrgAuth(accessLevel = Role.MEMBER)
         @PostMapping("/{projectId}/issues/tags")
         @Operation(summary = "이슈 태그 등록", description = "특정 이슈에 태그를 등록합니다.")
         public ResponseEntity<ApiResponse<Void>> createIssueTag(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
                         @Valid @RequestBody IssueTagDTO issueTagReqDTO) {
 
                 ApiResponse<Void> response = issueService.createIssueTag(projectId, issueTagReqDTO);
@@ -311,6 +343,7 @@ public class ProjectController {
         }
 
         // 이슈 태그 수정
+        @OrgAuth(accessLevel = Role.MEMBER)
         @PutMapping("/{projectId}/issues/tags/{issueTagId}")
         @Operation(summary = "이슈 태그 수정", description = "특정 이슈의 태그를 수정합니다.")
         public ResponseEntity<ApiResponse<Void>> updateIssueTag(
@@ -324,10 +357,12 @@ public class ProjectController {
         }
 
         // 이슈 태그 삭제
+        @OrgAuth(accessLevel = Role.MEMBER)
         @DeleteMapping("/{projectId}/issues/tags/{issueTagId}")
         @Operation(summary = "이슈 태그 삭제", description = "특정 이슈의 태그를 삭제합니다.")
         public ResponseEntity<ApiResponse<Void>> deleteIssueTag(
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
                         @PathVariable @Min(value = 1, message = "이슈 태그 ID는 1 이상이어야 합니다.") Long issueTagId) {
 
                 ApiResponse<Void> response = issueService.deleteIssueTag(projectId, issueTagId);
