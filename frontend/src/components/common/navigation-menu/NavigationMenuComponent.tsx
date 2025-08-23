@@ -123,7 +123,7 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
                       <GitFork className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent className="bg-[#467599] text-white">
                     <p>조직도</p>
                   </TooltipContent>
                 </Tooltip>
@@ -133,7 +133,7 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
                       <Bell className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent className="bg-[#467599] text-white">
                     <p>알림</p>
                   </TooltipContent>
                 </Tooltip>
