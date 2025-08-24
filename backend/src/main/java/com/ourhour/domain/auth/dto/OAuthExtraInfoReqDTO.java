@@ -1,7 +1,7 @@
 package com.ourhour.domain.auth.dto;
 
+import com.ourhour.domain.user.enums.Platform;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,10 +9,13 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmailVerificationReqDTO {
+public class OAuthExtraInfoReqDTO {
 
-    @NotBlank(message = "이메일은 필수입니다.")
+    private String oauthId;
+    private Platform platform;
     @Email
     private String email;
+    private String password;
+
 
 }

@@ -1,10 +1,14 @@
 package com.ourhour.domain.auth.service;
 
+import com.ourhour.domain.auth.dto.OAuthExtraInfoReqDTO;
 import com.ourhour.domain.auth.dto.OAuthSigninReqDTO;
+import com.ourhour.domain.auth.dto.OAuthSigninResDTO;
 import com.ourhour.domain.auth.dto.SigninResDTO;
+import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.auth.util.AuthServiceHelper;
 import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.domain.user.enums.Platform;
+import com.ourhour.domain.user.mapper.UserMapper;
 import com.ourhour.domain.user.repository.UserRepository;
 import com.ourhour.global.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +33,7 @@ import java.util.UUID;
 public class OAuthService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final JwtTokenProvider jwtTokenProvider;
     private final RestTemplate restTemplate;
     private final AuthServiceHelper authServiceHelper;
@@ -51,15 +56,12 @@ public class OAuthService {
 
     // 소셜 로그인 처리
     @Transactional
-    public SigninResDTO signinWithOAuth(OAuthSigninReqDTO oAuthSigninReqDTO) {
+    public OAuthSigninResDTO signinWithOAuth(OAuthSigninReqDTO oAuthSigninReqDTO) {
         String code = oAuthSigninReqDTO.getCode();
         Platform platform = oAuthSigninReqDTO.getPlatform();
-        System.out.println("code" + code);
-        System.out.println("platform" + platform);
 
         // 코드 -> 액세스 토큰 교환
         String accessToken = getSocialAccessToken(code, platform);
-        System.out.println("accessToken" + accessToken);
 
         // 액세스 토큰 사용자 정보 조회
         Map<String, Object> userInfo = getSocialUserInfo(platform, accessToken);
@@ -71,8 +73,7 @@ public class OAuthService {
             oauthId = String.valueOf(userInfo.get("id"));
             email = (String) userInfo.get("email");
             if (email == null) {
-                // email 비공개 계정 → 임시 더미 email 사용
-                email = oauthId + "@github.com";
+                throw AuthException.emailRequiredException();
             }
         } else if (platform == Platform.GOOGLE) {
             oauthId = (String) userInfo.get("id");
@@ -93,18 +94,52 @@ public class OAuthService {
                                 .build()
                 ));
 
+        // UserEntity -> OAuthSigninResDTO 매핑
+        OAuthSigninResDTO oAuthSigninResDTO = userMapper.toOAuthSigninResDTO(userEntity);
+
+        return oAuthSigninResDTO;
+
+    }
+
+    // 소셜 로그인 시 추가 정보 API
+    @Transactional
+    public SigninResDTO processExtraInfo(OAuthExtraInfoReqDTO oAuthExtraInfoReqDTO) {
+
+        // github 비공개 이메일 -> email 필수 입력 예외
+        if (oAuthExtraInfoReqDTO.getPlatform() == Platform.GITHUB && (oAuthExtraInfoReqDTO.getEmail() == null || oAuthExtraInfoReqDTO.getEmail().isBlank())) {
+            throw AuthException.emailRequiredException();
+        }
+
+        // 비밀번호 미입력 예외
+        if (oAuthExtraInfoReqDTO.getPassword() == null || oAuthExtraInfoReqDTO.getPassword().isBlank()) {
+            throw AuthException.pwdRequiredException();
+        }
+
+        // 유저 생성
+        UserEntity userEntity = userRepository.findByPlatformAndOauthId(oAuthExtraInfoReqDTO.getPlatform(), oAuthExtraInfoReqDTO.getOauthId())
+                .orElseGet(() -> {
+                            UserEntity newUser = UserEntity.builder()
+                                    .email(oAuthExtraInfoReqDTO.getEmail())
+                                    .password(passwordEncoder.encode(oAuthExtraInfoReqDTO.getPassword()))
+                                    .platform(oAuthExtraInfoReqDTO.getPlatform())
+                                    .oauthId(oAuthExtraInfoReqDTO.getOauthId())
+                                    .build();
+
+                            return userRepository.save(newUser);
+                        }
+                );
+
         // JWT 토큰 발급
         String jwtAccessToken = jwtTokenProvider.generateAccessToken(authServiceHelper.createClaims(userEntity));
         String jwtRefreshToken = jwtTokenProvider.generateRefreshToken(authServiceHelper.createClaims(userEntity));
-
-        System.out.println("jwtAccessToken" + jwtAccessToken);
-        System.out.println("jwtRefreshToken" + jwtRefreshToken);
 
         // refresh token DB 저장
         authServiceHelper.saveRefreshToken(userEntity, jwtRefreshToken);
 
         return new SigninResDTO(jwtAccessToken, jwtRefreshToken);
+
     }
+
 
     // code -> 소셜 access token 교환
     private String getSocialAccessToken(String code, Platform platform) {

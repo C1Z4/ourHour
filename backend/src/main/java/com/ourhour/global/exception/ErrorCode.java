@@ -24,19 +24,21 @@ public enum ErrorCode {
     EMAIL_ALREADY_ACCEPTED("이미 참여가 완료된 이메일 링크입니다", 1009, HttpStatus.BAD_REQUEST),
     EMAIL_NOT_MATCH("로그인된 계정의 이메일과 초대받은 이메일이 일치하지 않습니다", 1010, HttpStatus.BAD_REQUEST),
     INVALID_EMAIL_FORMAT("올바르지 않은 이메일 형식입니다.", 1011, HttpStatus.BAD_REQUEST),
+    EMAIL_REQUIRED_FOR_GITHUB("깃허브 이메일이 비공개입니다. 이메일을 필수로 입력해주세요.", 1012, HttpStatus.BAD_REQUEST),
 
     // 비밀번호 관련
-    PASSWORD_NOT_MATCH("비밀번호가 일치하지 않습니다", 1011, HttpStatus.BAD_REQUEST),
-    SAME_AS_PREVIOUS_PASSWORD("이전 비밀번호와 동일합니다", 1012, HttpStatus.BAD_REQUEST),
-    NEW_PASSWORD_NOT_MATCH("새 비밀번호가 일치하지 않습니다", 1013, HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_MATCH("비밀번호가 일치하지 않습니다", 1020, HttpStatus.BAD_REQUEST),
+    SAME_AS_PREVIOUS_PASSWORD("이전 비밀번호와 동일합니다", 1021, HttpStatus.BAD_REQUEST),
+    NEW_PASSWORD_NOT_MATCH("새 비밀번호가 일치하지 않습니다", 1022, HttpStatus.BAD_REQUEST),
+    PWD_REQUIRED_FOR_GITHUB("소셜 로그인을 위한 회사 관리 비밀번호는 필수입니다.", 1023, HttpStatus.BAD_REQUEST),
 
     // 토큰 관련
-    INVALID_TOKEN("토큰이 유효하지 않습니다", 1014, HttpStatus.UNAUTHORIZED),
-    TOKEN_NOT_FOUND("토큰이 존재하지 않습니다", 1015, HttpStatus.NOT_FOUND),
+    INVALID_TOKEN("토큰이 유효하지 않습니다", 1030, HttpStatus.UNAUTHORIZED),
+    TOKEN_NOT_FOUND("토큰이 존재하지 않습니다", 1031, HttpStatus.NOT_FOUND),
 
     // 계정 상태 관련
-    DEACTIVATED_ACCOUNT("탈퇴처리된 계정입니다", 1016, HttpStatus.BAD_REQUEST),
-    ROOT_ADMIN_ROLE_CONFLICT("탈퇴하려면 다른 루트 관리자를 지정하거나 권한을 변경해야 합니다", 1017, HttpStatus.BAD_REQUEST),
+    DEACTIVATED_ACCOUNT("탈퇴처리된 계정입니다", 1040, HttpStatus.BAD_REQUEST),
+    ROOT_ADMIN_ROLE_CONFLICT("탈퇴하려면 다른 루트 관리자를 지정하거나 권한을 변경해야 합니다", 1041, HttpStatus.BAD_REQUEST),
 
     // ========== 구성원 관련 (2000~2999) ==========
     MEMBER_NOT_FOUND("구성원을 찾을 수 없습니다", 2000, HttpStatus.NOT_FOUND),

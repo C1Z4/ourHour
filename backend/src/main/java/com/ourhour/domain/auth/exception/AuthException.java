@@ -77,6 +77,15 @@ public class AuthException extends BusinessException {
         return new AuthException(ErrorCode.EMAIL_NOT_MATCH, message);
     }
 
+    public static AuthException emailRequiredException() {
+        return new AuthException(ErrorCode.EMAIL_REQUIRED_FOR_GITHUB);
+    }
+
+    public static AuthException pwdRequiredException() {
+        return new AuthException(ErrorCode.PWD_REQUIRED_FOR_GITHUB);
+    }
+
+
     public static AuthException deleteUserException(String message) {
         return new AuthException(ErrorCode.LAST_ROOT_ADMIN_CANNOT_LEAVE, message);
     }
