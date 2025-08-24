@@ -1,29 +1,46 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { getCheckEmail } from '@/api/auth/emailApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { Input } from '@/components/ui/input';
-import { setPendingSignup } from '@/utils/auth/pendingSignupStorage';
+import {
+  clearPendingSignup,
+  getPendingSignup,
+  setPendingSignup,
+} from '@/utils/auth/pendingSignupStorage.ts';
 import { validateEmail, validatePassword } from '@/utils/validation/authValidation';
+
+import { EmailVerificationButton } from './EmailVerificationRequestButton';
 
 interface SignupFormProps {
   onSubmit: (email: string, password: string) => void;
   isLoading: boolean;
 }
 
-const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
+export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
-
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [passwordConfirmError, setPasswordConfirmError] = useState('');
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+
+  // 컴포넌트 마운트 시 로컬 스토리지에서 데이터 복원
+  useEffect(() => {
+    const saved = getPendingSignup();
+    if (saved) {
+      setEmail(saved.email);
+      setIsEmailVerified(saved.isVerified);
+    }
+  }, []);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
+    // 이메일 변경 시 인증 초기화
+    setIsEmailVerified(false);
+    setPendingSignup({ email: value, isVerified: false });
 
     if (emailError) {
       const validation = validateEmail(value);
@@ -39,43 +56,6 @@ const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
       const validation = validatePassword(value);
       setPasswordError(validation.error);
     }
-  };
-
-  // 이메일 인증 버튼 클릭 시
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const emailValidation = validateEmail(email);
-    const passwordValidation = validatePassword(password);
-
-    setEmailError(emailValidation.error);
-    setPasswordError(passwordValidation.error);
-
-    // 비밀번호 확인 검증 추가
-    if (passwordConfirm !== password) {
-      setPasswordConfirmError('비밀번호가 일치하지 않습니다.');
-      return;
-    }
-
-    if (!emailValidation.isValid || !passwordValidation.isValid || passwordConfirm !== password) {
-      return;
-    }
-
-    // 이메일 중복 확인
-    try {
-      const isAvailable = await getCheckEmail({ email });
-
-      if (!isAvailable.data) {
-        setEmailError('이미 사용중인 이메일입니다.');
-        return;
-      }
-    } catch (error) {
-      setEmailError('이메일 확인 중 오류가 발생했습니다.');
-    }
-
-    setPendingSignup({ email, password }); // 아이디, 비밀번호 임시저장
-
-    onSubmit(email, password);
   };
 
   const handlePasswordConfirmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,6 +83,35 @@ const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!isEmailVerified) {
+      setEmailError('이메일 인증이 필요합니다.');
+      return;
+    }
+
+    const emailValidation = validateEmail(email);
+    const passwordValidation = validatePassword(password);
+
+    setEmailError(emailValidation.error);
+    setPasswordError(passwordValidation.error);
+
+    if (passwordConfirm !== password) {
+      setPasswordConfirmError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    if (!emailValidation.isValid || !passwordValidation.isValid || passwordConfirm !== password) {
+      return;
+    }
+
+    onSubmit(email, password);
+
+    // 회원가입 완료 후 세션 데이터 삭제
+    clearPendingSignup();
+  };
+
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
       <div className="space-y-2">
@@ -117,10 +126,19 @@ const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
           value={email}
           onChange={handleEmailChange}
           onKeyPress={handleKeyPress}
-          disabled={isLoading}
+          disabled={isEmailVerified || isLoading}
           className={emailError ? 'border-red-500' : ''}
         />
-        {emailError && <p className="text-sm text-red-600">{emailError}</p>}
+        {emailError && <p className="text-sm text-red-600 mt-1">{emailError}</p>}
+
+        {/* 이메일 인증 버튼 */}
+        <div className="flex justify-end">
+          <EmailVerificationButton
+            email={email}
+            disabled={!email || !!emailError || isEmailVerified}
+            isVerified={isEmailVerified}
+          />
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -167,10 +185,8 @@ const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
         disabled={isLoading || !!passwordConfirmError || !!passwordError || !!emailError}
         className="w-full"
       >
-        {isLoading ? <LoadingSpinner size="sm" /> : ' 이메일 인증'}
+        {isLoading ? <LoadingSpinner size="sm" /> : '회원 가입'}
       </ButtonComponent>
     </form>
   );
 };
-
-export default SignupForm;

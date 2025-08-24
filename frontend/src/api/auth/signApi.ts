@@ -46,16 +46,42 @@ export interface SocialSigninRequest {
   platform: SocialPlatform;
 }
 
+interface OauthSigninResponse {
+  oauthId: string;
+  platform: SocialPlatform;
+}
+
+export const postOauthSignin = async (
+  request: SocialSigninRequest,
+): Promise<ApiResponse<OauthSigninResponse>> => {
+  try {
+    const response = await axiosInstance.post('/api/auth/oauth-signin', request);
+
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 소셜 로그인 추가 정보 ========
+export interface OauthExtraInfoRequest {
+  oauthId: string;
+  platform: SocialPlatform;
+  email: string;
+  password: string;
+}
+
 interface SocialSigninResponse extends SigninResponse {
   accessToken: string;
   refreshToken: string | null;
 }
 
-export const postOauthSignin = async (
-  request: SocialSigninRequest,
+export const postOauthExtraInfo = async (
+  request: OauthExtraInfoRequest,
 ): Promise<ApiResponse<SocialSigninResponse>> => {
   try {
-    const response = await axiosInstance.post('/api/auth/oauth-signin', request);
+    const response = await axiosInstance.post('/api/auth/oauth-extra-info', request);
     const accessToken = response.data.data.accessToken;
 
     if (accessToken) {

@@ -4,7 +4,10 @@ import { createFileRoute, useRouter } from '@tanstack/react-router';
 
 import { SocialPlatform } from '@/api/auth/signApi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { useSocialSigninMutation } from '@/hooks/queries/auth/useAuthMutations';
+import {
+  useOauthExtraInfoMutation,
+  useSocialSigninMutation,
+} from '@/hooks/queries/auth/useAuthMutations';
 
 export const Route = createFileRoute('/oauth')({
   component: RouteComponent,
@@ -14,6 +17,7 @@ function RouteComponent() {
   const router = useRouter();
   const search = Route.useSearch() as { code?: string; state?: SocialPlatform };
   const socialSigninMutation = useSocialSigninMutation();
+  const oauthExtraInfoMutation = useOauthExtraInfoMutation();
   const { code, state } = search;
   const [isApiCalled, setIsApiCalled] = useState(false);
 
