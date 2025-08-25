@@ -29,4 +29,8 @@ public final class AuthPath {
             "/actuator"
     };
 
+    public static final String[] NOTIFICATION_URLS = {
+            "/api/notifications/stream"
+    };
+
 }

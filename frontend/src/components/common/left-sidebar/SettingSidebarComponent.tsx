@@ -12,9 +12,9 @@ import { useMyOrgListQuery } from '@/hooks/queries/member/useMemberQueries';
 import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgMutations';
 import { useAppSelector } from '@/stores/hooks';
 
-const PlusIcon = () => <Plus className="h-4 w-4" />;
-const ContactIcon = () => <Contact className="h-4 w-4" />;
-const FileCogIcon = () => <FileCog className="h-4 w-4" />;
+const PlusIcon = () => <Plus className="w-5 h-5 mr-2" />;
+const ContactIcon = () => <Contact className="w-5 h-5 mr-2" />;
+const FileCogIcon = () => <FileCog className="w-5 h-5 mr-2" />;
 
 export function SettingSidebarComponent({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [isCreateOrgModalOpen, setIsCreateOrgModalOpen] = useState(false);

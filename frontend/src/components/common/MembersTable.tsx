@@ -169,10 +169,12 @@ export const MembersTable = ({
           <TableHeader>
             <TableRow className="bg-gray-50">
               <TableHead className="w-12">
-                <Checkbox
-                  checked={isAllSelected}
-                  onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
-                />
+                {currentUserRole === '루트관리자' && (
+                  <Checkbox
+                    checked={isAllSelected}
+                    onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
+                  />
+                )}
               </TableHead>
               <TableHead className="w-32 text-center">이름</TableHead>
               <TableHead className="w-24 text-center">부서</TableHead>
@@ -198,12 +200,14 @@ export const MembersTable = ({
             {members?.map((member) => (
               <TableRow key={member.memberId} className="hover:bg-gray-50">
                 <TableCell className="w-12">
-                  <Checkbox
-                    checked={selectedMemberIds.includes(member.memberId)}
-                    onCheckedChange={(checked) =>
-                      handleSelectMember(member.memberId, checked as boolean)
-                    }
-                  />
+                  {currentUserRole === '루트관리자' && (
+                    <Checkbox
+                      checked={selectedMemberIds.includes(member.memberId)}
+                      onCheckedChange={(checked) =>
+                        handleSelectMember(member.memberId, checked as boolean)
+                      }
+                    />
+                  )}
                 </TableCell>
                 <TableCell className="w-32">
                   <div className="flex items-center gap-3">

@@ -127,7 +127,12 @@ public enum ErrorCode {
     GITHUB_REPOSITORY_ACCESS_DENIED("깃허브 레포지토리에 접근할 수 없습니다", 9009, HttpStatus.FORBIDDEN),
     INVALID_REPOSITORY_FORMAT("깃허브 레포지토리 형식이 올바르지 않습니다", 9010, HttpStatus.BAD_REQUEST),
     GITHUB_SYNC_FAILED("깃허브 동기화에 실패했습니다", 9011, HttpStatus.INTERNAL_SERVER_ERROR),
-    GITHUB_INTEGRATION_NOT_FOUND("깃허브 연동 정보를 찾을 수 없습니다", 9012, HttpStatus.NOT_FOUND);
+    GITHUB_INTEGRATION_NOT_FOUND("깃허브 연동 정보를 찾을 수 없습니다", 9012, HttpStatus.NOT_FOUND),
+
+    // ========== 알림 관련 (10000~10999) ==========
+    NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다", 10000, HttpStatus.NOT_FOUND),
+    NOTIFICATION_ACCESS_DENIED("알림에 접근할 권한이 없습니다", 10001, HttpStatus.FORBIDDEN),
+    SSE_CONNECTION_ERROR("실시간 알림 연결에 실패했습니다", 10002, HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final String message;
     private final int statusCode;

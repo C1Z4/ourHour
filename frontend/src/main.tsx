@@ -45,7 +45,9 @@ if (!rootElement.innerHTML) {
     // <StrictMode>
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <main role="main" aria-label="OurHour 메인 애플리케이션">
+          <RouterProvider router={router} />
+        </main>
         <ToastContainer
           position="top-right"
           autoClose={3000}
@@ -57,6 +59,8 @@ if (!rootElement.innerHTML) {
           draggable
           pauseOnHover
           theme="light"
+          role="alert"
+          aria-live="polite"
         />
         {/* {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />} */}
       </QueryClientProvider>

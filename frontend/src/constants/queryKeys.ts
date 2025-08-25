@@ -40,3 +40,9 @@ export const CHAT_QUERY_KEYS = {
   CHAT_LIST: 'chatList',
   CHAT_DETAIL: 'chatDetail',
 } as const;
+
+export const NOTIFICATION_QUERY_KEYS = {
+  NOTIFICATION_LIST: 'notificationList',
+  NOTIFICATION_LIST_INFINITE: 'notificationListInfinite',
+  NOTIFICATION_UNREAD_COUNT: 'notificationUnreadCount',
+} as const;
