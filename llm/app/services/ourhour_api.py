@@ -5,7 +5,10 @@ import requests
 import logging
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
-from ..models.ourhour_models import Member, Project, Issue, Post, OurhourResponse, MemberInfo, DepartmentInfo, PositionInfo
+from ..models.ourhour_models import (
+    Member, Project, Issue, Post, OurhourResponse, MemberInfo, DepartmentInfo, PositionInfo,
+    ProjectInfo, ProjectParticipant, MilestoneInfo, IssueSummary, IssueDetail, CommentInfo
+)
 from ..utils.secret_manager import load_secret_env
 
 # 환경변수 로드
@@ -332,4 +335,298 @@ class OurHourAPIClient:
             
         except Exception as e:
             self.logger.error(f"Error getting organization summary: {str(e)}")
+            raise
+    
+    # 프로젝트 관련 API 메서드들
+    
+    def get_projects_summary(self, org_id: int, participant_limit: int = 3, my_projects_only: bool = False, 
+                           current_page: int = 1, size: int = 10) -> Dict[str, Any]:
+        """
+        조직의 프로젝트 요약 목록 조회
+        
+        Args:
+            org_id: 조직 ID
+            participant_limit: 참여자 제한 수
+            my_projects_only: 내 프로젝트만 조회할지 여부
+            current_page: 페이지 번호
+            size: 페이지 크기
+            
+        Returns:
+            프로젝트 요약 목록
+        """
+        params = {
+            'participantLimit': participant_limit,
+            'myProjectsOnly': my_projects_only,
+            'currentPage': current_page,
+            'size': size
+        }
+        return self._make_request('GET', f'/api/organizations/{org_id}/projects', params=params)
+    
+    def get_project_info(self, org_id: int, project_id: int) -> ProjectInfo:
+        """
+        특정 프로젝트의 상세 정보 조회
+        
+        Args:
+            org_id: 조직 ID
+            project_id: 프로젝트 ID
+            
+        Returns:
+            프로젝트 상세 정보
+        """
+        data = self._make_request('GET', f'/api/organizations/{org_id}/projects/{project_id}/info')
+        return ProjectInfo(**data)
+    
+    def get_project_participants(self, org_id: int, project_id: int, current_page: int = 1, 
+                               size: int = 10, search: Optional[str] = None) -> Dict[str, Any]:
+        """
+        프로젝트 참가자 목록 조회
+        
+        Args:
+            org_id: 조직 ID
+            project_id: 프로젝트 ID
+            current_page: 페이지 번호
+            size: 페이지 크기
+            search: 검색어
+            
+        Returns:
+            프로젝트 참가자 목록
+        """
+        params = {'currentPage': current_page, 'size': size}
+        if search:
+            params['search'] = search
+            
+        return self._make_request('GET', f'/api/organizations/{org_id}/projects/{project_id}/participants', params=params)
+    
+    def get_project_milestones(self, org_id: int, project_id: int, my_milestones_only: bool = False,
+                             current_page: int = 1, size: int = 10) -> Dict[str, Any]:
+        """
+        프로젝트 마일스톤 목록 조회
+        
+        Args:
+            org_id: 조직 ID
+            project_id: 프로젝트 ID
+            my_milestones_only: 내 마일스톤만 조회할지 여부
+            current_page: 페이지 번호
+            size: 페이지 크기
+            
+        Returns:
+            마일스톤 목록
+        """
+        params = {
+            'myMilestonesOnly': my_milestones_only,
+            'currentPage': current_page,
+            'size': size
+        }
+        return self._make_request('GET', f'/api/organizations/{org_id}/projects/{project_id}/milestones', params=params)
+    
+    def get_project_issues(self, org_id: int, project_id: int, milestone_id: Optional[int] = None,
+                         my_issues_only: bool = False, current_page: int = 1, size: int = 10) -> Dict[str, Any]:
+        """
+        프로젝트 이슈 목록 조회
+        
+        Args:
+            org_id: 조직 ID
+            project_id: 프로젝트 ID
+            milestone_id: 마일스톤 ID (선택사항)
+            my_issues_only: 내 이슈만 조회할지 여부
+            current_page: 페이지 번호
+            size: 페이지 크기
+            
+        Returns:
+            이슈 목록
+        """
+        params = {
+            'myIssuesOnly': my_issues_only,
+            'currentPage': current_page,
+            'size': size
+        }
+        if milestone_id:
+            params['milestoneId'] = milestone_id
+            
+        return self._make_request('GET', f'/api/organizations/{org_id}/projects/{project_id}/issues', params=params)
+    
+    def get_issue_detail(self, org_id: int, project_id: int, issue_id: int) -> IssueDetail:
+        """
+        이슈 상세 정보 조회
+        
+        Args:
+            org_id: 조직 ID
+            project_id: 프로젝트 ID
+            issue_id: 이슈 ID
+            
+        Returns:
+            이슈 상세 정보
+        """
+        data = self._make_request('GET', f'/api/organizations/{org_id}/projects/{project_id}/issues/{issue_id}')
+        return IssueDetail(**data)
+    
+    def get_issue_comments(self, org_id: int, issue_id: int, current_page: int = 1, size: int = 10) -> Dict[str, Any]:
+        """
+        이슈 댓글 목록 조회
+        
+        Args:
+            org_id: 조직 ID
+            issue_id: 이슈 ID
+            current_page: 페이지 번호
+            size: 페이지 크기
+            
+        Returns:
+            댓글 목록
+        """
+        params = {
+            'issueId': issue_id,
+            'currentPage': current_page,
+            'size': size
+        }
+        return self._make_request('GET', f'/api/org/{org_id}/comments', params=params)
+    
+    def get_issue_tags(self, org_id: int, project_id: int) -> List[Dict[str, Any]]:
+        """
+        프로젝트 이슈 태그 목록 조회
+        
+        Args:
+            org_id: 조직 ID
+            project_id: 프로젝트 ID
+            
+        Returns:
+            이슈 태그 목록
+        """
+        return self._make_request('GET', f'/api/organizations/{org_id}/projects/{project_id}/issues/tags')
+    
+    def get_project_summary_for_context(self, org_id: int) -> Dict[str, Any]:
+        """
+        프로젝트 컨텍스트 생성을 위한 종합 정보 조회
+        
+        Args:
+            org_id: 조직 ID
+            
+        Returns:
+            프로젝트 종합 정보
+        """
+        try:
+            # 모든 프로젝트 조회
+            projects_data = self.get_projects_summary(org_id, size=100)
+            projects = projects_data.get('content', [])
+            
+            project_summary = {
+                'total_projects': len(projects),
+                'projects': [],
+                'total_participants': 0,
+                'total_milestones': 0,
+                'total_issues': {'open': 0, 'closed': 0, 'total': 0},
+                'github_linked_count': 0
+            }
+            
+            for project in projects:
+                project_id = project['projectId']
+                
+                # 기본 프로젝트 정보
+                project_info = {
+                    'id': project_id,
+                    'name': project['name'],
+                    'description': project.get('description', ''),
+                    'repo_url': project.get('repoUrl', ''),
+                    'is_github_linked': project.get('isGithubLinked', False),
+                    'issue_counts': {
+                        'open': project.get('openIssueCount', 0),
+                        'closed': project.get('closeIssueCount', 0),
+                        'total': project.get('totalIssueCount', 0)
+                    },
+                    'milestone_count': project.get('milestoneCount', 0),
+                    'participant_count': project.get('participantCount', 0),
+                    'participants': [],
+                    'milestones': [],
+                    'recent_issues': [],
+                    'issue_comments_sample': []
+                }
+                
+                # 통계 업데이트
+                project_summary['total_participants'] += project_info['participant_count']
+                project_summary['total_milestones'] += project_info['milestone_count']
+                project_summary['total_issues']['open'] += project_info['issue_counts']['open']
+                project_summary['total_issues']['closed'] += project_info['issue_counts']['closed']
+                project_summary['total_issues']['total'] += project_info['issue_counts']['total']
+                
+                if project_info['is_github_linked']:
+                    project_summary['github_linked_count'] += 1
+                
+                # 참가자 정보 수집 (최대 20명)
+                try:
+                    participants_data = self.get_project_participants(org_id, project_id, size=20)
+                    participants = participants_data.get('content', [])
+                    project_info['participants'] = [
+                        {
+                            'name': p['name'],
+                            'email': p['email'],
+                            'department': p['deptName'],
+                            'position': p['positionName']
+                        } for p in participants
+                    ]
+                except Exception as e:
+                    self.logger.warning(f"Failed to get participants for project {project_id}: {str(e)}")
+                
+                # 마일스톤 정보 수집 (최대 10개)
+                try:
+                    milestones_data = self.get_project_milestones(org_id, project_id, size=10)
+                    milestones = milestones_data.get('content', [])
+                    project_info['milestones'] = [
+                        {
+                            'id': m['milestoneId'],
+                            'name': m['name'],
+                            'description': m.get('description', ''),
+                            'state': m.get('state', ''),
+                            'due_date': m.get('dueDate', ''),
+                            'issue_counts': {
+                                'open': m.get('openIssueCount', 0),
+                                'closed': m.get('closeIssueCount', 0),
+                                'total': m.get('totalIssueCount', 0)
+                            }
+                        } for m in milestones
+                    ]
+                except Exception as e:
+                    self.logger.warning(f"Failed to get milestones for project {project_id}: {str(e)}")
+                
+                # 최근 이슈 정보 수집 (최대 5개)
+                try:
+                    issues_data = self.get_project_issues(org_id, project_id, size=5)
+                    issues = issues_data.get('content', [])
+                    
+                    for issue in issues:
+                        issue_info = {
+                            'id': issue['issueId'],
+                            'title': issue['title'],
+                            'state': issue.get('state', ''),
+                            'milestone': issue.get('milestoneTitle', ''),
+                            'assignees': issue.get('assignees', []),
+                            'labels': issue.get('labels', []),
+                            'created_at': issue.get('createdAt', ''),
+                            'comments_sample': []
+                        }
+                        
+                        # 이슈별 댓글 샘플 수집 (최대 3개)
+                        try:
+                            comments_data = self.get_issue_comments(org_id, issue['issueId'], size=3)
+                            comments = comments_data.get('content', [])
+                            issue_info['comments_sample'] = [
+                                {
+                                    'content': c['content'][:100] + '...' if len(c['content']) > 100 else c['content'],
+                                    'author': c['authorName'],
+                                    'created_at': c.get('createdAt', ''),
+                                    'like_count': c.get('likeCount', 0)
+                                } for c in comments
+                            ]
+                        except Exception as e:
+                            self.logger.warning(f"Failed to get comments for issue {issue['issueId']}: {str(e)}")
+                        
+                        project_info['recent_issues'].append(issue_info)
+                
+                except Exception as e:
+                    self.logger.warning(f"Failed to get issues for project {project_id}: {str(e)}")
+                
+                project_summary['projects'].append(project_info)
+            
+            return project_summary
+            
+        except Exception as e:
+            self.logger.error(f"Error getting project summary: {str(e)}")
             raise

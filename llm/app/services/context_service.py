@@ -56,9 +56,13 @@ class ContextGenerator:
                 'departments': self._generate_department_context(org_summary),
                 'positions': self._generate_position_context(org_summary),
                 'members': self._generate_member_context(org_summary),
-                'quick_facts': self._generate_quick_facts(org_summary),
+                'projects': self._generate_project_context(),
+                'quick_facts': {},  # 나중에 업데이트
                 'chatbot_instructions': self._generate_chatbot_instructions()
             }
+            
+            # quick_facts 업데이트 (프로젝트 정보 포함)
+            context['quick_facts'] = self._generate_quick_facts(org_summary, context.get('projects', {}))
             
             self.logger.info("Context generation completed successfully")
             return context
@@ -176,7 +180,55 @@ class ContextGenerator:
             position_groups[position].append(member['name'])
         return position_groups
     
-    def _generate_quick_facts(self, org_summary: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_project_context(self) -> Dict[str, Any]:
+        """프로젝트 관련 컨텍스트 생성"""
+        try:
+            # 새로운 종합 메서드 사용
+            project_summary = self.api_client.get_project_summary_for_context(self.org_id)
+            
+            project_context = {
+                'total_count': project_summary['total_projects'],
+                'projects': {},
+                'by_participants': {},
+                'statistics': {
+                    'total_participants': project_summary['total_participants'],
+                    'total_milestones': project_summary['total_milestones'],
+                    'total_issues': project_summary['total_issues'],
+                    'github_linked_count': project_summary['github_linked_count']
+                }
+            }
+            
+            # 프로젝트별 정보 정리
+            for project_info in project_summary['projects']:
+                project_name = project_info['name']
+                
+                # 참가자별 프로젝트 인덱싱
+                for participant in project_info['participants']:
+                    participant_name = participant['name']
+                    if participant_name not in project_context['by_participants']:
+                        project_context['by_participants'][participant_name] = []
+                    project_context['by_participants'][participant_name].append(project_name)
+                
+                project_context['projects'][project_name] = project_info
+            
+            return project_context
+            
+        except Exception as e:
+            self.logger.error(f"Error generating project context: {str(e)}")
+            return {
+                'total_count': 0,
+                'projects': {},
+                'by_participants': {},
+                'statistics': {
+                    'total_participants': 0,
+                    'total_milestones': 0,
+                    'total_issues': {'open': 0, 'closed': 0, 'total': 0},
+                    'github_linked_count': 0
+                },
+                'error': str(e)
+            }
+    
+    def _generate_quick_facts(self, org_summary: Dict[str, Any], projects_context: Dict[str, Any] = None) -> Dict[str, Any]:
         """빠른 참조를 위한 주요 정보 요약"""
         departments = org_summary['departments']
         positions = org_summary['positions']
@@ -187,7 +239,7 @@ class ContextGenerator:
         # 가장 많은 직책 찾기
         most_common_position = max(positions['member_counts'].items(), key=lambda x: x[1], default=('', 0))
         
-        return {
+        quick_facts = {
             'total_departments': len(departments['list']),
             'total_positions': len(positions['list']),
             'total_members': org_summary['total_members'],
@@ -200,6 +252,27 @@ class ContextGenerator:
                 'member_count': most_common_position[1]
             }
         }
+        
+        # 프로젝트 정보 포함
+        if projects_context and 'statistics' in projects_context:
+            stats = projects_context['statistics']
+            quick_facts.update({
+                'total_projects': projects_context['total_count'],
+                'github_linked_projects': stats['github_linked_count'],
+                'total_open_issues': stats['total_issues']['open'],
+                'total_closed_issues': stats['total_issues']['closed'],
+                'total_milestones': stats['total_milestones']
+            })
+        else:
+            quick_facts.update({
+                'total_projects': 0,
+                'github_linked_projects': 0,
+                'total_open_issues': 0,
+                'total_closed_issues': 0,
+                'total_milestones': 0
+            })
+        
+        return quick_facts
     
     def _generate_chatbot_instructions(self) -> Dict[str, Any]:
         """챗봇을 위한 사용 가이드 생성"""
@@ -212,20 +285,39 @@ class ContextGenerator:
                 '직책 목록 조회',
                 '특정 부서의 구성원 목록 조회',
                 '특정 직책의 구성원 목록 조회',
-                '전체 조직 현황 조회'
+                '전체 조직 현황 조회',
+                '프로젝트 목록 조회',
+                '프로젝트 참가자 조회',
+                '프로젝트 마일스톤 조회',
+                '프로젝트 이슈 조회',
+                '특정 이슈의 댓글 조회',
+                '특정 인물의 참여 프로젝트 조회',
+                '프로젝트별 진행 상황 조회',
+                '마일스톤별 이슈 현황 조회'
             ],
             'query_examples': {
                 'department_member_count': '개발팀이 몇 명인지 알려주세요',
                 'member_phone': '김철수의 전화번호를 알려주세요',
                 'position_member_count': '팀장이 몇 명인지 알려주세요',
                 'department_list': '우리 회사에 어떤 부서들이 있나요?',
-                'department_members': '마케팅팀에는 누가 있나요?'
+                'department_members': '마케팅팀에는 누가 있나요?',
+                'project_list': '진행 중인 프로젝트는 어떤 게 있나요?',
+                'project_participants': '프로젝트 A에 누가 참여하고 있나요?',
+                'project_milestones': '프로젝트 B의 마일스톤은 어떻게 되나요?',
+                'project_issues': '프로젝트 C의 이슈 현황은 어떤가요?',
+                'member_projects': '김영희가 참여하고 있는 프로젝트는?',
+                'project_progress': '프로젝트 D의 진행률은 어떤가요?'
             },
             'data_access_patterns': {
                 'find_member_by_name': 'members.member_index[name]',
                 'get_department_count': 'departments.departments[dept_name].member_count',
                 'get_position_count': 'positions.positions[position_name].member_count',
-                'list_department_members': 'departments.departments[dept_name].members'
+                'list_department_members': 'departments.departments[dept_name].members',
+                'find_project_by_name': 'projects.projects[project_name]',
+                'get_project_participants': 'projects.projects[project_name].participants',
+                'get_project_milestones': 'projects.projects[project_name].milestones',
+                'get_project_issues': 'projects.projects[project_name].recent_issues',
+                'find_member_projects': 'projects.by_participants[member_name]'
             }
         }
     
@@ -248,6 +340,7 @@ class ContextGenerator:
         org = context['organization']
         quick_facts = context['quick_facts']
         members = context['members']
+        projects = context.get('projects', {})
         
         summary = f"""
 조직 정보 컨텍스트 요약:
@@ -256,6 +349,7 @@ class ContextGenerator:
 총 구성원 수: {quick_facts['total_members']}명
 부서 수: {quick_facts['total_departments']}개
 직책 수: {quick_facts['total_positions']}개
+프로젝트 수: {quick_facts.get('total_projects', 0)}개
 
 가장 큰 부서: {quick_facts['largest_department']['name']} ({quick_facts['largest_department']['member_count']}명)
 가장 많은 직책: {quick_facts['most_common_position']['name']} ({quick_facts['most_common_position']['member_count']}명)
@@ -270,10 +364,51 @@ class ContextGenerator:
         for pos_name, pos_info in context['positions']['positions'].items():
             summary += f"- {pos_name}: {pos_info['member_count']}명\n"
         
+        # 프로젝트 정보 추가
+        if projects.get('projects'):
+            summary += f"\n=== 프로젝트 현황 ===\n"
+            summary += f"총 프로젝트: {projects['total_count']}개\n"
+            summary += f"GitHub 연동 프로젝트: {quick_facts.get('github_linked_projects', 0)}개\n"
+            summary += f"전체 열린 이슈: {quick_facts.get('total_open_issues', 0)}개\n"
+            summary += f"전체 완료된 이슈: {quick_facts.get('total_closed_issues', 0)}개\n"
+            summary += f"전체 마일스톤: {quick_facts.get('total_milestones', 0)}개\n\n"
+            
+            summary += "프로젝트별 상세 정보:\n"
+            for project_name, project_info in projects['projects'].items():
+                summary += f"- {project_name}:\n"
+                summary += f"  * 설명: {project_info['description']}\n"
+                summary += f"  * 참가자: {project_info['participant_count']}명\n"
+                summary += f"  * 마일스톤: {project_info['milestone_count']}개\n"
+                summary += f"  * 이슈: 열림 {project_info['issue_counts']['open']}개, 완료 {project_info['issue_counts']['closed']}개\n"
+                if project_info['is_github_linked']:
+                    summary += f"  * GitHub: {project_info['repo_url']}\n"
+                summary += f"  * 참가자: {', '.join([p['name'] for p in project_info['participants'][:5]])}\n"
+                if len(project_info['participants']) > 5:
+                    summary += f"    (외 {len(project_info['participants']) - 5}명)\n"
+                
+                # 최근 이슈 정보
+                if project_info['recent_issues']:
+                    summary += f"  * 최근 이슈:\n"
+                    for issue in project_info['recent_issues'][:3]:
+                        summary += f"    - #{issue['id']} {issue['title']} ({issue['state']})\n"
+                        # 댓글 샘플이 있으면 포함
+                        if issue.get('comments_sample'):
+                            summary += f"      댓글 {len(issue['comments_sample'])}개: "
+                            comment_authors = [c['author'] for c in issue['comments_sample']]
+                            summary += f"{', '.join(comment_authors)}\n"
+                
+                summary += "\n"
+        
         # 멤버 정보 상세 추가
         summary += "\n=== 멤버 상세 정보 ===\n"
         for member_name, member_info in members['member_index'].items():
             summary += f"- {member_name}: {member_info['position']}, {member_info['department']}, {member_info['email']}, {member_info['phone']}\n"
+        
+        # 멤버별 프로젝트 참여 정보 추가
+        if projects.get('by_participants'):
+            summary += "\n=== 멤버별 프로젝트 참여 현황 ===\n"
+            for member_name, member_projects in projects['by_participants'].items():
+                summary += f"- {member_name}: {', '.join(member_projects)}\n"
         
         return summary
 
@@ -405,6 +540,14 @@ class ContextService:
                     )
                     return enhanced_context
                 
+                # 프로젝트 관련 질문인지 확인하고 향상된 컨텍스트 제공
+                project_name = self._extract_project_name_from_question(user_message)
+                if project_name:
+                    enhanced_context = self._enhance_context_for_project_query(
+                        context, context_summary, project_name, user_message
+                    )
+                    return enhanced_context
+                
                 return context_summary
             
             else:
@@ -459,6 +602,83 @@ class ContextService:
             
         except Exception as e:
             logging.error(f"Error enhancing context for person query: {str(e)}")
+            return base_context
+    
+    def _extract_project_name_from_question(self, question: str) -> Optional[str]:
+        """질문에서 프로젝트 이름을 추출"""
+        project_keywords = ['프로젝트', '프젝', '개발', '시스템', '서비스', '앱', '웹사이트', '플랫폼']
+        
+        # 간단한 패턴 매칭으로 프로젝트 이름 추출
+        for keyword in project_keywords:
+            if keyword in question:
+                # "프로젝트 A의", "A 프로젝트" 등의 패턴 찾기
+                import re
+                patterns = [
+                    rf'([가-힣A-Za-z0-9\-_]+)\s*{keyword}',
+                    rf'{keyword}\s*([가-힣A-Za-z0-9\-_]+)',
+                    rf'([가-힣A-Za-z0-9\-_]+)\s*{keyword}의',
+                    rf'{keyword}\s*([가-힣A-Za-z0-9\-_]+)의'
+                ]
+                
+                for pattern in patterns:
+                    matches = re.findall(pattern, question)
+                    if matches:
+                        return matches[0].strip()
+        
+        return None
+    
+    def _enhance_context_for_project_query(self, context: dict, base_context: str, project_name: str, question: str) -> str:
+        """특정 프로젝트에 대한 질문을 위해 컨텍스트를 향상시킴"""
+        try:
+            projects = context.get('projects', {})
+            project_list = projects.get('projects', {})
+            
+            # 정확한 프로젝트 이름 매칭
+            if project_name in project_list:
+                project_info = project_list[project_name]
+                enhanced_context = f"{base_context}\n\n=== {project_name} 프로젝트 상세 정보 ===\n"
+                enhanced_context += f"프로젝트명: {project_info['name']}\n"
+                enhanced_context += f"설명: {project_info['description']}\n"
+                enhanced_context += f"참가자 수: {project_info['participant_count']}명\n"
+                enhanced_context += f"마일스톤 수: {project_info['milestone_count']}개\n"
+                enhanced_context += f"이슈 현황: 열림 {project_info['issue_counts']['open']}개, 완료 {project_info['issue_counts']['closed']}개\n"
+                
+                if project_info['is_github_linked']:
+                    enhanced_context += f"GitHub 저장소: {project_info['repo_url']}\n"
+                
+                enhanced_context += f"\n참가자 목록:\n"
+                for participant in project_info['participants']:
+                    enhanced_context += f"- {participant['name']} ({participant['position']}, {participant['department']})\n"
+                
+                if project_info['milestones']:
+                    enhanced_context += f"\n마일스톤 목록:\n"
+                    for milestone in project_info['milestones']:
+                        enhanced_context += f"- {milestone['name']}: {milestone['state']}, 이슈 {milestone['issue_counts']['total']}개\n"
+                
+                if project_info['recent_issues']:
+                    enhanced_context += f"\n최근 이슈 목록:\n"
+                    for issue in project_info['recent_issues'][:5]:
+                        enhanced_context += f"- #{issue['id']} {issue['title']} ({issue['state']})\n"
+                
+                return enhanced_context
+            
+            # 유사한 프로젝트 이름 찾기
+            possible_matches = []
+            for proj_name in project_list.keys():
+                if project_name.lower() in proj_name.lower() or proj_name.lower() in project_name.lower():
+                    possible_matches.append(proj_name)
+            
+            if possible_matches:
+                enhanced_context = f"{base_context}\n\n'{project_name}'과 유사한 프로젝트를 찾았습니다:\n"
+                for match in possible_matches[:3]:
+                    project_info = project_list[match]
+                    enhanced_context += f"- {match}: {project_info['description']}, 참가자 {project_info['participant_count']}명\n"
+                return enhanced_context
+            
+            return f"{base_context}\n\n'{project_name}'에 해당하는 프로젝트를 찾을 수 없습니다."
+            
+        except Exception as e:
+            logging.error(f"Error enhancing context for project query: {str(e)}")
             return base_context
 
 
