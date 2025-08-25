@@ -42,6 +42,9 @@ public class JwtTokenProvider {
     @Value("${jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenValidityInSeconds;
 
+    // SSE Token 만료시간 (5분)
+    private static final long SSE_TOKEN_VALIDITY_IN_SECONDS = 5 * 60;
+
     // Access Token 생성
     public String generateAccessToken(Claims claims) {
         Date now = new Date();
@@ -80,6 +83,21 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    // SSE 전용 토큰 생성 (5분 유효기간, 최소 정보만 포함)
+    public String generateSseToken(Long userId) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + SSE_TOKEN_VALIDITY_IN_SECONDS * 1000L);
+
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("userId", userId)
+                .claim("tokenType", "SSE")
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(secretKey, Jwts.SIG.HS512)
+                .compact();
+    }
+
     // JWT Claim(payload)에서 Access Token Custom Claims 추출
     public Claims parseAccessToken(String token) {
 
@@ -101,6 +119,16 @@ public class JwtTokenProvider {
 
         return Claims.builder()
                 .userId(Long.valueOf(jwtClaims.getSubject()))
+                .build();
+    }
+
+    // JWT Claim(payload)에서 SSE Token Custom Claims 추출
+    public Claims parseSseToken(String token) {
+
+        io.jsonwebtoken.Claims jwtClaims = jwtClaimMapper.getJwtClaims(secretKey, token);
+
+        return Claims.builder()
+                .userId(((Number) jwtClaims.get("userId")).longValue())
                 .build();
     }
 
@@ -134,8 +162,25 @@ public class JwtTokenProvider {
         }
     }
 
+    // SSE 토큰 타입 검증
+    public boolean isSseToken(String token) {
+        if (!validateToken(token)) return false;
+
+        try {
+            io.jsonwebtoken.Claims jwtClaims = jwtClaimMapper.getJwtClaims(secretKey, token);
+            return "SSE".equals(jwtClaims.get("tokenType"));
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
     // JWT → Claims → CustomUserDetails → Authentication 변환
     public Authentication getAuthenticationFromToken(String token) {
+        // SSE 토큰인 경우 별도 처리
+        if (isSseToken(token)) {
+            return getAuthenticationFromSseToken(token);
+        }
+
         // JWT(Access Token) -> Claims 추출
         Claims claims = parseAccessToken(token);
 
@@ -161,6 +206,33 @@ public class JwtTokenProvider {
         );
 
         return authentication;
+    }
+
+    // SSE 토큰 → Authentication 변환 (최소 권한으로 설정)
+    public Authentication getAuthenticationFromSseToken(String sseToken) {
+        // SSE 토큰 -> Claims 추출
+        Claims claims = parseSseToken(sseToken);
+
+        // SSE용 최소 권한 설정
+        List<SimpleGrantedAuthority> authorities = List.of(
+                new SimpleGrantedAuthority("ROLE_SSE_USER")
+        );
+
+        // SSE용 CustomUserDetails 객체 생성 (최소 정보만)
+        CustomUserDetails userDetails = new CustomUserDetails(
+                claims.getUserId(),
+                null, // email 불포함
+                null,
+                List.of(), // orgAuthorityList 빈 리스트
+                authorities
+        );
+
+        // Authentication 객체 생성
+        return new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
     }
 
 }

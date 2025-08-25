@@ -33,6 +33,7 @@ import com.ourhour.domain.project.sync.GitHubSyncManager;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.enums.Status;
+import com.ourhour.domain.notification.service.NotificationEventService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -51,6 +52,7 @@ public class CommentService {
     private final GitHubSyncManager gitHubSyncManager;
 
     private final CommentLikeService commentLikeService;
+    private final NotificationEventService notificationEventService;
 
     // 댓글 목록 조회
     @Cacheable(value = "comments", key = "#postId + '_' + #issueId + '_' + #currentPage + '_' + #size + '_' + #currentMemberId")
@@ -165,6 +167,61 @@ public class CommentService {
                 .build();
 
         commentRepository.save(commentEntity);
+
+        if (postEntity != null) {
+            Long authorUserId = postEntity.getAuthorEntity().getUserEntity().getUserId();
+            Long currentUserId = commentEntity.getAuthorEntity().getUserEntity().getUserId();
+            
+            if (!authorUserId.equals(currentUserId)) {
+                if (commentCreateReqDTO.getParentCommentId() != null) {
+                    notificationEventService.sendPostCommentReplyNotification(
+                        authorUserId,
+                        commentEntity.getAuthorEntity().getName(),
+                        postEntity.getTitle(),
+                        postEntity.getPostId(),
+                        postEntity.getBoardEntity().getBoardId(),
+                        postEntity.getBoardEntity().getOrgEntity().getOrgId()
+                    );
+                } else {
+                    notificationEventService.sendPostCommentNotification(
+                        authorUserId,
+                        commentEntity.getAuthorEntity().getName(),
+                        postEntity.getTitle(),
+                        postEntity.getPostId(),
+                        postEntity.getBoardEntity().getBoardId(),
+                        postEntity.getBoardEntity().getOrgEntity().getOrgId()
+                    );
+                }
+            }
+        }
+
+        if (issueEntity != null) {
+            Long assigneeUserId = issueEntity.getAssigneeEntity() != null ? 
+                issueEntity.getAssigneeEntity().getUserEntity().getUserId() : null;
+            Long currentUserId = commentEntity.getAuthorEntity().getUserEntity().getUserId();
+            
+            if (assigneeUserId != null && !assigneeUserId.equals(currentUserId)) {
+                if (commentCreateReqDTO.getParentCommentId() != null) {
+                    notificationEventService.sendIssueCommentReplyNotification(
+                        assigneeUserId,
+                        commentEntity.getAuthorEntity().getName(),
+                        issueEntity.getName(),
+                        issueEntity.getIssueId(),
+                        issueEntity.getProjectEntity().getProjectId(),
+                        issueEntity.getProjectEntity().getOrgEntity().getOrgId()
+                    );
+                } else {
+                    notificationEventService.sendIssueCommentNotification(
+                        assigneeUserId,
+                        commentEntity.getAuthorEntity().getName(),
+                        issueEntity.getName(),
+                        issueEntity.getIssueId(),
+                        issueEntity.getProjectEntity().getProjectId(),
+                        issueEntity.getProjectEntity().getOrgEntity().getOrgId()
+                    );
+                }
+            }
+        }
 
         // GitHub에도 동기화 (이슈 댓글인 경우에만)
         if (shouldSyncToGitHub) {

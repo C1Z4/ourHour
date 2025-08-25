@@ -19,7 +19,7 @@ if [ "$PROFILE" = "test" ]; then
   REDIS_PORT=6379
 elif [ "$PROFILE" = "release" ]; then
   BACKEND_PORT=8080
-  DB_PORT=3306
+  DB_PORT=3308
   REDIS_PORT=6380
 else
   echo "Unknown PROFILE: $PROFILE"

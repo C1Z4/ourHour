@@ -4,6 +4,7 @@ import { useLocation, useRouter } from '@tanstack/react-router';
 import { Bell, GitFork, Menu } from 'lucide-react';
 
 import logo from '@/assets/images/logo.png';
+import { NotificationSheet } from '@/components/common/info-menu/NotificationSheet';
 import { ProfileSheet } from '@/components/common/info-menu/ProfileSheet';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +14,7 @@ import {
   NavigationMenuList,
 } from '@/components/ui/navigation-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useInfiniteNotifications } from '@/hooks/queries/notification/useInfiniteNotifications';
 import { useAppSelector } from '@/stores/hooks';
 
 export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean }) {
@@ -24,6 +26,9 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
   const [isActive, setIsActive] = useState('');
 
   const router = useRouter();
+
+  // 전역 SSE 연결 및 알림 데이터
+  const { unreadCount } = useInfiniteNotifications();
 
   const handleNavigate = (path: string, orgId: string) => {
     router.navigate({ to: path, params: { orgId } });
@@ -129,16 +134,23 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
                     <p>조직도</p>
                   </TooltipContent>
                 </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="relative">
-                      <Bell className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-[#467599] text-white">
-                    <p>알림</p>
-                  </TooltipContent>
-                </Tooltip>
+                <NotificationSheet>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="relative">
+                        <Bell className="w-4 h-4" />
+                        {typeof unreadCount === 'number' && unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center min-w-[20px]">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#467599] text-white">
+                      <p>알림</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </NotificationSheet>
                 <ProfileSheet>
                   <Button variant="ghost" size="icon">
                     <Menu className="w-4 h-4" />

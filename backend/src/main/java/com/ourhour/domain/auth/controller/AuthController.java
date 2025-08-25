@@ -7,6 +7,8 @@ import com.ourhour.domain.auth.service.AuthService;
 import com.ourhour.domain.auth.service.OAuthService;
 import com.ourhour.domain.auth.util.AuthServiceHelper;
 import com.ourhour.global.common.dto.ApiResponse;
+import com.ourhour.global.jwt.JwtTokenProvider;
+import com.ourhour.global.jwt.dto.CustomUserDetails;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -22,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import jakarta.servlet.http.Cookie;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,6 +36,7 @@ public class AuthController {
     private final AuthService authService;
     private final OAuthService oAuthService;
     private final AuthServiceHelper authServiceHelper;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Value("${cookie.secure}")
     private boolean cookieSecure;
@@ -120,6 +125,41 @@ public class AuthController {
         authServiceHelper.setRefreshTokenCookie("", cookieSecure, cookieSameSite, 0, response);
 
         ApiResponse<Void> apiResponse = ApiResponse.success(null, "로그아웃에 성공했습니다.");
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/sse-token")
+    @Operation(summary = "SSE 토큰 발급", description = "SSE 연결을 위한 단기 토큰을 발급하고 쿠키에 설정합니다.")
+    public ResponseEntity<ApiResponse<Void>> generateSseToken(Authentication authentication, HttpServletResponse response) {
+        
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUserId();
+
+        // SSE 토큰 생성 (5분 유효기간)
+        String sseToken = jwtTokenProvider.generateSseToken(userId);
+
+        // SSE 토큰을 쿠키에 설정
+        Cookie sseTokenCookie = new Cookie("sseToken", sseToken);
+        sseTokenCookie.setHttpOnly(true);
+        sseTokenCookie.setSecure(cookieSecure);
+        sseTokenCookie.setPath("/");
+        sseTokenCookie.setMaxAge(5 * 60); // 5분
+        
+        // SameSite 속성 설정
+        if ("None".equals(cookieSameSite)) {
+            response.setHeader("Set-Cookie", 
+                String.format("%s=%s; Path=/; Max-Age=%d; HttpOnly; %s SameSite=%s",
+                    sseTokenCookie.getName(),
+                    sseTokenCookie.getValue(),
+                    sseTokenCookie.getMaxAge(),
+                    cookieSecure ? "Secure;" : "",
+                    cookieSameSite));
+        } else {
+            response.addCookie(sseTokenCookie);
+        }
+
+        ApiResponse<Void> apiResponse = ApiResponse.success(null, "SSE 토큰이 발급되었습니다.");
 
         return ResponseEntity.ok(apiResponse);
     }
