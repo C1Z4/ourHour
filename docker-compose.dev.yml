@@ -126,25 +126,25 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
-  # # ai chatbot
-  # chatbot:
-  #   build:
-  #     context: llm
-  #   container_name: ourhour-dev-chatbot
-  #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     - db
-  #   env_file:
-  #     - llm/.env
-  #   environment:
-  #     - PYTHON_SERVER_URL=${PYTHON_SERVER_URL}
-  #     - OURHOUR_API_URL=${OURHOUR_API_URL}
-  #   volumes:
-  #     - ./llm:/app
-  #   networks:
-  #     - default
-  #   restart: unless-stopped
+  # ai chatbot
+  chatbot:
+    build:
+      context: llm
+    container_name: ourhour-dev-chatbot
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - llm/.env
+    environment:
+      - PYTHON_SERVER_URL=${PYTHON_SERVER_URL}
+      - OURHOUR_API_URL=${OURHOUR_API_URL}
+    volumes:
+      - ./llm:/app
+    networks:
+      - default
+    restart: unless-stopped
 
 volumes:
   gradle-cache:
