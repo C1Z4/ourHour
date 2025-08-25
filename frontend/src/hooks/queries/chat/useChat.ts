@@ -24,6 +24,13 @@ export function useChat(orgId: number, roomId: number) {
         connectHeaders: { Authorization: `Bearer ${accessToken}` },
         onConnect: () => {
           console.log('=== 웹소켓 연결 성공 ===');
+
+          // 채팅방 입장 알림
+          client.publish({
+            destination: '/pub/chat/enter',
+            body: JSON.stringify({ roomId }),
+          });
+
           client.subscribe(`/sub/chat/room/${roomId}`, (message) => {
             const receivedMessage = JSON.parse(message.body) as ChatMessage;
             const queryKey = ['chatMessages', orgId, roomId, MESSAGE_PAGE_SIZE];
@@ -65,6 +72,13 @@ export function useChat(orgId: number, roomId: number) {
     return () => {
       if (clientRef.current?.connected) {
         console.log('=== 웹소켓 연결을 해제합니다 ===');
+
+        // 채팅방 퇴장 알림
+        clientRef.current.publish({
+          destination: '/pub/chat/leave',
+          body: JSON.stringify({ roomId }),
+        });
+
         clientRef.current.deactivate();
         clientRef.current = null;
       }

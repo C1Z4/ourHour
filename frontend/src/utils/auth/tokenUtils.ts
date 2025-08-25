@@ -9,6 +9,12 @@ interface OrgAuthority {
 
 export const setAccessTokenToStore = (token: string | null): void => {
   store.dispatch(setAccessToken(token));
+
+  if (token) {
+    document.cookie = `sseToken=${token}; path=/; secure; samesite=strict`;
+  } else {
+    document.cookie = 'sseToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+  }
 };
 
 export const getAccessTokenFromStore = (): string | null => store.getState().auth.accessToken;
@@ -19,6 +25,8 @@ export const loginUser = (accessToken: string): void => {
 
 export const logout = () => {
   store.dispatch(logoutAction());
+  // SSE 토큰 쿠키 삭제
+  document.cookie = 'sseToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
   window.location.href = '/login';
 };
 

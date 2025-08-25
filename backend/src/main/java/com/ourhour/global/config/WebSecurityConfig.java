@@ -21,7 +21,6 @@ public class WebSecurityConfig {
     private final CorsConfigurationSource corsConfigurationSource;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -34,11 +33,13 @@ public class WebSecurityConfig {
                         .requestMatchers("/ws-stomp/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         // Swagger/OpenAPI 문서 경로 허용
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars")
+                        .permitAll()
+                        // SSE 알림 스트림 엔드포인트 허용 (인증된 사용자만)
+                        .requestMatchers(AuthPath.NOTIFICATION_URLS).authenticated()
                         // 비인증 요청 허용
                         .requestMatchers(AuthPath.PUBLIC_URLS).permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 // JWT 필터 등록
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

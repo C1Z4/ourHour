@@ -103,3 +103,14 @@ export const postSignout = async (): Promise<ApiResponse<void>> => {
     throw error;
   }
 };
+
+// ======== SSE 토큰 발급 ========
+export const postSseToken = async (): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.post('/api/auth/sse-token');
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
