@@ -1,4 +1,5 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useRouter } from '@tanstack/react-router';
+import { Settings } from 'lucide-react';
 
 import logo from '@/assets/images/logo.png';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
@@ -19,6 +20,8 @@ const smoothScrollTo = (elementId: string) => {
 export const Header = () => {
   const { mutate: signout } = useSignoutMutation();
 
+  const router = useRouter();
+
   const accessToken = useAppSelector((state) => state.auth.accessToken);
 
   const userEmail = getEmailFromToken() || 'example@example.com';
@@ -28,6 +31,12 @@ export const Header = () => {
     setTimeout(() => {
       window.location.href = '/';
     }, 1000);
+  };
+
+  const handleProfileManagement = () => {
+    router.navigate({
+      to: '/info/password',
+    });
   };
 
   // 토큰 검증이 완료될 때까지 로딩 상태 표시
@@ -68,16 +77,21 @@ export const Header = () => {
             </button>
           </nav>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             {accessToken ? (
-              <div className="flex items-center space-x-2">
-                <p className="text-sm text-gray-600">{userEmail}님 환영합니다!</p>
-                <ButtonComponent variant="ghost" asChild>
-                  <Link to="/" onClick={handleSignout}>
-                    로그아웃
-                  </Link>
+              <>
+                <ButtonComponent variant="ghost" size="sm" onClick={handleProfileManagement}>
+                  <Settings className="w-4 h-4" />
                 </ButtonComponent>
-              </div>
+                <div className="flex items-center">
+                  <p className="text-sm text-gray-600">{userEmail}님 환영합니다!</p>
+                  <ButtonComponent variant="ghost" asChild>
+                    <Link to="/" onClick={handleSignout}>
+                      로그아웃
+                    </Link>
+                  </ButtonComponent>
+                </div>
+              </>
             ) : (
               <ButtonComponent variant="ghost" asChild>
                 <Link to="/login">로그인</Link>

@@ -39,12 +39,14 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
               onClick={() => {
                 if (!isInfoPage) {
                   router.navigate({ to: '/start', search: { page: 1 } });
-                } else {
+                } else if (isInfoPage && currentOrgId) {
                   router.navigate({
                     to: '/org/$orgId/project',
                     params: { orgId: currentOrgId?.toString() ?? '' },
                     search: { currentPage: 1 },
                   });
+                } else {
+                  router.navigate({ to: '/start', search: { page: 1 } });
                 }
               }}
             >
