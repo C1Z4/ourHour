@@ -276,6 +276,7 @@ class CommentServiceTest {
                 given(testIssue.getIsGithubSynced()).willReturn(false);
                 given(testIssue.getProjectEntity()).willReturn(project);
                 given(project.getProjectId()).willReturn(1L);
+                given(project.getName()).willReturn("Test Project");
                 given(project.getOrgEntity()).willReturn(org);
                 given(org.getOrgId()).willReturn(1L);
 
@@ -291,7 +292,7 @@ class CommentServiceTest {
                 then(issueRepository).should().findById(1L);
                 then(commentRepository).should().save(any(CommentEntity.class));
                 then(notificationEventService).should().sendIssueCommentNotification(eq(1L), eq("Commenter"),
-                                eq("Test Issue"), eq(1L), eq(1L), eq(1L));
+                                eq("Test Issue"), eq(1L), eq(1L), eq(1L), eq("Test Project"));
         }
 
         @Test
