@@ -9,6 +9,7 @@ import { Post } from '@/types/postTypes';
 import { IssueDetail } from '@/api/project/issueApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { formatIsoToDate } from '@/utils/auth/dateUtils';
 
 interface DetailContentProps {
@@ -26,7 +27,19 @@ export const DetailContent = ({ issue, post, onEdit, onDelete }: DetailContentPr
       <div className=" flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{issue?.name || post?.title}</h1>
-          {post && <div className="text-sm text-gray-500">{formatIsoToDate(post.createdAt)}</div>}
+          {post && (
+            <div className="text-sm text-gray-500">
+              <div className="flex items-center justify-start gap-2">
+                <Avatar className="w-6 h-6">
+                  <AvatarImage src={post.authorProfileImgUrl} alt={post.authorName} />
+                  <AvatarFallback className="text-xs">{post.authorName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="text-gray-700">{post.authorName}</span>
+                <span className="text-gray-500">|</span>
+                <span>{formatIsoToDate(post.createdAt)}</span>
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex ">
           <ButtonComponent variant="ghost" size="sm" onClick={onEdit}>

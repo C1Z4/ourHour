@@ -28,7 +28,6 @@ export const BoardListPage = ({ orgId, boardList, isLoading }: Props) => {
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="p-8">
-              {/* 전체 글 보기 스켈레톤 */}
               <div className="rounded-lg border border-gray-200 overflow-hidden min-h-[182.5px]">
                 <div className="bg-gray-100 p-4">
                   <div className="flex justify-between items-center">

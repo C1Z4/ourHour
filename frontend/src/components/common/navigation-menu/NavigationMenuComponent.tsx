@@ -44,12 +44,14 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
               onClick={() => {
                 if (!isInfoPage) {
                   router.navigate({ to: '/start', search: { page: 1 } });
-                } else {
+                } else if (isInfoPage && currentOrgId) {
                   router.navigate({
                     to: '/org/$orgId/project',
                     params: { orgId: currentOrgId?.toString() ?? '' },
                     search: { currentPage: 1 },
                   });
+                } else {
+                  router.navigate({ to: '/start', search: { page: 1 } });
                 }
               }}
             >
@@ -128,7 +130,7 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
                       <GitFork className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent className="bg-[#467599] text-white">
                     <p>조직도</p>
                   </TooltipContent>
                 </Tooltip>
