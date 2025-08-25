@@ -18,6 +18,7 @@ export interface Notification {
   relatedId?: number;
   relatedType?: string;
   actionUrl?: string;
+  relatedProjectName?: string;
 }
 
 export type NotificationType =

@@ -208,7 +208,8 @@ public class CommentService {
                         issueEntity.getName(),
                         issueEntity.getIssueId(),
                         issueEntity.getProjectEntity().getProjectId(),
-                        issueEntity.getProjectEntity().getOrgEntity().getOrgId()
+                        issueEntity.getProjectEntity().getOrgEntity().getOrgId(),
+                        issueEntity.getProjectEntity().getName()
                     );
                 } else {
                     notificationEventService.sendIssueCommentNotification(
@@ -217,7 +218,8 @@ public class CommentService {
                         issueEntity.getName(),
                         issueEntity.getIssueId(),
                         issueEntity.getProjectEntity().getProjectId(),
-                        issueEntity.getProjectEntity().getOrgEntity().getOrgId()
+                        issueEntity.getProjectEntity().getOrgEntity().getOrgId(),
+                        issueEntity.getProjectEntity().getName()
                     );
                 }
             }
