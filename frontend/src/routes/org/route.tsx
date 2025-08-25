@@ -8,6 +8,12 @@ import { requireOrgMember } from '@/utils/auth/routeGuards';
 
 export const Route = createFileRoute('/org')({
   beforeLoad: async () => {
+    const { pathname } = window.location;
+
+    // 초대 수락 경로는 검사에서 제외하는 조건 추가
+    if (pathname.includes('/invite/verify')) {
+      return;
+    }
     // 모든 org 하위 라우트에 대해 orgId를 추출하여 회사 구성원 확인
     const pathSegments = window.location.pathname.split('/');
     const orgIdIndex = pathSegments.indexOf('org') + 1;
