@@ -49,6 +49,7 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
   const [activeSearchQuery, setActiveSearchQuery] = useState('');
 
   const { data: projectInfoData, isLoading: isLoadingProjectInfo } = useProjectInfoQuery(
+    Number(orgId),
     Number(projectId),
   );
 

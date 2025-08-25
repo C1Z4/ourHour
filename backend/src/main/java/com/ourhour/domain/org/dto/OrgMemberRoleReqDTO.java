@@ -5,12 +5,14 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 public class OrgMemberRoleReqDTO {
 
-    private Role newRole;
+    private Role role;
 
 }

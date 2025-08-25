@@ -46,9 +46,9 @@ export const IssueFormPage = ({
     Number(projectId),
   );
 
-  const { data: milestoneList } = useProjectMilestoneListQuery(Number(projectId));
+  const { data: milestoneList } = useProjectMilestoneListQuery(Number(orgId), Number(projectId));
 
-  const { data: issueTagListData } = useProjectIssueTagListQuery(Number(projectId));
+  const { data: issueTagListData } = useProjectIssueTagListQuery(Number(orgId), Number(projectId));
   const issueTags = Array.isArray(issueTagListData) ? issueTagListData : [];
 
   const milestones = Array.isArray(milestoneList?.data) ? milestoneList.data : [];
@@ -147,6 +147,7 @@ export const IssueFormPage = ({
     // 이슈 등록
     if (!isEditing) {
       const issueData = {
+        orgId: Number(orgId),
         projectId: Number(projectId),
         milestoneId: formData.milestoneId,
         assigneeId: formData.assigneeId,
@@ -169,6 +170,7 @@ export const IssueFormPage = ({
 
     // 이슈 수정
     const issueData = {
+      orgId: Number(orgId),
       issueId: Number(issueId),
       milestoneId: formData.milestoneId,
       assigneeId: formData.assigneeId,
@@ -230,7 +232,7 @@ export const IssueFormPage = ({
               value={formData.content}
               onChange={(e) => handleInputChange('content', e.target.value)}
               placeholder="이슈 내용을 입력하세요"
-              className={`min-h-[120px] ${errors.content ? 'border-red-500' : ''}`}
+              className={`min-h-[300px] ${errors.content ? 'border-red-500' : ''}`}
             />
             {errors.content && <p className="mt-1 text-sm text-red-600">{errors.content}</p>}
           </div>
@@ -270,6 +272,7 @@ export const IssueFormPage = ({
 
       {isTagManagerOpen && (
         <TagManagerModal
+          orgId={Number(orgId)}
           projectId={Number(projectId)}
           isOpen={isTagManagerOpen}
           onClose={() => setIsTagManagerOpen(false)}

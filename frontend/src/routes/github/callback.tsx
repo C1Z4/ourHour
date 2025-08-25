@@ -15,6 +15,8 @@ function GitHubCallbackPage() {
 
   const goBack = useCallback(() => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+    } else {
       router.navigate({ to: '/start', search: { page: 1 } });
     }
   }, [router]);

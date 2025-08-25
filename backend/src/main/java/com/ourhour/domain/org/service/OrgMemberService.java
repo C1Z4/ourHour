@@ -168,7 +168,7 @@ public class OrgMemberService {
                 .orElseThrow(MemberException::memberNotFoundException);
 
         Role oldRole = orgParticipantMemberEntity.getRole();
-        Role newRole = orgMemberRoleReqDTO.getNewRole();
+        Role newRole = orgMemberRoleReqDTO.getRole();
         int currentRootAdminCount = orgParticipantMemberRepository.countRootAdmins(orgId);
 
         // 동일 권한 변경일 경우 early return(정책 위반 아님)

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 
 import { Edit, Trash2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 import { Post } from '@/types/postTypes';
 
@@ -38,10 +40,46 @@ export const DetailContent = ({ issue, post, onEdit, onDelete }: DetailContentPr
         </div>
       </div>
 
-      <div className="prose max-w-none min-h-[200px]">
-        <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-          {issue?.content || post?.content}
-        </div>
+      <div className="prose max-w-none min-h-[200px] text-gray-700 leading-relaxed">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            h1: ({ children }) => <h1 className="text-2xl font-bold mb-4">{children}</h1>,
+            h2: ({ children }) => <h2 className="text-xl font-semibold mb-3">{children}</h2>,
+            h3: ({ children }) => <h3 className="text-lg font-medium mb-2">{children}</h3>,
+            p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p>,
+            ul: ({ children }) => (
+              <ul className="list-disc list-inside mb-3 space-y-1">{children}</ul>
+            ),
+            ol: ({ children }) => (
+              <ol className="list-decimal list-inside mb-3 space-y-1">{children}</ol>
+            ),
+            code: ({ children }) => (
+              <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{children}</code>
+            ),
+            pre: ({ children }) => (
+              <pre className="bg-gray-100 p-3 rounded overflow-x-auto mb-3">{children}</pre>
+            ),
+            blockquote: ({ children }) => (
+              <blockquote className="border-l-4 border-gray-300 pl-4 italic mb-3">
+                {children}
+              </blockquote>
+            ),
+            table: ({ children }) => (
+              <table className="border-collapse border border-gray-300 w-full mb-3">
+                {children}
+              </table>
+            ),
+            th: ({ children }) => (
+              <th className="border border-gray-300 px-3 py-2 bg-gray-50 font-semibold">
+                {children}
+              </th>
+            ),
+            td: ({ children }) => <td className="border border-gray-300 px-3 py-2">{children}</td>,
+          }}
+        >
+          {issue?.content || post?.content || ''}
+        </ReactMarkdown>
       </div>
 
       {isDeleteModalOpen && (

@@ -50,13 +50,20 @@ export function NavMain({
             className="group/collapsible"
           >
             <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
+              <div className="flex items-center w-full">
+                <Link
+                  to={item.url ?? ''}
+                  className="flex-1 flex items-center px-2 py-1.5 text-sm font-medium hover:bg-gray-100 rounded"
+                >
+                  {item.icon && <item.icon className="mr-2" />}
                   <span>{item.title}</span>
-                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                </SidebarMenuButton>
-              </CollapsibleTrigger>
+                </Link>
+                <CollapsibleTrigger asChild>
+                  <button className="p-1 hover:bg-gray-100 rounded">
+                    <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  </button>
+                </CollapsibleTrigger>
+              </div>
               <CollapsibleContent>
                 <SidebarMenuSub>
                   {item.items && item.items.length > 0 ? (
