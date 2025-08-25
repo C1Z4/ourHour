@@ -55,11 +55,14 @@ export const PostListPage = ({ orgId, boardId, boardName }: PostListPageProps) =
   };
 
   return (
-    <div className="py-8">
+    <main className="py-8" role="main" aria-label={`${boardName} 게시글 목록 페이지`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <section
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+          aria-label="게시글 목록"
+        >
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <header className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <ChevronLeft
                   size={24}
@@ -70,6 +73,16 @@ export const PostListPage = ({ orgId, boardId, boardName }: PostListPageProps) =
                       params: { orgId: orgId.toString() },
                     });
                   }}
+                  aria-label="게시판 목록으로 돌아가기"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      router.navigate({
+                        to: '/org/$orgId/board',
+                        params: { orgId: orgId.toString() },
+                      });
+                    }
+                  }}
                 />
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">{boardName}</h1>
               </div>
@@ -79,12 +92,17 @@ export const PostListPage = ({ orgId, boardId, boardName }: PostListPageProps) =
                 onClick={() => {
                   handleCreatePost();
                 }}
+                aria-label="새 게시글 작성하기"
               >
                 <Plus size={16} />글 작성하기
               </ButtonComponent>
-            </div>
+            </header>
 
-            <div className="border rounded-lg overflow-hidden">
+            <div
+              className="border rounded-lg overflow-hidden"
+              role="region"
+              aria-label="게시글 테이블"
+            >
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
@@ -156,7 +174,7 @@ export const PostListPage = ({ orgId, boardId, boardName }: PostListPageProps) =
               </ButtonComponent>
             </div>
           </div>
-        </div>
+        </section>
       </div>
       {isDeleteModalOpen && (
         <ModalComponent
@@ -180,6 +198,6 @@ export const PostListPage = ({ orgId, boardId, boardName }: PostListPageProps) =
           }
         />
       )}
-    </div>
+    </main>
   );
 };
