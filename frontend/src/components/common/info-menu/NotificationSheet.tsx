@@ -11,6 +11,9 @@ import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { COMMENT_QUERY_KEYS } from '@/constants/queryKeys';
 import { useInfiniteNotifications } from '@/hooks/queries/notification/useInfiniteNotifications';
+import { useAppDispatch } from '@/stores/hooks';
+import { setCurrentOrgId } from '@/stores/orgSlice';
+import { setCurrentProjectId, setCurrentProjectName } from '@/stores/projectSlice';
 
 interface NotificationSheetProps {
   children: React.ReactNode;
@@ -198,6 +201,7 @@ function NotificationItem({ notification, onMarkAsRead }: NotificationItemProps)
   const params = useParams({ strict: false });
   const currentOrgId = params.orgId;
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -258,6 +262,8 @@ function NotificationItem({ notification, onMarkAsRead }: NotificationItemProps)
       switch (notification.type) {
         case 'CHAT_MESSAGE':
           if (notification.relatedId) {
+            dispatch(setCurrentOrgId(parseInt(currentOrgId)));
+
             router.navigate({
               to: '/org/$orgId/chat/$roomId',
               params: {
@@ -294,6 +300,9 @@ function NotificationItem({ notification, onMarkAsRead }: NotificationItemProps)
                   },
                 });
               }
+              dispatch(setCurrentOrgId(parseInt(orgId)));
+              dispatch(setCurrentProjectName(notification.relatedProjectName ?? ''));
+              dispatch(setCurrentProjectId(projectId));
 
               router.navigate({
                 to: '/org/$orgId/project/$projectId/issue/$issueId',
@@ -328,6 +337,8 @@ function NotificationItem({ notification, onMarkAsRead }: NotificationItemProps)
                   return matches;
                 },
               });
+
+              dispatch(setCurrentOrgId(parseInt(orgId)));
 
               router.navigate({
                 to: '/org/$orgId/board/$boardId/post/$postId',
