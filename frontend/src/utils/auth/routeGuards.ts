@@ -1,5 +1,6 @@
 import { redirect } from '@tanstack/react-router';
 
+import { getMyMemberInfo } from '@/api/member/memberApi';
 import { store } from '@/stores/store';
 import { getAccessTokenFromStore, restoreAuthFromServer } from '@/utils/auth/tokenUtils';
 
@@ -43,6 +44,25 @@ export const requireAuth = async () => {
   if (!token && !isAuthenticated) {
     throw redirect({
       to: '/login',
+    });
+  }
+};
+
+/**
+ * 특정 회사의 구성원만 접근 가능한 페이지
+ * 회사 구성원이 아니면 접근 권한 없음 페이지로 리다이렉트
+ */
+export const requireOrgMember = async (orgId: string) => {
+  // 먼저 기본 인증 확인
+  await requireAuth();
+
+  try {
+    // 해당 조직의 멤버 정보 조회 시도
+    await getMyMemberInfo({ orgId: Number(orgId) });
+  } catch (error) {
+    // 멤버 정보 조회 실패 시 (403, 404 등) 접근 권한 없음 페이지로 리다이렉트
+    throw redirect({
+      to: '/access-denied',
     });
   }
 };

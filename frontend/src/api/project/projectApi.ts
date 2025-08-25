@@ -27,7 +27,7 @@ export interface ProjectSummary extends ProjectBaseInfo {
 
 export const getProjectSummaryList = async (
   request: GetProjectSummaryListRequest,
-): Promise<ApiResponse<PageResponse<ProjectSummary[]>>> => {
+): Promise<ApiResponse<PageResponse<ProjectSummary>>> => {
   try {
     const params = new URLSearchParams();
     if (request.participantLimit) {
@@ -42,7 +42,9 @@ export const getProjectSummaryList = async (
     if (request.size) {
       params.append('size', request.size.toString());
     }
-    const response = await axiosInstance.get(`/api/projects/${request.orgId}?${params.toString()}`);
+    const response = await axiosInstance.get(
+      `/api/organizations/${request.orgId}/projects?${params.toString()}`,
+    );
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);
@@ -64,7 +66,7 @@ export const getMyProjectList = async (
   request: GetMyProjectListRequest,
 ): Promise<ApiResponse<MyProject[]>> => {
   try {
-    const response = await axiosInstance.get(`/api/organizations/${request.orgId}/projects`);
+    const response = await axiosInstance.get(`/api/organizations/${request.orgId}/my-projects`);
 
     return response.data;
   } catch (error: unknown) {
@@ -75,6 +77,7 @@ export const getMyProjectList = async (
 
 // ======== 프로젝트 정보 조회 ========
 interface GetProjectInfoRequest {
+  orgId: number;
   projectId: number;
 }
 
@@ -91,7 +94,9 @@ export const getProjectInfo = async (
   request: GetProjectInfoRequest,
 ): Promise<ApiResponse<ProjectBaseInfo>> => {
   try {
-    const response = await axiosInstance.get(`/api/projects/${request.projectId}/info`);
+    const response = await axiosInstance.get(
+      `/api/organizations/${request.orgId}/projects/${request.projectId}/info`,
+    );
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);
@@ -110,7 +115,7 @@ interface GetProjectParticipantListRequest {
 
 export const getProjectParticipantList = async (
   request: GetProjectParticipantListRequest,
-): Promise<ApiResponse<PageResponse<Member[]>>> => {
+): Promise<ApiResponse<PageResponse<Member>>> => {
   try {
     const params = new URLSearchParams();
     if (request.currentPage) {
@@ -124,7 +129,7 @@ export const getProjectParticipantList = async (
     }
 
     const response = await axiosInstance.get(
-      `/api/projects/${request.projectId}/${request.orgId}/participants?${params.toString()}`,
+      `/api/organizations/${request.orgId}/projects/${request.projectId}/participants?${params.toString()}`,
     );
 
     return response.data;
@@ -149,7 +154,7 @@ export const postCreateProject = async (
 ): Promise<ApiResponse<void>> => {
   try {
     const { orgId, ...requestBody } = request;
-    const response = await axiosInstance.post(`/api/projects/${orgId}`, requestBody);
+    const response = await axiosInstance.post(`/api/organizations/${orgId}/projects`, requestBody);
 
     return response.data;
   } catch (error: unknown) {
@@ -175,7 +180,7 @@ export const putUpdateProject = async (
 ): Promise<ApiResponse<void>> => {
   try {
     const response = await axiosInstance.put(
-      `/api/projects/${request.orgId}/${request.projectId}`,
+      `/api/organizations/${request.orgId}/projects/${request.projectId}`,
       request,
     );
     return response.data;
@@ -194,7 +199,7 @@ export interface DeleteProjectRequest {
 export const deleteProject = async (request: DeleteProjectRequest): Promise<ApiResponse<void>> => {
   try {
     const response = await axiosInstance.delete(
-      `/api/projects/${request.orgId}/${request.projectId}`,
+      `/api/organizations/${request.orgId}/projects/${request.projectId}`,
     );
     return response.data;
   } catch (error: unknown) {
@@ -215,7 +220,7 @@ export const deleteProjectParticipant = async (
 ): Promise<ApiResponse<void>> => {
   try {
     const response = await axiosInstance.delete(
-      `/api/projects/${request.orgId}/${request.projectId}/participants/${request.memberId}`,
+      `/api/organizations/${request.orgId}/projects/${request.projectId}/participants/${request.memberId}`,
     );
     return response.data;
   } catch (error: unknown) {

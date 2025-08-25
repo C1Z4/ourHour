@@ -12,6 +12,7 @@ import {
 import { ISSUE_TAG_COLORS } from '@/styles/colors';
 
 interface TagManagerModalProps {
+  orgId: number;
   projectId: number;
   isOpen: boolean;
   onClose: () => void;
@@ -20,15 +21,22 @@ interface TagManagerModalProps {
 }
 
 export const TagManagerModal = ({
+  orgId,
   projectId,
   isOpen,
   onClose,
   tags,
   onAfterDelete,
 }: TagManagerModalProps) => {
-  const { mutate: createTag, isPending: isCreatingTag } = useIssueTagCreateMutation(projectId);
-  const { mutate: updateTag, isPending: isUpdatingTag } = useIssueTagUpdateMutation(projectId);
-  const { mutate: deleteTag } = useIssueTagDeleteMutation(projectId);
+  const { mutate: createTag, isPending: isCreatingTag } = useIssueTagCreateMutation(
+    orgId,
+    projectId,
+  );
+  const { mutate: updateTag, isPending: isUpdatingTag } = useIssueTagUpdateMutation(
+    orgId,
+    projectId,
+  );
+  const { mutate: deleteTag } = useIssueTagDeleteMutation(orgId, projectId);
 
   const [editingTagId, setEditingTagId] = useState<number | null>(null);
   const [tagForm, setTagForm] = useState<{ name: string; color: string }>({
@@ -69,7 +77,7 @@ export const TagManagerModal = ({
 
   const handleDeleteTag = (tag: IssueTag) => {
     deleteTag(
-      { projectId, issueTagId: tag.issueTagId },
+      { orgId, projectId, issueTagId: tag.issueTagId },
       {
         onSuccess: () => {
           onAfterDelete?.(tag);
@@ -84,13 +92,14 @@ export const TagManagerModal = ({
     }
     if (editingTagId) {
       updateTag({
+        orgId,
         projectId,
         issueTagId: editingTagId,
         name: tagForm.name.trim(),
         color: tagForm.color,
       });
     } else {
-      createTag({ projectId, name: tagForm.name.trim(), color: tagForm.color });
+      createTag({ orgId, projectId, name: tagForm.name.trim(), color: tagForm.color });
     }
   };
 

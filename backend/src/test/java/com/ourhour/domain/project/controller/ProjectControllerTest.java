@@ -144,7 +144,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "프로젝트 등록이 완료되었습니다."));
 
                 // When & Then
-                mockMvc.perform(post("/api/projects/{orgId}", ORG_ID)
+                mockMvc.perform(post("/api/organizations/{orgId}/projects", ORG_ID)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(projectReqDTO)))
                                 .andExpect(status().isOk());
@@ -167,7 +167,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "프로젝트 수정이 완료되었습니다."));
 
                 // When & Then
-                mockMvc.perform(put("/api/projects/{orgId}/{projectId}", ORG_ID, PROJECT_ID)
+                mockMvc.perform(put("/api/organizations/{orgId}/projects/{projectId}", ORG_ID, PROJECT_ID)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(updateReqDTO)))
                                 .andExpect(status().isOk());
@@ -186,7 +186,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "프로젝트 삭제가 완료되었습니다."));
 
                 // When & Then
-                mockMvc.perform(delete("/api/projects/{orgId}/{projectId}", ORG_ID, PROJECT_ID))
+                mockMvc.perform(delete("/api/organizations/{orgId}/projects/{projectId}", ORG_ID, PROJECT_ID))
                                 .andExpect(status().isOk());
 
                 then(projectService).should().deleteProject(PROJECT_ID);
@@ -207,7 +207,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(projectInfo, "프로젝트 정보 조회에 성공했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/{projectId}/info", PROJECT_ID))
+                mockMvc.perform(get("/api/organizations/{orgId}/projects/{projectId}/info", ORG_ID, PROJECT_ID))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.data.projectId").value(PROJECT_ID))
                                 .andExpect(jsonPath("$.data.name").value("테스트 프로젝트"));
@@ -226,7 +226,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "마일스톤 등록이 완료되었습니다."));
 
                 // When - Direct controller call to bypass aspects
-                ResponseEntity<ApiResponse<Void>> response = projectController.createMilestone(PROJECT_ID,
+                ResponseEntity<ApiResponse<Void>> response = projectController.createMilestone(ORG_ID, PROJECT_ID,
                                 milestoneReqDTO);
 
                 // Then
@@ -239,14 +239,14 @@ class ProjectControllerTest {
         @DisplayName("마일스톤 삭제 - 성공")
         void deleteMilestone_Success() throws Exception {
                 // Given
-                given(milestoneService.deleteMilestone(MILESTONE_ID))
+                given(milestoneService.deleteMilestone(ORG_ID, MILESTONE_ID))
                                 .willReturn(ApiResponse.success(null, "마일스톤 삭제가 완료되었습니다."));
 
                 // When & Then
-                mockMvc.perform(delete("/api/projects/milestones/{milestoneId}", MILESTONE_ID))
+                mockMvc.perform(delete("/api/organizations/{orgId}/projects/{projectId}/milestones/{milestoneId}", ORG_ID, PROJECT_ID, MILESTONE_ID))
                                 .andExpect(status().isOk());
 
-                then(milestoneService).should().deleteMilestone(MILESTONE_ID);
+                then(milestoneService).should().deleteMilestone(ORG_ID, MILESTONE_ID);
         }
 
         @Test
@@ -267,7 +267,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(pageResponse, "프로젝트 요약 목록을 조회했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/{orgId}", ORG_ID)
+                mockMvc.perform(get("/api/organizations/{orgId}/projects", ORG_ID)
                                 .param("currentPage", String.valueOf(currentPage))
                                 .param("size", String.valueOf(size))
                                 .param("participantLimit", String.valueOf(participantLimit))
@@ -297,7 +297,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(pageResponse, "프로젝트 참가자 목록을 조회했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/{projectId}/{orgId}/participants", PROJECT_ID, ORG_ID)
+                mockMvc.perform(get("/api/organizations/{orgId}/projects/{projectId}/participants", ORG_ID, PROJECT_ID)
                                 .param("currentPage", String.valueOf(currentPage))
                                 .param("size", String.valueOf(size))
                                 .param("search", search))
@@ -318,7 +318,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "프로젝트 참가자가 삭제되었습니다."));
 
                 // When & Then
-                mockMvc.perform(delete("/api/projects/{orgId}/{projectId}/participants/{memberId}", ORG_ID, PROJECT_ID,
+                mockMvc.perform(delete("/api/organizations/{orgId}/projects/{projectId}/participants/{memberId}", ORG_ID, PROJECT_ID,
                                 MEMBER_ID))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("OK"))
@@ -340,11 +340,11 @@ class ProjectControllerTest {
                 PageResponse<MileStoneInfoDTO> pageResponse = PageResponse.of(
                                 new PageImpl<>(List.of(milestone), PageRequest.of(currentPage - 1, size), 1));
 
-                given(projectService.getProjectMilestones(eq(PROJECT_ID), eq(myMilestonesOnly), any(Pageable.class)))
+                given(projectService.getProjectMilestones(eq(ORG_ID), eq(PROJECT_ID), eq(myMilestonesOnly), any(Pageable.class)))
                                 .willReturn(ApiResponse.success(pageResponse, "마일스톤 목록을 조회했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/{projectId}/milestones", PROJECT_ID)
+                mockMvc.perform(get("/api/organizations/{orgId}/projects/{projectId}/milestones", ORG_ID, PROJECT_ID)
                                 .param("myMilestonesOnly", String.valueOf(myMilestonesOnly))
                                 .param("currentPage", String.valueOf(currentPage))
                                 .param("size", String.valueOf(size)))
@@ -352,7 +352,7 @@ class ProjectControllerTest {
                                 .andExpect(jsonPath("$.status").value("OK"))
                                 .andExpect(jsonPath("$.message").value("마일스톤 목록을 조회했습니다."));
 
-                then(projectService).should().getProjectMilestones(eq(PROJECT_ID), eq(myMilestonesOnly),
+                then(projectService).should().getProjectMilestones(eq(ORG_ID), eq(PROJECT_ID), eq(myMilestonesOnly),
                                 any(Pageable.class));
         }
 
@@ -374,7 +374,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(pageResponse, "이슈 목록을 조회했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/{projectId}/issues", PROJECT_ID)
+                mockMvc.perform(get("/api/organizations/{orgId}/projects/{projectId}/issues", ORG_ID, PROJECT_ID)
                                 .param("milestoneId", String.valueOf(milestoneId))
                                 .param("myIssuesOnly", String.valueOf(myIssuesOnly))
                                 .param("currentPage", String.valueOf(currentPage))
@@ -398,7 +398,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "마일스톤이 수정되었습니다."));
 
                 // When - Direct controller call to bypass aspects
-                ResponseEntity<ApiResponse<Void>> response = projectController.updateMilestone(PROJECT_ID, MILESTONE_ID,
+                ResponseEntity<ApiResponse<Void>> response = projectController.updateMilestone(ORG_ID, PROJECT_ID, MILESTONE_ID,
                                 milestoneReqDTO);
 
                 // Then
@@ -417,7 +417,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(issueDetail, "이슈 상세 정보를 조회했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/issues/{issueId}", ISSUE_ID))
+                mockMvc.perform(get("/api/organizations/{orgId}/projects/{projectId}/issues/{issueId}", ORG_ID, PROJECT_ID, ISSUE_ID))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("OK"))
                                 .andExpect(jsonPath("$.message").value("이슈 상세 정보를 조회했습니다."));
@@ -439,7 +439,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(issueDetail, "이슈가 생성되었습니다."));
 
                 // When - Direct controller call to bypass aspects
-                ResponseEntity<ApiResponse<IssueDetailDTO>> response = projectController.createIssue(PROJECT_ID,
+                ResponseEntity<ApiResponse<IssueDetailDTO>> response = projectController.createIssue(ORG_ID, PROJECT_ID,
                                 issueReqDTO);
 
                 // Then
@@ -458,17 +458,17 @@ class ProjectControllerTest {
 
                 IssueDetailDTO issueDetail = new IssueDetailDTO();
 
-                given(issueService.updateIssue(ISSUE_ID, issueReqDTO))
+                given(issueService.updateIssue(ORG_ID, ISSUE_ID, issueReqDTO))
                                 .willReturn(ApiResponse.success(issueDetail, "이슈가 수정되었습니다."));
 
                 // When - Direct controller call to bypass aspects
-                ResponseEntity<ApiResponse<IssueDetailDTO>> response = projectController.updateIssue(PROJECT_ID,
+                ResponseEntity<ApiResponse<IssueDetailDTO>> response = projectController.updateIssue(ORG_ID, PROJECT_ID,
                                 ISSUE_ID, issueReqDTO);
 
                 // Then
                 assertThat(response).isNotNull();
                 assertThat(response.getBody()).isNotNull();
-                then(issueService).should().updateIssue(ISSUE_ID, issueReqDTO);
+                then(issueService).should().updateIssue(ORG_ID, ISSUE_ID, issueReqDTO);
         }
 
         @Test
@@ -483,7 +483,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(issueDetail, "이슈 상태가 수정되었습니다."));
 
                 // When - Direct controller call to bypass aspects
-                ResponseEntity<ApiResponse<IssueDetailDTO>> response = projectController.updateIssueStatus(PROJECT_ID,
+                ResponseEntity<ApiResponse<IssueDetailDTO>> response = projectController.updateIssueStatus(ORG_ID, PROJECT_ID,
                                 ISSUE_ID, statusUpdateReqDTO);
 
                 // Then
@@ -496,16 +496,16 @@ class ProjectControllerTest {
         @DisplayName("이슈 삭제 - 성공")
         void deleteIssue_Success() throws Exception {
                 // Given
-                given(issueService.deleteIssue(ISSUE_ID))
+                given(issueService.deleteIssue(ORG_ID, ISSUE_ID))
                                 .willReturn(ApiResponse.success(null, "이슈가 삭제되었습니다."));
 
                 // When & Then
-                mockMvc.perform(delete("/api/projects/issues/{issueId}", ISSUE_ID))
+                mockMvc.perform(delete("/api/organizations/{orgId}/projects/{projectId}/issues/{issueId}", ORG_ID, PROJECT_ID, ISSUE_ID))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("OK"))
                                 .andExpect(jsonPath("$.message").value("이슈가 삭제되었습니다."));
 
-                then(issueService).should().deleteIssue(ISSUE_ID);
+                then(issueService).should().deleteIssue(ORG_ID, ISSUE_ID);
         }
 
         @Test
@@ -519,7 +519,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(issueTags, "이슈 태그 목록을 조회했습니다."));
 
                 // When & Then
-                mockMvc.perform(get("/api/projects/{projectId}/issues/tags", PROJECT_ID))
+                mockMvc.perform(get("/api/organizations/{orgId}/projects/{projectId}/issues/tags", ORG_ID, PROJECT_ID))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("OK"))
                                 .andExpect(jsonPath("$.message").value("이슈 태그 목록을 조회했습니다."));
@@ -537,7 +537,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "이슈 태그가 생성되었습니다."));
 
                 // When - Direct controller call to bypass aspects
-                ResponseEntity<ApiResponse<Void>> response = projectController.createIssueTag(PROJECT_ID, issueTagDTO);
+                ResponseEntity<ApiResponse<Void>> response = projectController.createIssueTag(PROJECT_ID, ORG_ID, issueTagDTO);
 
                 // Then
                 assertThat(response).isNotNull();
@@ -572,7 +572,7 @@ class ProjectControllerTest {
                                 .willReturn(ApiResponse.success(null, "이슈 태그가 삭제되었습니다."));
 
                 // When & Then
-                mockMvc.perform(delete("/api/projects/{projectId}/issues/tags/{issueTagId}", PROJECT_ID, ISSUE_TAG_ID))
+                mockMvc.perform(delete("/api/organizations/{orgId}/projects/{projectId}/issues/tags/{issueTagId}", ORG_ID, PROJECT_ID, ISSUE_TAG_ID))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("OK"))
                                 .andExpect(jsonPath("$.message").value("이슈 태그가 삭제되었습니다."));

@@ -79,15 +79,13 @@ public class MilestoneService {
     // 마일스톤 삭제
     @GitHubSync(operation = SyncOperation.DELETE, entityParam = "milestoneId")
     @Transactional
-    public ApiResponse<Void> deleteMilestone(Long milestoneId) {
+    public ApiResponse<Void> deleteMilestone(Long orgId, Long milestoneId) {
         if (milestoneId <= 0) {
             throw MilestoneException.milestoneNotFoundException();
         }
 
         MilestoneEntity milestoneEntity = milestoneRepository.findById(milestoneId)
                 .orElseThrow(() -> MilestoneException.milestoneNotFoundException());
-
-        Long orgId = milestoneEntity.getProjectEntity().getOrgEntity().getOrgId();
 
         // 권한 검사: 해당 회사의 멤버인지 확인
         Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);

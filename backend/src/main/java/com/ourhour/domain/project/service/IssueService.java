@@ -183,7 +183,7 @@ public class IssueService {
     // 이슈 수정
     @GitHubSync(operation = SyncOperation.UPDATE)
     @Transactional
-    public ApiResponse<IssueDetailDTO> updateIssue(Long issueId, IssueReqDTO issueReqDTO) {
+    public ApiResponse<IssueDetailDTO> updateIssue(Long orgId, Long issueId, IssueReqDTO issueReqDTO) {
         if (issueId <= 0) {
             throw IssueException.issueNotFoundException();
         }
@@ -191,7 +191,6 @@ public class IssueService {
         IssueEntity issueEntity = issueRepository.findById(issueId)
                 .orElseThrow(() -> IssueException.issueNotFoundException());
 
-        Long orgId = issueEntity.getProjectEntity().getOrgEntity().getOrgId();
         Long projectId = issueEntity.getProjectEntity().getProjectId();
 
         Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
@@ -263,7 +262,7 @@ public class IssueService {
     // 이슈 삭제
     @GitHubSync(operation = SyncOperation.DELETE, entityParam = "issueId")
     @Transactional
-    public ApiResponse<Void> deleteIssue(Long issueId) {
+    public ApiResponse<Void> deleteIssue(Long orgId, Long issueId) {
         if (issueId <= 0) {
             throw IssueException.issueNotFoundException();
         }
@@ -271,7 +270,6 @@ public class IssueService {
         IssueEntity issueEntity = issueRepository.findById(issueId)
                 .orElseThrow(() -> IssueException.issueNotFoundException());
 
-        Long orgId = issueEntity.getProjectEntity().getOrgEntity().getOrgId();
         Long projectId = issueEntity.getProjectEntity().getProjectId();
 
         Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);

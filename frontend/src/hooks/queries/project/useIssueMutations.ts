@@ -72,7 +72,7 @@ export const useIssueStatusUpdateMutation = (orgId: number, projectId: number) =
         exact: false,
       });
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, orgId, projectId],
         exact: false,
       });
     },
@@ -84,12 +84,12 @@ export const useIssueStatusUpdateMutation = (orgId: number, projectId: number) =
 // ======== 이슈 삭제 ========
 export const useIssueDeleteMutation = (issueId: number, orgId: number, projectId: number) =>
   useMutation({
-    mutationFn: () => deleteIssue({ issueId }),
+    mutationFn: () => deleteIssue({ orgId, projectId, issueId }),
 
     onSuccess: () => {
       showSuccessToast('이슈 삭제에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, projectId],
+        queryKey: [PROJECT_QUERY_KEYS.MILESTONE_LIST, orgId, projectId],
         exact: false,
       });
       queryClient.invalidateQueries({
@@ -104,13 +104,13 @@ export const useIssueDeleteMutation = (issueId: number, orgId: number, projectId
   });
 
 // ======== 이슈 태그 생성 ========
-export const useIssueTagCreateMutation = (projectId: number) =>
+export const useIssueTagCreateMutation = (orgId: number, projectId: number) =>
   useMutation({
     mutationFn: (request: PostCreateIssueTagRequest) => postCreateIssueTag(request),
     onSuccess: () => {
       showSuccessToast('이슈 태그 생성에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.ISSUE_TAG_LIST, projectId],
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_TAG_LIST, orgId, projectId],
         exact: false,
       });
     },
@@ -121,13 +121,13 @@ export const useIssueTagCreateMutation = (projectId: number) =>
   });
 
 // ======== 이슈 태그 수정 ========
-export const useIssueTagUpdateMutation = (projectId: number) =>
+export const useIssueTagUpdateMutation = (orgId: number, projectId: number) =>
   useMutation({
     mutationFn: (request: PutUpdateIssueTagRequest) => putUpdateIssueTag(request),
     onSuccess: () => {
       showSuccessToast('이슈 태그 수정에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.ISSUE_TAG_LIST, projectId],
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_TAG_LIST, orgId, projectId],
         exact: false,
       });
     },
@@ -137,13 +137,13 @@ export const useIssueTagUpdateMutation = (projectId: number) =>
   });
 
 // ======== 이슈 태그 삭제 ========
-export const useIssueTagDeleteMutation = (projectId: number) =>
+export const useIssueTagDeleteMutation = (orgId: number, projectId: number) =>
   useMutation({
     mutationFn: (request: DeleteIssueTagRequest) => deleteIssueTag(request),
     onSuccess: () => {
       showSuccessToast('이슈 태그 삭제에 성공하였습니다.');
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.ISSUE_TAG_LIST, projectId],
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_TAG_LIST, orgId, projectId],
         exact: false,
       });
     },
