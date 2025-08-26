@@ -24,6 +24,7 @@ public interface NotificationMapper {
     @Mapping(target = "relatedId", source = "dto.relatedId")
     @Mapping(target = "relatedType", source = "dto.relatedType")
     @Mapping(target = "actionUrl", source = "dto.actionUrl")
+    @Mapping(target = "relatedProjectName", source = "dto.relatedProjectName")
     @Mapping(target = "isRead", constant = "false")
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
     NotificationEntity toEntity(NotificationCreateReqDTO dto, UserEntity user);

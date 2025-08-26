@@ -5,16 +5,19 @@ import { Button } from '@/components/ui/button';
 
 export function HeroSection() {
   return (
-    <div className="container mx-auto px-4 py-16">
+    <section className="container mx-auto px-4 py-16" aria-labelledby="hero-heading" role="banner">
       <div className="grid lg:grid-cols-3 gap-12 items-center">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="space-y-4">
-            <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">
+        <article className="lg:col-span-2 space-y-8" aria-labelledby="hero-heading">
+          <header className="space-y-4">
+            <h1
+              id="hero-heading"
+              className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight"
+            >
               개발자를 위한, 개발자에 의한
               <br />
               <span className="text-[#467599]">그룹웨어</span>
             </h1>
-          </div>
+          </header>
 
           <h2 className="text-xl lg:text-2xl font-semibold text-gray-700 leading-relaxed">
             코드 협업부터 일정 관리까지, 하나로 끝낸다
@@ -29,15 +32,16 @@ export function HeroSection() {
               asChild
               size="lg"
               className="bg-[#467599] hover:bg-[#3a5f80] text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+              aria-label="서비스 시작하기"
             >
               <Link to="/start" search={{ page: 1 }}>
                 지금 시작하기
               </Link>
             </Button>
           </div>
-        </div>
+        </article>
 
-        <div className="lg:col-span-1 relative">
+        <aside className="lg:col-span-1 relative" aria-label="서비스 미리보기">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-[#467599]/20 to-[#A5C1D1]/20 rounded-2xl blur-xl" />
 
@@ -59,8 +63,8 @@ export function HeroSection() {
               </div>
             </div>
           </div>
-        </div>
+        </aside>
       </div>
-    </div>
+    </section>
   );
 }

@@ -32,35 +32,45 @@ export function ChatRoomPage({ orgId, roomId }: ChatRoomPageProps) {
   return (
     <SidebarProvider>
       <SidebarInset>
-        <div className=" py-8 h-[calc(100vh-140px)]">
+        <main className="py-8 h-[calc(100vh-140px)]" role="main" aria-label="채팅방">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-            <Card className="text-left h-full flex flex-col ">
-              <CardHeader className="flex-row items-center justify-between">
-                <RenamePopover orgId={orgId} roomId={roomId} />
-                <SidebarTrigger />
-              </CardHeader>
+            <article className="text-left h-full flex flex-col">
+              <Card className="text-left h-full flex flex-col">
+                <CardHeader className="flex-row items-center justify-between">
+                  <RenamePopover orgId={orgId} roomId={roomId} />
+                  <SidebarTrigger />
+                </CardHeader>
 
-              <Separator />
+                <Separator />
 
-              <CardContent className="bg-white p-6 grow min-h-0 w-full">
-                <ChatMessageList
-                  messages={messages}
-                  currentMemberId={currentMemberId}
-                  memberInfoMap={memberInfoMap}
-                  onLoadMorePrev={fetchPreviousPage}
-                  hasPreviousPage={hasPreviousPage}
-                  isFetchingPreviousPage={isFetchingPreviousPage}
-                />{' '}
-              </CardContent>
-              <CardFooter className="w-full px-4 py-3 border-t">
-                <ChatMessageInput onSendMessage={sendMessage} />
-              </CardFooter>
-            </Card>
+                <CardContent
+                  className="bg-white p-6 grow min-h-0 w-full"
+                  aria-label="채팅 메시지 영역"
+                >
+                  <ChatMessageList
+                    messages={messages}
+                    currentMemberId={currentMemberId}
+                    memberInfoMap={memberInfoMap}
+                    onLoadMorePrev={fetchPreviousPage}
+                    hasPreviousPage={hasPreviousPage}
+                    isFetchingPreviousPage={isFetchingPreviousPage}
+                  />
+                </CardContent>
+                <CardFooter className="w-full px-4 py-3 border-t" aria-label="메시지 입력 영역">
+                  <ChatMessageInput onSendMessage={sendMessage} />
+                </CardFooter>
+              </Card>
+            </article>
           </div>
-        </div>
+        </main>
       </SidebarInset>
 
-      <Sidebar variant="sidebar" side="right" className="mt-16 h-[calc(100vh-65px)]">
+      <Sidebar
+        variant="sidebar"
+        side="right"
+        className="mt-16 h-[calc(100vh-65px)]"
+        aria-label="채팅방 사이드바"
+      >
         <ChatRoomSidebarContent
           orgId={orgId}
           roomId={roomId}

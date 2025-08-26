@@ -22,4 +22,5 @@ public class NotificationDTO {
     private Long relatedId;
     private String relatedType;
     private String actionUrl;
+    private String relatedProjectName;
 }

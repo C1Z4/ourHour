@@ -188,7 +188,8 @@ public class IssueService {
                         savedIssueEntity.getName(),
                         savedIssueEntity.getIssueId(),
                         projectEntity.getProjectId(),
-                        projectEntity.getOrgEntity().getOrgId());
+                        projectEntity.getOrgEntity().getOrgId(),
+                        projectEntity.getName());
             }
         }
 
@@ -268,7 +269,8 @@ public class IssueService {
                         savedIssueEntity.getName(),
                         savedIssueEntity.getIssueId(),
                         savedIssueEntity.getProjectEntity().getProjectId(),
-                        savedIssueEntity.getProjectEntity().getOrgEntity().getOrgId());
+                        savedIssueEntity.getProjectEntity().getOrgEntity().getOrgId(),
+                        savedIssueEntity.getProjectEntity().getName());
             }
         }
 

@@ -14,9 +14,9 @@ interface Props {
 export const BoardListPage = ({ orgId, boardList, isLoading }: Props) => {
   if (isLoading) {
     return (
-      <div className="py-8">
+      <main className="py-8" role="main" aria-label="게시판 목록 페이지">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-left mb-8 flex justify-between items-center">
+          <header className="text-left mb-8 flex justify-between items-center">
             <div>
               <Skeleton className="h-9 w-48 mb-2" />
               <Skeleton className="h-5 w-80" />
@@ -24,9 +24,12 @@ export const BoardListPage = ({ orgId, boardList, isLoading }: Props) => {
             <div className="flex gap-2">
               <Skeleton className="h-9 w-32" />
             </div>
-          </div>
+          </header>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <section
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+            aria-label="로딩 중인 게시판 목록"
+          >
             <div className="p-8">
               <div className="rounded-lg border border-gray-200 overflow-hidden min-h-[182.5px]">
                 <div className="bg-gray-100 p-4">
@@ -69,16 +72,16 @@ export const BoardListPage = ({ orgId, boardList, isLoading }: Props) => {
                 ))}
               </div>
             </div>
-          </div>
+          </section>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="py-8">
+    <main className="py-8" role="main" aria-label="게시판 목록 페이지">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-left mb-8 flex justify-between items-center">
+        <header className="text-left mb-8 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">게시판</h1>
             <p className="text-gray-600">모든 게시판과 게시글을 확인해보세요</p>
@@ -86,13 +89,20 @@ export const BoardListPage = ({ orgId, boardList, isLoading }: Props) => {
           <div className="flex gap-2">
             <NewBoardModal orgId={orgId} />
           </div>
-        </div>
+        </header>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <section
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+          aria-label="게시판 목록"
+        >
           <div className="p-8">
             <AllPostsCard orgId={orgId} />
 
-            <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
+            <div
+              className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2"
+              role="list"
+              aria-label="게시판 카드 목록"
+            >
               {boardList.map((board) => (
                 <BoardCard
                   key={board.boardId}
@@ -103,8 +113,8 @@ export const BoardListPage = ({ orgId, boardList, isLoading }: Props) => {
               ))}
             </div>
           </div>
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 };

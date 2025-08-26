@@ -46,9 +46,12 @@ public class NotificationEntity {
 
     private String actionUrl;
 
+    private String relatedProjectName;
+
     @Builder
     public NotificationEntity(UserEntity userEntity, NotificationType type, String title, String message,
-            Long relatedId, String relatedType, String actionUrl, boolean isRead, LocalDateTime createdAt) {
+            Long relatedId, String relatedType, String actionUrl, String relatedProjectName, 
+            boolean isRead, LocalDateTime createdAt) {
         this.userEntity = userEntity;
         this.type = type;
         this.title = title;
@@ -56,6 +59,7 @@ public class NotificationEntity {
         this.relatedId = relatedId;
         this.relatedType = relatedType;
         this.actionUrl = actionUrl;
+        this.relatedProjectName = relatedProjectName;
         this.isRead = isRead;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
     }
