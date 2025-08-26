@@ -1,5 +1,6 @@
 package com.ourhour.domain.auth.dto;
 
+import com.ourhour.domain.user.enums.Platform;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +10,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OAuthSigninResDTO {
 
+    private boolean isNewUser;
+    private String email;
     private String oauthId;
-    private String platform;
+    private Platform platform;
+    private String accessToken;
+    private String refreshToken;
 
 }

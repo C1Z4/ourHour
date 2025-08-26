@@ -18,6 +18,4 @@ public interface UserMapper {
     @Mapping(target = "emailVerifiedAt", source = "emailVerifiedAt")
     UserEntity toUserEntity(SignupReqDTO signupReqDTO, String hashedPassword, LocalDateTime emailVerifiedAt);
 
-    // Entity -> DTO
-    OAuthSigninResDTO toOAuthSigninResDTO(UserEntity userEntity);
 }

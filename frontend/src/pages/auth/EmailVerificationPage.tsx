@@ -4,22 +4,20 @@ import { useDispatch } from 'react-redux';
 
 import { useRouter } from '@tanstack/react-router';
 
+import { SocialPlatform } from '@/api/auth/signApi';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { useVerifyEmail } from '@/hooks/queries/auth/useEmailMutations';
 import { Route as emailVerifyRoute } from '@/routes/auth/email-verification';
 import { setEmailVerificationLoading } from '@/stores/authSlice';
 import { getPendingSignup, setPendingSignup } from '@/utils/auth/pendingSignupStorage';
+import { getPendingSocialSignup } from '@/utils/auth/pendingSocialSignupStorage';
 
 export function EmailVerificationPage() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { token, successRedirect, failRedirect } = emailVerifyRoute.useSearch();
+  const { token } = emailVerifyRoute.useSearch();
   const hasRunEffect = useRef(false);
   const verifyEmailMutation = useVerifyEmail();
-
-  // 기본 리다이렉트 경로
-  const successPage = successRedirect || '/signup';
-  const failPage = failRedirect || '/start';
 
   useEffect(() => {
     if (hasRunEffect.current) {
@@ -29,7 +27,7 @@ export function EmailVerificationPage() {
 
     if (!token) {
       router.navigate({
-        to: failPage,
+        to: '/login',
         search: { reason: 'invalid_token' },
         replace: true,
       });
@@ -49,9 +47,30 @@ export function EmailVerificationPage() {
             setPendingSignup({ email: saved.email, isVerified: true });
           }
 
+          // 소셜 로그인 확인
+          const socialPending = getPendingSocialSignup();
+          if (socialPending) {
+            router.navigate({
+              to: '/oauth',
+              search: {
+                code: undefined,
+                error: undefined,
+                modal: 'extra_info',
+                mode: 'email-password',
+                oauthId: socialPending?.oauthData?.oauthId,
+                state: socialPending?.oauthData?.platform as SocialPlatform,
+                verified: 'success',
+              },
+              replace: true,
+            });
+
+            return;
+          }
+
+          // 일반 회원일 경우에만 이동
           setTimeout(() => {
             router.navigate({
-              to: successPage,
+              to: '/signup',
               search: { verified: 'success' },
               replace: true,
             });
@@ -66,7 +85,7 @@ export function EmailVerificationPage() {
         },
       },
     );
-  }, [token, router, verifyEmailMutation, dispatch, failPage, successPage]);
+  }, [token, router, verifyEmailMutation, dispatch]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">

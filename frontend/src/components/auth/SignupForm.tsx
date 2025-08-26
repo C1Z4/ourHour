@@ -132,7 +132,7 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
         {emailError && <p className="text-sm text-red-600 mt-1">{emailError}</p>}
 
         {/* 이메일 인증 버튼 */}
-        <div className="flex justify-end">
+        <div className="flex justify-start">
           <EmailVerificationButton
             email={email}
             disabled={!email || !!emailError || isEmailVerified}

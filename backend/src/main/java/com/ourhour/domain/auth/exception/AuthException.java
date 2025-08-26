@@ -77,8 +77,8 @@ public class AuthException extends BusinessException {
         return new AuthException(ErrorCode.EMAIL_NOT_MATCH, message);
     }
 
-    public static AuthException emailRequiredException() {
-        return new AuthException(ErrorCode.EMAIL_REQUIRED_FOR_GITHUB);
+    public static AuthException emailRequiredException(String oauthId) {
+        return new AuthException(ErrorCode.EMAIL_REQUIRED_FOR_GITHUB, oauthId);
     }
 
     public static AuthException pwdRequiredException() {
@@ -92,5 +92,9 @@ public class AuthException extends BusinessException {
 
     public static AuthException invalidEmailFormatException() {
         return new AuthException(ErrorCode.INVALID_EMAIL_FORMAT);
+    }
+
+    public static AuthException userAlreadyExistsSocialException() {
+        return new AuthException(ErrorCode.USER_ALREADY_SOCIAL);
     }
 }

@@ -12,6 +12,7 @@ import com.ourhour.domain.user.mapper.UserMapper;
 import com.ourhour.domain.user.repository.UserRepository;
 import com.ourhour.global.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -68,13 +70,9 @@ public class OAuthService {
 
         String oauthId;
         String email;
-        String hashedPassword = passwordEncoder.encode(UUID.randomUUID().toString());
         if (platform == Platform.GITHUB) {
             oauthId = String.valueOf(userInfo.get("id"));
             email = (String) userInfo.get("email");
-            if (email == null) {
-                throw AuthException.emailRequiredException();
-            }
         } else if (platform == Platform.GOOGLE) {
             oauthId = (String) userInfo.get("id");
             email = (String) userInfo.get("email");
@@ -82,32 +80,35 @@ public class OAuthService {
             throw new IllegalArgumentException("지원하지 않는 OAuth 플랫폼: " + platform);
         }
 
-        // DB에서 기존 User 확인(로그인), 없을 시 새로 생성(자동 회원가입)
-        String finalEmail = email;
-        UserEntity userEntity = userRepository.findByPlatformAndOauthId(platform, oauthId)
-                .orElseGet(() -> userRepository.save(
-                        UserEntity.builder()
-                                .email(finalEmail)
-                                .password(hashedPassword)
-                                .platform(platform)
-                                .oauthId(oauthId)
-                                .build()
-                ));
+        // 기존 유저 확인
+        Optional<UserEntity> existingUser = userRepository.findByPlatformAndOauthId(platform, oauthId);
 
-        // UserEntity -> OAuthSigninResDTO 매핑
-        OAuthSigninResDTO oAuthSigninResDTO = userMapper.toOAuthSigninResDTO(userEntity);
+        if (existingUser.isPresent()) {
+            // 기존 유저 -> 바로 로그인
+            UserEntity userEntity = existingUser.get();
+            String jwtAccessToken = jwtTokenProvider.generateAccessToken(authServiceHelper.createClaims(userEntity));
+            String jwtRefreshToken = jwtTokenProvider.generateRefreshToken(authServiceHelper.createClaims(userEntity));
 
-        return oAuthSigninResDTO;
+            // refresh token DB 저장
+            authServiceHelper.saveRefreshToken(userEntity, jwtRefreshToken);
 
+            return new OAuthSigninResDTO(false, null, null, null, jwtAccessToken, jwtRefreshToken);
+        } else {
+            // 신규 유저 -> 추가 정보 필요
+            return new OAuthSigninResDTO(true, email, oauthId, platform, null, null);
+        }
     }
 
-    // 소셜 로그인 시 추가 정보 API
+    // 소셜 로그인 시(신규 유저) 추가 정보 API
     @Transactional
-    public SigninResDTO processExtraInfo(OAuthExtraInfoReqDTO oAuthExtraInfoReqDTO) {
+    public OAuthSigninResDTO processExtraInfo(OAuthExtraInfoReqDTO oAuthExtraInfoReqDTO) {
+        String email = oAuthExtraInfoReqDTO.getEmail();
+        String oauthId = oAuthExtraInfoReqDTO.getOauthId();
+        Platform platform = oAuthExtraInfoReqDTO.getPlatform();
 
         // github 비공개 이메일 -> email 필수 입력 예외
         if (oAuthExtraInfoReqDTO.getPlatform() == Platform.GITHUB && (oAuthExtraInfoReqDTO.getEmail() == null || oAuthExtraInfoReqDTO.getEmail().isBlank())) {
-            throw AuthException.emailRequiredException();
+            throw AuthException.emailRequiredException(oauthId);
         }
 
         // 비밀번호 미입력 예외
@@ -115,19 +116,14 @@ public class OAuthService {
             throw AuthException.pwdRequiredException();
         }
 
-        // 유저 생성
-        UserEntity userEntity = userRepository.findByPlatformAndOauthId(oAuthExtraInfoReqDTO.getPlatform(), oAuthExtraInfoReqDTO.getOauthId())
-                .orElseGet(() -> {
-                            UserEntity newUser = UserEntity.builder()
-                                    .email(oAuthExtraInfoReqDTO.getEmail())
-                                    .password(passwordEncoder.encode(oAuthExtraInfoReqDTO.getPassword()))
-                                    .platform(oAuthExtraInfoReqDTO.getPlatform())
-                                    .oauthId(oAuthExtraInfoReqDTO.getOauthId())
-                                    .build();
-
-                            return userRepository.save(newUser);
-                        }
-                );
+        // 신규 유저 생성
+        UserEntity userEntity = UserEntity.builder()
+                .email(email)
+                .password(passwordEncoder.encode(oAuthExtraInfoReqDTO.getPassword()))
+                .oauthId(oauthId)
+                .platform(platform)
+                .build();
+        userRepository.save(userEntity);
 
         // JWT 토큰 발급
         String jwtAccessToken = jwtTokenProvider.generateAccessToken(authServiceHelper.createClaims(userEntity));
@@ -136,7 +132,7 @@ public class OAuthService {
         // refresh token DB 저장
         authServiceHelper.saveRefreshToken(userEntity, jwtRefreshToken);
 
-        return new SigninResDTO(jwtAccessToken, jwtRefreshToken);
+        return new OAuthSigninResDTO(false, email, oauthId, platform, jwtAccessToken, jwtRefreshToken);
 
     }
 

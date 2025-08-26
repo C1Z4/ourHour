@@ -2,7 +2,6 @@ import { useMutation } from '@tanstack/react-query';
 
 import { AxiosError } from 'axios';
 
-import { postSendEmailVerification, SendEmailVerificationRequest } from '@/api/auth/emailApi';
 import {
   OauthExtraInfoRequest,
   postOauthExtraInfo,
@@ -30,9 +29,9 @@ export const useSigninMutation = () =>
   });
 
 // ========소셜 로그인 ========
-export const useSocialSigninMutation = (request: SocialSigninRequest) =>
+export const useSocialSigninMutation = () =>
   useMutation({
-    mutationFn: () => postOauthSignin(request),
+    mutationFn: (request: SocialSigninRequest) => postOauthSignin(request),
     onError: (error: AxiosError) => {
       showErrorToast(getErrorMessage(error));
     },

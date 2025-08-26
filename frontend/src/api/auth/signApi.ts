@@ -47,8 +47,12 @@ export interface SocialSigninRequest {
 }
 
 interface OauthSigninResponse {
-  oauthId: string;
-  platform: SocialPlatform;
+  email: string;
+  oauthId?: string;
+  platform?: SocialPlatform;
+  accessToken?: string;
+  refreshToken?: string;
+  newUser: boolean;
 }
 
 export const postOauthSignin = async (
@@ -72,24 +76,12 @@ export interface OauthExtraInfoRequest {
   password: string;
 }
 
-interface SocialSigninResponse extends SigninResponse {
-  accessToken: string;
-  refreshToken: string | null;
-}
-
 export const postOauthExtraInfo = async (
   request: OauthExtraInfoRequest,
-): Promise<ApiResponse<SocialSigninResponse>> => {
+): Promise<ApiResponse<OauthSigninResponse>> => {
   try {
-    const response = await axiosInstance.post('/api/auth/oauth-extra-info', request);
-    const accessToken = response.data.data.accessToken;
+    const response = await axiosInstance.post('/api/auth/oauth-signin/extra-info', request);
 
-    if (accessToken) {
-      loginUser(accessToken);
-      if (import.meta.env.DEV) {
-        console.log(accessToken);
-      }
-    }
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);
