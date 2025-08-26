@@ -17,9 +17,13 @@ import { useMyOrgListQuery } from '@/hooks/queries/member/useMemberQueries';
 import { useOrgCreateMutation } from '@/hooks/queries/org/useOrgMutations';
 import { setMemberName } from '@/stores/memberSlice';
 import { setCurrentOrgId } from '@/stores/orgSlice';
+import { requireAuth } from '@/utils/auth/routeGuards';
 import { getImageUrl } from '@/utils/file/imageUtils';
 
 export const Route = createFileRoute('/start')({
+  beforeLoad: async () => {
+    await requireAuth();
+  },
   component: StartPage,
   validateSearch: (search: Record<string, unknown>) => ({
     page: search.page ? Number(search.page) : 1,
