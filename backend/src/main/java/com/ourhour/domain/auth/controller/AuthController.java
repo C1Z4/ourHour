@@ -90,18 +90,20 @@ public class AuthController {
 
     @PostMapping("/oauth-signin")
     @Operation(summary = "소셜 로그인", description = "platform 필드(github 또는 google)에 따라 로그인을 수행하고 액세스/리프레시 토큰을 발급합니다. refresh token은 HTTP Only 쿠키로 발급됩니다.")
-    public ResponseEntity<ApiResponse<OAuthSigninResDTO>> oauthSignin(@RequestBody OAuthSigninReqDTO oAuthSigninReqDTO, HttpServletResponse response) {
-    public ResponseEntity<ApiResponse<SigninResDTO>> oauthSignin(
-            @Valid @RequestBody OAuthSigninReqDTO oAuthSigninReqDTO, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<OAuthSigninResDTO>> oauthSignin(@RequestBody OAuthSigninReqDTO oAuthSigninReqDTO,
+            HttpServletResponse response) {
 
         OAuthSigninResDTO oAuthSigninResDTO = oAuthService.signinWithOAuth(oAuthSigninReqDTO);
 
         String refreshToken = oAuthSigninResDTO.getRefreshToken();
 
         // refresh token 쿠키 세팅 및 응답 헤더 설정
-        authServiceHelper.setTokenCookie("refreshToken", refreshToken, cookieSecure, cookieSameSite, refreshTokenValidityInSeconds, response);
+        authServiceHelper.setTokenCookie("refreshToken", refreshToken, cookieSecure, cookieSameSite,
+                refreshTokenValidityInSeconds, response);
 
-        ApiResponse<OAuthSigninResDTO> apiResponse = ApiResponse.succes s(oAuthSigninResDTO, "소셜로그인 인증이 성공되었습니다.");
+        ApiResponse<OAuthSigninResDTO> apiResponse =
+
+                ApiResponse.success(oAuthSigninResDTO, "소셜로그인 인증이 성공되었습니다.");
 
         return ResponseEntity.ok(apiResponse);
     }
@@ -119,9 +121,8 @@ public class AuthController {
         authServiceHelper.setTokenCookie("refreshToken", refreshToken, cookieSecure, cookieSameSite,
                 refreshTokenValidityInSeconds, response);
 
-        ApiResponse<SigninResDTO> apiResponse = ApiResponse.success(
-                new SigninResDTO(signinResDTO.getAccessToken(), null), oAuthSigninReqDTO.getPlatform() + ": 로그인 성공");
-        ApiResponse<OAuthSigninResDTO> apiResponse = ApiResponse.success(oAuthSigninResDTO, oAuthExtraInfoReqDTO.getPlatform() + ": 로그인 성공");
+        ApiResponse<OAuthSigninResDTO> apiResponse = ApiResponse.success(oAuthSigninResDTO,
+                oAuthExtraInfoReqDTO.getPlatform() + ": 로그인 성공");
 
         return ResponseEntity.ok(apiResponse);
     }
