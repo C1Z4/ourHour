@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { type SSEEvent } from '@/types/notificationTypes';
 
 import { postSseToken } from '@/api/auth/signApi';
+import { getAccessTokenFromStore } from '@/utils/auth/tokenUtils';
 
 interface UseSSEOptions {
   url: string;
@@ -26,6 +27,14 @@ export function useSSE({ url, onMessage, onError, onOpen, enabled = true }: UseS
 
   // 연결 시도
   const connect = useCallback(async () => {
+    // 메모리에 access token이 없으면 1초 후 재시도
+    if (!getAccessTokenFromStore()) {
+      setTimeout(() => {
+        connect();
+      }, 1000);
+      return;
+    }
+
     if (!enabled) {
       return;
     }
