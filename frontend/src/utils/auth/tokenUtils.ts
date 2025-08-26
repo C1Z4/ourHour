@@ -22,6 +22,24 @@ export const logout = () => {
   window.location.href = '/login';
 };
 
+// SSE 토큰 발급 요청
+export const generateSseToken = async (): Promise<boolean> => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/sse-token`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${getAccessTokenFromStore()}`,
+      },
+      credentials: 'include',
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('SSE 토큰 생성 실패:', error);
+    return false;
+  }
+};
+
 // 앱 시작 시 서버 토큰 검증을 통해 인증 상태 복원
 export const restoreAuthFromServer = async (): Promise<boolean> => {
   try {

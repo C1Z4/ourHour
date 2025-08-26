@@ -26,7 +26,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String requestURI = request.getRequestURI();
 
         // 민감 정보 응답에 대한 캐시 방지 헤더 추가
@@ -66,6 +67,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Authentication authentication = jwtTokenProvider.getAuthenticationFromToken(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+
         }
 
         // 다음 필터로 요청 전달
@@ -77,6 +79,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
 
         // 인증이 필요 없는 URL 목록
+
         String[] permitAllUrls = concatArrays(
                 AuthPath.PUBLIC_URLS,
                 AuthPath.SWAGGER_URLS,
@@ -89,6 +92,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 .anyMatch(pattern -> pathMatcher.match(pattern, requestURI));
     }
 
+
     // 여러 문자열 배열을 하나로 합치는 헬퍼 메서드
     private String[] concatArrays(String[]... arrays) {
         return Arrays.stream(arrays)
@@ -97,6 +101,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     // 헤더 또는 쿠키에서 토큰 추출 (SSE의 경우)
+
     private String getToken(HttpServletRequest request) {
         // 헤더에서 토큰 추출 (일반 API 요청)
         String bearer = request.getHeader("Authorization");
@@ -113,6 +118,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
+
                     if ("sseToken".equals(cookie.getName())) {
                         return cookie.getValue();
                     }

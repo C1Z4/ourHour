@@ -37,6 +37,7 @@ import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.domain.project.exception.MilestoneException;
 import com.ourhour.domain.project.exception.IssueException;
 import com.ourhour.domain.project.annotation.GitHubSync;
+import com.ourhour.domain.notification.service.NotificationEventService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,7 @@ public class IssueService {
     private final ProjectParticipantService projectParticipantService;
     private final IssueTagRepository issueTagRepository;
     private final IssueTagMapper issueTagMapper;
+    private final NotificationEventService notificationEventService;
 
     // 특정 마일스톤의 이슈 목록 조회 (milestoneId가 null이면 마일스톤이 할당되지 않은 이슈들 조회)
     public ApiResponse<PageResponse<IssueSummaryDTO>> getMilestoneIssues(Long projectId, Long milestoneId,
@@ -175,6 +177,22 @@ public class IssueService {
 
         IssueEntity savedIssueEntity = issueRepository.save(issueEntity);
 
+        if (savedIssueEntity.getAssigneeEntity() != null) {
+            // 본인을 할당한 경우 알림 전송하지 않음
+            Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(projectEntity.getOrgEntity().getOrgId());
+            if (currentMemberId != null && currentMemberId.equals(savedIssueEntity.getAssigneeEntity().getMemberId())) {
+            } else {
+                Long targetUserId = savedIssueEntity.getAssigneeEntity().getUserEntity().getUserId();
+                notificationEventService.sendIssueAssignedNotification(
+                        targetUserId,
+                        savedIssueEntity.getName(),
+                        savedIssueEntity.getIssueId(),
+                        projectEntity.getProjectId(),
+                        projectEntity.getOrgEntity().getOrgId(),
+                        projectEntity.getName());
+            }
+        }
+
         IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(savedIssueEntity);
 
         return ApiResponse.success(issueDetailDTO, "이슈 등록에 성공했습니다.");
@@ -207,7 +225,10 @@ public class IssueService {
 
         issueMapper.updateIssueEntity(issueEntity, issueReqDTO);
 
-        if (issueReqDTO.getAssigneeId() != null) {
+        // 할당자 변경 감지를 위해 수정 전 할당자 정보 저장
+        MemberEntity previousAssignee = issueEntity.getAssigneeEntity();
+
+        if (issueReqDTO.getAssigneeId() != null && issueReqDTO.getAssigneeId() > 0) {
             MemberEntity assignee = memberRepository.findById(issueReqDTO.getAssigneeId())
                     .orElseThrow(() -> MemberException.memberNotFoundException());
             issueEntity.setAssigneeEntity(assignee);
@@ -233,6 +254,25 @@ public class IssueService {
         }
 
         IssueEntity savedIssueEntity = issueRepository.save(issueEntity);
+
+        if (savedIssueEntity.getAssigneeEntity() != null &&
+                (previousAssignee == null || !previousAssignee.getMemberId()
+                        .equals(savedIssueEntity.getAssigneeEntity().getMemberId()))) {
+
+            // 본인을 할당한 경우 알림 전송하지 않음
+            Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+            if (currentMemberId != null && currentMemberId.equals(savedIssueEntity.getAssigneeEntity().getMemberId())) {
+            } else {
+                Long targetUserId = savedIssueEntity.getAssigneeEntity().getUserEntity().getUserId();
+                notificationEventService.sendIssueAssignedNotification(
+                        targetUserId,
+                        savedIssueEntity.getName(),
+                        savedIssueEntity.getIssueId(),
+                        savedIssueEntity.getProjectEntity().getProjectId(),
+                        savedIssueEntity.getProjectEntity().getOrgEntity().getOrgId(),
+                        savedIssueEntity.getProjectEntity().getName());
+            }
+        }
 
         IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(savedIssueEntity);
 

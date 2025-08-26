@@ -44,17 +44,33 @@ export function ModalComponent({
       <DialogContent
         className={cn(sizeClasses[size], 'max-h-[90vh] flex flex-col p-5', className)}
         onOpenAutoFocus={(e) => e.preventDefault()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? 'modal-title' : undefined}
+        aria-describedby={description ? 'modal-description' : undefined}
       >
         {(title || description) && (
           <DialogHeader className="flex-shrink-0">
-            {title && <DialogTitle>{title}</DialogTitle>}
-            {description && <DialogDescription>{description}</DialogDescription>}
+            {title && <DialogTitle id="modal-title">{title}</DialogTitle>}
+            {description && (
+              <DialogDescription id="modal-description">{description}</DialogDescription>
+            )}
           </DialogHeader>
         )}
 
-        <div className="flex-1 overflow-y-auto py-4 min-h-0 p-2">{children}</div>
+        <div
+          className="flex-1 overflow-y-auto py-4 min-h-0 p-2"
+          role="main"
+          aria-label="모달 콘텐츠"
+        >
+          {children}
+        </div>
 
-        {footer && <DialogFooter className="flex-shrink-0">{footer}</DialogFooter>}
+        {footer && (
+          <DialogFooter className="flex-shrink-0" role="contentinfo">
+            {footer}
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

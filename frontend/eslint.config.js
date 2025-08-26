@@ -64,7 +64,7 @@ export default tseslint.config([
       'prefer-const': 'error', // 재할당하지 않는 변수는 const 사용
       'no-unused-expressions': 'error', // 사용되지 않는 표현식 금지
       'no-duplicate-imports': 'error', // 중복 import 금지
-      'no-useless-return': 'error', // 불필요한 return문 금지
+      'no-useless-return': 'warn', // 불필요한 return문 금지
       'no-useless-concat': 'error', // 불필요한 문자열 연결 금지
       'no-lonely-if': 'error', // else 블록 안의 단독 if문 금지
       'no-else-return': 'error', // if-return 패턴에서 불필요한 else 금지

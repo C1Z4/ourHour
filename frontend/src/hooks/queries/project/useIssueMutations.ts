@@ -51,7 +51,7 @@ export const useIssueUpdateMutation = (issueId: number, orgId: number, projectId
         exact: false,
       });
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.ISSUE_DETAIL, issueId],
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_DETAIL, orgId, issueId],
         exact: false,
       });
     },

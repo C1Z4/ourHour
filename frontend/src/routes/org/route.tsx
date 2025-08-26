@@ -5,9 +5,16 @@ import { AppSidebar } from '@/components/common/left-sidebar/AppSidebarComponent
 import { NavigationMenuComponent } from '@/components/common/navigation-menu/NavigationMenuComponent';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { requireOrgMember } from '@/utils/auth/routeGuards';
+import { generateSseToken } from '@/utils/auth/tokenUtils';
 
 export const Route = createFileRoute('/org')({
   beforeLoad: async () => {
+    const { pathname } = window.location;
+
+    // 초대 수락 경로는 검사에서 제외하는 조건 추가
+    if (pathname.includes('/invite/verify')) {
+      return;
+    }
     // 모든 org 하위 라우트에 대해 orgId를 추출하여 회사 구성원 확인
     const pathSegments = window.location.pathname.split('/');
     const orgIdIndex = pathSegments.indexOf('org') + 1;
@@ -16,6 +23,9 @@ export const Route = createFileRoute('/org')({
     if (orgId) {
       await requireOrgMember(orgId);
     }
+
+    // sse 토큰 발급
+    generateSseToken();
   },
   component: DefaultLayoutComponent,
 });

@@ -59,6 +59,86 @@ class Post:
     title: str
     content: str
 
+@dataclass
+class ProjectInfo:
+    """프로젝트 상세 정보"""
+    projectId: int
+    name: str
+    description: str
+    repoUrl: Optional[str]
+    isGithubLinked: bool
+    openIssueCount: int
+    closeIssueCount: int
+    totalIssueCount: int
+    milestoneCount: int
+    participantCount: int
+    createdAt: datetime
+    updatedAt: datetime
+
+@dataclass
+class ProjectParticipant:
+    """프로젝트 참가자 정보"""
+    memberId: int
+    name: str
+    email: str
+    phone: str
+    deptName: str
+    positionName: str
+    profileImgUrl: Optional[str]
+
+@dataclass
+class MilestoneInfo:
+    """마일스톤 정보"""
+    milestoneId: int
+    name: str
+    description: Optional[str]
+    dueDate: Optional[datetime]
+    state: str
+    openIssueCount: int
+    closeIssueCount: int
+    totalIssueCount: int
+
+@dataclass
+class IssueSummary:
+    """이슈 요약 정보"""
+    issueId: int
+    title: str
+    content: str
+    state: str
+    labels: List[str]
+    assignees: List[str]
+    milestoneTitle: Optional[str]
+    createdAt: datetime
+    updatedAt: datetime
+
+@dataclass
+class IssueDetail:
+    """이슈 상세 정보"""
+    issueId: int
+    title: str
+    content: str
+    state: str
+    labels: List[str]
+    assignees: List[str]
+    milestoneTitle: Optional[str]
+    authorName: str
+    authorEmail: str
+    createdAt: datetime
+    updatedAt: datetime
+
+@dataclass
+class CommentInfo:
+    """댓글 정보"""
+    commentId: int
+    content: str
+    authorName: str
+    authorEmail: str
+    authorProfileImg: Optional[str]
+    likeCount: int
+    isLiked: bool
+    createdAt: datetime
+    updatedAt: datetime
+
 class OurhourResponse(BaseModel):
     success: bool
     data: Optional[dict] = None
