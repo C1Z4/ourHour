@@ -5,6 +5,7 @@ import { AppSidebar } from '@/components/common/left-sidebar/AppSidebarComponent
 import { NavigationMenuComponent } from '@/components/common/navigation-menu/NavigationMenuComponent';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { requireOrgMember } from '@/utils/auth/routeGuards';
+import { generateSseToken } from '@/utils/auth/tokenUtils';
 
 export const Route = createFileRoute('/org')({
   beforeLoad: async () => {
@@ -22,6 +23,9 @@ export const Route = createFileRoute('/org')({
     if (orgId) {
       await requireOrgMember(orgId);
     }
+
+    // sse 토큰 발급
+    generateSseToken();
   },
   component: DefaultLayoutComponent,
 });
