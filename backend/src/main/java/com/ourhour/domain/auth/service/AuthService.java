@@ -8,6 +8,7 @@ import com.ourhour.domain.auth.repository.EmailVerificationRepository;
 import com.ourhour.domain.auth.repository.RefreshTokenRepository;
 import com.ourhour.domain.auth.util.AuthServiceHelper;
 import com.ourhour.domain.user.entity.UserEntity;
+import com.ourhour.domain.user.enums.Platform;
 import com.ourhour.domain.user.mapper.UserMapper;
 import com.ourhour.domain.user.repository.UserRepository;
 import com.ourhour.global.jwt.JwtTokenProvider;
@@ -79,6 +80,11 @@ public class AuthService {
         // 사용자 탈퇴 여부 확인
         if (userEntity.isDeleted()) {
             throw deactivatedAccountException();
+        }
+
+        // 소셜 로그인 이력 확인
+        if (userEntity.getPlatform() != Platform.OURHOUR) {
+            throw AuthException.userAlreadyExistsSocialException();
         }
 
         // 비밀번호 일치 여부 확인

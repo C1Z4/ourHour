@@ -9,6 +9,7 @@ public final class AuthPath {
         "/api/auth/signup",
         "/api/auth/signin",
         "/api/auth/oauth-signin",
+            "/api/auth/oauth-signin/extra-info",
         "/api/auth/email-verification",
         "/api/auth/token",
         "/api/auth/password-reset"

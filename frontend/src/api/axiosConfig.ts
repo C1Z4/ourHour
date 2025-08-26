@@ -11,6 +11,7 @@ const PUBLIC_PATHS = [
   '/api/auth/email-verification',
   '/api/auth/signin',
   '/api/auth/oauth-signin',
+  '/api/auth/oauth-signin/extra-info',
   '/api/auth/password-reset',
 ];
 

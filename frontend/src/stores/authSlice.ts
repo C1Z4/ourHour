@@ -1,13 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { storageUtils } from '@/utils/storage';
-
 interface AuthState {
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   rememberedEmail: string | null;
   shouldRememberEmail: boolean;
+  pendingEmail: string | null;
+  isVerified: boolean;
+  emailVerificationLoading: boolean;
 }
 
 const initialState: AuthState = {
@@ -16,6 +17,9 @@ const initialState: AuthState = {
   isLoading: true,
   rememberedEmail: null,
   shouldRememberEmail: false,
+  pendingEmail: null, // 입력 중인 이메일
+  isVerified: false, // 이메일 인증 상태
+  emailVerificationLoading: false, // 이메일 인증 관련 로딩
 };
 
 const authSlice = createSlice({
@@ -46,6 +50,15 @@ const authSlice = createSlice({
     setShouldRememberEmail: (state, action: PayloadAction<boolean>) => {
       state.shouldRememberEmail = action.payload;
     },
+    setPendingEmail: (state, action: PayloadAction<string | null>) => {
+      state.pendingEmail = action.payload;
+    },
+    setIsVerified: (state, action: PayloadAction<boolean>) => {
+      state.isVerified = action.payload;
+    },
+    setEmailVerificationLoading: (state, action: PayloadAction<boolean>) => {
+      state.emailVerificationLoading = action.payload;
+    },
   },
 });
 
@@ -56,5 +69,8 @@ export const {
   setLoading,
   setRememberedEmail,
   setShouldRememberEmail,
+  setPendingEmail,
+  setIsVerified,
+  setEmailVerificationLoading,
 } = authSlice.actions;
 export default authSlice.reducer;

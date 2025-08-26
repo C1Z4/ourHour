@@ -1,7 +1,7 @@
 package com.ourhour.domain.auth.controller;
 
 import com.ourhour.domain.auth.dto.PwdResetReqDTO;
-import com.ourhour.domain.auth.dto.PwdResetVerificationReqDTO;
+import com.ourhour.domain.auth.dto.EmailVerificationReqDTO;
 import com.ourhour.domain.auth.service.PasswordResetService;
 import com.ourhour.global.common.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -28,11 +28,11 @@ public class PasswordResetController {
     @PostMapping("/verification")
     @Operation(summary = "재설정 메일 발송", description = "비밀번호 재설정 인증 메일을 발송합니다.")
     public ResponseEntity<ApiResponse<String>> sendEmailPwdResetVerificationLink(
-            @Valid @RequestBody PwdResetVerificationReqDTO pwdResetVerificationReqDTO) {
+            @Valid @RequestBody EmailVerificationReqDTO emailVerificationReqDTO) {
 
-        passwordResetService.sendEmailPwdResetVerificationLink(pwdResetVerificationReqDTO.getEmail());
+        passwordResetService.sendEmailPwdResetVerificationLink(emailVerificationReqDTO.getEmail());
 
-        ApiResponse<String> apiResponse = ApiResponse.success(pwdResetVerificationReqDTO.getEmail(),
+        ApiResponse<String> apiResponse = ApiResponse.success(emailVerificationReqDTO.getEmail(),
                 "비밀번호 재설정을 위한 이메일 인증 링크가 전송되었습니다.");
 
         return ResponseEntity.ok(apiResponse);
