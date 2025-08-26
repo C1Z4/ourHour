@@ -2,7 +2,7 @@ name: CI-CD
 
 on:
   push:
-    branches: ["main", "release"]
+    branches: ["main", "release", "test"]
   pull_request:
     branches: ["develop", "main", "release"]
 
@@ -90,7 +90,7 @@ jobs:
   build-docker:
     needs: build-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/release' || github.ref == 'refs/heads/main')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/release' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test')
 
     steps:
       - name: Checkout source code
@@ -116,7 +116,7 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "backend=ourhour-backend:release-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-          elif [[ "${GITHUB_REF}" == "refs/heads/release" ]]; then
+          elif [[ "${GITHUB_REF}" == "refs/heads/test" ]]; then
             echo "backend=ourhour-backend:test-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           fi
 
@@ -129,6 +129,48 @@ jobs:
           tags: ${{ (secrets.DOCKER_USERNAME != '' && format('{0}/{1}', secrets.DOCKER_USERNAME, steps['image-tags'].outputs.backend)) || format('myuser/{0}', steps['image-tags'].outputs.backend) }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # 배포 태스트용 (test 브랜치) - AWS
+  deploy-docker-test-test:
+    needs: [ build-test, build-docker ]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/test' && github.event_name == 'push'
+    environment: development
+
+    # 백엔드, db, redis
+    steps:
+      - name: Deploy with Docker to test
+        timeout-minutes: 30
+        uses: appleboy/ssh-action@v1.0.3
+        continue-on-error: true
+        with:
+          host: ${{ secrets.PROD_EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          command_timeout: 1h
+          script: |
+            cd /home/ubuntu/ourHour
+
+            # 최신 release 브랜치 pull
+            git fetch origin
+            git checkout test
+            git reset --hard origin/test
+
+            echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+            docker compose down -p ourhour-test || true            
+
+            # 환경 변수 세팅
+            chmod +x ./generate-env.sh
+            ./generate-env.sh test 
+
+            # 백엔드 이미지 pull
+            docker pull ${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
+            export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
+
+            docker compose -p ourhour-test-test up -d
+
+            docker image prune -f
 
   # 배포 태스트용 (release 브랜치) - AWS
   deploy-docker-test:
