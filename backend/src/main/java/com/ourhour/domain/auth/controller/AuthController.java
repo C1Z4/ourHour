@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.Authentication;
-import jakarta.servlet.http.Cookie;
 
 @RestController
 @RequiredArgsConstructor
@@ -78,7 +77,8 @@ public class AuthController {
         String refreshToken = signinResDTO.getRefreshToken();
 
         // refresh token 쿠키 세팅 및 응답 헤더 설정
-        authServiceHelper.setRefreshTokenCookie(refreshToken, cookieSecure, cookieSameSite, refreshTokenValidityInSeconds, response);
+        authServiceHelper.setTokenCookie("refreshToken", refreshToken, cookieSecure, cookieSameSite,
+                refreshTokenValidityInSeconds, response);
 
         ApiResponse<SigninResDTO> signinResDTOApiResponse = ApiResponse
                 .success(new SigninResDTO(signinResDTO.getAccessToken(), null), "로그인이 완료되었습니다.");
@@ -88,16 +88,19 @@ public class AuthController {
 
     @PostMapping("/oauth-signin")
     @Operation(summary = "소셜 로그인", description = "platform 필드(github 또는 google)에 따라 로그인을 수행하고 액세스/리프레시 토큰을 발급합니다. refresh token은 HTTP Only 쿠키로 발급됩니다.")
-    public ResponseEntity<ApiResponse<SigninResDTO>> oauthSignin(@Valid @RequestBody OAuthSigninReqDTO oAuthSigninReqDTO, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<SigninResDTO>> oauthSignin(
+            @Valid @RequestBody OAuthSigninReqDTO oAuthSigninReqDTO, HttpServletResponse response) {
 
         SigninResDTO signinResDTO = oAuthService.signinWithOAuth(oAuthSigninReqDTO);
 
         String refreshToken = signinResDTO.getRefreshToken();
 
         // refresh token 쿠키 세팅 및 응답 헤더 설정
-        authServiceHelper.setRefreshTokenCookie(refreshToken, cookieSecure, cookieSameSite, refreshTokenValidityInSeconds, response);
+        authServiceHelper.setTokenCookie("refreshToken", refreshToken, cookieSecure, cookieSameSite,
+                refreshTokenValidityInSeconds, response);
 
-        ApiResponse<SigninResDTO> apiResponse = ApiResponse.success(new SigninResDTO(signinResDTO.getAccessToken(), null), oAuthSigninReqDTO.getPlatform() + ": 로그인 성공");
+        ApiResponse<SigninResDTO> apiResponse = ApiResponse.success(
+                new SigninResDTO(signinResDTO.getAccessToken(), null), oAuthSigninReqDTO.getPlatform() + ": 로그인 성공");
 
         return ResponseEntity.ok(apiResponse);
     }
@@ -122,7 +125,7 @@ public class AuthController {
         authService.signout();
 
         // refresh token 삭제
-        authServiceHelper.setRefreshTokenCookie("", cookieSecure, cookieSameSite, 0, response);
+        authServiceHelper.setTokenCookie("refreshToken", "", cookieSecure, cookieSameSite, 0, response);
 
         ApiResponse<Void> apiResponse = ApiResponse.success(null, "로그아웃에 성공했습니다.");
 
@@ -131,8 +134,9 @@ public class AuthController {
 
     @PostMapping("/sse-token")
     @Operation(summary = "SSE 토큰 발급", description = "SSE 연결을 위한 단기 토큰을 발급하고 쿠키에 설정합니다.")
-    public ResponseEntity<ApiResponse<Void>> generateSseToken(Authentication authentication, HttpServletResponse response) {
-        
+    public ResponseEntity<ApiResponse<Void>> generateSseToken(Authentication authentication,
+            HttpServletResponse response) {
+
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Long userId = userDetails.getUserId();
 
@@ -140,24 +144,7 @@ public class AuthController {
         String sseToken = jwtTokenProvider.generateSseToken(userId);
 
         // SSE 토큰을 쿠키에 설정
-        Cookie sseTokenCookie = new Cookie("sseToken", sseToken);
-        sseTokenCookie.setHttpOnly(true);
-        sseTokenCookie.setSecure(cookieSecure);
-        sseTokenCookie.setPath("/");
-        sseTokenCookie.setMaxAge(5 * 60); // 5분
-        
-        // SameSite 속성 설정
-        if ("None".equals(cookieSameSite)) {
-            response.setHeader("Set-Cookie", 
-                String.format("%s=%s; Path=/; Max-Age=%d; HttpOnly; %s SameSite=%s",
-                    sseTokenCookie.getName(),
-                    sseTokenCookie.getValue(),
-                    sseTokenCookie.getMaxAge(),
-                    cookieSecure ? "Secure;" : "",
-                    cookieSameSite));
-        } else {
-            response.addCookie(sseTokenCookie);
-        }
+        authServiceHelper.setTokenCookie("sseToken", sseToken, cookieSecure, cookieSameSite, 5 * 60, response);
 
         ApiResponse<Void> apiResponse = ApiResponse.success(null, "SSE 토큰이 발급되었습니다.");
 
