@@ -24,8 +24,8 @@ public class SSENotificationService {
     // 사용자별 SSE 연결을 관리하는 맵
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
 
-    // SSE 연결 타임아웃
-    private static final long SSE_TIMEOUT = 60 * 1000L;
+    // SSE 연결 타임아웃 (5분으로 연장)
+    private static final long SSE_TIMEOUT = 5 * 60 * 1000L;
 
     // 사용자별 SSE 연결 생성
     public SseEmitter subscribe(Long userId) {
