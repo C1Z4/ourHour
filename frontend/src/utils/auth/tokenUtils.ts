@@ -44,7 +44,6 @@ export const generateSseToken = async (): Promise<boolean> => {
 export const restoreAuthFromServer = async (): Promise<boolean> => {
   try {
     store.dispatch(setLoading(true));
-
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/token`, {
       method: 'POST',
       headers: {
@@ -59,6 +58,7 @@ export const restoreAuthFromServer = async (): Promise<boolean> => {
 
       if (accessToken) {
         setAccessTokenToStore(accessToken);
+
         return true;
       }
     }

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PwdResetVerificationReqDTO {
+public class EmailVerificationReqDTO {
 
     @NotBlank(message = "이메일은 필수입니다.")
     @Email

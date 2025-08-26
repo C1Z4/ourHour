@@ -1,6 +1,8 @@
 package com.ourhour.domain.auth.controller;
 
+import com.ourhour.domain.auth.dto.OAuthExtraInfoReqDTO;
 import com.ourhour.domain.auth.dto.OAuthSigninReqDTO;
+import com.ourhour.domain.auth.dto.OAuthSigninResDTO;
 import com.ourhour.domain.auth.dto.SigninResDTO;
 import com.ourhour.domain.auth.dto.SignupReqDTO;
 import com.ourhour.domain.auth.service.AuthService;
@@ -88,16 +90,32 @@ public class AuthController {
 
     @PostMapping("/oauth-signin")
     @Operation(summary = "소셜 로그인", description = "platform 필드(github 또는 google)에 따라 로그인을 수행하고 액세스/리프레시 토큰을 발급합니다. refresh token은 HTTP Only 쿠키로 발급됩니다.")
-    public ResponseEntity<ApiResponse<SigninResDTO>> oauthSignin(@Valid @RequestBody OAuthSigninReqDTO oAuthSigninReqDTO, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<OAuthSigninResDTO>> oauthSignin(@RequestBody OAuthSigninReqDTO oAuthSigninReqDTO, HttpServletResponse response) {
 
-        SigninResDTO signinResDTO = oAuthService.signinWithOAuth(oAuthSigninReqDTO);
+        OAuthSigninResDTO oAuthSigninResDTO = oAuthService.signinWithOAuth(oAuthSigninReqDTO);
 
-        String refreshToken = signinResDTO.getRefreshToken();
+        String refreshToken = oAuthSigninResDTO.getRefreshToken();
 
         // refresh token 쿠키 세팅 및 응답 헤더 설정
         authServiceHelper.setRefreshTokenCookie(refreshToken, cookieSecure, cookieSameSite, refreshTokenValidityInSeconds, response);
 
-        ApiResponse<SigninResDTO> apiResponse = ApiResponse.success(new SigninResDTO(signinResDTO.getAccessToken(), null), oAuthSigninReqDTO.getPlatform() + ": 로그인 성공");
+        ApiResponse<OAuthSigninResDTO> apiResponse = ApiResponse.success(oAuthSigninResDTO, "소셜로그인 인증이 성공되었습니다.");
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/oauth-signin/extra-info")
+    @Operation(summary = "소셜 로그인 추가 정보", description = "신규 소셜 로그인 시 회사 관리에 필요한 비밀번호 입력을 추가로 받습니다. 만약 github 비공개 이메일인 경우 구성원 초대, 회사 관리 비밀번호 변경 등을 위한 이메일을 추가로 입력받습니다. 모든 입력 후에 액세스/리프레시 토큰을 발급합니다. refresh token은 HTTP Only 쿠키로 발급됩니다.")
+    public ResponseEntity<ApiResponse<OAuthSigninResDTO>> processExtraInfo(@Valid @RequestBody OAuthExtraInfoReqDTO oAuthExtraInfoReqDTO, HttpServletResponse response) {
+
+        OAuthSigninResDTO oAuthSigninResDTO = oAuthService.processExtraInfo(oAuthExtraInfoReqDTO);
+
+        String refreshToken = oAuthSigninResDTO.getRefreshToken();
+
+        // refresh token 쿠키 세팅 및 응답 헤더 설정
+        authServiceHelper.setRefreshTokenCookie(refreshToken, cookieSecure, cookieSameSite, refreshTokenValidityInSeconds, response);
+
+        ApiResponse<OAuthSigninResDTO> apiResponse = ApiResponse.success(oAuthSigninResDTO, oAuthExtraInfoReqDTO.getPlatform() + ": 로그인 성공");
 
         return ResponseEntity.ok(apiResponse);
     }
