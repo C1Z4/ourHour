@@ -31,16 +31,11 @@ public class ChatController {
 
         Claims claims = (Claims) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
 
-        DelegatingSecurityContextExecutor executor = AsyncUtil.getExecutor();
+        ChatMessageResDTO chatMessageResDTO = chatService.saveAndConvertMessage(chatMessageReqDTO, claims);
 
-        executor.execute(() -> {
-            ChatMessageResDTO chatMessageResDTO = chatService.saveAndConvertMessage(chatMessageReqDTO, claims);
-
-
-            messagingTemplate.convertAndSend(
-                    "/sub/chat/room/" + chatMessageResDTO.getChatRoomId(), chatMessageResDTO
-            );
-        });
+        messagingTemplate.convertAndSend(
+                "/sub/chat/room/" + chatMessageResDTO.getChatRoomId(), chatMessageResDTO
+        );
     }
 
     @MessageMapping("/chat/enter")
