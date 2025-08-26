@@ -33,7 +33,7 @@ public class ProjectParticipantAspect {
 
         Long orgId = getOrgIdByProject(projectId);
 
-        validateProjectAccess(orgId);
+        validateProjectAccess(orgId, projectId);
     }
 
     private void validateProjectId(Long projectId) {
@@ -50,18 +50,30 @@ public class ProjectParticipantAspect {
         return orgId;
     }
 
-    private void validateProjectAccess(Long orgId) {
+    private void validateProjectAccess(Long orgId, Long projectId) {
         CustomUserDetails currentUser = SecurityUtil.getCurrentUser();
         if (currentUser == null) {
             throw AuthException.unauthorizedException();
         }
 
+        // 먼저 조직 권한 확인
         List<OrgAuthority> orgAuthorities = currentUser.getOrgAuthorityList();
-
-        boolean hasPermission = orgAuthorities.stream()
+        boolean hasOrgPermission = orgAuthorities.stream()
                 .anyMatch(orgAuthority -> orgAuthority.getOrgId().equals(orgId));
 
-        if (!hasPermission) {
+        if (!hasOrgPermission) {
+            throw ProjectException.projectParticipantRequiredException();
+        }
+
+        // 실제 프로젝트 참여자인지 확인
+        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (memberId == null) {
+            throw ProjectException.projectParticipantRequiredException();
+        }
+
+        boolean isProjectParticipant = projectRepository.existsByProjectIdAndMemberId(projectId, memberId);
+
+        if (!isProjectParticipant) {
             throw ProjectException.projectParticipantRequiredException();
         }
     }
