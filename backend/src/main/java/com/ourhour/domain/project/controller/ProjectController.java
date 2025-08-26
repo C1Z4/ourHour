@@ -23,6 +23,7 @@ import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.jwt.annotation.OrgAuth;
 import com.ourhour.domain.project.annotation.ProjectParticipantOnly;
+import com.ourhour.domain.project.annotation.ProjectId;
 import com.ourhour.global.jwt.annotation.OrgId;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -202,7 +203,7 @@ public class ProjectController {
         @Operation(summary = "마일스톤 등록", description = "프로젝트에 마일스톤을 생성합니다.")
         public ResponseEntity<ApiResponse<Void>> createMilestone(
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
-                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") @ProjectId Long projectId,
                         @Valid @RequestBody MilestoneReqDTO milestoneReqDTO) {
 
                 ApiResponse<Void> response = milestoneService.createMilestone(projectId, milestoneReqDTO);
@@ -217,7 +218,7 @@ public class ProjectController {
         @Operation(summary = "마일스톤 수정", description = "마일스톤 이름을 수정합니다.")
         public ResponseEntity<ApiResponse<Void>> updateMilestone(
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
-                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") @ProjectId Long projectId,
                         @PathVariable @Min(value = 1, message = "마일스톤 ID는 1 이상이어야 합니다.") Long milestoneId,
                         @Valid @RequestBody MilestoneReqDTO milestoneReqDTO) {
 
@@ -260,7 +261,7 @@ public class ProjectController {
         @Operation(summary = "이슈 등록", description = "프로젝트에 이슈를 생성합니다.")
         public ResponseEntity<ApiResponse<IssueDetailDTO>> createIssue(
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
-                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") @ProjectId Long projectId,
                         @Valid @RequestBody IssueReqDTO issueReqDTO) {
 
                 ApiResponse<IssueDetailDTO> response = issueService.createIssue(projectId, issueReqDTO);
@@ -275,7 +276,7 @@ public class ProjectController {
         @Operation(summary = "이슈 수정", description = "이슈의 내용을 수정합니다.")
         public ResponseEntity<ApiResponse<IssueDetailDTO>> updateIssue(
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
-                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") @ProjectId Long projectId,
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId,
                         @Valid @RequestBody IssueReqDTO issueReqDTO) {
 
@@ -292,7 +293,7 @@ public class ProjectController {
         @Operation(summary = "이슈 상태 수정", description = "이슈의 상태를 수정합니다.")
         public ResponseEntity<ApiResponse<IssueDetailDTO>> updateIssueStatus(
                         @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") @OrgId Long orgId,
-                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
+                        @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") @ProjectId Long projectId,
                         @PathVariable @Min(value = 1, message = "이슈 ID는 1 이상이어야 합니다.") Long issueId,
                         @Valid @RequestBody IssueStatusReqDTO issueStatusReqDTO) {
 

@@ -5,6 +5,7 @@ import java.util.List;
 import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.domain.project.repository.ProjectRepository;
 import com.ourhour.domain.auth.exception.AuthException;
+import com.ourhour.domain.project.annotation.ProjectId;
 import com.ourhour.global.jwt.dto.CustomUserDetails;
 import com.ourhour.global.jwt.dto.OrgAuthority;
 
@@ -14,8 +15,12 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
+import java.lang.annotation.Annotation;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Aspect
 @Component
 @RequiredArgsConstructor
@@ -27,13 +32,31 @@ public class ProjectParticipantAspect {
     public void projectParticipantOnly() {
     }
 
-    @Before("projectParticipantOnly() && args(projectId,..)")
-    public void checkProjectParticipant(JoinPoint joinPoint, Long projectId) {
+    @Before("projectParticipantOnly()")
+    public void checkProjectParticipant(JoinPoint joinPoint) {
+        Long projectId = extractProjectIdFromArgs(joinPoint);
+
         validateProjectId(projectId);
 
         Long orgId = getOrgIdByProject(projectId);
 
         validateProjectAccess(orgId, projectId);
+    }
+
+    private Long extractProjectIdFromArgs(JoinPoint joinPoint) {
+        Object[] args = joinPoint.getArgs();
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        Annotation[][] parameterAnnotations = signature.getMethod().getParameterAnnotations();
+
+        for (int i = 0; i < parameterAnnotations.length; i++) {
+            for (Annotation annotation : parameterAnnotations[i]) {
+                if (annotation instanceof ProjectId && args[i] instanceof Long) {
+                    return (Long) args[i];
+                }
+            }
+        }
+
+        throw ProjectException.projectIdRequiredException();
     }
 
     private void validateProjectId(Long projectId) {
@@ -44,6 +67,7 @@ public class ProjectParticipantAspect {
 
     private Long getOrgIdByProject(Long projectId) {
         Long orgId = projectRepository.findOrgIdByProjectId(projectId);
+        
         if (orgId == null) {
             throw ProjectException.projectNotFoundException();
         }

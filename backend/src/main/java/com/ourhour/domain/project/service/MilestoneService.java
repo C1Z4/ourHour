@@ -37,13 +37,8 @@ public class MilestoneService {
         if (projectId <= 0) {
             throw ProjectException.projectNotFoundException();
         }
-
         ProjectEntity projectEntity = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectException.projectNotFoundException());
-
-        if (projectEntity == null) {
-            throw ProjectException.projectNotFoundException();
-        }
 
         // 마일스톤 이름 중복 체크
         if (milestoneRepository.findByProjectEntity_ProjectIdAndName(projectId, milestoneReqDTO.getName())

@@ -44,7 +44,6 @@ export const generateSseToken = async (): Promise<boolean> => {
 export const restoreAuthFromServer = async (): Promise<boolean> => {
   try {
     store.dispatch(setLoading(true));
-
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/token`, {
       method: 'POST',
       headers: {
@@ -59,6 +58,7 @@ export const restoreAuthFromServer = async (): Promise<boolean> => {
 
       if (accessToken) {
         setAccessTokenToStore(accessToken);
+
         return true;
       }
     }
@@ -108,4 +108,8 @@ export const getEmailFromToken = (): string | null => {
     console.error('토큰에서 이메일 추출 중 오류 발생:', error);
     return null;
   }
+};
+
+export const removeAccessToken = () => {
+  store.dispatch(setAccessToken(null));
 };
