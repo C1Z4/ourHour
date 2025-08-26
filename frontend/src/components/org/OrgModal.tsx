@@ -105,6 +105,16 @@ export function OrgModal({ isOpen, onClose, onSubmit, initialInfoData }: OrgModa
       onSubmit(updateData as OrgFormData);
     } else {
       onSubmit(formData);
+      setFormData({
+        memberName: '',
+        logoImgUrl: '',
+        name: '',
+        address: '',
+        email: '',
+        businessNumber: '',
+        representativeName: '',
+        phone: '',
+      });
     }
   };
 
