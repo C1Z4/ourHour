@@ -9,6 +9,7 @@ import com.ourhour.domain.user.exception.UserException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
@@ -28,20 +30,34 @@ public class NotificationController {
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Operation(summary = "SSE 알림 스트림", description = "실시간 알림을 위한 SSE 연결을 생성합니다.")
     public SseEmitter streamNotifications(HttpServletRequest request, HttpServletResponse response) {
+        log.info("🔌 [SSE] 연결 시도: IP={}, Origin={}, User-Agent={}", 
+                request.getRemoteAddr(), 
+                request.getHeader("Origin"), 
+                request.getHeader("User-Agent"));
+                
         Long userId = SecurityUtil.getCurrentUserId();
+        log.info("🔌 [SSE] 인증 확인: userId={}", userId);
 
         if (userId == null) {
+            log.error("❌ [SSE] 인증 실패: SecurityContext에서 userId 없음");
             throw UserException.userNotFoundException();
         }
 
         // SSE 응답 헤더 설정
-        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("Expires", "0");
         response.setHeader("Connection", "keep-alive");
-        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Headers", "Cache-Control");
+        response.setHeader("Content-Type", "text/event-stream; charset=UTF-8");
+        response.setHeader("X-Accel-Buffering", "no"); // Nginx 버퍼링 방지
+        
+        // CORS 헤더는 Spring Security CORS 설정에 의존
 
-        return sseNotificationService.subscribe(userId);
+        log.info("🔌 [SSE] SSE 연결 생성 중: userId={}", userId);
+        SseEmitter emitter = sseNotificationService.subscribe(userId);
+        log.info("🔌 [SSE] SSE 연결 생성 완료: userId={}", userId);
+        
+        return emitter;
     }
 
     @GetMapping
