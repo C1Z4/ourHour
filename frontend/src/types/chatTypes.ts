@@ -47,5 +47,5 @@ export interface ChatRoomDetail {
 export interface ChatRoomParticipant {
   memberId: number;
   memberName: string;
-  profileImgUrl: string;
+  profileImageUrl: string;
 }
