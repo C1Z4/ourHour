@@ -4,21 +4,24 @@ import { useRouter } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 
 import { SocialPlatform } from '@/api/auth/signApi';
-import postAcceptInv from '@/api/org/postAcceptInv';
 import landingImage from '@/assets/images/landing-2.jpg';
 import ErrorMessage from '@/components/auth/ErrorMessage';
 import LoginForm from '@/components/auth/LoginForm';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import { AUTH_MESSAGES, PLATFORM_NAME, SOCIAL_LOGIN_PLATFORMS } from '@/constants/messages';
 import { useSigninMutation } from '@/hooks/queries/auth/useAuthMutations';
-import { getInviteToken, clearInviteToken } from '@/utils/auth/inviteTokenStorage';
+import { useAcceptInvMutation } from '@/hooks/queries/org/userOrgInvMutations';
+import { clearPendingInv, getPendingInv } from '@/utils/auth/pendingInvStorage';
 
 export function LoginPage() {
+  const router = useRouter();
+
   const [loginError, setLoginError] = useState('');
 
-  const router = useRouter();
   const signinMutation = useSigninMutation();
   const isSigninLoading = signinMutation.isPending;
+  const inviteData = getPendingInv();
+  const acceptInvMutation = useAcceptInvMutation(Number(inviteData?.orgId ?? 0));
 
   const handleLoginSubmit = (email: string, password: string) => {
     setLoginError('');
@@ -27,17 +30,16 @@ export function LoginPage() {
       { email, password, platform: PLATFORM_NAME },
       {
         onSuccess: async () => {
-          const inviteData = getInviteToken();
           if (inviteData) {
             try {
-              await postAcceptInv({ token: inviteData.token });
-              clearInviteToken();
-              router.navigate({
-                to: `/org/${inviteData.orgId}/info`,
-              });
+              await acceptInvMutation.mutateAsync({ token: inviteData.token });
+              clearPendingInv();
+
+              // 초대 수락 후 회사 목록 페이지 이동
+              router.navigate({ to: '/start', search: { page: 1 } });
             } catch (e) {
               // 실패해도 로그인은 된 상태이므로 기본 페이지로 이동 가능
-              router.navigate({ to: '/start', search: { page: 1 } });
+              router.navigate({ to: '/', search: { reason: 'accept_failed' } });
             }
           } else {
             router.navigate({ to: '/start', search: { page: 1 } });

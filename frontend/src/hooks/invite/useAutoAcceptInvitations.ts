@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from '@tanstack/react-router';
 
 import postAcceptInv from '@/api/org/postAcceptInv';
-import { getInviteToken, clearInviteToken } from '@/utils/auth/inviteTokenStorage';
+import { getInviteToken, clearInviteToken } from '@/utils/auth/pendingInvStorage';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 export function useAutoAcceptInvitation(isAuthenticated: boolean) {

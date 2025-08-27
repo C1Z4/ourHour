@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
+import DOMPurify from 'dompurify';
 import { ArrowUpIcon, MessageCircle, X } from 'lucide-react';
+import { Marked } from 'marked';
 
 import { ChatbotResponse } from '@/api/chatbot/chatbotApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
@@ -38,6 +40,14 @@ export function AiChatbot() {
   const router = useRouter();
   const orgId = router.state.location.pathname.split('/')[2];
   const endRef = useRef<HTMLDivElement | null>(null);
+
+  const renderMarkdown = (text: string) => {
+    const markedInstance = new Marked();
+    const rawHtml = markedInstance.parse(text);
+    const sanitizedHtml = DOMPurify.sanitize(rawHtml as string);
+
+    return { __html: sanitizedHtml };
+  };
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -211,7 +221,7 @@ export function AiChatbot() {
                                   : 'speech-bubble bg-muted',
                               )}
                             >
-                              {message.text}
+                              <div dangerouslySetInnerHTML={renderMarkdown(message.text)} />
                             </div>
 
                             {!isMyMessage && renderTimestamp(message.timestamp)}

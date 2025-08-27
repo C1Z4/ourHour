@@ -19,6 +19,7 @@ export const ORG_QUERY_KEYS = {
   POSITION_LIST: 'positionList',
   DEPARTMENT_MEMBERS: 'departmentMembers',
   POSITION_MEMBERS: 'positionMembers',
+  INV_LIST: 'orgInvList',
 } as const;
 
 export const MEMBER_QUERY_KEYS = {
