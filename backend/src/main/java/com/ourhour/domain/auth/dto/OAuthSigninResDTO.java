@@ -14,6 +14,7 @@ public class OAuthSigninResDTO {
     private String email;
     private String oauthId;
     private Platform platform;
+    private String socialAccessToken;
     private String accessToken;
     private String refreshToken;
 
