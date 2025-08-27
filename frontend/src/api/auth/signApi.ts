@@ -50,6 +50,7 @@ interface OauthSigninResponse {
   email: string;
   oauthId?: string;
   platform?: SocialPlatform;
+  socialAccessToken?: string;
   accessToken?: string;
   refreshToken?: string;
   newUser: boolean;
@@ -72,6 +73,7 @@ export const postOauthSignin = async (
 export interface OauthExtraInfoRequest {
   oauthId: string;
   platform: SocialPlatform;
+  socialAccessToken: string;
   email: string;
   password: string;
 }

@@ -6,6 +6,7 @@ import com.ourhour.domain.user.dto.GitHubUserInfoDTO;
 import com.ourhour.domain.user.entity.GitHubTokenEntity;
 import com.ourhour.domain.auth.exception.AuthException;
 import com.ourhour.domain.user.entity.UserGitHubMappingEntity;
+import com.ourhour.domain.user.enums.Platform;
 import com.ourhour.domain.user.repository.GitHubTokenRepository;
 import com.ourhour.domain.user.repository.UserGitHubMappingRepository;
 import com.ourhour.global.util.EncryptionUtil;
@@ -24,11 +25,16 @@ import com.ourhour.domain.user.util.PasswordVerifier;
 import com.ourhour.global.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URI;
@@ -40,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import static com.ourhour.domain.user.exception.UserException.*;
 
@@ -58,6 +65,7 @@ public class UserService {
     private final GitHubTokenRepository gitHubTokenRepository;
     private final UserGitHubMappingRepository userGitHubMappingRepository;
     private final EncryptionUtil encryptionUtil;
+    private final RestTemplate restTemplate;
 
     @Value("${github.client-id:${APPLICATION_GITHUB_CLIENT_ID:}}")
     private String githubClientId;
@@ -104,6 +112,23 @@ public class UserService {
         String pwd = pwdVerifyReqDTO.getPassword();
         UserEntity userEntity = passwordVerifier.verifyPassword(pwd);
 
+        Platform platform = userEntity.getPlatform();
+        String socialAccessToken = userEntity.getSocialAccessToken();
+
+        // 소셜 로그인인 경우 연동 해제
+        if (socialAccessToken != null) {
+            try {
+                System.out.println("들어오긴 했니?");
+                switch (platform) {
+                    case GOOGLE -> revokeGoogleToken(socialAccessToken);
+                    case GITHUB -> revokeGithubToken(socialAccessToken);
+                    default -> log.info("별도 revoke 필요 없는 플랫폼: {}", platform);
+                }
+            } catch (Exception e) {
+                log.warn("소셜 토큰 revoke 실패, userId={}", userEntity.getUserId(), e);
+            }
+        }
+
         Long userId = userEntity.getUserId();
         // UserEntity와 연결된 모든 MemberEntity 조회
         List<MemberEntity> memberEntityList = memberRepository.findByUserEntity_UserId(userId);
@@ -128,6 +153,28 @@ public class UserService {
         // 탈퇴한 사용자의 인증 이메일 무효화
         emailVerificationRepository.invalidateByEmail(userEntity.getEmail());
 
+    }
+
+    // 구글 계정 연동 해제
+    private void revokeGoogleToken(String socialAccessToken) {
+        String url = "https://oauth2.googleapis.com/revoke?token=" + socialAccessToken;
+        restTemplate.postForEntity(url, null, Void.class);
+    }
+
+    // 깃허브 계정 연동 해제
+    private void revokeGithubToken(String socialAccessToken) {
+        String clientId = githubClientId;
+        String clientSecret = githubClientSecret;
+        String url = "https://api.github.com/applications/" + clientId + "/grant";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth(clientId, clientSecret);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, String> body = Map.of("access_token", socialAccessToken);
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
+
+        restTemplate.exchange(url, HttpMethod.DELETE, request, Void.class);
     }
 
     // 깃허브 사용자 정보 조회
