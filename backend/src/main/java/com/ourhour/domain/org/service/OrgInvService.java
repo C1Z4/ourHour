@@ -36,6 +36,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -148,25 +149,25 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
     @Transactional
     public void verifyInvEmail(String token) {
 
-        OrgInvEntity inv = orgInvRepository.findByToken(token)
+        OrgInvEntity orgInvEntity = orgInvRepository.findByToken(token)
                 .orElseThrow(() -> AuthException.invalidEmailVerificationTokenException());
 
         // 만료 검사 & 상태 전이
-        if (inv.getExpiredAt() != null && inv.getExpiredAt().isBefore(LocalDateTime.now())) {
-            if (inv.getStatus() != InvStatus.EXPIRED) {
-                inv.changeStatusToExpired();
+        if (orgInvEntity.getExpiredAt() != null && orgInvEntity.getExpiredAt().isBefore(LocalDateTime.now())) {
+            if (orgInvEntity.getStatus() != InvStatus.EXPIRED) {
+                orgInvEntity.changeStatusToExpired();
             }
             throw AuthException.emailVerificationExpiredException();
         }
 
         // 이미 참여
-        if (inv.getStatus() == InvStatus.ACCEPTED) {
+        if (orgInvEntity.getStatus() == InvStatus.ACCEPTED) {
             return;
         }
 
         // 최초 검증 시에만 true 세팅
-        if (!inv.isUsed()) {
-            inv.setUsed(true);
+        if (!orgInvEntity.isUsed()) {
+            orgInvEntity.setUsed(true);
         }
 
     }
@@ -183,7 +184,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
         // 이미 인증되었는지 확인
         boolean isVerified = orgInvEntity.isUsed();
         if (!isVerified) {
-            throw AuthException.emailVerificationRequiredException();
+            throw AuthException.emailAlreadyVerifiedException();
         }
 
         // 이미 수락되었는지 확인
@@ -191,7 +192,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
             throw AuthException.emailAlreadyAcceptedException();
         }
 
-        // 이미 완료되었는지 확인
+        // 초대 메일 만료되었는지 확인
         if (orgInvEntity.getExpiredAt().isBefore(LocalDateTime.now())) {
             if (orgInvEntity.getStatus() != InvStatus.EXPIRED) {
                 orgInvEntity.changeStatusToExpired();
@@ -224,25 +225,20 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
             throw OrgException.orgNotFoundException();
         }
 
-        MemberEntity memberToJoin = memberRepository.findByUserEntity_UserIdAndEmail(userId, invitedEmail)
-                .orElseGet(() -> {
-                    String randomName = "User" + UUID.randomUUID().toString().substring(0,4);
-                    MemberEntity newMember = MemberEntity.builder()
-                            .userEntity(userEntity)
-                            .name(randomName)
-                            .email(invitedEmail)
-                            .build();
-                    memberRepository.flush();
-                    return memberRepository.save(newMember);
-                });
+        List<MemberEntity> members = memberRepository.findAllByUserEntity_UserIdAndEmail(userId, invitedEmail);
 
-        System.out.println("멤버 아이디: " + memberToJoin.getMemberId());
-        System.out.println(
-                "멤버 아이디 타입: " +
-                        (memberToJoin.getMemberId() != null
-                                ? memberToJoin.getMemberId().getClass().getName()
-                                : "null")
-        );
+        MemberEntity memberToJoin;
+        if (!members.isEmpty()) {
+            memberToJoin = members.get(0); // 첫 번째 것 선택
+        } else {
+            String randomName = "User" + UUID.randomUUID().toString().substring(0,4);
+            MemberEntity newMember = MemberEntity.builder()
+                    .userEntity(userEntity)
+                    .name(randomName)
+                    .email(invitedEmail)
+                    .build();
+            memberToJoin = memberRepository.save(newMember);
+        }
 
         // 이미 조직에 참여 중인지 확인
         boolean alreadyParticipant = orgParticipantMemberRepository.existsByOrgEntityAndMemberEntity(orgEntity,

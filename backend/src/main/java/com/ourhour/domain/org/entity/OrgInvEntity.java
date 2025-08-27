@@ -68,6 +68,6 @@ public class OrgInvEntity extends AbstractVerificationEntity {
     }
 
     public void changeStatusToExpired() {
-        this.status = InvStatus.ACCEPTED;
+        this.status = InvStatus.EXPIRED;
     }
 }
