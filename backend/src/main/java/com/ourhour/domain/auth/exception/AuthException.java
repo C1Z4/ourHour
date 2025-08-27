@@ -97,4 +97,8 @@ public class AuthException extends BusinessException {
     public static AuthException userAlreadyExistsSocialException() {
         return new AuthException(ErrorCode.USER_ALREADY_SOCIAL);
     }
+
+    public static Exception oauthCodeInvalid() {
+        return new AuthException(ErrorCode.OAUTH_CODE_INVALID);
+    }
 }

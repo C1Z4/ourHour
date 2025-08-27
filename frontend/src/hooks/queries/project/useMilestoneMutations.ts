@@ -11,6 +11,7 @@ import {
 } from '@/api/project/milestoneApi';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
+import { getErrorMessage } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 // ======== 마일스톤 생성 ========
@@ -27,7 +28,7 @@ export const useMilestoneCreateMutation = (orgId: number, projectId: number) =>
     },
 
     onError: (error: AxiosError) => {
-      showErrorToast('새 마일스톤 생성에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });
 
@@ -45,7 +46,7 @@ export const useMilestoneUpdateMutation = (orgId: number, projectId: number) =>
     },
 
     onError: (error: AxiosError) => {
-      showErrorToast('마일스톤 수정에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });
 
@@ -67,6 +68,6 @@ export const useMilestoneDeleteMutation = (
     },
 
     onError: (error: AxiosError) => {
-      showErrorToast('마일스톤 삭제에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });

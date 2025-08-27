@@ -91,7 +91,7 @@ public class AuthController {
     @PostMapping("/oauth-signin")
     @Operation(summary = "소셜 로그인", description = "platform 필드(github 또는 google)에 따라 로그인을 수행하고 액세스/리프레시 토큰을 발급합니다. refresh token은 HTTP Only 쿠키로 발급됩니다.")
     public ResponseEntity<ApiResponse<OAuthSigninResDTO>> oauthSignin(@RequestBody OAuthSigninReqDTO oAuthSigninReqDTO,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws Exception {
 
         OAuthSigninResDTO oAuthSigninResDTO = oAuthService.signinWithOAuth(oAuthSigninReqDTO);
 

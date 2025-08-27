@@ -1,14 +1,17 @@
 package com.ourhour.domain.user.controller;
 
+import com.ourhour.domain.auth.util.AuthServiceHelper;
 import com.ourhour.domain.user.dto.GitHubCodeReqDTO;
 import com.ourhour.domain.user.dto.PwdChangeReqDTO;
 import com.ourhour.domain.user.dto.PwdVerifyReqDTO;
 import com.ourhour.domain.user.service.UserService;
 import com.ourhour.global.common.dto.ApiResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -24,6 +27,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final AuthServiceHelper authServiceHelper;
+
+    @Value("${cookie.secure}")
+    private boolean cookieSecure;
+
+    @Value("${cookie.same-site}")
+    private String cookieSameSite;
 
     // 비밀번호 변경
     @PatchMapping("/password")
@@ -53,14 +63,17 @@ public class UserController {
 
     // 계정 탈퇴
     @DeleteMapping
-    @Operation(summary = "계정 탈퇴", description = "현재 사용자 계정을 삭제합니다.")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@Valid @RequestBody PwdVerifyReqDTO pwdVerifyReqDTO) {
+    @Operation(summary = "계정 탈퇴", description = "현재 사용자 계정을 탈퇴합니다.")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@Valid @RequestBody PwdVerifyReqDTO pwdVerifyReqDTO, HttpServletResponse response) {
 
         userService.deleteUser(pwdVerifyReqDTO);
 
-        ApiResponse<Void> response = ApiResponse.success(null, "계정이 탈퇴되었습니다.");
+        // refresh token 삭제
+        authServiceHelper.setTokenCookie("refreshToken", "", cookieSecure, cookieSameSite, 0, response);
 
-        return ResponseEntity.ok(response);
+        ApiResponse<Void> apiResponse = ApiResponse.success(null, "계정이 탈퇴되었습니다.");
+
+        return ResponseEntity.ok(apiResponse);
 
     }
 

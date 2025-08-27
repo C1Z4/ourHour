@@ -6,6 +6,7 @@ export interface PendingSocialSignup {
   oauthData: {
     oauthId: string;
     platform: SocialPlatform;
+    socialAccessToken: string;
     email?: string;
     isVerified: boolean;
   } | null;

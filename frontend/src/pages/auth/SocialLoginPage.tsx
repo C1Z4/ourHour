@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
-import { AxiosError } from 'axios';
 
 import { SocialPlatform } from '@/api/auth/signApi';
 import { ExtraOauthInfoModal } from '@/components/auth/ExtraOauthInfoModal';
@@ -35,6 +34,7 @@ export function SocialLoginPage() {
   const [oauthData, setOauthData] = useState<{
     oauthId: string;
     platform: SocialPlatform;
+    socialAccessToken: string;
     email?: string;
   } | null>(null);
 
@@ -74,6 +74,7 @@ export function SocialLoginPage() {
                 email: res.data.email ?? '', // email 없으면 '' 처리
                 oauthId: res.data.oauthId!,
                 platform: state!,
+                socialAccessToken: res.data.socialAccessToken!,
                 isVerified: !!res.data.email, // 이메일 있으면 바로 verified
               };
 
@@ -112,11 +113,13 @@ export function SocialLoginPage() {
     password: string;
     oauthId: string;
     platform: SocialPlatform;
+    socialAccessToken: string;
   }) => {
     socialExtraInfoMutation.mutate(
       {
         oauthId: data.oauthId,
         platform: data.platform,
+        socialAccessToken: data.socialAccessToken,
         email: data.email ?? '',
         password: data.password,
       },
@@ -156,6 +159,7 @@ export function SocialLoginPage() {
           }}
           oauthId={oauthData.oauthId}
           platform={oauthData.platform}
+          socialAccessToken={oauthData.socialAccessToken}
           mode={modalMode}
           onSubmit={(data) => {
             handleModalSubmit({
@@ -163,6 +167,7 @@ export function SocialLoginPage() {
               password: data.password,
               oauthId: data.oauthId,
               platform: oauthData.platform as SocialPlatform,
+              socialAccessToken: data.socialAccessToken,
             });
           }}
         />

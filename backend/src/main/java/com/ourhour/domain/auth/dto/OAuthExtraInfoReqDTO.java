@@ -13,6 +13,7 @@ public class OAuthExtraInfoReqDTO {
 
     private String oauthId;
     private Platform platform;
+    private String socialAccessToken;
     @Email
     private String email;
     private String password;

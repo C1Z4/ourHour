@@ -50,14 +50,13 @@ export const fetchAllOrgMembers = async (orgId: number) => {
 export interface PatchMemberRoleRequest {
   orgId: number;
   memberId: number;
-  newRole: MemberRoleEng;
+  role: MemberRoleEng;
 }
 
 interface PatchMemberRoleResponse {
   orgId: number;
   memberId: number;
-  oldRole: MemberRoleKo;
-  newRole: MemberRoleKo;
+  role: MemberRoleKo;
   rootAdminCount: number;
 }
 

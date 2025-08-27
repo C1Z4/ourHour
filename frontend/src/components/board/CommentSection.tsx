@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { useParams } from '@tanstack/react-router';
 
 import { CommentPageResponse } from '@/api/comment/commentApi';
@@ -11,6 +13,8 @@ import {
 } from '@/hooks/queries/comment/useCommentMutations';
 import { useCommentListQuery } from '@/hooks/queries/comment/useCommentQueries';
 
+import { PaginationComponent } from '../common/PaginationComponent';
+
 export const CommentSection = () => {
   const { orgId, postId } = useParams({ from: '/org/$orgId/board/$boardId/post/$postId/' });
 
@@ -21,6 +25,8 @@ export const CommentSection = () => {
 
   const comments = (commentsData as unknown as CommentPageResponse)?.comments;
   const totalElements = (commentsData as unknown as CommentPageResponse)?.totalElements;
+  const totalPages = (commentsData as unknown as CommentPageResponse)?.totalPages;
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { mutate: createComment } = useCreateCommentMutation(Number(orgId), Number(postId), null);
   const { mutate: updateComment } = useUpdateCommentMutation(Number(orgId), Number(postId), null);
@@ -47,6 +53,10 @@ export const CommentSection = () => {
 
   const handleDeleteComment = (commentId: number) => {
     deleteComment(commentId);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   if (isLoading) {
@@ -106,6 +116,14 @@ export const CommentSection = () => {
             postId={Number(postId)}
           />
         ))}
+      </div>
+
+      <div className="flex justify-center mt-8">
+        <PaginationComponent
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
       </div>
 
       <div className="mt-8 pt-6 border-t border-gray-200">

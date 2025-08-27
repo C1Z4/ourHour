@@ -18,12 +18,14 @@ interface ExtraOauthInfoModalProps {
   mode: 'password' | 'email_password';
   oauthId: string;
   platform: SocialPlatform;
+  socialAccessToken: string;
   onClose: () => void;
   onSubmit?: (data: {
     email?: string;
     password: string;
     oauthId: string;
     platform: string;
+    socialAccessToken: string;
   }) => void;
 }
 
@@ -32,6 +34,7 @@ export function ExtraOauthInfoModal({
   mode,
   oauthId,
   platform,
+  socialAccessToken,
   onClose,
   onSubmit,
 }: ExtraOauthInfoModalProps) {
@@ -66,6 +69,7 @@ export function ExtraOauthInfoModal({
           isVerified: saved?.oauthData?.isVerified ?? false,
           oauthId,
           platform,
+          socialAccessToken,
         },
       });
     } else {
@@ -92,7 +96,7 @@ export function ExtraOauthInfoModal({
       setPendingSocialSignup({
         isOpen: true,
         mode,
-        oauthData: { email, isVerified: isEmailVerified, oauthId, platform },
+        oauthData: { email, isVerified: isEmailVerified, oauthId, platform, socialAccessToken },
       });
     }
   }, [email, isEmailVerified, mode, oauthId, platform]);
@@ -155,7 +159,7 @@ export function ExtraOauthInfoModal({
       return;
     }
 
-    onSubmit?.({ email, password, oauthId, platform });
+    onSubmit?.({ email, password, oauthId, platform, socialAccessToken });
     clearPendingSocialSignup();
   };
 
