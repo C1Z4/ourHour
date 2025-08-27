@@ -222,6 +222,8 @@ function NotificationItem({ notification, onMarkAsRead }: NotificationItemProps)
         return '💬';
       case 'POST_COMMENT_REPLY':
         return '💬';
+      case 'COMMENT_REPLY':
+        return '💬';
       default:
         return '🔔';
     }
@@ -318,13 +320,15 @@ function NotificationItem({ notification, onMarkAsRead }: NotificationItemProps)
 
         case 'POST_COMMENT':
         case 'POST_COMMENT_REPLY':
+        case 'COMMENT_REPLY':
           if (notification.actionUrl) {
-            const urlMatch = notification.actionUrl.match(
+            // 게시글 댓글인 경우
+            const postUrlMatch = notification.actionUrl.match(
               /\/org\/(\d+)\/board\/(\d+)\/post\/(\d+)/,
             );
 
-            if (urlMatch) {
-              const [, orgId, boardId, postId] = urlMatch;
+            if (postUrlMatch) {
+              const [, orgId, boardId, postId] = postUrlMatch;
 
               queryClient.invalidateQueries({
                 queryKey: [COMMENT_QUERY_KEYS.COMMENT_LIST],
@@ -346,6 +350,40 @@ function NotificationItem({ notification, onMarkAsRead }: NotificationItemProps)
                   orgId: orgId,
                   boardId: boardId,
                   postId: postId,
+                },
+              });
+              break;
+            }
+
+            // 이슈 댓글인 경우
+            const issueUrlMatch = notification.actionUrl.match(
+              /\/org\/(\d+)\/project\/(\d+)\/issue\/(\d+)/,
+            );
+
+            if (issueUrlMatch) {
+              const [, orgId, projectId, issueId] = issueUrlMatch;
+
+              queryClient.invalidateQueries({
+                queryKey: [COMMENT_QUERY_KEYS.COMMENT_LIST],
+                predicate: (query) => {
+                  const [, postId, issueIdInQuery] = query.queryKey;
+                  const matches =
+                    postId === null &&
+                    (issueIdInQuery === issueId || issueIdInQuery === parseInt(issueId));
+                  return matches;
+                },
+              });
+
+              dispatch(setCurrentOrgId(parseInt(orgId)));
+              dispatch(setCurrentProjectName(notification.relatedProjectName ?? ''));
+              dispatch(setCurrentProjectId(projectId));
+
+              router.navigate({
+                to: '/org/$orgId/project/$projectId/issue/$issueId',
+                params: {
+                  orgId: orgId,
+                  projectId: projectId,
+                  issueId: issueId,
                 },
               });
             }
