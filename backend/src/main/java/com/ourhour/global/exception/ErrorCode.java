@@ -13,6 +13,7 @@ public enum ErrorCode {
     USER_NOT_FOUND("사용자를 찾을 수 없습니다", 1000, HttpStatus.NOT_FOUND),
     USER_NOT_AUTHORIZED("사용자 인증에 실패했습니다", 1001, HttpStatus.UNAUTHORIZED),
     USER_ALREADY_SOCIAL("소셜 로그인으로 가입된 계정입니다.", 1013, HttpStatus.CONFLICT),
+    OAUTH_CODE_INVALID("잘못된 코드입니다.", 1014, HttpStatus.UNAUTHORIZED ),
 
     // 이메일 관련
     EMAIL_ALREADY_EXISTS("이미 존재하는 이메일입니다", 1002, HttpStatus.BAD_REQUEST),
