@@ -106,6 +106,7 @@ public enum ErrorCode {
     COMMENT_TARGET_CONFLICT("postId 또는 issueId 중 하나만 입력해주세요", 6005, HttpStatus.BAD_REQUEST),
     COMMENT_ALREADY_LIKED("이미 좋아요를 누른 댓글입니다", 6006, HttpStatus.BAD_REQUEST),
     COMMENT_LIKE_NOT_FOUND("좋아요를 누르지 않은 댓글입니다", 6007, HttpStatus.NOT_FOUND),
+    COMMENT_AUTHOR_ACCESS_DENIED("해당 댓글을 수정할 권한이 없습니다", 6008, HttpStatus.FORBIDDEN),
 
     // ========== 채팅 관련 (7000~7999) ==========
     CHAT_ROOM_NOT_FOUND("존재하지 않는 채팅방입니다", 7000, HttpStatus.NOT_FOUND),
