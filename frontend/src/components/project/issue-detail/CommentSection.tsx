@@ -81,15 +81,13 @@ export const CommentSection = () => {
         ))}
       </div>
 
-      {totalPages && totalPages > 1 && (
-        <div className="flex justify-center mt-8">
-          <PaginationComponent
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        </div>
-      )}
+      <div className="flex justify-center mt-8">
+        <PaginationComponent
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
+      </div>
 
       <div className="mt-8 pt-6 border-t border-gray-200">
         <CommentForm orgId={Number(orgId)} onSubmit={(content) => handleCreateComment(content)} />
