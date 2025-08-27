@@ -22,20 +22,19 @@ export function useSSE({ url, onMessage, onError, onOpen, enabled = true }: UseS
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryCountRef = useRef(0);
 
-  const maxRetries = 5;
-  const baseRetryDelay = 1000;
+  const maxRetries = 3;
+  const baseRetryDelay = 2000;
 
   // 연결 시도
   const connect = useCallback(async () => {
-    // 메모리에 access token이 없으면 최대 10번만 재시도
+    // 메모리에 access token이 없으면 즉시 재시도 (최대 5회)
     if (!getAccessTokenFromStore()) {
-      if (retryCountRef.current < 10) {
+      if (retryCountRef.current < 5) {
         retryCountRef.current++;
-        const delay = Math.min(2000 * Math.pow(1.5, retryCountRef.current - 1), 15000);
-
+        // 즉시 재시도
         setTimeout(() => {
           connect();
-        }, delay);
+        }, 50); // 최소 대기시간만
       } else {
         setConnectionState('disconnected');
       }
@@ -57,8 +56,8 @@ export function useSSE({ url, onMessage, onError, onOpen, enabled = true }: UseS
       // SSE 연결 전 토큰 발급 요청
       await postSseToken();
 
-      // 쿠키 설정 완료를 위한 짧은 대기
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // 쿠키 설정을 위한 최소 대기시간
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       const eventSource = new EventSource(url, {
         withCredentials: true,
@@ -108,38 +107,31 @@ export function useSSE({ url, onMessage, onError, onOpen, enabled = true }: UseS
       // onerror 핸들러
       eventSource.onerror = (error) => {
         onError?.(error);
+        setConnectionState('disconnected');
 
-        // CONNECTING 상태에서 오류가 발생하면 잠시 대기 후 재시도
+        // CONNECTING 상태에서 오류 발생 시 즉시 재연결
         if (eventSource.readyState === EventSource.CONNECTING) {
-          setConnectionState('disconnected');
-
-          // 3초 대기 후 재연결 시도 (CONNECTING 상태 오류 해결)
-          retryTimeoutRef.current = setTimeout(() => {
-            if (retryCountRef.current < maxRetries) {
-              retryCountRef.current++;
-              disconnect();
-              connect();
-            }
-          }, 3000);
+          if (retryCountRef.current < maxRetries) {
+            retryCountRef.current++;
+            disconnect();
+            connect(); // 토큰 재발급 포함
+          }
           return;
         }
 
-        setConnectionState('disconnected');
-
-        // 재연결 로직 (readyState가 CLOSED일 때만)
-        if (eventSource.readyState === EventSource.CLOSED && retryCountRef.current < maxRetries) {
-          const delay = Math.min(baseRetryDelay * Math.pow(2, retryCountRef.current), 30000);
-          retryTimeoutRef.current = setTimeout(() => {
+        // CLOSED 상태에서 즉시 재연결
+        if (eventSource.readyState === EventSource.CLOSED) {
+          if (retryCountRef.current < maxRetries) {
             retryCountRef.current++;
             disconnect();
-            connect();
-          }, delay);
-        } else if (retryCountRef.current >= maxRetries) {
-          // 2분 후 재시도 카운트 리셋
-          setTimeout(() => {
-            retryCountRef.current = 0;
-            connect();
-          }, 120000);
+            connect(); // 즉시 새 토큰 발급 후 재연결
+          } else {
+            // 최대 재시도 후 짧은 대기 후 재시도 카운트 리셋
+            retryTimeoutRef.current = setTimeout(() => {
+              retryCountRef.current = 0;
+              connect();
+            }, 1000); // 1초만 대기
+          }
         }
       };
 
@@ -147,6 +139,7 @@ export function useSSE({ url, onMessage, onError, onOpen, enabled = true }: UseS
     } catch {
       setConnectionState('disconnected');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, url, onOpen, onMessage, onError]);
 
   // 연결 종료
