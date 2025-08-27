@@ -1,5 +1,6 @@
-import { useRef, useEffect, useCallback, useState, useLayoutEffect } from 'react'; // useLayoutEffect import
+import { useRef, useEffect, useCallback, useState, useLayoutEffect, useMemo } from 'react';
 
+import { debounce } from 'lodash';
 import { useInView } from 'react-intersection-observer';
 
 import type { ChatMessage } from '@/types/chatTypes';
@@ -50,15 +51,23 @@ export function ChatMessageList({
   const { ref: topRef, inView } = useInView({ threshold: 0.1 });
   const prevScrollHeightRef = useRef<number>(0);
 
-  useEffect(() => {
-    if (inView && hasPreviousPage && !isFetchingPreviousPage && !isFetchingLockedRef.current) {
+  const loadPrev = useCallback(() => {
+    if (hasPreviousPage && !isFetchingPreviousPage && !isFetchingLockedRef.current) {
       if (scrollRef.current) {
         isFetchingLockedRef.current = true;
         prevScrollHeightRef.current = scrollRef.current.scrollHeight;
         onLoadMorePrev();
       }
     }
-  }, [inView, hasPreviousPage, isFetchingPreviousPage, onLoadMorePrev]);
+  }, [hasPreviousPage, isFetchingPreviousPage, onLoadMorePrev]);
+
+  const debouncedLoadPrev = useMemo(() => debounce(loadPrev, 300), [loadPrev]);
+
+  useEffect(() => {
+    if (inView) {
+      debouncedLoadPrev();
+    }
+  }, [inView, debouncedLoadPrev]);
 
   const didInitialScrollToBottomRef = useRef(false);
 
@@ -85,11 +94,14 @@ export function ChatMessageList({
     const prevScrollHeight = prevScrollHeightRef.current;
     if (prevScrollHeight > 0) {
       const newScrollHeight = el.scrollHeight;
-      el.scrollTop += newScrollHeight - prevScrollHeight;
-      prevScrollHeightRef.current = 0;
-      setTimeout(() => {
+      const diff = newScrollHeight - prevScrollHeight;
+
+      requestAnimationFrame(() => {
+        el.scrollTop += diff + 20;
+        // 보정 끝난 뒤 초기화
+        prevScrollHeightRef.current = 0;
         isFetchingLockedRef.current = false;
-      }, 100);
+      });
     } else if (!didInitialScrollToBottomRef.current) {
       el.scrollTop = el.scrollHeight;
       didInitialScrollToBottomRef.current = true;
