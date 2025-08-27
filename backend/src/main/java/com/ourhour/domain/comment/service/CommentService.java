@@ -247,7 +247,7 @@ public class CommentService {
 
         // 본인이 작성한 댓글인지 확인
         if (!commentEntity.getAuthorEntity().getMemberId().equals(currentMemberId)) {
-            throw CommentException.commentAuthorRequiredException();
+            throw CommentException.commentAuthorAccessDeniedException();
         }
 
         if (commentUpdateReqDTO.getContent() == null || commentUpdateReqDTO.getContent().trim().isEmpty()) {

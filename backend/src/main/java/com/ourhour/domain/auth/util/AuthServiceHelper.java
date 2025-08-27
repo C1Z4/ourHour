@@ -61,11 +61,11 @@ public class AuthServiceHelper {
     }
 
     // refresh token 쿠키 세팅
-    public void setTokenCookie(String tokenName, String token, boolean secure, String samSite, long maxAge, HttpServletResponse response) {
+    public void setTokenCookie(String tokenName, String token, boolean secure, String sameSite, long maxAge, HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from(tokenName, token)
                 .httpOnly(true)
                 .secure(secure)
-                .sameSite(samSite)
+                .sameSite(sameSite)
                 .path("/")
                 .maxAge(maxAge)
                 .build();

@@ -6,20 +6,16 @@ import com.ourhour.global.jwt.mapper.JwtClaimMapper;
 import com.ourhour.global.jwt.mapper.OrgAuthorityMapper;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +24,6 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
-
 
     private final SecretKey secretKey; // JWT 서명에 사용할 signature
     private final OrgAuthorityMapper orgAuthorityMapper;
@@ -55,15 +50,13 @@ public class JwtTokenProvider {
                 .claim("userId", claims.getUserId())
                 .claim("email", claims.getEmail())
                 .claim("orgAuthorityList",
-                     claims.getOrgAuthorityList()
-                          .stream().map(
-                              orgAuthority -> Map.of(
-                                   "orgId", orgAuthority.getOrgId(),
-                                   "memberId", orgAuthority.getMemberId(),
-                                   "role", orgAuthority.getRole()
-                              )
-                          ).collect(Collectors.toList())
-                )
+                        claims.getOrgAuthorityList()
+                                .stream().map(
+                                        orgAuthority -> Map.of(
+                                                "orgId", orgAuthority.getOrgId(),
+                                                "memberId", orgAuthority.getMemberId(),
+                                                "role", orgAuthority.getRole()))
+                                .collect(Collectors.toList()))
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(secretKey, Jwts.SIG.HS512) // 64바이트 알고리즘
@@ -152,7 +145,8 @@ public class JwtTokenProvider {
 
     // 토큰 유효성 검사
     public boolean validateToken(String token) {
-        if (token == null || token.isBlank()) return false;
+        if (token == null || token.isBlank())
+            return false;
 
         try {
             jwtClaimMapper.getJwtClaims(secretKey, token);
@@ -164,7 +158,8 @@ public class JwtTokenProvider {
 
     // SSE 토큰 타입 검증
     public boolean isSseToken(String token) {
-        if (!validateToken(token)) return false;
+        if (!validateToken(token))
+            return false;
 
         try {
             io.jsonwebtoken.Claims jwtClaims = jwtClaimMapper.getJwtClaims(secretKey, token);
@@ -195,15 +190,14 @@ public class JwtTokenProvider {
                 claims.getEmail(),
                 null,
                 claims.getOrgAuthorityList(),
-                authorities
-        );
+                authorities);
 
         // Security Context에 등록할 CustomUserDetails -> Authentication 객체 생성
+        // Spring Security 6.x: authorities를 포함한 생성자 사용하여 자동으로 authenticated=true 설정
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails,
                 null,
-                userDetails.getAuthorities()
-        );
+                userDetails.getAuthorities());
 
         return authentication;
     }
@@ -213,10 +207,10 @@ public class JwtTokenProvider {
         // SSE 토큰 -> Claims 추출
         Claims claims = parseSseToken(sseToken);
 
-        // SSE용 최소 권한 설정
+        // SSE용 최소 권한 설정 (ROLE_USER 포함하여 Spring Security 인증 요구사항 만족)
         List<SimpleGrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_SSE_USER")
-        );
+                new SimpleGrantedAuthority("ROLE_USER"),
+                new SimpleGrantedAuthority("ROLE_SSE_USER"));
 
         // SSE용 CustomUserDetails 객체 생성 (최소 정보만)
         CustomUserDetails userDetails = new CustomUserDetails(
@@ -224,15 +218,17 @@ public class JwtTokenProvider {
                 null, // email 불포함
                 null,
                 List.of(), // orgAuthorityList 빈 리스트
-                authorities
-        );
+                authorities);
 
         // Authentication 객체 생성
-        return new UsernamePasswordAuthenticationToken(
+        // Spring Security 6.x: authorities를 포함한 생성자 사용하여 자동으로 authenticated=true 설정
+        // setAuthenticated(true) 호출 제거 - 이미 authorities가 있으면 자동으로 authenticated=true
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 userDetails,
                 null,
-                userDetails.getAuthorities()
-        );
+                userDetails.getAuthorities());
+
+        return authentication;
     }
 
 }

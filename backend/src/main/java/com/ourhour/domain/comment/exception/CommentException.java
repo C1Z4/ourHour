@@ -44,4 +44,8 @@ public class CommentException extends BusinessException {
     public static CommentException commentLikeNotFoundException() {
         return new CommentException(ErrorCode.COMMENT_LIKE_NOT_FOUND);
     }
+
+    public static CommentException commentAuthorAccessDeniedException() {
+        return new CommentException(ErrorCode.COMMENT_AUTHOR_ACCESS_DENIED);
+    }
 }

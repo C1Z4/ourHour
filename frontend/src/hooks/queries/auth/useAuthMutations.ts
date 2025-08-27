@@ -14,7 +14,7 @@ import {
   SocialSigninRequest,
 } from '@/api/auth/signApi';
 import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
-import { removeAccessToken } from '@/utils/auth/tokenUtils';
+import { logout } from '@/utils/auth/tokenUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 // ======== 로그인 ========
@@ -67,8 +67,8 @@ export const useSignupMutation = () =>
 export const useSignoutMutation = () =>
   useMutation({
     mutationFn: () => postSignout(),
-    onMutate: () => {
-      removeAccessToken();
+    onSuccess: () => {
+      logout();
     },
     onError: (error: AxiosError) => {
       logError(error);

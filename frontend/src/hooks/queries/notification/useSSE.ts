@@ -22,16 +22,22 @@ export function useSSE({ url, onMessage, onError, onOpen, enabled = true }: UseS
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryCountRef = useRef(0);
 
-  const maxRetries = 5;
-  const baseRetryDelay = 1000;
+  const maxRetries = 3;
+  const baseRetryDelay = 2000;
 
   // 연결 시도
   const connect = useCallback(async () => {
-    // 메모리에 access token이 없으면 1초 후 재시도
+    // 메모리에 access token이 없으면 즉시 재시도 (최대 5회)
     if (!getAccessTokenFromStore()) {
-      setTimeout(() => {
-        connect();
-      }, 1000);
+      if (retryCountRef.current < 5) {
+        retryCountRef.current++;
+        // 즉시 재시도
+        setTimeout(() => {
+          connect();
+        }, 50); // 최소 대기시간만
+      } else {
+        setConnectionState('disconnected');
+      }
       return;
     }
 
@@ -50,13 +56,16 @@ export function useSSE({ url, onMessage, onError, onOpen, enabled = true }: UseS
       // SSE 연결 전 토큰 발급 요청
       await postSseToken();
 
+      // 쿠키 설정을 위한 최소 대기시간
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       const eventSource = new EventSource(url, {
         withCredentials: true,
       });
 
-      eventSource.onopen = (event) => {
+      eventSource.onopen = () => {
         setConnectionState('connected');
-        retryCountRef.current = 0; // 연결 성공 시 재시도 카운트 리셋
+        retryCountRef.current = 0; // 연결 성공 시 모든 재시도 카운트 리셋
         onOpen?.();
       };
 
@@ -74,38 +83,55 @@ export function useSSE({ url, onMessage, onError, onOpen, enabled = true }: UseS
         });
       });
 
-      // 기본 onmessage 핸들러 (named가 아닌 기본 메시지용)
-      eventSource.onmessage = (event) => {
-        const parsedData = JSON.parse(event.data);
-        onMessage?.(parsedData);
-
-        // 파싱 실패시 원본 데이터로 처리
+      eventSource.addEventListener('connection', (event) => {
+        // 초기 연결 확인 메시지
         onMessage?.({
-          type: 'raw',
+          type: 'connection',
           data: event.data,
         });
+      });
+
+      // 기본 onmessage 핸들러 (named가 아닌 기본 메시지용)
+      eventSource.onmessage = (event) => {
+        try {
+          const parsedData = JSON.parse(event.data);
+          onMessage?.(parsedData);
+        } catch {
+          onMessage?.({
+            type: 'raw',
+            data: event.data,
+          });
+        }
       };
 
       // onerror 핸들러
       eventSource.onerror = (error) => {
-        setConnectionState('disconnected');
         onError?.(error);
+        setConnectionState('disconnected');
 
-        // 재연결 로직
-        if (retryCountRef.current < maxRetries) {
-          const delay = Math.min(baseRetryDelay * Math.pow(2, retryCountRef.current), 10000);
-
-          retryTimeoutRef.current = setTimeout(() => {
+        // CONNECTING 상태에서 오류 발생 시 즉시 재연결
+        if (eventSource.readyState === EventSource.CONNECTING) {
+          if (retryCountRef.current < maxRetries) {
             retryCountRef.current++;
             disconnect();
-            connect();
-          }, delay);
-        } else {
-          // 1분 후 재시도 카운트 리셋
-          setTimeout(() => {
-            retryCountRef.current = 0;
-            connect();
-          }, 60000);
+            connect(); // 토큰 재발급 포함
+          }
+          return;
+        }
+
+        // CLOSED 상태에서 즉시 재연결
+        if (eventSource.readyState === EventSource.CLOSED) {
+          if (retryCountRef.current < maxRetries) {
+            retryCountRef.current++;
+            disconnect();
+            connect(); // 즉시 새 토큰 발급 후 재연결
+          } else {
+            // 최대 재시도 후 짧은 대기 후 재시도 카운트 리셋
+            retryTimeoutRef.current = setTimeout(() => {
+              retryCountRef.current = 0;
+              connect();
+            }, 1000); // 1초만 대기
+          }
         }
       };
 
@@ -113,6 +139,7 @@ export function useSSE({ url, onMessage, onError, onOpen, enabled = true }: UseS
     } catch {
       setConnectionState('disconnected');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, url, onOpen, onMessage, onError]);
 
   // 연결 종료

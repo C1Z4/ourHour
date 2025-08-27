@@ -13,6 +13,7 @@ public enum ErrorCode {
     USER_NOT_FOUND("사용자를 찾을 수 없습니다", 1000, HttpStatus.NOT_FOUND),
     USER_NOT_AUTHORIZED("사용자 인증에 실패했습니다", 1001, HttpStatus.UNAUTHORIZED),
     USER_ALREADY_SOCIAL("소셜 로그인으로 가입된 계정입니다.", 1013, HttpStatus.CONFLICT),
+    OAUTH_CODE_INVALID("잘못된 코드입니다.", 1014, HttpStatus.UNAUTHORIZED ),
 
     // 이메일 관련
     EMAIL_ALREADY_EXISTS("이미 존재하는 이메일입니다", 1002, HttpStatus.BAD_REQUEST),
@@ -106,6 +107,7 @@ public enum ErrorCode {
     COMMENT_TARGET_CONFLICT("postId 또는 issueId 중 하나만 입력해주세요", 6005, HttpStatus.BAD_REQUEST),
     COMMENT_ALREADY_LIKED("이미 좋아요를 누른 댓글입니다", 6006, HttpStatus.BAD_REQUEST),
     COMMENT_LIKE_NOT_FOUND("좋아요를 누르지 않은 댓글입니다", 6007, HttpStatus.NOT_FOUND),
+    COMMENT_AUTHOR_ACCESS_DENIED("해당 댓글을 수정할 권한이 없습니다", 6008, HttpStatus.FORBIDDEN),
 
     // ========== 채팅 관련 (7000~7999) ==========
     CHAT_ROOM_NOT_FOUND("존재하지 않는 채팅방입니다", 7000, HttpStatus.NOT_FOUND),

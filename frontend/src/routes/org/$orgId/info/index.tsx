@@ -48,7 +48,7 @@ function OrgInfoPage() {
   // 권한 변경을 위한 임시 상태
   const [pendingRoleChange, setPendingRoleChange] = useState<{
     memberId: number;
-    newRole: MemberRoleKo;
+    role: MemberRoleKo;
   } | null>(null);
 
   const { data: orgInfoData, isLoading: isLoadingOrgInfo } = useOrgInfoQuery(Number(orgId));
@@ -245,9 +245,9 @@ function OrgInfoPage() {
     setImageErrors((prev) => new Set(prev).add(orgId));
   };
 
-  const handleRoleChange = (memberId: number, newRole: MemberRoleKo) => {
+  const handleRoleChange = (memberId: number, role: MemberRoleKo) => {
     // 권한 변경 시 비밀번호 확인 모달 열기
-    setPendingRoleChange({ memberId, newRole });
+    setPendingRoleChange({ memberId, role });
     setIsRoleChangeModalOpen(true);
   };
 
@@ -263,7 +263,7 @@ function OrgInfoPage() {
           patchMemberRole({
             orgId: Number(orgId),
             memberId: pendingRoleChange.memberId,
-            newRole: MEMBER_ROLE_KO_TO_ENG[pendingRoleChange.newRole],
+            role: MEMBER_ROLE_KO_TO_ENG[pendingRoleChange.role],
           });
           setIsRoleChangeModalOpen(false);
           setPassword('');
