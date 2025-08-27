@@ -227,33 +227,29 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
 
         List<MemberEntity> members = memberRepository.findAllByUserEntity_UserIdAndEmail(userId, invitedEmail);
 
-        MemberEntity memberToJoin;
-        if (!members.isEmpty()) {
-            memberToJoin = members.get(0); // 첫 번째 것 선택
-        } else {
-            String randomName = "User" + UUID.randomUUID().toString().substring(0,4);
-            MemberEntity newMember = MemberEntity.builder()
-                    .userEntity(userEntity)
-                    .name(randomName)
-                    .email(invitedEmail)
-                    .build();
-            memberToJoin = memberRepository.save(newMember);
+        for (MemberEntity member : members) {
+            boolean alreadyParticipant = orgParticipantMemberRepository.existsByOrgEntityAndMemberEntity(orgEntity,
+                    member);
+            if (alreadyParticipant) {
+                // 의미 없는 초대이므로 상태값만 바꾸고 메소드 종료
+                orgInvEntity.changeStatusToExpired();
+                return;
+            }
         }
 
-        // 이미 조직에 참여 중인지 확인
-        boolean alreadyParticipant = orgParticipantMemberRepository.existsByOrgEntityAndMemberEntity(orgEntity,
-                memberToJoin);
-        if (alreadyParticipant) {
-            // 의미 없는 초대이므로 상태값만 바꾸고 메소드 종료
-            orgInvEntity.changeStatusToAccepted();
-            return;
-        }
+        String randomName = "User" + UUID.randomUUID().toString().substring(0,4);
+        MemberEntity newMember = MemberEntity.builder()
+                .userEntity(userEntity)
+                .name(randomName)
+                .email(invitedEmail)
+                .build();
+        memberRepository.save(newMember);
 
         // OrgParticipantMemberEntity 생성 및 저장 (실제 팀 참여)
         OrgParticipantMemberEntity newOpm = OrgParticipantMemberEntity.builder()
-                .orgParticipantMemberId(new OrgParticipantMemberId(orgEntity.getOrgId(), memberToJoin.getMemberId()))
+                .orgParticipantMemberId(new OrgParticipantMemberId(orgEntity.getOrgId(), newMember.getMemberId()))
                 .orgEntity(orgEntity)
-                .memberEntity(memberToJoin)
+                .memberEntity(newMember)
                 .role(orgInvEntity.getRole())
                 .status(Status.ACTIVE)
                 .joinedAt(LocalDate.now())
