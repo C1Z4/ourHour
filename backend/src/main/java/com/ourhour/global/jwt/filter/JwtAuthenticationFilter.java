@@ -44,22 +44,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (isNotification) {
             // SSE 요청의 경우 특별 처리
+
             try {
                 if (token != null && jwtTokenProvider.validateToken(token)) {
                     // 정상 토큰이면 SecurityContext 등록
                     Authentication authentication = jwtTokenProvider.getAuthenticationFromToken(token);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 } else {
-                    // 토큰이 유효하지 않으면 인증 실패 처리
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    // 토큰이 유효하지 않으면 인증 실패 처리 (응답 커밋 상태 확인)
+                    if (!response.isCommitted()) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("text/plain; charset=UTF-8");
+                        response.getWriter().write("Authentication failed: Invalid or missing SSE token");
+                        response.flushBuffer();
+                    }
                     return; // 필터 체인 중단
                 }
-            } catch (Exception e) {
-                // SSE 요청에서 예외 발생 시 응답이 커밋되지 않았을 때만 상태 코드 설정
+            } catch (JwtException e) {
                 if (!response.isCommitted()) {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("text/plain; charset=UTF-8");
+                    response.getWriter().write("Authentication failed: " + e.getMessage());
+                    response.flushBuffer();
                 }
-                return; // 필터 체인 중단
+                return;
+            } catch (Exception e) {
+                if (!response.isCommitted()) {
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    response.setContentType("text/plain; charset=UTF-8");
+                    response.getWriter().write("Internal server error during authentication");
+                    response.flushBuffer();
+                }
+                return;
             }
         } else {
             // 일반 API 요청의 경우, 유효한 토큰이 있으면 SecurityContext에 저장
@@ -84,14 +100,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 AuthPath.PUBLIC_URLS,
                 AuthPath.SWAGGER_URLS,
                 AuthPath.STOMP_URLS,
-                AuthPath.MONITORING_URLS
-        );
+                AuthPath.MONITORING_URLS);
 
         // 현재 요청 URI가 허용 목록에 있는지 확인
         return Arrays.stream(permitAllUrls)
                 .anyMatch(pattern -> pathMatcher.match(pattern, requestURI));
     }
-
 
     // 여러 문자열 배열을 하나로 합치는 헬퍼 메서드
     private String[] concatArrays(String[]... arrays) {
@@ -116,9 +130,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // SSE 요청의 경우 쿠키에서 SSE 토큰 추출
         if (isNotification) {
             Cookie[] cookies = request.getCookies();
+
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
-
                     if ("sseToken".equals(cookie.getName())) {
                         return cookie.getValue();
                     }

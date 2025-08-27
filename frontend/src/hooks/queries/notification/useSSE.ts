@@ -27,11 +27,18 @@ export function useSSE({ url, onMessage, onError, onOpen, enabled = true }: UseS
 
   // 연결 시도
   const connect = useCallback(async () => {
-    // 메모리에 access token이 없으면 1초 후 재시도
+    // 메모리에 access token이 없으면 최대 10번만 재시도
     if (!getAccessTokenFromStore()) {
-      setTimeout(() => {
-        connect();
-      }, 1000);
+      if (retryCountRef.current < 10) {
+        retryCountRef.current++;
+        const delay = Math.min(2000 * Math.pow(1.5, retryCountRef.current - 1), 15000);
+
+        setTimeout(() => {
+          connect();
+        }, delay);
+      } else {
+        setConnectionState('disconnected');
+      }
       return;
     }
 
@@ -50,13 +57,16 @@ export function useSSE({ url, onMessage, onError, onOpen, enabled = true }: UseS
       // SSE 연결 전 토큰 발급 요청
       await postSseToken();
 
+      // 쿠키 설정 완료를 위한 짧은 대기
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const eventSource = new EventSource(url, {
         withCredentials: true,
       });
 
-      eventSource.onopen = (event) => {
+      eventSource.onopen = () => {
         setConnectionState('connected');
-        retryCountRef.current = 0; // 연결 성공 시 재시도 카운트 리셋
+        retryCountRef.current = 0; // 연결 성공 시 모든 재시도 카운트 리셋
         onOpen?.();
       };
 
@@ -74,38 +84,62 @@ export function useSSE({ url, onMessage, onError, onOpen, enabled = true }: UseS
         });
       });
 
-      // 기본 onmessage 핸들러 (named가 아닌 기본 메시지용)
-      eventSource.onmessage = (event) => {
-        const parsedData = JSON.parse(event.data);
-        onMessage?.(parsedData);
-
-        // 파싱 실패시 원본 데이터로 처리
+      eventSource.addEventListener('connection', (event) => {
+        // 초기 연결 확인 메시지
         onMessage?.({
-          type: 'raw',
+          type: 'connection',
           data: event.data,
         });
+      });
+
+      // 기본 onmessage 핸들러 (named가 아닌 기본 메시지용)
+      eventSource.onmessage = (event) => {
+        try {
+          const parsedData = JSON.parse(event.data);
+          onMessage?.(parsedData);
+        } catch {
+          onMessage?.({
+            type: 'raw',
+            data: event.data,
+          });
+        }
       };
 
       // onerror 핸들러
       eventSource.onerror = (error) => {
-        setConnectionState('disconnected');
         onError?.(error);
 
-        // 재연결 로직
-        if (retryCountRef.current < maxRetries) {
-          const delay = Math.min(baseRetryDelay * Math.pow(2, retryCountRef.current), 10000);
+        // CONNECTING 상태에서 오류가 발생하면 잠시 대기 후 재시도
+        if (eventSource.readyState === EventSource.CONNECTING) {
+          setConnectionState('disconnected');
 
+          // 3초 대기 후 재연결 시도 (CONNECTING 상태 오류 해결)
+          retryTimeoutRef.current = setTimeout(() => {
+            if (retryCountRef.current < maxRetries) {
+              retryCountRef.current++;
+              disconnect();
+              connect();
+            }
+          }, 3000);
+          return;
+        }
+
+        setConnectionState('disconnected');
+
+        // 재연결 로직 (readyState가 CLOSED일 때만)
+        if (eventSource.readyState === EventSource.CLOSED && retryCountRef.current < maxRetries) {
+          const delay = Math.min(baseRetryDelay * Math.pow(2, retryCountRef.current), 30000);
           retryTimeoutRef.current = setTimeout(() => {
             retryCountRef.current++;
             disconnect();
             connect();
           }, delay);
-        } else {
-          // 1분 후 재시도 카운트 리셋
+        } else if (retryCountRef.current >= maxRetries) {
+          // 2분 후 재시도 카운트 리셋
           setTimeout(() => {
             retryCountRef.current = 0;
             connect();
-          }, 60000);
+          }, 120000);
         }
       };
 
