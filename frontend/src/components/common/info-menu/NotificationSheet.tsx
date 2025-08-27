@@ -255,22 +255,22 @@ function NotificationItem({ notification, onMarkAsRead }: NotificationItemProps)
 
     // 알림 타입별 페이지 이동 로직
     const navigateToRelatedPage = () => {
-      if (!currentOrgId) {
-        return;
-      }
-
       switch (notification.type) {
         case 'CHAT_MESSAGE':
-          if (notification.relatedId) {
-            dispatch(setCurrentOrgId(parseInt(currentOrgId)));
+          if (notification.relatedId && notification.actionUrl) {
+            const urlMatch = notification.actionUrl.match(/\/org\/(\d+)\/chat\/(\d+)/);
+            if (urlMatch) {
+              const [, orgId, roomId] = urlMatch;
+              dispatch(setCurrentOrgId(parseInt(orgId)));
 
-            router.navigate({
-              to: '/org/$orgId/chat/$roomId',
-              params: {
-                orgId: currentOrgId,
-                roomId: notification.relatedId.toString(),
-              },
-            });
+              router.navigate({
+                to: '/org/$orgId/chat/$roomId',
+                params: {
+                  orgId: orgId,
+                  roomId: roomId,
+                },
+              });
+            }
           }
           break;
 
