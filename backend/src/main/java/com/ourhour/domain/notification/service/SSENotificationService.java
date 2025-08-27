@@ -163,7 +163,7 @@ public class SSENotificationService {
         // 현재 SecurityContext 캡처 (HTTP 요청 스레드에서)
         SecurityContext securityContext = SecurityContextHolder.getContext();
 
-        // 초기 연결 메시지를 3초 후에 전송 (청크 인코딩 안정화)
+        // 초기 연결 메시지를 즉시 전송 (연결 안정화)
         ScheduledFuture<?> initialTask = heartbeatScheduler.schedule(() -> {
             SecurityContextHolder.setContext(securityContext);
             try {
@@ -176,9 +176,9 @@ public class SSENotificationService {
             } finally {
                 SecurityContextHolder.clearContext();
             }
-        }, 3, TimeUnit.SECONDS);
+        }, 100, TimeUnit.MILLISECONDS);
 
-        // 30초마다 heartbeat 메시지 전송
+        // 15초마다 heartbeat 메시지 전송 (연결 끊김 즉시 감지)
         ScheduledFuture<?> heartbeatTask = heartbeatScheduler.scheduleAtFixedRate(() -> {
             // SecurityContext를 스케줄러 스레드에 설정
             SecurityContextHolder.setContext(securityContext);
@@ -206,7 +206,7 @@ public class SSENotificationService {
                 // SecurityContext 정리
                 SecurityContextHolder.clearContext();
             }
-        }, 30, 30, TimeUnit.SECONDS); // 30초 후 시작, 30초마다 반복
+        }, 15, 15, TimeUnit.SECONDS); // 15초 후 시작, 15초마다 반복
 
         // heartbeat 작업 저장
         heartbeatTasks.put(userId, heartbeatTask);
