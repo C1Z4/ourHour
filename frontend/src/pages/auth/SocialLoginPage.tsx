@@ -9,6 +9,8 @@ import {
   useSocialSigninMutation,
   useOauthExtraInfoMutation,
 } from '@/hooks/queries/auth/useAuthMutations';
+import { useAcceptInvMutation } from '@/hooks/queries/org/userOrgInvMutations';
+import { clearPendingInv, getPendingInv } from '@/utils/auth/pendingInvStorage';
 import {
   clearPendingSocialSignup,
   getPendingSocialSignup,
@@ -24,8 +26,11 @@ export function SocialLoginPage() {
   const state = search.get('state') as SocialPlatform | null;
   const verified = search.get('verified');
 
+  const inviteData = getPendingInv();
+
   const socialSigninMutation = useSocialSigninMutation();
   const socialExtraInfoMutation = useOauthExtraInfoMutation();
+  const acceptInvMutation = useAcceptInvMutation(Number(inviteData?.orgId ?? 0));
 
   const [isApiCalled, setIsApiCalled] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -39,10 +44,10 @@ export function SocialLoginPage() {
   } | null>(null);
 
   useEffect(() => {
-    // 1. 페이지 진입 시 로컬 스토리지 데이터 확인
+    // 페이지 진입 시 로컬 스토리지 데이터 확인
     const saved = getPendingSocialSignup();
 
-    // 2. 이메일 인증을 거쳐 돌아왔을 때의 로직
+    // 이메일 인증을 거쳐 돌아왔을 때의 로직
     // URL에 'verified=success'가 있다면, 모달을 복구하고 isVerified를 true로 설정
     if (verified && saved?.isOpen && saved.oauthData) {
       const updatedOauthData = { ...saved.oauthData, isVerified: true };
@@ -53,7 +58,7 @@ export function SocialLoginPage() {
       setModalMode(saved.mode);
       setModalOpen(true);
       setLoading(false);
-      return; // 모달을 열었으니 API 호출을 건너뜁니다.
+      return; // 모달을 열었으니 API 호출을 건너 뜀.
     }
 
     if (!code || !state) {
@@ -67,7 +72,7 @@ export function SocialLoginPage() {
       socialSigninMutation.mutate(
         { code, platform: state },
         {
-          onSuccess: (res) => {
+          onSuccess: async (res) => {
             if (res.data.newUser) {
               // 신규 사용자 → 모달 열기
               const oauthData = {
@@ -90,6 +95,15 @@ export function SocialLoginPage() {
             } else if (res.data.oauthId && res.data.accessToken) {
               // 기존 유저 → 바로 로그인
               loginUser(res.data.accessToken);
+
+              if (inviteData?.token) {
+                await acceptInvMutation.mutateAsync({ token: inviteData.token });
+                clearPendingInv();
+
+                // 초대 수락 후 회사 목록 페이지 이동
+                router.navigate({ to: '/start', search: { page: 1 } });
+              }
+
               requestAnimationFrame(() => {
                 router.navigate({ to: '/start', search: { page: 1 } });
               });
@@ -124,15 +138,24 @@ export function SocialLoginPage() {
         password: data.password,
       },
       {
-        onSuccess: (res) => {
+        onSuccess: async (res) => {
           if (res.data.accessToken) {
             loginUser(res.data.accessToken);
           }
           clearPendingSocialSignup();
+
+          if (inviteData?.token) {
+            await acceptInvMutation.mutateAsync({ token: inviteData.token });
+            clearPendingInv();
+
+            // 초대 수락 후 회사 목록 페이지 이동
+            router.navigate({ to: '/start', search: { page: 1 } });
+          }
+
           setModalOpen(false);
           router.navigate({ to: '/start', search: { page: 1 } });
         },
-        onError: (err) => {
+        onError: () => {
           router.navigate({ to: '/login', search: { error: 'social_login_failed' } });
         },
       },
