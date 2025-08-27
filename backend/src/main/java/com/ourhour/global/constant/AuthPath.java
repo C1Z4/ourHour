@@ -31,7 +31,7 @@ public final class AuthPath {
     };
 
     public static final String[] NOTIFICATION_URLS = {
-            "/api/notifications/stream"
+            "/api/notifications/stream",
     };
 
 }

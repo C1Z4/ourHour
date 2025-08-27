@@ -110,35 +110,25 @@ export function useInfiniteNotifications() {
               });
             }
 
-            // 데이터 새로고침
+            // 데이터 새로고침 (debouncing을 위해 invalidate만 사용)
             queryClient.invalidateQueries({
               queryKey: [NOTIFICATION_QUERY_KEYS.NOTIFICATION_LIST_INFINITE],
             });
             queryClient.invalidateQueries({
               queryKey: [NOTIFICATION_QUERY_KEYS.NOTIFICATION_UNREAD_COUNT],
             });
-
-            Promise.all([
-              queryClient.refetchQueries({
-                queryKey: [NOTIFICATION_QUERY_KEYS.NOTIFICATION_LIST_INFINITE],
-              }),
-              queryClient.refetchQueries({
-                queryKey: [NOTIFICATION_QUERY_KEYS.NOTIFICATION_UNREAD_COUNT],
-              }),
-            ]);
             break;
           }
 
           case 'notification_read':
           case 'all_notifications_read':
-            Promise.all([
-              queryClient.refetchQueries({
-                queryKey: [NOTIFICATION_QUERY_KEYS.NOTIFICATION_LIST_INFINITE],
-              }),
-              queryClient.refetchQueries({
-                queryKey: [NOTIFICATION_QUERY_KEYS.NOTIFICATION_UNREAD_COUNT],
-              }),
-            ]);
+            // 읽음 처리 시에도 invalidate만 사용하여 자연스러운 업데이트
+            queryClient.invalidateQueries({
+              queryKey: [NOTIFICATION_QUERY_KEYS.NOTIFICATION_LIST_INFINITE],
+            });
+            queryClient.invalidateQueries({
+              queryKey: [NOTIFICATION_QUERY_KEYS.NOTIFICATION_UNREAD_COUNT],
+            });
             break;
 
           case 'connected':

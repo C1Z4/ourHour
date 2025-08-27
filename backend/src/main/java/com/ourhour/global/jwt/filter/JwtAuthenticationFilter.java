@@ -47,15 +47,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             try {
                 if (token != null && jwtTokenProvider.validateToken(token)) {
-                    // 정상 토큰이면 SecurityContext 등록
-                    Authentication authentication = jwtTokenProvider.getAuthenticationFromToken(token);
+                    // SSE 토큰인지 확인 후 적절한 메서드 사용
+                    Authentication authentication;
+                    boolean isSseToken = jwtTokenProvider.isSseToken(token);
+
+                    if (isSseToken) {
+                        // SSE 토큰인 경우 SSE 전용 메서드 사용
+                        authentication = jwtTokenProvider.getAuthenticationFromSseToken(token);
+                    } else {
+                        // 일반 Access Token인 경우
+                        authentication = jwtTokenProvider.getAuthenticationFromToken(token);
+                    }
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 } else {
-                    // 토큰이 유효하지 않으면 인증 실패 처리 (응답 커밋 상태 확인)
+                    // SSE 요청에서 인증 실패 시 직접 403 응답 전송
                     if (!response.isCommitted()) {
                         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                         response.setContentType("text/plain; charset=UTF-8");
-                        response.getWriter().write("Authentication failed: Invalid or missing SSE token");
+                        response.getWriter().write("SSE Authentication failed: Invalid or missing SSE token");
                         response.flushBuffer();
                     }
                     return; // 필터 체인 중단
@@ -64,7 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (!response.isCommitted()) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("text/plain; charset=UTF-8");
-                    response.getWriter().write("Authentication failed: " + e.getMessage());
+                    response.getWriter().write("SSE JWT validation failed: " + e.getMessage());
                     response.flushBuffer();
                 }
                 return;
@@ -72,7 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (!response.isCommitted()) {
                     response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                     response.setContentType("text/plain; charset=UTF-8");
-                    response.getWriter().write("Internal server error during authentication");
+                    response.getWriter().write("SSE Internal server error: " + e.getMessage());
                     response.flushBuffer();
                 }
                 return;
@@ -139,7 +148,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         }
-
         return null;
     }
 }
