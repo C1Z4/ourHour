@@ -66,6 +66,12 @@ export const TOAST_MESSAGES = {
     SIGNUP_SUCCESS: '회원가입 성공!',
   },
 
+  INV: {
+    SEND_EMAIL_SUCCESS: '초대 이메일 발송이 완료되었습니다.',
+    EMAIL_VERIFICATION_SUCCESS: '이메일 인증에 성공했습니다.',
+    ACCEPT_INV_SUCCESS: '초대가 수락되었습니다.',
+  },
+
   ERROR: {
     NETWORK_ERROR: '네트워크 연결을 확인해주세요.',
     SERVER_ERROR: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
