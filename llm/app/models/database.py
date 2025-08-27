@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
@@ -17,11 +17,11 @@ def get_cloud_sql_connection():
     def getconn():
         connector = Connector()
         conn = connector.connect(
-            "ourhour-469702:asia-northeast3:ourhour-db",  # Cloud SQL 인스턴스 연결 이름
+            os.getenv("CLOUD_SQL_INSTANCE_CONNECTION_NAME"),
             "pymysql",
-            user="ourhour-user",
-            password="ourhour",
-            db="ourhour"
+            user=os.getenv("CLOUD_SQL_USER"),
+            password=os.getenv("CLOUD_SQL_PASSWORD"),
+            db=os.getenv("CLOUD_SQL_DATABASE")
         )
         return conn
     return getconn
@@ -41,7 +41,7 @@ def get_database_engine():
         
         # 연결 테스트
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
         
         print("Cloud SQL 데이터베이스 연결 성공")
         return engine

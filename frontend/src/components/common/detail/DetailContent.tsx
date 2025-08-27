@@ -11,16 +11,20 @@ import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { formatIsoToDate } from '@/utils/auth/dateUtils';
+import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 
 interface DetailContentProps {
   issue?: IssueDetail;
   post?: Post;
   onEdit: () => void;
   onDelete: () => void;
+  orgId: number;
 }
 
-export const DetailContent = ({ issue, post, onEdit, onDelete }: DetailContentProps) => {
+export const DetailContent = ({ issue, post, onEdit, onDelete, orgId }: DetailContentProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const currentUserId = getMemberIdFromToken(orgId);
+  const isAuthor = currentUserId === post?.authorId;
 
   return (
     <div className="bg-white">
@@ -42,10 +46,12 @@ export const DetailContent = ({ issue, post, onEdit, onDelete }: DetailContentPr
           )}
         </div>
         <div className="flex ">
-          <ButtonComponent variant="ghost" size="sm" onClick={onEdit}>
-            <Edit className="w-4 h-4 mr-2" />
-            수정
-          </ButtonComponent>
+          {(issue || (post && isAuthor)) && (
+            <ButtonComponent variant="ghost" size="sm" onClick={onEdit}>
+              <Edit className="w-4 h-4 mr-2" />
+              수정
+            </ButtonComponent>
+          )}
           <ButtonComponent variant="ghost" size="sm" onClick={() => setIsDeleteModalOpen(true)}>
             <Trash2 className="w-4 h-4 mr-2" />
             삭제

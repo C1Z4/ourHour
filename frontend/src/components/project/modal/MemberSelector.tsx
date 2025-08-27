@@ -126,17 +126,11 @@ export const MemberSelector = ({
         </div>
 
         <div className="p-3 border-t">
-          {totalPages > 1 ? (
-            <PaginationComponent
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
-            />
-          ) : (
-            <div className="h-10 flex items-center justify-center text-sm text-gray-500">
-              {members.length > 0 ? `총 ${members.length}명` : ''}
-            </div>
-          )}
+          <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
+          />
         </div>
       </div>
     </div>
