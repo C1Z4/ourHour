@@ -27,9 +27,10 @@ export function ChatMessageList({
   isFetchingPreviousPage,
 }: ChatMessageListProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [hasNewMessage, setHasNewMessage] = useState(false);
   const stickToBottomRef = useRef<boolean>(true);
   const initialLoadRef = useRef(false);
+  const prevMessagesRef = useRef<ChatMessage[]>(messages);
 
   const onScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -37,8 +38,12 @@ export function ChatMessageList({
       return;
     }
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    stickToBottomRef.current = distanceFromBottom < 120;
-    setShowScrollButton(!stickToBottomRef.current);
+    const isSticking = distanceFromBottom < 120;
+    stickToBottomRef.current = isSticking;
+
+    if (isSticking) {
+      setHasNewMessage(false);
+    }
   }, []);
 
   const { ref: topRef, inView } = useInView({ threshold: 0 });
@@ -74,15 +79,25 @@ export function ChatMessageList({
       el.scrollTop = el.scrollHeight;
       didInitialScrollToBottomRef.current = true;
     } else if (stickToBottomRef.current) {
+      // 스크롤이 맨 아래에 있으면 새 메시지가 와도 자동으로 스크롤
       el.scrollTop = el.scrollHeight;
     } else {
-      setShowScrollButton(true);
+      const prevMessages = prevMessagesRef.current;
+      const wasNewMessageAdded =
+        messages.length > prevMessages.length &&
+        messages[messages.length - 1]?.chatMessageId !==
+          prevMessages[prevMessages.length - 1]?.chatMessageId;
+
+      if (wasNewMessageAdded && didInitialScrollToBottomRef.current) {
+        setHasNewMessage(true);
+      }
     }
+    prevMessagesRef.current = messages;
   }, [messages]);
 
   const scrollToBottom = () => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-    setShowScrollButton(false);
+    setHasNewMessage(false);
   };
 
   const formatTime = (timestamp?: string) =>
@@ -107,7 +122,6 @@ export function ChatMessageList({
 
   const renderAvatar = (senderName: string, profileImageUrl?: string | null) => (
     <Avatar className="h-8 w-8">
-      {/* AvatarImage src가 유효하면 이미지를, 아니면 Fallback을 자동으로 보여줌 */}
       <AvatarImage src={profileImageUrl ? getImageUrl(profileImageUrl) : undefined} />
       <AvatarFallback>{senderName.charAt(0)}</AvatarFallback>
     </Avatar>
@@ -119,14 +133,14 @@ export function ChatMessageList({
       onScroll={onScroll}
       className="relative flex flex-col h-full overflow-y-auto px-4 py-4"
     >
-      {/* {showScrollButton && (
+      {hasNewMessage && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-4 right-4 z-10 bg-primary text-primary-foreground px-4 py-2 rounded-full shadow-lg text-sm"
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-primary text-primary-foreground px-4 py-2 rounded-full shadow-lg text-sm"
         >
           ⬇ 새 메시지
         </button>
-      )} */}
+      )}
       <div ref={topRef} className="flex justify-center p-2 h-10">
         {isFetchingPreviousPage && <p>메시지 불러오는 중…</p>}
         {!isFetchingPreviousPage && messages.length === 0 && !hasPreviousPage && (
