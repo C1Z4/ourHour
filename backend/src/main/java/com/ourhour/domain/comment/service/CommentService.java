@@ -193,6 +193,32 @@ public class CommentService {
                     );
                 }
             }
+            
+            // 대댓글인 경우 원래 댓글 작성자에게도 알림 전송
+            if (commentCreateReqDTO.getParentCommentId() != null) {
+                CommentEntity parentComment = commentRepository.findById(commentCreateReqDTO.getParentCommentId())
+                        .orElse(null);
+                if (parentComment != null) {
+                    Long parentAuthorUserId = parentComment.getAuthorEntity().getUserEntity().getUserId();
+                    
+                    // 대댓글 작성자와 원래 댓글 작성자가 다른 경우에만 알림 전송
+                    if (!parentAuthorUserId.equals(currentUserId) && !parentAuthorUserId.equals(authorUserId)) {
+                        String actionUrl = String.format("/org/%d/board/%d/post/%d", 
+                                postEntity.getBoardEntity().getOrgEntity().getOrgId(),
+                                postEntity.getBoardEntity().getBoardId(),
+                                postEntity.getPostId());
+                        
+                        notificationEventService.sendCommentReplyNotification(
+                            parentAuthorUserId,
+                            commentEntity.getAuthorEntity().getName(),
+                            parentComment.getContent(),
+                            postEntity.getPostId(),
+                            "post",
+                            actionUrl
+                        );
+                    }
+                }
+            }
         }
 
         if (issueEntity != null) {
@@ -221,6 +247,33 @@ public class CommentService {
                         issueEntity.getProjectEntity().getOrgEntity().getOrgId(),
                         issueEntity.getProjectEntity().getName()
                     );
+                }
+            }
+            
+            // 이슈 대댓글인 경우 원래 댓글 작성자에게도 알림 전송
+            if (commentCreateReqDTO.getParentCommentId() != null) {
+                CommentEntity parentComment = commentRepository.findById(commentCreateReqDTO.getParentCommentId())
+                        .orElse(null);
+                if (parentComment != null) {
+                    Long parentAuthorUserId = parentComment.getAuthorEntity().getUserEntity().getUserId();
+                    
+                    // 대댓글 작성자와 원래 댓글 작성자가 다르고, 이슈 담당자와도 다른 경우에만 알림 전송
+                    if (!parentAuthorUserId.equals(currentUserId) && 
+                        (assigneeUserId == null || !parentAuthorUserId.equals(assigneeUserId))) {
+                        String actionUrl = String.format("/org/%d/project/%d/issue/%d", 
+                                issueEntity.getProjectEntity().getOrgEntity().getOrgId(),
+                                issueEntity.getProjectEntity().getProjectId(),
+                                issueEntity.getIssueId());
+                        
+                        notificationEventService.sendCommentReplyNotification(
+                            parentAuthorUserId,
+                            commentEntity.getAuthorEntity().getName(),
+                            parentComment.getContent(),
+                            issueEntity.getIssueId(),
+                            "issue",
+                            actionUrl
+                        );
+                    }
                 }
             }
         }

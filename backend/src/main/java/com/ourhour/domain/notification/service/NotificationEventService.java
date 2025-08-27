@@ -136,4 +136,24 @@ public class NotificationEventService {
                 NotificationDTO notification = notificationService.createNotification(dto);
                 sseNotificationService.sendNotification(userId, notification);
         }
+
+        // 댓글 답글 알림 (댓글 작성자에게)
+        public void sendCommentReplyNotification(Long userId, String replierName, String originalCommentContent, 
+                        Long relatedId, String relatedType, String actionUrl) {
+                String title = "댓글 답글";
+                String message = String.format("%s님이 회원님의 댓글에 답글을 남겼습니다.", replierName);
+                
+                NotificationCreateReqDTO dto = NotificationCreateReqDTO.builder()
+                                .userId(userId)
+                                .type(NotificationType.COMMENT_REPLY)
+                                .title(title)
+                                .message(message)
+                                .relatedId(relatedId)
+                                .relatedType(relatedType)
+                                .actionUrl(actionUrl)
+                                .build();
+
+                NotificationDTO notification = notificationService.createNotification(dto);
+                sseNotificationService.sendNotification(userId, notification);
+        }
 }
