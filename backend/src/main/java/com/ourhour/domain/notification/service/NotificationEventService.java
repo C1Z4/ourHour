@@ -33,7 +33,7 @@ public class NotificationEventService {
         // }
 
         // 채팅방 메시지 알림
-        public void sendChatMessageNotification(Long userId, String senderName, String roomName, Long roomId) {
+        public void sendChatMessageNotification(Long userId, String senderName, String roomName, Long roomId, Long orgId) {
                 NotificationCreateReqDTO dto = NotificationCreateReqDTO.builder()
                                 .userId(userId)
                                 .type(NotificationType.CHAT_MESSAGE)
@@ -41,7 +41,7 @@ public class NotificationEventService {
                                 .message(String.format("'%s' 채팅방에 새 메시지가 있습니다.", roomName))
                                 .relatedId(roomId)
                                 .relatedType("chatroom")
-                                .actionUrl(String.format("/chat/room/%d", roomId))
+                                .actionUrl(String.format("/org/%d/chat/%d", orgId, roomId))
                                 .build();
 
                 NotificationDTO notification = notificationService.createNotification(dto);
