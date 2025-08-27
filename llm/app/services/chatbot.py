@@ -18,7 +18,6 @@ def create_final_prompt(task_context: str, task_guidelines: str, user_message: s
 당신은 OURHOUR 그룹웨어의 AI 어시턴트입니다.
 직원들의 업무를 도와주는 친근하고 전문적인 도우미 역할을 합니다.
 항상 친근하고 도움이 되는 톤을 유지하세요.
-질문에 대해 핵심만 간결하게 답변하세요.
 제공된 '현재 작업에 필요한 정보'에만 기반하여 답변해야 하며, 정보에 없는 내용은 절대 추측해서 답변하지 마세요.
 """
     final_prompt = f"""{base_prompt}
@@ -36,6 +35,31 @@ def create_final_prompt(task_context: str, task_guidelines: str, user_message: s
     return final_prompt
 
 # ==================================
+# 조직도 핸들러 내부에서 사용할 2차 라우터
+# ==================================
+async def classify_org_chart_query(user_message: str, llm: ChatOpenAI) -> str:
+    """조직도 관련 질문의 세부 의도를 파악합니다."""
+    prompt = f"""
+사용자의 질문을 아래 두 가지 카테고리 중 더 적합한 하나로 분류해주세요.
+오직 카테고리 이름 하나만 답변해야 합니다. (예: "specific_person")
+
+[카테고리]
+- specific_person: 특정 한 사람의 정보(연락처, 부서, 직책 등)를 묻는 질문
+- general_query: 여러 명의 목록, 통계, 부서/직책 정보 등 특정인이 아닌 일반적인 조직 정보를 묻는 질문
+
+[사용자 질문]
+"{user_message}"
+
+[분류]
+"""
+    response = await llm.ainvoke(prompt)
+    sub_intent = response.content.strip().lower()
+    
+    if sub_intent not in ["specific_person", "general_query"]:
+        return "general_query" # 잘못된 경우 일반 쿼리로 간주
+    return sub_intent
+
+# ==================================
 # 기능별 핸들러 함수
 # ==================================
 async def handle_greeting(user_message: str, conversation: ConversationChain, **kwargs) -> str:
@@ -46,11 +70,7 @@ async def handle_greeting(user_message: str, conversation: ConversationChain, **
 - 친근하게 인사하며 도움을 제공할 수 있는 기능들을 간략히 소개하세요.
 - 기능 소개 예시: "안녕하세요! 저는 OURHOUR의 AI 어시턴트입니다. 조직 정보, 프로젝트 현황, 멤버 정보 등을 도와드릴 수 있어요. 궁금한 것이 있으시면 언제든 물어보세요!"
 """
-    final_prompt = create_final_prompt(
-        task_context=task_context,
-        task_guidelines=greeting_guidelines,
-        user_message=user_message
-    )
+    final_prompt = create_final_prompt(task_context=task_context, task_guidelines=greeting_guidelines, user_message=user_message)
     return conversation.predict(input=final_prompt)
 
 async def handle_chat_summary(user_message: str, conversation: ConversationChain, **kwargs) -> str:
@@ -69,69 +89,64 @@ async def handle_chat_summary(user_message: str, conversation: ConversationChain
 async def handle_project_query(user_message: str, conversation: ConversationChain, **kwargs) -> str:
     """프로젝트, 마일스톤, 이슈 관련 질문을 처리하는 핸들러"""
     print("✅ [핸들러] 프로젝트/이슈 조회 기능 호출")
-
-    context_args = {
-        "user_message": user_message,
-        "member_id": kwargs.get("member_id"),
-        "org_id": kwargs.get("org_id"),
-        "auth_token": kwargs.get("auth_token"),
-    }
+    context_args = { "user_message": user_message, **kwargs }
     ourhour_context = await context_service.get_comprehensive_context(**context_args)
 
     project_guidelines = """
 - 프로젝트 목록, 참가자, 마일스톤, 이슈 현황 등 질문에 맞는 정보를 제공하세요.
 - GitHub 연동 여부, 진행 상황 등 상세 정보를 포함하세요.
 """
-    final_prompt = create_final_prompt(
-        task_context=ourhour_context,
-        task_guidelines=project_guidelines,
-        user_message=user_message
-    )
+    final_prompt = create_final_prompt(task_context=ourhour_context, task_guidelines=project_guidelines, user_message=user_message)
     return conversation.predict(input=final_prompt)
 
-async def handle_org_chart_query(user_message: str, conversation: ConversationChain, **kwargs) -> str:
+async def handle_org_chart_query(user_message: str, conversation: ConversationChain, llm: ChatOpenAI, **kwargs) -> str:
     """조직도, 인물, 부서, 직책 등 일반 정보를 처리하는 핸들러"""
     print("✅ [핸들러] 조직도/인물 조회 기능 호출")
+    
+    # 2차 라우터를 호출하여 세부 의도를 먼저 파악
+    sub_intent = await classify_org_chart_query(user_message, llm)
+    print(f"✅ [2차 라우터] 조직도 세부 의도: {sub_intent}")
 
-    context_args = {
-        "user_message": user_message,
-        "member_id": kwargs.get("member_id"),
-        "org_id": kwargs.get("org_id"),
-        "auth_token": kwargs.get("auth_token"),
-    }
-    ourhour_context = await context_service.get_comprehensive_context(**context_args)
+    # 세부 의도에 따라 context_service 호출 방식을 다르게 분리
+    # get_comprehensive_context의 인자에서 user_message를 분리하여 전달
+    context_args = {key: value for key, value in kwargs.items() if key != 'user_message'}
+    
+    # 'specific_person'일 때만 이름 탐색을 시도하도록 user_message를 전달
+    if sub_intent == "specific_person":
+        ourhour_context = await context_service.get_comprehensive_context(user_message=user_message, **context_args)
+        org_chart_guidelines = "사용자가 질문한 특정 인물에 대한 정보를 찾아서 정확하게 답변하세요. 만약 없다면 없다고 말하세요."
+    else: # 'general_query'일 경우
+        # 이름 탐색을 시도하지 않도록 user_message를 빈 값으로 전달
+        ourhour_context = await context_service.get_comprehensive_context(user_message="", **context_args)
+        org_chart_guidelines = "사용자가 질문한 조직의 일반적인 정보(목록, 통계 등)에 대해 답변하세요. 특정 인물을 찾으려고 하지 마세요."
 
-    org_chart_guidelines = """
-1.  **특정 인물**: 멤버 상세 정보에서 해당 이름을 정확히 찾아서 정보 제공.
-2.  **부서/직책**: 부서별/직책별 구성원 수와 멤버 목록 제공.
-3.  **정보 부재 시**: "해당 정보를 찾을 수 없습니다"라고 명확히 안내.
-"""
-    final_prompt = create_final_prompt(
-        task_context=ourhour_context,
-        task_guidelines=org_chart_guidelines,
-        user_message=user_message
-    )
+    final_prompt = create_final_prompt(task_context=ourhour_context, task_guidelines=org_chart_guidelines, user_message=user_message)
     return conversation.predict(input=final_prompt)
 
 # ==================================
-# 요청을 분류하는 함수
+# LLM을 사용한 라우터 함수
 # ==================================
-def route_request(user_message: str) -> str:
-    """사용자 메시지를 분석해 어떤 핸들러를 호출할지 결정합니다."""
-    greeting_keywords = ["안녕", "하이", "도와줘", "뭐 할 수 있어", "누구야"]
-    if len(user_message) < 10 and any(k in user_message for k in greeting_keywords):
-        return "greeting"
+async def route_request_with_llm(user_message: str, llm: ChatOpenAI) -> str:
+    """LLM을 사용하여 사용자의 의도를 파악하고 적절한 핸들러 결정"""
+    prompt = f"""
+사용자의 질문을 아래 네 가지 카테고리 중 가장 적합한 하나로 분류해주세요.
+오직 카테고리 이름 하나만 답변해야 합니다. (예: "greeting")
 
-    summary_keywords = ["요약", "정리"]
-    chat_keywords = ["대화", "채팅", "메시지", "회의록"]
-    if any(k in user_message for k in summary_keywords) and any(k in user_message for k in chat_keywords):
-        return "chat_summary"
+[카테고리]
+- greeting: 일반적인 인사, 도움 요청, 챗봇의 정체성에 대한 질문
+- chat_summary: 대화, 채팅, 회의 내용에 대한 요약이나 정리를 요청하는 질문
+- project_query: 프로젝트, 마일스톤, 이슈, 업무, 일정 등 프로젝트와 관련된 질문
+- org_chart_query: 특정 인물, 부서, 직책, 연락처 등 조직 정보에 대한 질문
 
-    project_keywords = ["프로젝트", "일정", "마일스톤", "이슈", "깃헙"]
-    if any(k in user_message for k in project_keywords):
-        return "project_query"
+[사용자 질문]
+"{user_message}"
 
-    return "org_chart_query"
+[분류]
+"""
+    response = await llm.ainvoke(prompt)
+    intent = response.content.strip().lower()
+    valid_intents = ["greeting", "chat_summary", "project_query", "org_chart_query"]
+    return intent if intent in valid_intents else "org_chart_query"
 
 # ==================================
 # 메인 ChatbotService 클래스
@@ -139,33 +154,19 @@ def route_request(user_message: str) -> str:
 class ChatbotService:
     def __init__(self):
         """챗봇 서비스 초기화"""
-        self.llm = ChatOpenAI(
-            temperature=0.1,
-            model_name='gpt-4o',
-            openai_api_key=os.getenv("OPENAI_API_KEY")
-        )
+        self.llm = ChatOpenAI(temperature=0.1, model_name='gpt-4o', openai_api_key=os.getenv("OPENAI_API_KEY"))
 
-    async def get_response(
-        self,
-        user_message: str,
-        member_id: str = None,
-        org_id: int = None,
-        auth_token: str = None
-    ) -> str:
-        """사용자 메시지에 대한 AI 응답을 반환"""
+    async def get_response(self, user_message: str, member_id: str = None, org_id: int = None, auth_token: str = None) -> str:
+        """사용자 메시지에 대한 AI 응답을 반환합니다."""
+        intent = await route_request_with_llm(user_message, self.llm)
+        print(f"✅ [LLM 라우터] 감지된 의도: {intent}")
 
-        conversation = ConversationChain(
-            llm=self.llm,
-            memory=ConversationBufferMemory(),
-            verbose=True
-        )
-
-        intent = route_request(user_message)
-        print(f"✅ [라우터] 감지된 의도: {intent}")
+        conversation = ConversationChain(llm=self.llm, memory=ConversationBufferMemory(), verbose=True)
 
         handler_kwargs = {
             "user_message": user_message,
             "conversation": conversation,
+            "llm": self.llm, 
             "member_id": member_id,
             "org_id": org_id,
             "auth_token": auth_token
@@ -177,7 +178,6 @@ class ChatbotService:
             "project_query": handle_project_query,
             "org_chart_query": handle_org_chart_query,
         }
-
         handler = handler_map.get(intent, handle_org_chart_query)
 
         try:
