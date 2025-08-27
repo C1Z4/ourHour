@@ -71,7 +71,7 @@ export const AllPostListPage = ({ orgId }: AllPostListPageProps) => {
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">전체 게시글</h1>
               </div>
               <ButtonComponent
-                variant="danger"
+                variant="primary"
                 size="sm"
                 onClick={() => {
                   handleCreatePost();
