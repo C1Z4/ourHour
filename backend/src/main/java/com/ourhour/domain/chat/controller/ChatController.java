@@ -7,11 +7,13 @@ import com.ourhour.domain.chat.dto.ChatRoomLeaveReqDTO;
 import com.ourhour.domain.chat.service.ChatService;
 import com.ourhour.domain.chat.service.UserLocationService;
 import com.ourhour.global.jwt.dto.Claims;
+import com.ourhour.global.util.AsyncUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.concurrent.DelegatingSecurityContextExecutor;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
