@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
-import { Github, Plus, RefreshCw } from 'lucide-react';
+import { Github, Info, Plus, RefreshCw } from 'lucide-react';
 
 import type { MyMemberInfoDetail } from '@/api/member/memberApi';
 import type { GithubRepository } from '@/api/project/githubApi';
@@ -241,6 +241,7 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
           </div>
 
           <ButtonComponent variant="primary" size="sm" onClick={handleProjectInfo}>
+            <Info className="size-4" />
             프로젝트 정보
           </ButtonComponent>
         </div>

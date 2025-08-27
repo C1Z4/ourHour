@@ -13,7 +13,7 @@ import { getImageUrl } from '@/utils/file/imageUtils';
 interface ChatMessageListProps {
   messages: ChatMessage[];
   currentMemberId: number;
-  memberInfoMap: Map<number, { memberName: string; profileImgUrl?: string | null }>;
+  memberInfoMap: Map<number, { memberName: string; profileImageUrl?: string | null }>;
   onLoadMorePrev: () => void;
   hasPreviousPage?: boolean;
   isFetchingPreviousPage?: boolean;
@@ -106,10 +106,10 @@ export function ChatMessageList({
     <div className="flex text-xs pl-1 m-1">{formatTime(timestamp)}</div>
   );
 
-  const renderAvatar = (senderName: string, profileImgUrl?: string | null) => (
+  const renderAvatar = (senderName: string, profileImageUrl?: string | null) => (
     <Avatar className="h-8 w-8">
       {/* AvatarImage src가 유효하면 이미지를, 아니면 Fallback을 자동으로 보여줌 */}
-      <AvatarImage src={profileImgUrl ? getImageUrl(profileImgUrl) : undefined} />
+      <AvatarImage src={profileImageUrl ? getImageUrl(profileImageUrl) : undefined} />
       <AvatarFallback>{senderName.charAt(0)}</AvatarFallback>
     </Avatar>
   );
@@ -176,7 +176,7 @@ export function ChatMessageList({
               {/* 내가 보낸 메시지가 아니고, 이전과 다른 사람이 보낸 첫 메시지일 때만 아바타 표시 */}
               {!isMyMessage &&
                 !isSameSender &&
-                renderAvatar(senderInfo?.memberName ?? '(알 수 없음)', senderInfo?.profileImgUrl)}
+                renderAvatar(senderInfo?.memberName ?? '(알 수 없음)', senderInfo?.profileImageUrl)}
 
               {/* 연속 메시지일 경우 아바타 공간만큼 빈 공간을 줌 */}
               {!isMyMessage && isSameSender && <div className="w-8" />}

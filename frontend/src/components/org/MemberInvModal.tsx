@@ -1,14 +1,8 @@
 import { useState, useMemo } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
-
-import { AxiosError } from 'axios';
-
 import { INV_STATUS_ENG_TO_KO, InvStatusEng, InvStatusKo } from '@/types/invTypes';
 import { MEMBER_ROLE_ENG_TO_KO, MEMBER_ROLE_KO_TO_ENG, MemberRoleKo } from '@/types/memberTypes';
 
-import { GetInvList, getInvList } from '@/api/org/getInvList';
-import postInv from '@/api/org/postInv';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
 import { Input } from '@/components/ui/input';
@@ -20,8 +14,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { INV_STATUS_STYLES, MEMBER_ROLE_STYLES } from '@/constants/badges';
-import { getErrorMessage } from '@/utils/auth/errorUtils';
-import { showErrorToast, showSuccessToast } from '@/utils/toast';
+import { useSendInvEmailMutation } from '@/hooks/queries/org/userOrgInvMutations';
+import { useInvListQuery } from '@/hooks/queries/org/userOrgInvQueries';
+import { showErrorToast } from '@/utils/toast';
 
 // 초대할 1명 단위 데이터 구조
 export type InviteEntry = {
@@ -48,6 +43,7 @@ export function MemberInvModal({
   const [currentEmail, setCurrentEmail] = useState('');
   const [entries, setEntries] = useState<InviteEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const sendInvMutation = useSendInvEmailMutation(orgId);
 
   const roleOptions: MemberRoleKo[] = useMemo(() => {
     if (currentUserRole === '루트관리자' || currentUserRole === '관리자') {
@@ -56,14 +52,9 @@ export function MemberInvModal({
     return ['일반회원'] as unknown as MemberRoleKo[];
   }, [currentUserRole]);
 
-  // 초대 리스트 조회 (초대 상태별 필터 가능)
-  const { data: inviteListData, refetch } = useQuery({
-    queryKey: ['invitations', orgId],
-    queryFn: () => getInvList({ orgId }),
-    enabled: isOpen,
-  });
-
-  const inviteList = inviteListData as unknown as GetInvList[];
+  // 초대 리스트 조회 쿼리
+  const { data: inviteListData, refetch } = useInvListQuery(orgId, isOpen);
+  const inviteList = inviteListData ?? [];
 
   const addEmail = () => {
     const emailTrim = currentEmail.trim();
@@ -100,22 +91,21 @@ export function MemberInvModal({
       return;
     }
 
+    setIsLoading(true);
+
     try {
-      setIsLoading(true);
-      await postInv({
+      await sendInvMutation.mutateAsync({
         orgId: orgId,
         inviteInfoDTOList: entries.map((entry) => ({
           email: entry.email,
           role: MEMBER_ROLE_KO_TO_ENG[entry.role],
         })),
       });
-      showSuccessToast('초대 메일을 성공적으로 전송했습니다.');
+
       onInvite?.(entries);
       setEntries([]); // 초대 완료 후 리스트 초기화
       refetch(); // 초대 목록 갱신
       onClose();
-    } catch (e: unknown) {
-      showErrorToast(getErrorMessage(e as AxiosError));
     } finally {
       setIsLoading(false);
     }
