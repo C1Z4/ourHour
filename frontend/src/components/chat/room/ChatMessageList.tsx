@@ -1,4 +1,3 @@
-// components/chat/room/ChatMessageList.tsx
 import { useRef, useEffect, useCallback, useState, useLayoutEffect } from 'react'; // useLayoutEffect import
 
 import { useInView } from 'react-intersection-observer';
@@ -167,19 +166,19 @@ export function ChatMessageList({
             )}
             <div
               className={cn(
-                'flex gap-2',
+                'flex gap-3',
                 isMyMessage ? 'flex-row-reverse' : 'flex-row',
                 // 이전 메시지와 보낸 사람이 같으면 위쪽 여백을 줄여 메시지를 가깝게 붙임
                 isSameMinute && !isNewDate ? 'mt-1' : 'mt-5',
               )}
             >
-              {/* 내가 보낸 메시지가 아니고, 이전과 다른 사람이 보낸 첫 메시지일 때만 아바타 표시 */}
+              {/* 아바타를 보여주는 경우: 다른 사람이거나, 같은 사람이라도 시간이 다를 때 */}
               {!isMyMessage &&
-                !isSameSender &&
+                (!isSameSender || !isSameMinute) &&
                 renderAvatar(senderInfo?.memberName ?? '(알 수 없음)', senderInfo?.profileImageUrl)}
 
-              {/* 연속 메시지일 경우 아바타 공간만큼 빈 공간을 줌 */}
-              {!isMyMessage && isSameSender && <div className="w-8" />}
+              {/* 연속 메시지임을 나타내는 빈 공간을 보여주는 경우: 같은 사람이면서 시간도 같을 때 */}
+              {!isMyMessage && isSameSender && isSameMinute && <div className="w-8" />}
 
               <div
                 className={cn(
@@ -188,10 +187,8 @@ export function ChatMessageList({
                 )}
               >
                 {/* 내가 보낸 메시지가 아니고, 이전과 다른 사람이 보낸 첫 메시지일 때만 이름 표시 */}
-                {!isMyMessage && !isSameSender && (
-                  <span className="text-xs text-muted-foreground mb-1">
-                    {senderInfo?.memberName}
-                  </span>
+                {!isMyMessage && (!isSameSender || !isSameMinute) && (
+                  <span className="text-xs mb-1"> {senderInfo?.memberName} </span>
                 )}
 
                 <div className="flex flex-row items-end">
