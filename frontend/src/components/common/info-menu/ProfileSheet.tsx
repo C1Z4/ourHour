@@ -80,21 +80,6 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
     window.location.href = authUrl;
   };
 
-  if (typeof window !== 'undefined' && window.location.pathname === '/oauth/github/callback') {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    if (code && !isConnecting) {
-      exchangeCode(
-        { code, redirectUri },
-        {
-          onSuccess: () => {
-            window.history.replaceState({}, '', '/');
-          },
-        },
-      );
-    }
-  }
-
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>{children}</SheetTrigger>
