@@ -166,8 +166,8 @@ export function useInfiniteNotifications() {
 
   const sseUrl = `${import.meta.env.VITE_API_URL}/api/notifications/stream`;
 
-  // SSE 연결 조건 확인
-  const shouldEnableSSE = Boolean(sseUrl && !isLoadingNotifications);
+  // SSE 연결 조건 확인 (로딩 상태와 무관하게 연결 허용)
+  const shouldEnableSSE = Boolean(sseUrl);
 
   const { connectionState, isConnected } = useSSE({
     url: sseUrl,

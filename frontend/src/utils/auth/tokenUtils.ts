@@ -109,7 +109,3 @@ export const getEmailFromToken = (): string | null => {
     return null;
   }
 };
-
-export const removeAccessToken = () => {
-  store.dispatch(setAccessToken(null));
-};

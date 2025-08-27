@@ -3,6 +3,7 @@ package com.ourhour.global.config;
 import com.ourhour.global.constant.AuthPath;
 import com.ourhour.global.jwt.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +24,8 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // SecurityContext를 모든 스레드에서 공유하도록 설정 (SSE, 비동기 처리용)
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
         http
                 // JWT 기반 -> CSRF 보호 비활성화
                 .csrf(AbstractHttpConfigurer::disable)
