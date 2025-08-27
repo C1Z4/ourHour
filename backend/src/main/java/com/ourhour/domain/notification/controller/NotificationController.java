@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -28,6 +30,13 @@ public class NotificationController {
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Operation(summary = "SSE 알림 스트림", description = "실시간 알림을 위한 SSE 연결을 생성합니다.")
     public SseEmitter streamNotifications(HttpServletRequest request, HttpServletResponse response) {
+        // JWT 필터에서 이미 인증을 처리했으므로 SecurityContext에서 사용자 ID 확인
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("Authentication required for SSE connection");
+        }
+
         Long userId = SecurityUtil.getCurrentUserId();
 
         if (userId == null) {
