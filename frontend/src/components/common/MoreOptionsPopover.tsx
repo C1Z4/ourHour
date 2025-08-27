@@ -8,6 +8,8 @@ interface MoreOptionsPopoverProps {
   className?: string;
   editLabel: string;
   deleteLabel: string;
+  isAuthor?: boolean;
+  isNotComment?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
   triggerClassName?: string;
@@ -19,6 +21,8 @@ export const MoreOptionsPopover = ({
   className = 'w-40',
   editLabel,
   deleteLabel,
+  isAuthor,
+  isNotComment = true,
   onEdit,
   onDelete,
   triggerClassName = 'p-1 hover:bg-gray-200 rounded',
@@ -46,13 +50,15 @@ export const MoreOptionsPopover = ({
       </PopoverTrigger>
       <PopoverContent className={className} align={align} side={side}>
         <div className="space-y-1">
-          <button
-            className="flex items-center space-x-2 w-full px-2 py-1 hover:bg-gray-100 rounded text-sm"
-            onClick={handleEdit}
-          >
-            <Edit2 className="h-3 w-3" />
-            <span>{editLabel}</span>
-          </button>
+          {(isAuthor || isNotComment) && (
+            <button
+              className="flex items-center space-x-2 w-full px-2 py-1 hover:bg-gray-100 rounded text-sm"
+              onClick={handleEdit}
+            >
+              <Edit2 className="h-3 w-3" />
+              <span>{editLabel}</span>
+            </button>
+          )}
           <button
             className="flex items-center space-x-2 w-full px-2 py-1 hover:bg-gray-100 rounded text-sm text-red-600"
             onClick={handleDelete}
