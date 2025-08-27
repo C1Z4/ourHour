@@ -328,6 +328,7 @@ class OurHourAPIClient:
                 },
                 'members': [
                     {
+                        'memberId': m.memberId,  # memberId 추가
                         'name': m.name,
                         'email': m.email,
                         'phone': m.phone,
@@ -498,6 +499,37 @@ class OurHourAPIClient:
         """
         return self._make_request('GET', f'/api/organizations/{org_id}/projects/{project_id}/issues/tags')
     
+    def get_my_assigned_issues_in_project(self, org_id: int, project_id: int, current_page: int = 1, size: int = 100) -> Dict[str, Any]:
+        """
+        특정 프로젝트에서 현재 사용자에게 할당된 이슈 목록 조회
+        JWT 토큰에서 자동으로 현재 사용자를 인식하여 해당 사용자의 이슈만 반환
+        
+        Args:
+            org_id: 조직 ID
+            project_id: 프로젝트 ID  
+            current_page: 페이지 번호
+            size: 페이지 크기
+            
+        Returns:
+            현재 사용자에게 할당된 이슈 목록
+        """
+        # myIssuesOnly=true로 현재 사용자에게 할당된 이슈만 조회 (JWT 토큰에서 자동으로 사용자 인식)
+        params = {
+            'myIssuesOnly': 'true',  # 백엔드에서는 boolean으로 파싱하지만 URL 파라미터는 문자열로 전달
+            'currentPage': current_page,
+            'size': size
+        }
+        self.logger.info(f"API request: GET /api/organizations/{org_id}/projects/{project_id}/issues with params: {params}")
+        response = self._make_request('GET', f'/api/organizations/{org_id}/projects/{project_id}/issues', params=params)
+        self.logger.info(f"API response keys: {list(response.keys()) if isinstance(response, dict) else 'Not a dict'}")
+        if isinstance(response, dict) and 'data' in response:
+            self.logger.info(f"Issues data count: {len(response['data'])}")
+            if response['data']:
+                sample_issue = response['data'][0]
+                self.logger.info(f"Sample issue fields: {list(sample_issue.keys())}")
+                self.logger.info(f"Sample issue assignee info: assigneeName={sample_issue.get('assigneeName')}, assigneeId={sample_issue.get('assigneeId')}")
+        return response
+    
     def get_project_summary_for_context(self, org_id: int) -> Dict[str, Any]:
         """
         프로젝트 컨텍스트 생성을 위한 종합 정보 조회
@@ -546,12 +578,7 @@ class OurHourAPIClient:
                     'issue_comments_sample': []
                 }
                 
-                # 통계 업데이트
-                project_summary['total_participants'] += project_info['participant_count']
-                project_summary['total_milestones'] += project_info['milestone_count']
-                project_summary['total_issues']['open'] += project_info['issue_counts']['open']
-                project_summary['total_issues']['closed'] += project_info['issue_counts']['closed']
-                project_summary['total_issues']['total'] += project_info['issue_counts']['total']
+                # 통계 업데이트는 나중에 실제 데이터로 계산
                 
                 if project_info['is_github_linked']:
                     project_summary['github_linked_count'] += 1
@@ -680,6 +707,31 @@ class OurHourAPIClient:
                     self.logger.warning(f"Failed to get issues for project {project_id}: {str(e)}")
                 
                 project_summary['projects'].append(project_info)
+            
+            # 모든 프로젝트 데이터 수집 후 전체 통계 재계산
+            total_participants = 0
+            total_milestones = 0
+            total_open_issues = 0
+            total_closed_issues = 0
+            total_issues = 0
+            
+            for project_info in project_summary['projects']:
+                total_participants += project_info.get('participant_count', 0)
+                total_milestones += project_info.get('milestone_count', 0) 
+                total_open_issues += project_info.get('issue_counts', {}).get('open', 0)
+                total_closed_issues += project_info.get('issue_counts', {}).get('closed', 0)
+                total_issues += project_info.get('issue_counts', {}).get('total', 0)
+            
+            # 통계 업데이트
+            project_summary['total_participants'] = total_participants
+            project_summary['total_milestones'] = total_milestones
+            project_summary['total_issues'] = {
+                'open': total_open_issues,
+                'closed': total_closed_issues,
+                'total': total_issues
+            }
+            
+            self.logger.info(f"Final statistics - Participants: {total_participants}, Milestones: {total_milestones}, Issues: {total_issues} (open: {total_open_issues}, closed: {total_closed_issues})")
             
             return project_summary
             
