@@ -183,8 +183,10 @@ class ContextGenerator:
     def _generate_project_context(self) -> Dict[str, Any]:
         """프로젝트 관련 컨텍스트 생성"""
         try:
+            self.logger.info(f"Starting project context generation for org_id: {self.org_id}")
             # 새로운 종합 메서드 사용
             project_summary = self.api_client.get_project_summary_for_context(self.org_id)
+            self.logger.info(f"Project summary received: {len(project_summary.get('projects', []))} projects")
             
             project_context = {
                 'total_count': project_summary['total_projects'],
@@ -215,6 +217,8 @@ class ContextGenerator:
             
         except Exception as e:
             self.logger.error(f"Error generating project context: {str(e)}")
+            import traceback
+            self.logger.error(f"Full traceback: {traceback.format_exc()}")
             return {
                 'total_count': 0,
                 'projects': {},
@@ -364,9 +368,9 @@ class ContextGenerator:
         for pos_name, pos_info in context['positions']['positions'].items():
             summary += f"- {pos_name}: {pos_info['member_count']}명\n"
         
-        # 프로젝트 정보 추가
+        # 프로젝트 정보 추가 - 항상 표시 (에러 상황에서도 디버깅을 위해)
+        summary += f"\n=== 프로젝트 현황 ===\n"
         if projects.get('projects'):
-            summary += f"\n=== 프로젝트 현황 ===\n"
             summary += f"총 프로젝트: {projects['total_count']}개\n"
             summary += f"GitHub 연동 프로젝트: {quick_facts.get('github_linked_projects', 0)}개\n"
             summary += f"전체 열린 이슈: {quick_facts.get('total_open_issues', 0)}개\n"
@@ -398,6 +402,12 @@ class ContextGenerator:
                             summary += f"{', '.join(comment_authors)}\n"
                 
                 summary += "\n"
+        else:
+            # 프로젝트가 없거나 에러인 경우
+            summary += f"총 프로젝트: 0개 (에러 또는 데이터 없음)\n"
+            if projects.get('error'):
+                summary += f"프로젝트 로드 오류: {projects['error']}\n"
+            summary += "\n"
         
         # 멤버 정보 상세 추가
         summary += "\n=== 멤버 상세 정보 ===\n"
@@ -415,7 +425,7 @@ class ContextGenerator:
 def main():
     """메인 실행 함수"""
     # 환경변수에서 설정값 읽기
-    BASE_URL = os.getenv("OURHOUR_API_URL", "http://localhost:8080")
+    OURHOUR_API_URL = os.getenv("OURHOUR_API_URL", "http://backend:8080")
     AUTH_TOKEN = os.getenv("OURHOUR_JWT_TOKEN")  # 환경변수에서 읽기
     ORG_ID = int(os.getenv("OURHOUR_ORG_ID", "1"))
     
@@ -432,12 +442,12 @@ def main():
     )
     
     try:
-        print(f"API URL: {BASE_URL}")
+        print(f"API URL: {OURHOUR_API_URL}")
         print(f"조직 ID: {ORG_ID}")
         print(f"JWT 토큰 길이: {len(AUTH_TOKEN)}")
         
         # API 클라이언트 초기화
-        api_client = OurHourAPIClient(BASE_URL, AUTH_TOKEN)
+        api_client = OurHourAPIClient(OURHOUR_API_URL, AUTH_TOKEN)
         
         # 컨텍스트 생성기 초기화
         context_generator = ContextGenerator(api_client, ORG_ID)
@@ -482,13 +492,14 @@ class ContextService:
         user_message: str, 
         member_id: str = None, 
         org_id: int = None, 
-        auth_token: str = None
+        auth_token: str = None,
+        **kwargs
     ) -> str:
         """사용자 질문에 대한 종합적인 컨텍스트 정보 반환"""
         try:
             # auth_token이 제공된 경우 동적으로 API 클라이언트 생성
             if auth_token and org_id:
-                base_url = os.getenv("BASE_URL", "http://backend:8080")
+                base_url = os.getenv("OURHOUR_API_URL", "http://dev-backend:8080")
                 
                 # API 클라이언트 생성
                 api_client = OurHourAPIClient(base_url, auth_token)
@@ -559,7 +570,6 @@ class ContextService:
             return "유효하지 않은 인증 토큰입니다. 다시 로그인해주세요."
         except Exception as e:
             logging.error(f"Error getting comprehensive context: {str(e)}")
-            return "조직 정보를 가져올 수 없습니다. 관리자에게 문의해주세요."
     
     def _enhance_context_for_person_query(self, context: dict, base_context: str, person_name: str, question: str) -> str:
         """특정 사람에 대한 질문을 위해 컨텍스트를 향상시킴"""
