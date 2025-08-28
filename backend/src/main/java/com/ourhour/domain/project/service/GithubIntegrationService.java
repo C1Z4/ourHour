@@ -33,7 +33,10 @@ import com.ourhour.domain.project.repository.ProjectRepository;
 import com.ourhour.domain.project.repository.ProjectGithubIntegrationRepository;
 import com.ourhour.domain.user.entity.ProjectGithubIntegrationEntity;
 import com.ourhour.domain.user.entity.GitHubTokenEntity;
+import com.ourhour.domain.user.entity.UserGitHubTokenEntity;
 import com.ourhour.domain.user.repository.GitHubTokenRepository;
+import com.ourhour.domain.user.repository.UserGitHubTokenRepository;
+import com.ourhour.domain.user.dto.GitHubRepositoryConnectDTO;
 import com.ourhour.domain.user.dto.GitHubRepositoryResDTO;
 import com.ourhour.domain.user.dto.GitHubTokenReqDTO;
 import com.ourhour.domain.user.dto.GitHubSyncTokenDTO;
@@ -52,7 +55,6 @@ import com.ourhour.global.util.EncryptionUtil;
 import com.ourhour.domain.project.github.GitHubClientFactory;
 import com.ourhour.domain.project.github.GitHubDtoMapper;
 import com.ourhour.global.util.PaginationUtil;
-import com.ourhour.domain.user.repository.UserGitHubMappingRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +65,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GithubIntegrationService {
 
     private final GitHubTokenRepository gitHubTokenRepository;
+    private final UserGitHubTokenRepository userGitHubTokenRepository;
     private final ProjectGithubIntegrationRepository projectGithubIntegrationRepository;
     private final ProjectRepository projectRepository;
     private final MemberRepository memberRepository;
@@ -71,24 +74,18 @@ public class GithubIntegrationService {
     private final EncryptionUtil encryptionUtil;
     private final GitHubClientFactory gitHubClientFactory;
     private final GitHubDtoMapper gitHubDtoMapper;
-    private final UserGitHubMappingRepository userGitHubMappingRepository;
     private final CommentRepository commentRepository;
 
-    // GitHub 토큰으로 레포지토리 이름 목록 조회
-    public ApiResponse<List<GitHubRepositoryResDTO>> getGitHubRepositories(GitHubTokenReqDTO token) {
+    // 개인 GitHub 토큰으로 레포지토리 목록 조회
+    public ApiResponse<List<GitHubRepositoryResDTO>> getUserGitHubRepositories() {
         try {
-            // GitHub 클라이언트 생성
-            GitHub gitHub = new GitHubBuilder()
-                    .withOAuthToken(token.getToken())
-                    .build();
+            Long currentUserId = SecurityUtil.getCurrentUserId();
 
-            // 토큰 유효성 검증
-            try {
-                gitHub.getMyself().getLogin();
-            } catch (IOException e) {
-                log.error("GitHub 토큰 인증 실패", e);
-                throw GithubException.githubTokenNotAuthorizedException();
-            }
+            // 사용자의 GitHub 토큰 확인
+            UserGitHubTokenEntity userToken = userGitHubTokenRepository.findByUserId(currentUserId)
+                    .orElseThrow(() -> GithubException.githubTokenNotFoundException());
+
+            GitHub gitHub = gitHubClientFactory.forUserToken(currentUserId);
 
             // 사용자가 접근 가능한 모든 레포지토리 조회
             List<GitHubRepositoryResDTO> repositories = gitHub.getMyself().getRepositories().values().stream()
@@ -107,11 +104,13 @@ public class GithubIntegrationService {
     @Transactional
     public ApiResponse<Void> syncIssuesFromGitHub(Long projectId) {
         try {
+            Long currentUserId = SecurityUtil.getCurrentUserId();
+
             ProjectGithubIntegrationEntity integration = projectGithubIntegrationRepository
                     .findByProjectEntity_ProjectIdAndIsActive(projectId, true)
                     .orElseThrow(() -> GithubException.githubRepositoryNotFoundException());
 
-            GitHub gitHub = gitHubClientFactory.forEncryptedToken(integration.getGithubAccessToken());
+            GitHub gitHub = gitHubClientFactory.forProjectWithFallback(currentUserId, integration);
 
             GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
 
@@ -158,43 +157,6 @@ public class GithubIntegrationService {
         }
     }
 
-    // GitHub 할당자를 우리 서비스 멤버로 매핑하는 헬퍼 메서드
-    private MemberEntity findAssigneeFromGithubUsers(List<GHUser> githubAssignees, Long projectId) {
-        if (githubAssignees == null || githubAssignees.isEmpty()) {
-            return null;
-        }
-
-        // 첫 번째 할당자만 처리 (우리 서비스는 단일 할당자만 지원)
-        for (GHUser assignee : githubAssignees) {
-            try {
-                String githubUsername = assignee.getLogin();
-                if (githubUsername == null) {
-                    continue;
-                }
-
-                // GitHub username으로 우리 서비스 유저 매핑 조회
-                var mappingOpt = userGitHubMappingRepository.findByGithubUsername(githubUsername);
-                if (mappingOpt.isPresent()) {
-                    Long userId = mappingOpt.get().getUserId();
-
-                    // 해당 프로젝트의 조직에서 멤버인지 확인
-                    var projectOpt = projectRepository.findById(projectId);
-                    if (projectOpt.isPresent()) {
-                        Long orgId = projectOpt.get().getOrgEntity().getOrgId();
-                        var memberOpt = memberRepository.findMemberInOrgByUserId(orgId, userId);
-                        if (memberOpt.isPresent()) {
-                            return memberOpt.get();
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("GitHub 할당자 매핑 중 오류 발생 - assignee: {}", assignee.getLogin(), e);
-            }
-        }
-
-        return null;
-    }
-
     // GitHub 이슈 동기화 처리
     private IssueEntity processGithubIssue(GHIssue githubIssue, Long projectId) throws IOException {
         // GitHub ID로 기존 이슈 찾기
@@ -210,9 +172,6 @@ public class GithubIntegrationService {
                     .orElse(null);
         }
 
-        // GitHub 할당자 매핑
-        MemberEntity mappedAssignee = findAssigneeFromGithubUsers(githubIssue.getAssignees(), projectId);
-
         if (existingIssue.isPresent()) {
             // 기존 이슈 업데이트
             IssueEntity issue = existingIssue.get();
@@ -222,8 +181,6 @@ public class GithubIntegrationService {
                     githubIssue.getState() == GHIssueState.OPEN ? IssueStatus.IN_PROGRESS : IssueStatus.COMPLETED);
             // 마일스톤 매핑 갱신
             issue.setMilestoneEntity(mappedMilestone);
-            // 할당자 매핑 갱신
-            issue.setAssigneeEntity(mappedAssignee);
             issue.updateLastSyncTime();
             return issue;
         } else {
@@ -232,7 +189,6 @@ public class GithubIntegrationService {
                     .projectEntity(projectRepository.findById(projectId)
                             .orElseThrow(() -> ProjectException.projectNotFoundException()))
                     .milestoneEntity(mappedMilestone)
-                    .assigneeEntity(mappedAssignee)
                     .name(githubIssue.getTitle())
                     .content(githubIssue.getBody())
                     .status(githubIssue.getState() == GHIssueState.OPEN ? IssueStatus.IN_PROGRESS
@@ -247,13 +203,15 @@ public class GithubIntegrationService {
     @Transactional
     public ApiResponse<Void> syncMilestonesFromGitHub(Long projectId) {
         try {
+            Long currentUserId = SecurityUtil.getCurrentUserId();
+
             // 프로젝트 연동 정보 조회
             ProjectGithubIntegrationEntity integration = projectGithubIntegrationRepository
                     .findByProjectEntity_ProjectIdAndIsActive(projectId, true)
                     .orElseThrow(() -> GithubException.githubRepositoryNotFoundException());
 
-            // GitHub 클라이언트 생성 (암호화 토큰 복호화)
-            GitHub gitHub = gitHubClientFactory.forEncryptedToken(integration.getGithubAccessToken());
+            // GitHub 클라이언트 생성 (개인 토큰 우선)
+            GitHub gitHub = gitHubClientFactory.forProjectWithFallback(currentUserId, integration);
 
             GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
 
@@ -303,11 +261,13 @@ public class GithubIntegrationService {
     @Transactional
     public ApiResponse<Void> syncIssueCommentsFromGitHub(Long projectId) {
         try {
+            Long currentUserId = SecurityUtil.getCurrentUserId();
+
             ProjectGithubIntegrationEntity integration = projectGithubIntegrationRepository
                     .findByProjectEntity_ProjectIdAndIsActive(projectId, true)
                     .orElseThrow(() -> GithubException.githubRepositoryNotFoundException());
 
-            GitHub gitHub = gitHubClientFactory.forEncryptedToken(integration.getGithubAccessToken());
+            GitHub gitHub = gitHubClientFactory.forProjectWithFallback(currentUserId, integration);
 
             GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
 
@@ -343,7 +303,7 @@ public class GithubIntegrationService {
                             try {
                                 String ghLogin = ghComment.getUser() != null ? ghComment.getUser().getLogin() : null;
                                 if (ghLogin != null) {
-                                    var mappingOpt = userGitHubMappingRepository.findByGithubUsername(ghLogin);
+                                    var mappingOpt = userGitHubTokenRepository.findByGithubUsername(ghLogin);
                                     if (mappingOpt.isPresent()) {
                                         Long userId = mappingOpt.get().getUserId();
                                         // 동일 조직 내 참여 멤버 매핑
@@ -442,18 +402,19 @@ public class GithubIntegrationService {
         }
     }
 
-    // 프로젝트에 GitHub 연동 설정
+    // 프로젝트에 GitHub 연동 설정 (개인 토큰 기반)
     @Transactional
-    public ApiResponse<Void> connectProjectToGitHub(Long projectId, GitHubSyncTokenDTO gitHubSyncTokenDTO,
+    public ApiResponse<Void> connectProjectToGitHub(Long projectId, GitHubRepositoryConnectDTO gitHubSyncTokenDTO,
             Long memberId) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        // 현재 사용자의 GitHub 토큰 확인
+        UserGitHubTokenEntity userToken = userGitHubTokenRepository.findByUserId(currentUserId)
+                .orElseThrow(() -> GithubException.githubTokenNotFoundException());
 
         // 토큰 유효성 및 레포지토리 접근 권한 검증
         try {
-            GitHub gitHub = new GitHubBuilder()
-                    .withOAuthToken(gitHubSyncTokenDTO.getGithubAccessToken())
-                    .build();
-
-            // 실제로 레포지토리에 접근 가능한지 테스트
+            GitHub gitHub = gitHubClientFactory.forUserToken(currentUserId);
             GHRepository testRepo = gitHub.getRepository(gitHubSyncTokenDTO.getGithubRepository());
             testRepo.getFullName(); // 권한 확인
 
@@ -464,37 +425,15 @@ public class GithubIntegrationService {
 
         // 기존 연동 정보가 있으면 업데이트, 없으면 생성
         ProjectGithubIntegrationEntity integration = projectGithubIntegrationRepository
-                .findByProjectEntity_ProjectIdAndMemberEntity_MemberId(projectId, memberId)
+                .findByProjectEntity_ProjectIdAndIsActive(projectId, true)
                 .orElse(null);
 
-        // 동일 레포지토리 연동 여부 확인 (이미 동일 레포 연결 시 토큰만 갱신하고 종료할지, 에러로 할지 정책)
-        if (integration != null && integration.getGithubRepository().equals(gitHubSyncTokenDTO.getGithubRepository())) {
-            // 동일 레포지토리: 토큰 갱신만 수행
-            integration.updateAccessToken(encryptionUtil.encrypt(gitHubSyncTokenDTO.getGithubAccessToken()));
-            integration.markAsSynced(integration.getGithubId());
-            projectGithubIntegrationRepository.save(integration);
-            return ApiResponse.success(null, "GitHub 연동이 갱신되었습니다.");
-        }
-
-        // 다른 레포지토리로 연동 업데이트
         if (integration != null) {
-            try {
-                GitHub gitHub = new GitHubBuilder()
-                        .withOAuthToken(gitHubSyncTokenDTO.getGithubAccessToken())
-                        .build();
-
-                Long newRepoId = gitHub.getRepository(gitHubSyncTokenDTO.getGithubRepository()).getId();
-                integration.setGithubId(newRepoId);
-                integration.updateRepository(gitHubSyncTokenDTO.getGithubRepository());
-                integration.updateAccessToken(encryptionUtil.encrypt(gitHubSyncTokenDTO.getGithubAccessToken()));
-                integration.markAsSynced(newRepoId);
-
-                projectGithubIntegrationRepository.save(integration);
-                return ApiResponse.success(null, "GitHub 연동이 업데이트되었습니다.");
-            } catch (IOException e) {
-                log.error("GitHub 레포지토리 접근 권한 없음: {}", gitHubSyncTokenDTO.getGithubRepository(), e);
-                throw GithubException.githubRepositoryAccessDeniedException();
-            }
+            // 기존 연동 업데이트
+            integration.updateRepository(gitHubSyncTokenDTO.getGithubRepository());
+            integration.updateDefaultTokenUser(currentUserId);
+            projectGithubIntegrationRepository.save(integration);
+            return ApiResponse.success(null, "GitHub 연동이 업데이트되었습니다.");
         }
 
         // 새로운 레포지토리 연동 생성
@@ -504,15 +443,12 @@ public class GithubIntegrationService {
                 .memberEntity(memberRepository.findById(memberId)
                         .orElseThrow(() -> MemberException.memberNotFoundException()))
                 .githubRepository(gitHubSyncTokenDTO.getGithubRepository())
-                .githubAccessToken(encryptionUtil.encrypt(gitHubSyncTokenDTO.getGithubAccessToken()))
+                .defaultTokenUserId(currentUserId)
                 .isActive(true)
                 .build();
 
         try {
-            GitHub gitHub = new GitHubBuilder()
-                    .withOAuthToken(gitHubSyncTokenDTO.getGithubAccessToken())
-                    .build();
-
+            GitHub gitHub = gitHubClientFactory.forUserToken(currentUserId);
             Long repoId = gitHub.getRepository(gitHubSyncTokenDTO.getGithubRepository()).getId();
             newIntegration.setGithubId(repoId);
             newIntegration.markAsSynced(repoId);
@@ -520,8 +456,6 @@ public class GithubIntegrationService {
             log.error("GitHub 레포지토리 접근 권한 없음: {}", gitHubSyncTokenDTO.getGithubRepository(), e);
             throw GithubException.githubRepositoryAccessDeniedException();
         }
-
-        newIntegration.markAsSynced(newIntegration.getGithubId());
 
         projectGithubIntegrationRepository.save(newIntegration);
         return ApiResponse.success(null, "GitHub 연동이 완료되었습니다.");
@@ -549,11 +483,8 @@ public class GithubIntegrationService {
                 throw AuthException.unauthorizedException();
             }
 
-            // 사용자의 GitHub 토큰 조회
-            GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(currentUser.getUserId())
-                    .orElseThrow(() -> GithubException.githubTokenNotFoundException());
-
-            GitHub gitHub = gitHubClientFactory.forEncryptedToken(tokenEntity.getGithubAccessToken());
+            // 사용자의 GitHub 토큰 조회 (개인 토큰 우선)
+            GitHub gitHub = gitHubClientFactory.forUserToken(currentUser.getUserId());
 
             GHRepository repository = gitHub.getRepository(repositoryName);
 
@@ -581,11 +512,8 @@ public class GithubIntegrationService {
                 throw AuthException.unauthorizedException();
             }
 
-            // 사용자의 GitHub 토큰 조회
-            GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(currentUser.getUserId())
-                    .orElseThrow(() -> GithubException.githubTokenNotFoundException());
-
-            GitHub gitHub = gitHubClientFactory.forEncryptedToken(tokenEntity.getGithubAccessToken());
+            // 사용자의 GitHub 토큰 조회 (개인 토큰 우선)
+            GitHub gitHub = gitHubClientFactory.forUserToken(currentUser.getUserId());
 
             GHRepository repository = gitHub.getRepository(repositoryName);
             GHMilestone milestone = repository.getMilestone(milestoneNumber);
@@ -610,11 +538,8 @@ public class GithubIntegrationService {
                 throw AuthException.unauthorizedException();
             }
 
-            // 사용자의 GitHub 토큰 조회
-            GitHubTokenEntity tokenEntity = gitHubTokenRepository.findById(currentUser.getUserId())
-                    .orElseThrow(() -> GithubException.githubTokenNotFoundException());
-
-            GitHub gitHub = gitHubClientFactory.forEncryptedToken(tokenEntity.getGithubAccessToken());
+            // 사용자의 GitHub 토큰 조회 (개인 토큰 우선)
+            GitHub gitHub = gitHubClientFactory.forUserToken(currentUser.getUserId());
 
             GHRepository repository = gitHub.getRepository(repositoryName);
             GHIssue issue = repository.getIssue(issueNumber);
