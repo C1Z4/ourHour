@@ -358,7 +358,7 @@ class OrgMemberServiceTest {
 
         given(orgParticipantMemberRepository.findByOrgEntity_OrgIdAndMemberEntity_MemberIdAndStatus(orgId, memberId, Status.ACTIVE))
                 .willReturn(Optional.of(participant));
-        given(orgParticipantMemberRepository.countRootAdmins(orgId)).willReturn(2);
+        given(orgParticipantMemberRepository.countByOrgEntity_OrgIdAndRole(orgId, Role.ROOT_ADMIN)).willReturn(2);
         given(orgParticipantMemberMapper.toOrgMemberRoleResDTO(any(), any(), any(Integer.class))).willReturn(roleResDTO);
 
         // when
