@@ -62,6 +62,8 @@ function OrgInfoPage() {
     activeSearchQuery || undefined,
   );
 
+  const participantTotalPages = orgMembersData?.totalPages;
+
   const orgMembers = Array.isArray(orgMembersData?.data) ? orgMembersData.data : [];
 
   const { mutate: passwordVerification } = usePasswordVerificationMutation();
@@ -368,7 +370,7 @@ function OrgInfoPage() {
             selectedMemberIds={selectedMemberIds}
             onSelectionChange={handleMemberSelectionChange}
             onDeleteSelected={handleDeleteSelectedMembers}
-            participantTotalPages={orgMembersData?.data.totalPages || 1}
+            participantTotalPages={participantTotalPages}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
             onRoleChange={handleRoleChange}
