@@ -12,6 +12,8 @@ public enum ErrorCode {
     // ========== 사용자 관련 (1000~1999) ==========
     USER_NOT_FOUND("사용자를 찾을 수 없습니다", 1000, HttpStatus.NOT_FOUND),
     USER_NOT_AUTHORIZED("사용자 인증에 실패했습니다", 1001, HttpStatus.UNAUTHORIZED),
+    USER_ALREADY_SOCIAL("소셜 로그인으로 가입된 계정입니다.", 1013, HttpStatus.CONFLICT),
+    OAUTH_CODE_INVALID("잘못된 코드입니다.", 1014, HttpStatus.UNAUTHORIZED ),
 
     // 이메일 관련
     EMAIL_ALREADY_EXISTS("이미 존재하는 이메일입니다", 1002, HttpStatus.BAD_REQUEST),
@@ -24,19 +26,21 @@ public enum ErrorCode {
     EMAIL_ALREADY_ACCEPTED("이미 참여가 완료된 이메일 링크입니다", 1009, HttpStatus.BAD_REQUEST),
     EMAIL_NOT_MATCH("로그인된 계정의 이메일과 초대받은 이메일이 일치하지 않습니다", 1010, HttpStatus.BAD_REQUEST),
     INVALID_EMAIL_FORMAT("올바르지 않은 이메일 형식입니다.", 1011, HttpStatus.BAD_REQUEST),
+    EMAIL_REQUIRED_FOR_GITHUB("깃허브 이메일이 비공개입니다. 이메일을 필수로 입력해주세요.", 1012, HttpStatus.BAD_REQUEST),
 
     // 비밀번호 관련
-    PASSWORD_NOT_MATCH("비밀번호가 일치하지 않습니다", 1011, HttpStatus.BAD_REQUEST),
-    SAME_AS_PREVIOUS_PASSWORD("이전 비밀번호와 동일합니다", 1012, HttpStatus.BAD_REQUEST),
-    NEW_PASSWORD_NOT_MATCH("새 비밀번호가 일치하지 않습니다", 1013, HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_MATCH("비밀번호가 일치하지 않습니다", 1020, HttpStatus.BAD_REQUEST),
+    SAME_AS_PREVIOUS_PASSWORD("이전 비밀번호와 동일합니다", 1021, HttpStatus.BAD_REQUEST),
+    NEW_PASSWORD_NOT_MATCH("새 비밀번호가 일치하지 않습니다", 1022, HttpStatus.BAD_REQUEST),
+    PWD_REQUIRED_FOR_GITHUB("소셜 로그인을 위한 회사 관리 비밀번호는 필수입니다.", 1023, HttpStatus.BAD_REQUEST),
 
     // 토큰 관련
-    INVALID_TOKEN("토큰이 유효하지 않습니다", 1014, HttpStatus.UNAUTHORIZED),
-    TOKEN_NOT_FOUND("토큰이 존재하지 않습니다", 1015, HttpStatus.NOT_FOUND),
+    INVALID_TOKEN("토큰이 유효하지 않습니다", 1030, HttpStatus.UNAUTHORIZED),
+    TOKEN_NOT_FOUND("토큰이 존재하지 않습니다", 1031, HttpStatus.NOT_FOUND),
 
     // 계정 상태 관련
-    DEACTIVATED_ACCOUNT("탈퇴처리된 계정입니다", 1016, HttpStatus.BAD_REQUEST),
-    ROOT_ADMIN_ROLE_CONFLICT("탈퇴하려면 다른 루트 관리자를 지정하거나 권한을 변경해야 합니다", 1017, HttpStatus.BAD_REQUEST),
+    DEACTIVATED_ACCOUNT("탈퇴처리된 계정입니다", 1040, HttpStatus.BAD_REQUEST),
+    ROOT_ADMIN_ROLE_CONFLICT("탈퇴하려면 다른 루트 관리자를 지정하거나 권한을 변경해야 합니다", 1041, HttpStatus.BAD_REQUEST),
 
     // ========== 구성원 관련 (2000~2999) ==========
     MEMBER_NOT_FOUND("구성원을 찾을 수 없습니다", 2000, HttpStatus.NOT_FOUND),
@@ -103,6 +107,7 @@ public enum ErrorCode {
     COMMENT_TARGET_CONFLICT("postId 또는 issueId 중 하나만 입력해주세요", 6005, HttpStatus.BAD_REQUEST),
     COMMENT_ALREADY_LIKED("이미 좋아요를 누른 댓글입니다", 6006, HttpStatus.BAD_REQUEST),
     COMMENT_LIKE_NOT_FOUND("좋아요를 누르지 않은 댓글입니다", 6007, HttpStatus.NOT_FOUND),
+    COMMENT_AUTHOR_ACCESS_DENIED("해당 댓글을 수정할 권한이 없습니다", 6008, HttpStatus.FORBIDDEN),
 
     // ========== 채팅 관련 (7000~7999) ==========
     CHAT_ROOM_NOT_FOUND("존재하지 않는 채팅방입니다", 7000, HttpStatus.NOT_FOUND),
@@ -127,7 +132,12 @@ public enum ErrorCode {
     GITHUB_REPOSITORY_ACCESS_DENIED("깃허브 레포지토리에 접근할 수 없습니다", 9009, HttpStatus.FORBIDDEN),
     INVALID_REPOSITORY_FORMAT("깃허브 레포지토리 형식이 올바르지 않습니다", 9010, HttpStatus.BAD_REQUEST),
     GITHUB_SYNC_FAILED("깃허브 동기화에 실패했습니다", 9011, HttpStatus.INTERNAL_SERVER_ERROR),
-    GITHUB_INTEGRATION_NOT_FOUND("깃허브 연동 정보를 찾을 수 없습니다", 9012, HttpStatus.NOT_FOUND);
+    GITHUB_INTEGRATION_NOT_FOUND("깃허브 연동 정보를 찾을 수 없습니다", 9012, HttpStatus.NOT_FOUND),
+
+    // ========== 알림 관련 (10000~10999) ==========
+    NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다", 10000, HttpStatus.NOT_FOUND),
+    NOTIFICATION_ACCESS_DENIED("알림에 접근할 권한이 없습니다", 10001, HttpStatus.FORBIDDEN),
+    SSE_CONNECTION_ERROR("실시간 알림 연결에 실패했습니다", 10002, HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final String message;
     private final int statusCode;

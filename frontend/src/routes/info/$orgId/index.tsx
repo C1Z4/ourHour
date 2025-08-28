@@ -1,8 +1,12 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 
+import { useDispatch } from 'react-redux';
+
 import { createFileRoute, useParams } from '@tanstack/react-router';
+import { AxiosError } from 'axios';
 
 import { MyMemberInfoDetail, MemberInfoBase } from '@/api/member/memberApi';
+import { MyOrg } from '@/api/org/orgApi';
 import { Department, Position } from '@/api/org/orgStructureApi';
 import { uploadImageWithCompression, deleteImage } from '@/api/storage/uploadApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
@@ -14,9 +18,11 @@ import {
   useMyMemberInfoUpdateMutation,
   useQuitOrgMutation,
 } from '@/hooks/queries/member/useMemberMutations';
-import { useMyMemberInfoQuery } from '@/hooks/queries/member/useMemberQueries';
+import { useMyMemberInfoQuery, useMyOrgListQuery } from '@/hooks/queries/member/useMemberQueries';
 import { useDepartmentsQuery, usePositionsQuery } from '@/hooks/queries/org/useOrgStructureQueries';
 import { usePasswordVerificationMutation } from '@/hooks/queries/user/useUserMutations';
+import { setCurrentOrgId } from '@/stores/orgSlice';
+import { getErrorMessage } from '@/utils/auth/errorUtils';
 import { validateFileSize, validateFileType } from '@/utils/file/fileStorage';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
@@ -27,6 +33,7 @@ export const Route = createFileRoute('/info/$orgId/')({
 function MemberInfoPage() {
   const params = useParams({ strict: false });
   const orgId = params.orgId;
+  const dispatch = useDispatch();
 
   const { data: myMemberInfoData, isLoading: memberInfoLoading } = useMyMemberInfoQuery(
     Number(orgId),
@@ -35,6 +42,9 @@ function MemberInfoPage() {
   const { data: positionsResponse } = usePositionsQuery(Number(orgId));
   const departments = (departmentsResponse as unknown as Department[]) || [];
   const positions = (positionsResponse as unknown as Position[]) || [];
+
+  const { data: myOrgListData } = useMyOrgListQuery(1, 100);
+  const myOrgList = myOrgListData?.data as unknown as MyOrg[];
 
   const { mutate: updateMyMemberInfo } = useMyMemberInfoUpdateMutation(Number(orgId));
 
@@ -209,8 +219,24 @@ function MemberInfoPage() {
       { password },
       {
         onSuccess: () => {
-          quitOrg();
-          window.location.href = '/info/password';
+          quitOrg(undefined, {
+            onSuccess: () => {
+              // 회사 나가기 성공 후, 내가 속한 다른 회사가 있으면 가장 상위 회사로 설정
+              const filteredOrgList = myOrgList.filter((org) => org.orgId !== Number(orgId));
+
+              if (filteredOrgList && filteredOrgList.length > 0) {
+                // 가장 상위(첫 번째) 회사의 ID로 설정
+                const firstOrgId = myOrgList[0].orgId;
+                dispatch(setCurrentOrgId(firstOrgId));
+                window.location.href = `/info/${firstOrgId}`;
+              } else {
+                window.location.href = '/info/password';
+              }
+            },
+            onError: (error: AxiosError) => {
+              setPassword('');
+            },
+          });
         },
         onError: () => {
           setPassword('');

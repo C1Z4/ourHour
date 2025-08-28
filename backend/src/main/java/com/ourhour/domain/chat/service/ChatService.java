@@ -18,6 +18,7 @@ import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.jwt.dto.Claims;
+import com.ourhour.domain.notification.service.NotificationEventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,8 @@ public class ChatService {
     private final MemberRepository memberRepository;
     private final OrgRepository orgRepository;
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
+    private final NotificationEventService notificationEventService;
+    private final UserLocationService userLocationService;
 
     public Page<ChatRoomListResDTO> findAllChatRoomsOrderByLastMessage(Long orgId, Long memberId, Pageable pageable) {
 
@@ -163,6 +166,24 @@ public class ChatService {
                 .build();
 
         ChatMessageEntity savedEntity = chatMessageRepository.save(newMessage);
+
+        List<ChatParticipantEntity> participants = chatParticipantRepository.findParticipantsByOrgAndRoom(orgId,
+                chatRoom.getRoomId());
+        for (ChatParticipantEntity participant : participants) {
+            if (!participant.getMemberEntity().getMemberId().equals(memberId)) {
+                Long targetUserId = participant.getMemberEntity().getUserEntity().getUserId();
+                
+                // 사용자가 현재 채팅방에 있지 않을 때만 알림 발송
+                if (!userLocationService.isUserInChatRoom(targetUserId, chatRoom.getRoomId())) {
+                    notificationEventService.sendChatMessageNotification(
+                            targetUserId,
+                            sender.getName(),
+                            chatRoom.getName(),
+                            chatRoom.getRoomId(),
+                            orgId);
+                }
+            }
+        }
 
         return chatMapper.toChatMessageResDTO(savedEntity);
     }

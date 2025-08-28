@@ -46,24 +46,44 @@ export interface SocialSigninRequest {
   platform: SocialPlatform;
 }
 
-interface SocialSigninResponse extends SigninResponse {
-  accessToken: string;
-  refreshToken: string | null;
+interface OauthSigninResponse {
+  email: string;
+  oauthId?: string;
+  platform?: SocialPlatform;
+  socialAccessToken?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  newUser: boolean;
 }
 
 export const postOauthSignin = async (
   request: SocialSigninRequest,
-): Promise<ApiResponse<SocialSigninResponse>> => {
+): Promise<ApiResponse<OauthSigninResponse>> => {
   try {
     const response = await axiosInstance.post('/api/auth/oauth-signin', request);
-    const accessToken = response.data.data.accessToken;
 
-    if (accessToken) {
-      loginUser(accessToken);
-      if (import.meta.env.DEV) {
-        console.log(accessToken);
-      }
-    }
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== 소셜 로그인 추가 정보 ========
+export interface OauthExtraInfoRequest {
+  oauthId: string;
+  platform: SocialPlatform;
+  socialAccessToken: string;
+  email: string;
+  password: string;
+}
+
+export const postOauthExtraInfo = async (
+  request: OauthExtraInfoRequest,
+): Promise<ApiResponse<OauthSigninResponse>> => {
+  try {
+    const response = await axiosInstance.post('/api/auth/oauth-signin/extra-info', request);
+
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);
@@ -97,6 +117,17 @@ export const postSignout = async (): Promise<ApiResponse<void>> => {
     clearAllMemberNames();
     clearCurrentProject();
 
+    return response.data;
+  } catch (error: unknown) {
+    logError(error as AxiosError);
+    throw error;
+  }
+};
+
+// ======== SSE 토큰 발급 ========
+export const postSseToken = async (): Promise<ApiResponse<void>> => {
+  try {
+    const response = await axiosInstance.post('/api/auth/sse-token');
     return response.data;
   } catch (error: unknown) {
     logError(error as AxiosError);

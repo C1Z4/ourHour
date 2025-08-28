@@ -53,7 +53,7 @@ export const TagSelect = ({ tags, value, onChange, onOpenManager }: TagSelectPro
           </SelectContent>
         </Select>
       </div>
-      <ButtonComponent variant="secondary" onClick={onOpenManager}>
+      <ButtonComponent variant="primary" onClick={onOpenManager}>
         태그 관리
       </ButtonComponent>
     </div>

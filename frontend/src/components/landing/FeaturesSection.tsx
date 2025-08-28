@@ -27,7 +27,11 @@ export const FeaturesSection = () => {
   ];
 
   return (
-    <div id="features" className="relative py-24 overflow-hidden">
+    <section
+      id="features"
+      className="relative py-24 overflow-hidden"
+      aria-labelledby="features-heading"
+    >
       <div className="absolute inset-0 bg-gradient-to-br from-[#467599]/5 via-white to-[#A5C1D1]/5" />
       <div
         className="absolute inset-0 opacity-50"
@@ -38,26 +42,26 @@ export const FeaturesSection = () => {
       />
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
+        <header className="text-center mb-16">
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#467599]/10 text-[#467599] text-sm font-medium mb-6">
             <span className="w-2 h-2 bg-[#467599] rounded-full mr-2" />
             핵심 기능
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
+          <h2 id="features-heading" className="text-4xl font-bold text-gray-900 mb-6">
             개발팀을 위한
             <span className="text-[#467599]"> 완벽한 협업 환경</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed break-keep">
             코드부터 커뮤니케이션까지, 개발팀의 모든 협업 요구사항을 하나의 플랫폼에서 해결합니다
           </p>
-        </div>
+        </header>
 
-        <div className="grid lg:grid-cols-2 gap-12 mb-16">
+        <div className="grid lg:grid-cols-2 gap-12 mb-16" role="list" aria-label="핵심 기능 목록">
           {features.map((feature, index) => (
             <FeatureCard key={index} {...feature} />
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };

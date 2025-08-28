@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -45,6 +46,9 @@ public class UserEntity {
 
     private String oauthId;
 
+    @Setter(AccessLevel.PRIVATE)
+    private String socialAccessToken;
+
     private boolean isEmailVerified;
 
     private LocalDateTime emailVerifiedAt;
@@ -52,12 +56,13 @@ public class UserEntity {
     private boolean isDeleted;
 
     @Builder
-    public UserEntity(String email, String password, Platform platform, String oauthId, boolean isEmailVerified,
+    public UserEntity(String email, String password, Platform platform, String oauthId, String socialAccessToken, boolean isEmailVerified,
             LocalDateTime emailVerifiedAt) {
         this.email = email;
         this.password = password;
         this.platform = platform;
         this.oauthId = oauthId;
+        this.socialAccessToken = socialAccessToken;
         this.isEmailVerified = isEmailVerified;
         this.emailVerifiedAt = emailVerifiedAt;
     }
@@ -65,6 +70,8 @@ public class UserEntity {
     public void changePassword(String hashedPassword) {
         this.password = hashedPassword;
     }
+
+    public void updateSocialAccessToken(String socialAccessToken) { this.socialAccessToken = socialAccessToken; }
 
     public void markAsDeleted() {
         this.isDeleted = true;

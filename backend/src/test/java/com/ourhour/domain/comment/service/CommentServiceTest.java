@@ -42,10 +42,15 @@ import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.repository.IssueRepository;
 import com.ourhour.domain.project.sync.GitHubSyncManager;
+import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
+import com.ourhour.domain.notification.service.NotificationEventService;
+import com.ourhour.domain.org.entity.OrgEntity;
+import com.ourhour.domain.board.entity.BoardEntity;
+import com.ourhour.domain.project.entity.ProjectEntity;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CommentService 테스트")
@@ -75,23 +80,17 @@ class CommentServiceTest {
         @Mock
         private OrgParticipantMemberRepository orgParticipantMemberRepository;
 
+        @Mock
+        private NotificationEventService notificationEventService;
+
         @InjectMocks
         private CommentService commentService;
 
-        private MemberEntity member;
-        private PostEntity post;
-        private IssueEntity issue;
-        private CommentEntity comment;
         private CommentCreateReqDTO createReqDTO;
         private CommentUpdateReqDTO updateReqDTO;
 
         @BeforeEach
         void setUp() {
-                member = mock(MemberEntity.class);
-                post = mock(PostEntity.class);
-                issue = mock(IssueEntity.class);
-                comment = mock(CommentEntity.class);
-
                 createReqDTO = new CommentCreateReqDTO();
                 updateReqDTO = new CommentUpdateReqDTO();
         }
@@ -106,16 +105,19 @@ class CommentServiceTest {
                 int size = 10;
                 Long currentMemberId = 1L;
 
-                Pageable pageable = PageRequest.of(0, size); // currentPage = 1이므로 0
-                Page<CommentEntity> parentComments = new PageImpl<>(List.of(comment), pageable, 1);
-                List<CommentEntity> allComments = List.of(comment);
+                CommentEntity testComment = mock(CommentEntity.class);
+                given(testComment.getCommentId()).willReturn(1L);
+                
+                Pageable pageable = PageRequest.of(0, size);
+                Page<CommentEntity> parentComments = new PageImpl<>(List.of(testComment), pageable, 1);
+                List<CommentEntity> allComments = List.of(testComment);
 
-                given(commentRepository.findByPostIdAndParentCommentIdIsNull(any(), any(Pageable.class)))
+                given(commentRepository.findByPostIdAndParentCommentIdIsNull(eq(postId), any(Pageable.class)))
                                 .willReturn(parentComments);
-                given(commentRepository.findByPostIdAndParentCommentIds(any(), anyList()))
+                given(commentRepository.findByPostIdAndParentCommentIds(eq(postId), anyList()))
                                 .willReturn(allComments);
-                given(commentMapper.toCommentResDTO(any(), any(), any(),
-                                any(), any()))
+                given(commentMapper.toCommentResDTO(eq(allComments), eq(postId), eq(issueId),
+                                any(CommentLikeService.class), eq(currentMemberId)))
                                 .willReturn(mock(CommentResDTO.class));
 
                 // when
@@ -138,16 +140,19 @@ class CommentServiceTest {
                 int size = 10;
                 Long currentMemberId = 1L;
 
-                Pageable pageable = PageRequest.of(0, size); // currentPage = 1이므로 0
-                Page<CommentEntity> parentComments = new PageImpl<>(List.of(comment), pageable, 1);
-                List<CommentEntity> allComments = List.of(comment);
+                CommentEntity testComment = mock(CommentEntity.class);
+                given(testComment.getCommentId()).willReturn(1L);
+                
+                Pageable pageable = PageRequest.of(0, size);
+                Page<CommentEntity> parentComments = new PageImpl<>(List.of(testComment), pageable, 1);
+                List<CommentEntity> allComments = List.of(testComment);
 
-                given(commentRepository.findByIssueIdAndParentCommentIdIsNull(any(), any(Pageable.class)))
+                given(commentRepository.findByIssueIdAndParentCommentIdIsNull(eq(issueId), any(Pageable.class)))
                                 .willReturn(parentComments);
-                given(commentRepository.findByIssueIdAndParentCommentIds(any(), anyList()))
+                given(commentRepository.findByIssueIdAndParentCommentIds(eq(issueId), anyList()))
                                 .willReturn(allComments);
-                given(commentMapper.toCommentResDTO(any(), any(), any(),
-                                any(), any()))
+                given(commentMapper.toCommentResDTO(eq(allComments), eq(postId), eq(issueId),
+                                any(CommentLikeService.class), eq(currentMemberId)))
                                 .willReturn(mock(CommentResDTO.class));
 
                 // when
@@ -196,14 +201,38 @@ class CommentServiceTest {
         @DisplayName("게시글 댓글 생성 성공")
         void createComment_Post_Success() {
                 // given
-                Long currentMemberId = 1L;
+                Long currentMemberId = 2L;
                 createReqDTO.setPostId(1L);
                 createReqDTO.setIssueId(null);
                 createReqDTO.setContent("테스트 댓글");
 
-                given(memberRepository.findById(currentMemberId)).willReturn(Optional.of(member));
-                given(postRepository.findById(1L)).willReturn(Optional.of(post));
-                given(commentRepository.save(any(CommentEntity.class))).willReturn(comment);
+                // Mock 객체들 설정
+                MemberEntity commenter = mock(MemberEntity.class);
+                UserEntity commenterUser = mock(UserEntity.class);
+                given(commenter.getUserEntity()).willReturn(commenterUser);
+                given(commenterUser.getUserId()).willReturn(2L);
+                given(commenter.getName()).willReturn("Commenter");
+
+                // Post와 관련 엔티티들 Mock 설정 - 알림에 필요한 것만
+                PostEntity testPost = mock(PostEntity.class);
+                MemberEntity author = mock(MemberEntity.class);
+                UserEntity authorUser = mock(UserEntity.class);
+                BoardEntity board = mock(BoardEntity.class);
+                OrgEntity org = mock(OrgEntity.class);
+                
+                given(author.getUserEntity()).willReturn(authorUser);
+                given(authorUser.getUserId()).willReturn(1L);
+                given(testPost.getAuthorEntity()).willReturn(author);
+                given(testPost.getTitle()).willReturn("Test Post");
+                given(testPost.getPostId()).willReturn(1L);
+                given(testPost.getBoardEntity()).willReturn(board);
+                given(board.getBoardId()).willReturn(1L);
+                given(board.getOrgEntity()).willReturn(org);
+                given(org.getOrgId()).willReturn(1L);
+
+                given(memberRepository.findById(currentMemberId)).willReturn(Optional.of(commenter));
+                given(postRepository.findById(1L)).willReturn(Optional.of(testPost));
+                given(commentRepository.save(any(CommentEntity.class))).willReturn(mock(CommentEntity.class));
 
                 // when
                 commentService.createComment(createReqDTO, currentMemberId);
@@ -212,21 +241,48 @@ class CommentServiceTest {
                 then(memberRepository).should().findById(currentMemberId);
                 then(postRepository).should().findById(1L);
                 then(commentRepository).should().save(any(CommentEntity.class));
-                then(issueRepository).should(never()).findById(anyLong());
+                then(notificationEventService).should().sendPostCommentNotification(eq(1L), eq("Commenter"),
+                                eq("Test Post"), eq(1L), eq(1L), eq(1L));
         }
 
         @Test
         @DisplayName("이슈 댓글 생성 성공")
         void createComment_Issue_Success() {
                 // given
-                Long currentMemberId = 1L;
+                Long currentMemberId = 2L;
                 createReqDTO.setPostId(null);
                 createReqDTO.setIssueId(1L);
                 createReqDTO.setContent("테스트 댓글");
 
-                given(memberRepository.findById(currentMemberId)).willReturn(Optional.of(member));
-                given(issueRepository.findById(1L)).willReturn(Optional.of(issue));
-                given(commentRepository.save(any(CommentEntity.class))).willReturn(comment);
+                // Mock 객체들 설정
+                MemberEntity commenter = mock(MemberEntity.class);
+                UserEntity commenterUser = mock(UserEntity.class);
+                given(commenter.getUserEntity()).willReturn(commenterUser);
+                given(commenterUser.getUserId()).willReturn(2L);
+                given(commenter.getName()).willReturn("Commenter");
+
+                // Issue와 관련 엔티티들 Mock 설정 - 알림에 필요한 것만
+                IssueEntity testIssue = mock(IssueEntity.class);
+                MemberEntity assignee = mock(MemberEntity.class);
+                UserEntity assigneeUser = mock(UserEntity.class);
+                ProjectEntity project = mock(ProjectEntity.class);
+                OrgEntity org = mock(OrgEntity.class);
+                
+                given(assignee.getUserEntity()).willReturn(assigneeUser);
+                given(assigneeUser.getUserId()).willReturn(1L);
+                given(testIssue.getAssigneeEntity()).willReturn(assignee);
+                given(testIssue.getName()).willReturn("Test Issue");
+                given(testIssue.getIssueId()).willReturn(1L);
+                given(testIssue.getIsGithubSynced()).willReturn(false);
+                given(testIssue.getProjectEntity()).willReturn(project);
+                given(project.getProjectId()).willReturn(1L);
+                given(project.getName()).willReturn("Test Project");
+                given(project.getOrgEntity()).willReturn(org);
+                given(org.getOrgId()).willReturn(1L);
+
+                given(memberRepository.findById(currentMemberId)).willReturn(Optional.of(commenter));
+                given(issueRepository.findById(1L)).willReturn(Optional.of(testIssue));
+                given(commentRepository.save(any(CommentEntity.class))).willReturn(mock(CommentEntity.class));
 
                 // when
                 commentService.createComment(createReqDTO, currentMemberId);
@@ -235,7 +291,8 @@ class CommentServiceTest {
                 then(memberRepository).should().findById(currentMemberId);
                 then(issueRepository).should().findById(1L);
                 then(commentRepository).should().save(any(CommentEntity.class));
-                then(postRepository).should(never()).findById(anyLong());
+                then(notificationEventService).should().sendIssueCommentNotification(eq(1L), eq("Commenter"),
+                                eq("Test Issue"), eq(1L), eq(1L), eq(1L), eq("Test Project"));
         }
 
         @Test
@@ -287,6 +344,8 @@ class CommentServiceTest {
                 Long currentMemberId = 1L;
                 updateReqDTO.setContent("테스트 댓글 수정");
 
+                CommentEntity comment = mock(CommentEntity.class);
+                MemberEntity member = mock(MemberEntity.class);
                 given(member.getMemberId()).willReturn(1L);
                 given(comment.getAuthorEntity()).willReturn(member);
 
@@ -337,7 +396,9 @@ class CommentServiceTest {
                 Long orgId = 1L;
                 Long commentId = 1L;
                 Long currentMemberId = 1L;
-                // Mock 객체 설정
+                
+                CommentEntity comment = mock(CommentEntity.class);
+                MemberEntity member = mock(MemberEntity.class);
                 given(member.getMemberId()).willReturn(1L);
                 given(comment.getAuthorEntity()).willReturn(member);
 
@@ -359,7 +420,10 @@ class CommentServiceTest {
                 Long commentId = 1L;
                 Long currentMemberId = 1L;
 
-                // Mock 객체 설정
+                CommentEntity comment = mock(CommentEntity.class);
+                MemberEntity member = mock(MemberEntity.class);
+                IssueEntity issue = mock(IssueEntity.class);
+                
                 given(member.getMemberId()).willReturn(currentMemberId);
                 given(comment.getAuthorEntity()).willReturn(member);
                 given(comment.getIssueEntity()).willReturn(issue);
@@ -382,7 +446,8 @@ class CommentServiceTest {
                 Long commentId = 1L;
                 Long differentMemberId = 999L;
 
-                // Mock 설정: 작성자 ID는 1L, 요청자 ID는 999L로 다르게 설정
+                CommentEntity comment = mock(CommentEntity.class);
+                MemberEntity member = mock(MemberEntity.class);
                 given(member.getMemberId()).willReturn(1L);
                 given(comment.getAuthorEntity()).willReturn(member);
                 given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
@@ -419,10 +484,11 @@ class CommentServiceTest {
                 Long authorMemberId = 1L;
                 Long adminMemberId = 2L;
 
+                CommentEntity comment = mock(CommentEntity.class);
+                MemberEntity member = mock(MemberEntity.class);
                 OrgParticipantMemberEntity adminOpm = mock(OrgParticipantMemberEntity.class);
                 given(adminOpm.getRole()).willReturn(Role.ADMIN);
 
-                // Mock 설정: 작성자 ID는 1L, 관리자 ID는 2L
                 given(member.getMemberId()).willReturn(authorMemberId);
                 given(comment.getAuthorEntity()).willReturn(member);
                 given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
@@ -450,10 +516,11 @@ class CommentServiceTest {
                 Long authorMemberId = 1L;
                 Long rootAdminMemberId = 3L;
 
+                CommentEntity comment = mock(CommentEntity.class);
+                MemberEntity member = mock(MemberEntity.class);
                 OrgParticipantMemberEntity rootAdminOpm = mock(OrgParticipantMemberEntity.class);
                 given(rootAdminOpm.getRole()).willReturn(Role.ROOT_ADMIN);
 
-                // Mock 설정: 작성자 ID는 1L, 최고 관리자 ID는 3L
                 given(member.getMemberId()).willReturn(authorMemberId);
                 given(comment.getAuthorEntity()).willReturn(member);
                 given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));

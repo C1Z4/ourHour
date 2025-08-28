@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { useRouter } from '@tanstack/react-router';
-import { Github, Plus, RefreshCw } from 'lucide-react';
+import { Github, Info, Plus, RefreshCw } from 'lucide-react';
 
 import type { MyMemberInfoDetail } from '@/api/member/memberApi';
 import type { GithubRepository } from '@/api/project/githubApi';
@@ -202,7 +202,7 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
     <div className="bg-white px-6 py-4">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 pt-2">
             <h1 className="text-2xl font-bold text-gray-900">{currentProjectName}</h1>
             {isGithubSyncing ? (
               <div className="flex items-center gap-2">
@@ -241,6 +241,7 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
           </div>
 
           <ButtonComponent variant="primary" size="sm" onClick={handleProjectInfo}>
+            <Info className="size-4" />
             프로젝트 정보
           </ButtonComponent>
         </div>

@@ -19,6 +19,7 @@ import {
 } from '@/api/project/issueApi';
 import { PROJECT_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
+import { getErrorMessage } from '@/utils/auth/errorUtils';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 // ======== 이슈 생성 ========
@@ -35,7 +36,7 @@ export const useIssueCreateMutation = (orgId: number, projectId: number) =>
     },
 
     onError: (error: AxiosError) => {
-      showErrorToast('새 이슈 생성에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });
 
@@ -51,13 +52,13 @@ export const useIssueUpdateMutation = (issueId: number, orgId: number, projectId
         exact: false,
       });
       queryClient.invalidateQueries({
-        queryKey: [PROJECT_QUERY_KEYS.ISSUE_DETAIL, issueId],
+        queryKey: [PROJECT_QUERY_KEYS.ISSUE_DETAIL, orgId, issueId],
         exact: false,
       });
     },
 
     onError: (error: AxiosError) => {
-      showErrorToast('이슈 수정에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });
 
@@ -77,7 +78,7 @@ export const useIssueStatusUpdateMutation = (orgId: number, projectId: number) =
       });
     },
     onError: (error: AxiosError) => {
-      showErrorToast('이슈 상태 변경에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });
 
@@ -99,7 +100,7 @@ export const useIssueDeleteMutation = (issueId: number, orgId: number, projectId
     },
 
     onError: (error: AxiosError) => {
-      showErrorToast('이슈 삭제에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });
 
@@ -116,7 +117,7 @@ export const useIssueTagCreateMutation = (orgId: number, projectId: number) =>
     },
 
     onError: (error: AxiosError) => {
-      showErrorToast('이슈 태그 생성에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });
 
@@ -132,7 +133,7 @@ export const useIssueTagUpdateMutation = (orgId: number, projectId: number) =>
       });
     },
     onError: (error: AxiosError) => {
-      showErrorToast('이슈 태그 수정에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });
 
@@ -148,6 +149,6 @@ export const useIssueTagDeleteMutation = (orgId: number, projectId: number) =>
       });
     },
     onError: (error: AxiosError) => {
-      showErrorToast('이슈 태그 삭제에 실패하였습니다.');
+      showErrorToast(getErrorMessage(error));
     },
   });

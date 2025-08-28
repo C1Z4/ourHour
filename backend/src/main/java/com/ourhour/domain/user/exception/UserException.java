@@ -28,4 +28,8 @@ public class UserException extends BusinessException {
   public static UserException roleConflict() {
     return new UserException(ErrorCode.ROOT_ADMIN_ROLE_CONFLICT);
   }
+
+  public static UserException userNotFoundException() {
+    return new UserException(ErrorCode.USER_NOT_FOUND);
+  }
 }

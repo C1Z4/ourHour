@@ -15,6 +15,7 @@ import com.ourhour.domain.org.entity.OrgInvEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberId;
 import com.ourhour.domain.org.enums.InvStatus;
+import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.org.exception.OrgInvExcception;
@@ -50,6 +51,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
     private final UserRepository userRepository;
     private final OrgRepository orgRepository;
     private final OrgInvMapper orgInvMapper;
+    private final OrgRoleGuardService orgRoleGuardService;
 
     @Value("${spring.service.url.front}")
     private String serviceBaseUrl;
@@ -60,7 +62,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
     public OrgInvService(EmailSenderService emailSenderService, OrgInvRepository orgInvRepository,
             OrgInvBatchRepository orgInvBatchRepository, OrgParticipantMemberRepository orgParticipantMemberRepository,
             MemberRepository memberRepository, UserRepository userRepository, OrgRepository orgRepository,
-            OrgInvMapper orgInvMapper) {
+            OrgInvMapper orgInvMapper, OrgRoleGuardService orgRoleGuardService) {
         super(emailSenderService);
         this.orgInvRepository = orgInvRepository;
         this.orgParticipantMemberRepository = orgParticipantMemberRepository;
@@ -69,6 +71,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
         this.userRepository = userRepository;
         this.orgRepository = orgRepository;
         this.orgInvMapper = orgInvMapper;
+        this.orgRoleGuardService = orgRoleGuardService;
     }
 
     // 초대 링크 이메일 발송
@@ -116,6 +119,15 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
                 throw OrgInvExcception.selfInvitationNotAllowedException();
             }
 
+            // 루트 관리자 정책 (최대 2명)
+            if (orgInvReqDTO.getRole() == Role.ROOT_ADMIN) {
+                int currentRootAdminCount = orgRoleGuardService.countActiveRootAdmins(orgId);
+
+                if (currentRootAdminCount >= 2) {
+                    throw OrgException.tooMuchRootAdminException();
+                }
+            }
+
             // 이미 조직에 참여 중인지 확인
             boolean alreadyMember = orgParticipantMemberRepository.existsByOrgEntity_OrgIdAndMemberEntity_Email(orgId, email);            if (alreadyMember) {
                 throw MemberException.memberAlreadyExistsException();
@@ -148,25 +160,25 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
     @Transactional
     public void verifyInvEmail(String token) {
 
-        OrgInvEntity inv = orgInvRepository.findByToken(token)
+        OrgInvEntity orgInvEntity = orgInvRepository.findByToken(token)
                 .orElseThrow(() -> AuthException.invalidEmailVerificationTokenException());
 
         // 만료 검사 & 상태 전이
-        if (inv.getExpiredAt() != null && inv.getExpiredAt().isBefore(LocalDateTime.now())) {
-            if (inv.getStatus() != InvStatus.EXPIRED) {
-                inv.changeStatusToExpired();
+        if (orgInvEntity.getExpiredAt() != null && orgInvEntity.getExpiredAt().isBefore(LocalDateTime.now())) {
+            if (orgInvEntity.getStatus() != InvStatus.EXPIRED) {
+                orgInvEntity.changeStatusToExpired();
             }
             throw AuthException.emailVerificationExpiredException();
         }
 
         // 이미 참여
-        if (inv.getStatus() == InvStatus.ACCEPTED) {
+        if (orgInvEntity.getStatus() == InvStatus.ACCEPTED) {
             return;
         }
 
         // 최초 검증 시에만 true 세팅
-        if (!inv.isUsed()) {
-            inv.setUsed(true);
+        if (!orgInvEntity.isUsed()) {
+            orgInvEntity.setUsed(true);
         }
 
     }
@@ -183,7 +195,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
         // 이미 인증되었는지 확인
         boolean isVerified = orgInvEntity.isUsed();
         if (!isVerified) {
-            throw AuthException.emailVerificationRequiredException();
+            throw AuthException.emailAlreadyVerifiedException();
         }
 
         // 이미 수락되었는지 확인
@@ -191,7 +203,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
             throw AuthException.emailAlreadyAcceptedException();
         }
 
-        // 이미 완료되었는지 확인
+        // 초대 메일 만료되었는지 확인
         if (orgInvEntity.getExpiredAt().isBefore(LocalDateTime.now())) {
             if (orgInvEntity.getStatus() != InvStatus.EXPIRED) {
                 orgInvEntity.changeStatusToExpired();
@@ -224,40 +236,31 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
             throw OrgException.orgNotFoundException();
         }
 
-        MemberEntity memberToJoin = memberRepository.findByUserEntity_UserIdAndEmail(userId, invitedEmail)
-                .orElseGet(() -> {
-                    String randomName = "User" + UUID.randomUUID().toString().substring(0,4);
-                    MemberEntity newMember = MemberEntity.builder()
-                            .userEntity(userEntity)
-                            .name(randomName)
-                            .email(invitedEmail)
-                            .build();
-                    memberRepository.flush();
-                    return memberRepository.save(newMember);
-                });
+        List<MemberEntity> members = memberRepository.findAllByUserEntity_UserIdAndEmail(userId, invitedEmail);
 
-        System.out.println("멤버 아이디: " + memberToJoin.getMemberId());
-        System.out.println(
-                "멤버 아이디 타입: " +
-                        (memberToJoin.getMemberId() != null
-                                ? memberToJoin.getMemberId().getClass().getName()
-                                : "null")
-        );
-
-        // 이미 조직에 참여 중인지 확인
-        boolean alreadyParticipant = orgParticipantMemberRepository.existsByOrgEntityAndMemberEntity(orgEntity,
-                memberToJoin);
-        if (alreadyParticipant) {
-            // 의미 없는 초대이므로 상태값만 바꾸고 메소드 종료
-            orgInvEntity.changeStatusToAccepted();
-            return;
+        for (MemberEntity member : members) {
+            boolean alreadyParticipant = orgParticipantMemberRepository.existsByOrgEntityAndMemberEntity(orgEntity,
+                    member);
+            if (alreadyParticipant) {
+                // 의미 없는 초대이므로 상태값만 바꾸고 메소드 종료
+                orgInvEntity.changeStatusToExpired();
+                return;
+            }
         }
+
+        String randomName = "User" + UUID.randomUUID().toString().substring(0,4);
+        MemberEntity newMember = MemberEntity.builder()
+                .userEntity(userEntity)
+                .name(randomName)
+                .email(invitedEmail)
+                .build();
+        memberRepository.save(newMember);
 
         // OrgParticipantMemberEntity 생성 및 저장 (실제 팀 참여)
         OrgParticipantMemberEntity newOpm = OrgParticipantMemberEntity.builder()
-                .orgParticipantMemberId(new OrgParticipantMemberId(orgEntity.getOrgId(), memberToJoin.getMemberId()))
+                .orgParticipantMemberId(new OrgParticipantMemberId(orgEntity.getOrgId(), newMember.getMemberId()))
                 .orgEntity(orgEntity)
-                .memberEntity(memberToJoin)
+                .memberEntity(newMember)
                 .role(orgInvEntity.getRole())
                 .status(Status.ACTIVE)
                 .joinedAt(LocalDate.now())

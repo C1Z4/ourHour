@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { getCheckEmail } from '@/api/auth/emailApi';
+import { getCheckDupEmail } from '@/api/auth/emailApi';
 import { postPasswordVerification } from '@/api/auth/passwordApi';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
@@ -12,7 +12,7 @@ export function PwdResetContainer() {
   const handleSubmit = async (email: string) => {
     setLoading(true);
     try {
-      const isNotRegistered = await getCheckEmail({ email });
+      const isNotRegistered = await getCheckDupEmail({ email });
 
       if (isNotRegistered.data) {
         showErrorToast('등록되지 않은 이메일입니다.');

@@ -117,7 +117,12 @@ export const PostDetailPage = ({ orgId, boardId, postId }: PostDetailPageProps) 
         <div className="grid grid-cols-1 gap-8">
           <div className="lg:col-span-2">
             <div className="mt-8">
-              <DetailContent post={post} onEdit={handleEditPost} onDelete={handleDeletePost} />
+              <DetailContent
+                post={post}
+                onEdit={handleEditPost}
+                onDelete={handleDeletePost}
+                orgId={Number(orgId)}
+              />
 
               <div className="mt-8">
                 <CommentSection />
