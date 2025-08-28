@@ -64,7 +64,6 @@ export const getGithubSyncStatus = async (
 export interface PostGithubConnectRequest {
   projectId: number;
   memberId: number;
-  githubAccessToken: string;
   githubRepository: string;
 }
 
@@ -74,10 +73,7 @@ export const postGithubConnect = async (
   try {
     const response = await axiosInstance.post<ApiResponse<void>>(
       `/api/github/projects/${request.projectId}/connect`,
-      {
-        githubAccessToken: request.githubAccessToken,
-        githubRepository: request.githubRepository,
-      },
+      { githubRepository: request.githubRepository },
       { params: { memberId: request.memberId } },
     );
 
