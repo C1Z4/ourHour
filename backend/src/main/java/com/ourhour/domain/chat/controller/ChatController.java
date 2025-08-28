@@ -14,6 +14,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
@@ -28,9 +29,9 @@ public class ChatController {
     private final UserLocationService userLocationService;
 
     @MessageMapping("/chat/message")
-    public void message(@Payload ChatMessageReqDTO chatMessageReqDTO) {
+    public void message(@Payload ChatMessageReqDTO chatMessageReqDTO, Principal principal) {
 
-        ChatMessageResDTO chatMessageResDTO = chatService.saveAndConvertMessage(chatMessageReqDTO);
+        ChatMessageResDTO chatMessageResDTO = chatService.saveAndConvertMessage(chatMessageReqDTO, principal);
 
         messagingTemplate.convertAndSend(
                 "/sub/chat/room/" + chatMessageResDTO.getChatRoomId(), chatMessageResDTO
@@ -38,18 +39,20 @@ public class ChatController {
     }
 
     @MessageMapping("/chat/enter")
-    public void enterChatRoom(@Payload ChatRoomEnterReqDTO request) {
-
-        Long userId = SecurityUtil.getCurrentUserId();
+    public void enterChatRoom(@Payload ChatRoomEnterReqDTO request, Principal principal) {
+        Authentication authentication = (Authentication) principal;
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUserId();
 
         userLocationService.enterChatRoom(userId, request.getRoomId());
     }
 
     @MessageMapping("/chat/leave")
-    public void leaveChatRoom(@Payload ChatRoomLeaveReqDTO request) {
+    public void leaveChatRoom(@Payload ChatRoomLeaveReqDTO request, Principal principal) {
+        Authentication authentication = (Authentication) principal;
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUserId();
 
-        Long userId = SecurityUtil.getCurrentUserId();
-        
         userLocationService.leaveChatRoom(userId);
     }
 }

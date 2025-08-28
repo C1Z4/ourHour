@@ -70,26 +70,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     if (jwtToken != null && jwtTokenProvider.validateToken(jwtToken)) {
                         Authentication authentication = jwtTokenProvider.getAuthenticationFromToken(jwtToken);
 
-                        Objects.requireNonNull(accessor.getSessionAttributes()).put(USER_AUTHENTICATION_KEY, authentication);
                         accessor.setUser(authentication); // accessor 자체에도 유저 정보를 설정
                         System.out.println("WebSocket CONNECT successful, Authentication stored in session for user: " + authentication.getName());
-                    } else {
-                        System.out.println("============================================");
-                        System.out.println("WebSocket CONNECT failed: Invalid JWT Token.");
-                        System.out.println("============================================");
-                    }
-                }
-
-                // SEND, SUBSCRIBE 등 다른 모든 메시지 처리 시
-                else if (StompCommand.SEND.equals(accessor.getCommand()) || StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-                    Authentication authentication = (Authentication) Objects.requireNonNull(accessor.getSessionAttributes()).get(USER_AUTHENTICATION_KEY);
-                    if (authentication != null) {
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                        System.out.println("Authentication restored from session for user: " + authentication.getName());
-                    } else {
-                        System.out.println("===============================================================");
-                        System.out.println("Authentication not found in session for SEND/SUBSCRIBE command.");
-                        System.out.println("===============================================================");
                     }
                 }
 
