@@ -22,7 +22,6 @@ import com.ourhour.domain.project.github.GitHubClientFactory;
 import com.ourhour.domain.project.repository.IssueRepository;
 import com.ourhour.domain.project.repository.ProjectGithubIntegrationRepository;
 import com.ourhour.domain.user.entity.ProjectGithubIntegrationEntity;
-import com.ourhour.domain.user.entity.UserGitHubMappingEntity;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,17 +49,6 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
                 issueBuilder.body(issue.getContent());
             }
 
-            // 담당자 설정 (GitHub 사용자명이 있는 경우)
-            if (issue.getAssigneeEntity() != null && issue.getAssigneeEntity().getMemberId() != null) {
-                UserGitHubMappingEntity githubMapping = issue.getAssigneeEntity().getUserEntity()
-                        .getGithubMappingEntity();
-                if (githubMapping != null) {
-                    issueBuilder.assignee(githubMapping.getGithubUsername());
-                }
-            } else if (issue.getAssigneeEntity() != null) {
-                log.warn("GitHub username이 없는 담당자 - Assignee ID: {}", issue.getAssigneeEntity().getMemberId());
-                // GitHub username이 없는 경우, assignee 설정 생략
-            }
 
             // 마일스톤 설정 (마일스톤이 GitHub에 동기화된 경우)
             if (issue.getMilestoneEntity() != null && issue.getMilestoneEntity().getGithubId() != null) {
@@ -116,8 +104,6 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
                 githubIssue.reopen();
             }
 
-            // 담당자 업데이트
-            updateAssignee(githubIssue, issue, gitHub);
 
             // 마일스톤 업데이트
             updateMilestone(githubIssue, issue, repository);
@@ -237,20 +223,6 @@ public class IssueSyncHandler implements GitHubSyncHandler<IssueEntity> {
                 (e.getMessage().contains("404") || e.getMessage().contains("Not Found"));
     }
 
-    // 담당자 업데이트
-    private void updateAssignee(GHIssue githubIssue, IssueEntity issue, GitHub gitHub) throws IOException {
-        if (issue.getAssigneeEntity() != null) {
-            UserGitHubMappingEntity githubMapping = issue.getAssigneeEntity().getUserEntity().getGithubMappingEntity();
-            if (githubMapping != null) {
-                GHUser user = gitHub.getUser(githubMapping.getGithubUsername());
-                githubIssue.setAssignees(List.of(user));
-            } else {
-                githubIssue.setAssignees(List.of()); // 담당자 제거
-            }
-        } else {
-            githubIssue.setAssignees(List.of()); // 담당자 제거
-        }
-    }
 
     // 마일스톤 업데이트
     private void updateMilestone(GHIssue githubIssue, IssueEntity issue, GHRepository repository) throws IOException {

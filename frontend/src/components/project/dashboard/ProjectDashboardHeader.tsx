@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { GitHubTokenSettings } from '@/components/user/github/GitHubTokenSettings';
 import { useMyMemberInfoQuery } from '@/hooks/queries/member/useMemberQueries';
 import {
   useGithubConnectMutation,
@@ -27,6 +28,7 @@ import {
 } from '@/hooks/queries/project/useGithubMutations';
 import { useGithubSyncStatusQuery } from '@/hooks/queries/project/useGithubQueries';
 import { useMilestoneCreateMutation } from '@/hooks/queries/project/useMilestoneMutations';
+import { useGitHubToken } from '@/hooks/user/useGitHubToken';
 import { useAppDispatch, useAppSelector } from '@/stores/hooks';
 import { toggleIsMyIssuesOnly } from '@/stores/projectSlice';
 import { showErrorToast } from '@/utils/toast';
@@ -57,6 +59,8 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
   const { data: memberInfoData } = useMyMemberInfoQuery(Number(orgId));
   const memberInfo = memberInfoData as unknown as MyMemberInfoDetail;
   const { data: githubSyncStatus } = useGithubSyncStatusQuery(Number(projectId));
+  const { hasToken, repositories, repositoriesLoading } = useGitHubToken();
+
   const { mutate: createMilestone } = useMilestoneCreateMutation(Number(orgId), Number(projectId));
   const { mutate: getRepositories, isPending: isLoadingRepositories } =
     useGithubRepositoryListByTokenMutation();
@@ -104,16 +108,27 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
   };
 
   const handleGithubConnect = () => {
-    if (!memberInfo?.isGithubLinked) {
-      showErrorToast('깃허브 연동이 필요합니다. 우측 상단의 프로필 조회에서 연동해주세요.');
+    if (!hasToken) {
+      showErrorToast(
+        '개인 GitHub 토큰이 필요합니다. 우측 상단의 프로필에서 개인 GitHub 토큰을 먼저 등록해주세요.',
+      );
       return;
     }
 
     setIsGithubConnectModalOpen(true);
-    setGithubStep('token');
+    setGithubStep('repository');
     setGithubToken('');
     setSelectedRepository('');
-    setRepositoryOptions([]);
+
+    // 개인 토큰으로 이미 로드된 레포지토리 목록 사용
+    if (repositories && (repositories as unknown as GithubRepository[]).length > 0) {
+      setRepositoryOptions(repositories as unknown as GithubRepository[]);
+    } else {
+      setRepositoryOptions([]);
+      if (!repositoriesLoading) {
+        showErrorToast('레포지토리 목록을 불러올 수 없습니다. GitHub 토큰을 확인해주세요.');
+      }
+    }
   };
 
   const handleGithubDisconnect = () => {
@@ -167,11 +182,11 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
       return;
     }
 
+    // 개인 토큰 기반으로 연동 (레포지토리 정보만 전송)
     connectGithub(
       {
         projectId: Number(projectId),
         memberId: Number(memberId),
-        githubAccessToken: githubToken,
         githubRepository: selectedRepository,
       },
       {
@@ -198,46 +213,70 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
     setRepositoryOptions([]);
   };
 
+  const getButtonTitle = () => {
+    if (!hasToken) {
+      return '개인 GitHub 토큰을 먼저 등록해주세요';
+    }
+    if (repositoriesLoading) {
+      return '레포지토리 목록을 불러오는 중...';
+    }
+    return '';
+  };
+
   return (
     <div className="bg-white px-6 py-4">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 pt-2">
             <h1 className="text-2xl font-bold text-gray-900">{currentProjectName}</h1>
-            {isGithubSyncing ? (
-              <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              {/* GitHub 연동 관련 버튼 */}
+              {isGithubSyncing ? (
+                <div className="flex items-center gap-2">
+                  <ButtonComponent
+                    variant="secondary"
+                    size="icon"
+                    className="cursor-pointer"
+                    onClick={handleSyncAll}
+                    aria-label="GitHub 데이터 동기화"
+                    title="데이터 동기화"
+                    disabled={isSyncingAll}
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isSyncingAll ? 'animate-spin' : ''}`} />
+                  </ButtonComponent>
+                  <ButtonComponent
+                    variant="danger"
+                    size="sm"
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={handleGithubDisconnect}
+                  >
+                    <Github className="size-5 text-muted-foreground text-white" />
+                    깃허브 연동해제
+                  </ButtonComponent>
+                </div>
+              ) : (
                 <ButtonComponent
-                  variant="secondary"
-                  size="icon"
-                  className="cursor-pointer"
-                  onClick={handleSyncAll}
-                  aria-label="GitHub 데이터 동기화"
-                  title="데이터 동기화"
-                  disabled={isSyncingAll}
-                >
-                  <RefreshCw className={`h-4 w-4 ${isSyncingAll ? 'animate-spin' : ''}`} />
-                </ButtonComponent>
-                <ButtonComponent
-                  variant="danger"
+                  variant="primary"
                   size="sm"
                   className="flex items-center gap-2 cursor-pointer"
-                  onClick={handleGithubDisconnect}
+                  onClick={handleGithubConnect}
+                  disabled={!hasToken || repositoriesLoading}
+                  title={getButtonTitle()}
                 >
-                  <Github className="size-5 text-muted-foreground text-white" />
-                  깃허브 연동해제
+                  {repositoriesLoading ? (
+                    <>
+                      <RefreshCw className="size-5 text-white animate-spin" />
+                      연동 준비 중...
+                    </>
+                  ) : (
+                    <>
+                      <Github className="size-5 text-muted-foreground text-white" />
+                      깃허브 연동
+                    </>
+                  )}
                 </ButtonComponent>
-              </div>
-            ) : (
-              <ButtonComponent
-                variant="primary"
-                size="sm"
-                className="flex items-center gap-2 cursor-pointer"
-                onClick={handleGithubConnect}
-              >
-                <Github className="size-5 text-muted-foreground text-white" />
-                깃허브 연동
-              </ButtonComponent>
-            )}
+              )}
+            </div>
           </div>
 
           <ButtonComponent variant="primary" size="sm" onClick={handleProjectInfo}>
@@ -324,36 +363,14 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
           size="lg"
           children={
             <div className="space-y-6">
-              {githubStep === 'token' && (
-                <div className="space-y-4">
-                  <div className="text-sm text-gray-600">
-                    GitHub Personal Access Token을 입력해주세요.
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="github-token">GitHub Token</Label>
-                    <Input
-                      id="github-token"
-                      type="password"
-                      className="w-full"
-                      placeholder="github_pat__xxxxxxxxxxxxxxxxxxxx"
-                      value={githubToken}
-                      onChange={(e) => setGithubToken(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleTokenSubmit();
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-
               {githubStep === 'repository' && (
                 <div className="space-y-4">
-                  <div className="text-sm text-gray-600">연동할 레포지토리를 선택해주세요.</div>
+                  <div className="text-sm text-gray-600">
+                    등록된 개인 GitHub 토큰을 사용하여 연동할 레포지토리를 선택해주세요.
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="repository-select">Repository</Label>
-                    {isLoadingRepositories ? (
+                    {repositoriesLoading ? (
                       <LoadingSpinner text="레포지토리 목록을 불러오는 중..." />
                     ) : (
                       <Select value={selectedRepository} onValueChange={setSelectedRepository}>
@@ -393,20 +410,10 @@ export const ProjectDashboardHeader = ({ orgId, projectId }: ProjectDashboardHea
                   variant="danger"
                   size="sm"
                   onClick={handleCloseGithubModal}
-                  disabled={isLoadingRepositories || isConnecting}
+                  disabled={repositoriesLoading || isConnecting}
                 >
                   취소
                 </ButtonComponent>
-                {githubStep === 'token' && (
-                  <ButtonComponent
-                    variant="primary"
-                    size="sm"
-                    onClick={handleTokenSubmit}
-                    disabled={!githubToken.trim() || isLoadingRepositories}
-                  >
-                    {isLoadingRepositories ? '확인 중...' : '다음'}
-                  </ButtonComponent>
-                )}
                 {githubStep === 'repository' && (
                   <ButtonComponent
                     variant="primary"
