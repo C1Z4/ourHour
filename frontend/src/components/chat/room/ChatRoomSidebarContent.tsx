@@ -6,8 +6,6 @@ import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { SidebarContent, SidebarHeader, SidebarFooter } from '@/components/ui/sidebar';
-import { useDeleteChatParticipantQuery } from '@/hooks/queries/chat/useDeleteChatParticipantMutation';
-import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 
 import { ChatParticipantAddModal } from './ChatParticipantAddModal';
 
@@ -27,9 +25,6 @@ export const ChatRoomSidebarContent = ({
   onClose,
 }: Props) => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-
-  const memberId = getMemberIdFromToken(orgId);
-  const { mutate: exitRoom, isPending } = useDeleteChatParticipantQuery(orgId, roomId, memberId);
 
   return (
     <>
@@ -51,7 +46,7 @@ export const ChatRoomSidebarContent = ({
             participants?.map((participant) => (
               <div key={participant.memberId} className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={participant.profileImgUrl} />
+                  <AvatarImage src={participant.profileImageUrl} />
                   <AvatarFallback>{participant.memberName.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <span className="font-medium">{participant.memberName}</span>

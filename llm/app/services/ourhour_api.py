@@ -59,17 +59,19 @@ class OurHourAPIClient:
             response.raise_for_status()
             
             data = response.json()
-            self.logger.info(f"===== API Response from {url} =====")
-            import json
-            self.logger.info(json.dumps(data, indent=2, ensure_ascii=False))
-            # OurHour API 응답 형식에 맞춰 처리 (status: "OK"인 경우 성공)
-            if data.get('status') == 'OK':
+            
+            # OurHour API 응답 형식에 맞춰 처리
+            # 백엔드는 HttpStatus를 문자열로 직렬화하므로 "OK" 대신 200 확인
+            status_code = response.status_code
+            if status_code == 200:
                 return data.get('data', {})
             else:
-                raise requests.RequestException(f"API Error: {data.get('message', 'Unknown error')}")
-
+                raise requests.RequestException(f"API Error: {data.get('message', f'HTTP {status_code}')}")
+                
         except requests.RequestException as e:
             self.logger.error(f"API request failed: {method} {url} - {str(e)}")
+            self.logger.error(f"Response status: {getattr(response, 'status_code', 'No response')}")
+            self.logger.error(f"Response text: {getattr(response, 'text', 'No response text')}")
             raise
 
     # 조직 관련 API 메서드들
@@ -97,6 +99,7 @@ class OurHourAPIClient:
             부서 목록
         """
         data = self._make_request('GET', f'/api/organizations/{org_id}/departments')
+        # 백엔드는 배열을 직접 반환 (PageResponse가 아님)
         return [DepartmentInfo(**dept) for dept in data]
 
     def get_positions(self, org_id: int) -> List[PositionInfo]:
@@ -204,8 +207,8 @@ class OurHourAPIClient:
         try:
             # 검색 기능 활용
             result = self.get_members_paginated(org_id, search=name)
-            members = result.get('content', [])
-
+            members = result.get('data', [])
+            
             # 정확한 이름 매칭
             for member_data in members:
                 if member_data['name'] == name:
@@ -325,6 +328,7 @@ class OurHourAPIClient:
                 },
                 'members': [
                     {
+                        'memberId': m.memberId,  # memberId 추가
                         'name': m.name,
                         'email': m.email,
                         'phone': m.phone,
@@ -494,7 +498,38 @@ class OurHourAPIClient:
             이슈 태그 목록
         """
         return self._make_request('GET', f'/api/organizations/{org_id}/projects/{project_id}/issues/tags')
-
+    
+    def get_my_assigned_issues_in_project(self, org_id: int, project_id: int, current_page: int = 1, size: int = 100) -> Dict[str, Any]:
+        """
+        특정 프로젝트에서 현재 사용자에게 할당된 이슈 목록 조회
+        JWT 토큰에서 자동으로 현재 사용자를 인식하여 해당 사용자의 이슈만 반환
+        
+        Args:
+            org_id: 조직 ID
+            project_id: 프로젝트 ID  
+            current_page: 페이지 번호
+            size: 페이지 크기
+            
+        Returns:
+            현재 사용자에게 할당된 이슈 목록
+        """
+        # myIssuesOnly=true로 현재 사용자에게 할당된 이슈만 조회 (JWT 토큰에서 자동으로 사용자 인식)
+        params = {
+            'myIssuesOnly': 'true',  # 백엔드에서는 boolean으로 파싱하지만 URL 파라미터는 문자열로 전달
+            'currentPage': current_page,
+            'size': size
+        }
+        self.logger.info(f"API request: GET /api/organizations/{org_id}/projects/{project_id}/issues with params: {params}")
+        response = self._make_request('GET', f'/api/organizations/{org_id}/projects/{project_id}/issues', params=params)
+        self.logger.info(f"API response keys: {list(response.keys()) if isinstance(response, dict) else 'Not a dict'}")
+        if isinstance(response, dict) and 'data' in response:
+            self.logger.info(f"Issues data count: {len(response['data'])}")
+            if response['data']:
+                sample_issue = response['data'][0]
+                self.logger.info(f"Sample issue fields: {list(sample_issue.keys())}")
+                self.logger.info(f"Sample issue assignee info: assigneeName={sample_issue.get('assigneeName')}, assigneeId={sample_issue.get('assigneeId')}")
+        return response
+    
     def get_project_summary_for_context(self, org_id: int) -> Dict[str, Any]:
         """
         프로젝트 컨텍스트 생성을 위한 종합 정보 조회
@@ -508,8 +543,9 @@ class OurHourAPIClient:
         try:
             # 모든 프로젝트 조회
             projects_data = self.get_projects_summary(org_id, size=100)
-            projects = projects_data.get('content', [])
-
+            # PageResponse 구조: data.data가 실제 프로젝트 배열
+            projects = projects_data.get('data', [])
+            
             project_summary = {
                 'total_projects': len(projects),
                 'projects': [],
@@ -535,27 +571,23 @@ class OurHourAPIClient:
                         'total': project.get('totalIssueCount', 0)
                     },
                     'milestone_count': project.get('milestoneCount', 0),
-                    'participant_count': project.get('participantCount', 0),
+                    'participant_count': len(project.get('participants', [])),
                     'participants': [],
                     'milestones': [],
                     'recent_issues': [],
                     'issue_comments_sample': []
                 }
-
-                # 통계 업데이트
-                project_summary['total_participants'] += project_info['participant_count']
-                project_summary['total_milestones'] += project_info['milestone_count']
-                project_summary['total_issues']['open'] += project_info['issue_counts']['open']
-                project_summary['total_issues']['closed'] += project_info['issue_counts']['closed']
-                project_summary['total_issues']['total'] += project_info['issue_counts']['total']
-
+                
+                # 통계 업데이트는 나중에 실제 데이터로 계산
+                
                 if project_info['is_github_linked']:
                     project_summary['github_linked_count'] += 1
 
                 # 참가자 정보 수집 (최대 20명)
                 try:
                     participants_data = self.get_project_participants(org_id, project_id, size=20)
-                    participants = participants_data.get('content', [])
+                    self.logger.info(f"Participants API response keys for project {project_id}: {list(participants_data.keys())}")
+                    participants = participants_data.get('data', [])
                     project_info['participants'] = [
                         {
                             'name': p['name'],
@@ -564,13 +596,17 @@ class OurHourAPIClient:
                             'position': p['positionName']
                         } for p in participants
                     ]
+                    # 참가자 수는 PageResponse의 totalElements 사용
+                    project_info['participant_count'] = participants_data.get('totalElements', 0)
+                    self.logger.info(f"Project {project_id} participant count: {project_info['participant_count']}")
                 except Exception as e:
                     self.logger.warning(f"Failed to get participants for project {project_id}: {str(e)}")
 
                 # 마일스톤 정보 수집 (최대 10개)
                 try:
                     milestones_data = self.get_project_milestones(org_id, project_id, size=10)
-                    milestones = milestones_data.get('content', [])
+                    self.logger.info(f"Milestones API response keys for project {project_id}: {list(milestones_data.keys())}")
+                    milestones = milestones_data.get('data', [])
                     project_info['milestones'] = [
                         {
                             'id': m['milestoneId'],
@@ -585,22 +621,47 @@ class OurHourAPIClient:
                             }
                         } for m in milestones
                     ]
+                    # 마일스톤 카운트는 PageResponse의 totalElements 사용
+                    project_info['milestone_count'] = milestones_data.get('totalElements', 0)
+                    self.logger.info(f"Project {project_id} milestone count: {project_info['milestone_count']}")
                 except Exception as e:
                     self.logger.warning(f"Failed to get milestones for project {project_id}: {str(e)}")
-
-                # 최근 이슈 정보 수집 (최대 5개)
+                
+                # 모든 이슈 정보 수집 (마일스톤별 + 미분류)
                 try:
-                    issues_data = self.get_project_issues(org_id, project_id, size=5)
-                    issues = issues_data.get('content', [])
-
-                    for issue in issues:
+                    all_issues = []
+                    
+                    # 1. 미분류 이슈 조회 (milestone_id가 없는 이슈)
+                    unassigned_issues_data = self.get_project_issues(org_id, project_id, size=100)
+                    unassigned_issues = unassigned_issues_data.get('data', [])
+                    all_issues.extend(unassigned_issues)
+                    self.logger.info(f"Project {project_id} unassigned issues: {len(unassigned_issues)}")
+                    
+                    # 2. 각 마일스톤별 이슈 조회
+                    try:
+                        milestones_data = self.get_project_milestones(org_id, project_id, size=100)
+                        milestones = milestones_data.get('data', [])
+                        
+                        for milestone in milestones:
+                            milestone_id = milestone['milestoneId']
+                            milestone_issues_data = self.get_project_issues(org_id, project_id, milestone_id=milestone_id, size=100)
+                            milestone_issues = milestone_issues_data.get('data', [])
+                            all_issues.extend(milestone_issues)
+                            self.logger.info(f"Project {project_id} milestone {milestone_id} issues: {len(milestone_issues)}")
+                            
+                    except Exception as e:
+                        self.logger.warning(f"Failed to get milestone-specific issues for project {project_id}: {str(e)}")
+                    
+                    # 최근 이슈 정보 (최대 5개)
+                    recent_issues = all_issues[:5]
+                    for issue in recent_issues:
                         issue_info = {
                             'id': issue['issueId'],
-                            'title': issue['title'],
-                            'state': issue.get('state', ''),
-                            'milestone': issue.get('milestoneTitle', ''),
-                            'assignees': issue.get('assignees', []),
-                            'labels': issue.get('labels', []),
+                            'title': issue['name'],
+                            'state': issue.get('status', ''),
+                            'milestone': issue.get('milestoneId', ''),
+                            'assignees': [issue.get('assigneeName', '')] if issue.get('assigneeName') else [],
+                            'labels': [{'name': issue.get('tagName', ''), 'color': issue.get('tagColor', '')}] if issue.get('tagName') else [],
                             'created_at': issue.get('createdAt', ''),
                             'comments_sample': []
                         }
@@ -608,7 +669,7 @@ class OurHourAPIClient:
                         # 이슈별 댓글 샘플 수집 (최대 3개)
                         try:
                             comments_data = self.get_issue_comments(org_id, issue['issueId'], size=3)
-                            comments = comments_data.get('content', [])
+                            comments = comments_data.get('data', [])
                             issue_info['comments_sample'] = [
                                 {
                                     'content': c['content'][:100] + '...' if len(c['content']) > 100 else c['content'],
@@ -621,12 +682,57 @@ class OurHourAPIClient:
                             self.logger.warning(f"Failed to get comments for issue {issue['issueId']}: {str(e)}")
 
                         project_info['recent_issues'].append(issue_info)
-
+                    
+                    # 전체 이슈 개수 및 상태별 카운트
+                    total_issue_count = len(all_issues)
+                    self.logger.info(f"Project {project_id} total issue count: {total_issue_count}")
+                    
+                    # 실제 이슈 상태값들을 로그로 확인
+                    if all_issues:
+                        status_values = [i.get('status', 'NO_STATUS') for i in all_issues]
+                        self.logger.info(f"Project {project_id} actual issue status values: {set(status_values)}")
+                    
+                    # 한글 상태값에 맞춰 필터링
+                    open_issue_count = len([i for i in all_issues if i.get('status', '') in ['진행중', '대기중', '시작전', '백로그']])
+                    closed_issue_count = len([i for i in all_issues if i.get('status', '') in ['완료됨']])
+                    self.logger.info(f"Project {project_id} issue counts - open: {open_issue_count}, closed: {closed_issue_count}")
+                    
+                    project_info['issue_counts'] = {
+                        'open': open_issue_count,
+                        'closed': closed_issue_count, 
+                        'total': total_issue_count
+                    }
+                
                 except Exception as e:
                     self.logger.warning(f"Failed to get issues for project {project_id}: {str(e)}")
 
                 project_summary['projects'].append(project_info)
-
+            
+            # 모든 프로젝트 데이터 수집 후 전체 통계 재계산
+            total_participants = 0
+            total_milestones = 0
+            total_open_issues = 0
+            total_closed_issues = 0
+            total_issues = 0
+            
+            for project_info in project_summary['projects']:
+                total_participants += project_info.get('participant_count', 0)
+                total_milestones += project_info.get('milestone_count', 0) 
+                total_open_issues += project_info.get('issue_counts', {}).get('open', 0)
+                total_closed_issues += project_info.get('issue_counts', {}).get('closed', 0)
+                total_issues += project_info.get('issue_counts', {}).get('total', 0)
+            
+            # 통계 업데이트
+            project_summary['total_participants'] = total_participants
+            project_summary['total_milestones'] = total_milestones
+            project_summary['total_issues'] = {
+                'open': total_open_issues,
+                'closed': total_closed_issues,
+                'total': total_issues
+            }
+            
+            self.logger.info(f"Final statistics - Participants: {total_participants}, Milestones: {total_milestones}, Issues: {total_issues} (open: {total_open_issues}, closed: {total_closed_issues})")
+            
             return project_summary
 
         except Exception as e:
