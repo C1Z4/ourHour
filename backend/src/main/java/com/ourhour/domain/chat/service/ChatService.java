@@ -19,6 +19,8 @@ import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.domain.notification.service.NotificationEventService;
+import com.ourhour.global.jwt.dto.CustomUserDetails;
+import com.ourhour.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -144,16 +146,12 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatMessageResDTO saveAndConvertMessage(ChatMessageReqDTO chatMessageReqDTO, Claims claims) {
+    public ChatMessageResDTO saveAndConvertMessage(ChatMessageReqDTO chatMessageReqDTO) {
         ChatRoomEntity chatRoom = chatRoomRepository.findById(chatMessageReqDTO.getChatRoomId())
                 .orElseThrow(ChatException::chatRoomNotFoundException);
 
         Long orgId = chatRoom.getOrgEntity().getOrgId();
-        Long memberId = claims.getOrgAuthorityList().stream()
-                .filter(auth -> auth.getOrgId().equals(orgId))
-                .map(auth -> auth.getMemberId())
-                .findFirst()
-                .orElseThrow(() -> MemberException.memberAccessDeniedException());
+        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
 
         MemberEntity sender = memberRepository.findById(memberId)
                 .orElseThrow(() -> MemberException.memberNotFoundException());
