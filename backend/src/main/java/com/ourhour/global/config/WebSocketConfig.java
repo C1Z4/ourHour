@@ -1,7 +1,6 @@
 package com.ourhour.global.config;
 
 import com.ourhour.global.jwt.JwtTokenProvider;
-import com.ourhour.global.jwt.dto.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -12,12 +11,13 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+import java.util.Objects;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -25,6 +25,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private static final String USER_AUTHENTICATION_KEY = "userAuthentication";
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -54,30 +55,44 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 StompHeaderAccessor accessor =
                         MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-                // 메시지가 전송될 때 마다 검증하지 않고 처음 연결을 시도할 경우에만 검증
-                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                if (accessor == null) {
+                    System.out.println("StompHeaderAccessor is null, cannot process message.");
+                    return message;
+                }
 
-                    // 헤더에서 JWT 추출
+                // CONNECT: 최초 연결 시, 인증 정보를 세션에 저장
+                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                     String jwtToken = accessor.getFirstNativeHeader("Authorization");
                     if (jwtToken != null && jwtToken.startsWith("Bearer ")) {
                         jwtToken = jwtToken.substring(7);
                     }
 
-                    // JWT validate 검사
-                    if (jwtTokenProvider.validateToken(jwtToken)) {
-                        // JWT에서 Claim 추출
-                        Claims claims = jwtTokenProvider.parseAccessToken(jwtToken);
+                    if (jwtToken != null && jwtTokenProvider.validateToken(jwtToken)) {
+                        Authentication authentication = jwtTokenProvider.getAuthenticationFromToken(jwtToken);
 
-                        // 인증되면 Authentication 객체 붙여줌
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(claims, null, null);
-                        accessor.setUser(authentication);
-
-                        // @MessageMapping이 아닌 곳에서의 인증정보 사용 or 비동기처리
-                        SecurityContext context = SecurityContextHolder.createEmptyContext();
-                        context.setAuthentication(authentication);
-                        SecurityContextHolder.setContext(context);
+                        Objects.requireNonNull(accessor.getSessionAttributes()).put(USER_AUTHENTICATION_KEY, authentication);
+                        accessor.setUser(authentication); // accessor 자체에도 유저 정보를 설정
+                        System.out.println("WebSocket CONNECT successful, Authentication stored in session for user: " + authentication.getName());
+                    } else {
+                        System.out.println("============================================");
+                        System.out.println("WebSocket CONNECT failed: Invalid JWT Token.");
+                        System.out.println("============================================");
                     }
                 }
+
+                // SEND, SUBSCRIBE 등 다른 모든 메시지 처리 시
+                else if (StompCommand.SEND.equals(accessor.getCommand()) || StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+                    Authentication authentication = (Authentication) Objects.requireNonNull(accessor.getSessionAttributes()).get(USER_AUTHENTICATION_KEY);
+                    if (authentication != null) {
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        System.out.println("Authentication restored from session for user: " + authentication.getName());
+                    } else {
+                        System.out.println("===============================================================");
+                        System.out.println("Authentication not found in session for SEND/SUBSCRIBE command.");
+                        System.out.println("===============================================================");
+                    }
+                }
+
                 return message;
             }
         });
