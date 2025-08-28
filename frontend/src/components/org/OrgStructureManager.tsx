@@ -22,6 +22,8 @@ interface OrgStructureManagerProps {
 export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
   const [newDepartmentName, setNewDepartmentName] = useState('');
   const [newPositionName, setNewPositionName] = useState('');
+  const [isDepartmentComposing, setIsDepartmentComposing] = useState(false);
+  const [isPositionComposing, setIsPositionComposing] = useState(false);
 
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
     isOpen: boolean;
@@ -95,6 +97,19 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
     setDeleteConfirmModal({ isOpen: false, type: 'department', item: null });
   };
 
+  const handleDepartmentKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !isDepartmentComposing) {
+      e.preventDefault();
+      handleCreateDepartment();
+    }
+  };
+
+  const handlePositionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !isPositionComposing) {
+      e.preventDefault();
+      handleCreatePosition();
+    }
+  };
   return (
     <div className="space-y-6 mt-4">
       <Card>
@@ -106,12 +121,10 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
             <Input
               placeholder="새 부서명을 입력하세요"
               value={newDepartmentName}
+              onCompositionStart={() => setIsDepartmentComposing(true)}
+              onCompositionEnd={() => setIsDepartmentComposing(false)}
               onChange={(e) => setNewDepartmentName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleCreateDepartment();
-                }
-              }}
+              onKeyDown={handleDepartmentKeyDown}
             />
             <ButtonComponent
               variant="primary"
@@ -163,11 +176,9 @@ export function OrgStructureManager({ orgId }: OrgStructureManagerProps) {
               placeholder="새 직책명을 입력하세요"
               value={newPositionName}
               onChange={(e) => setNewPositionName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleCreatePosition();
-                }
-              }}
+              onCompositionStart={() => setIsPositionComposing(true)}
+              onCompositionEnd={() => setIsPositionComposing(false)}
+              onKeyDown={handlePositionKeyDown}
             />
             <ButtonComponent
               variant="primary"

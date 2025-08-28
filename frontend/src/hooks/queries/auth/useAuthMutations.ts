@@ -2,8 +2,9 @@ import { useMutation } from '@tanstack/react-query';
 
 import { AxiosError } from 'axios';
 
-import { postSendEmailVerification, SendEmailVerificationRequest } from '@/api/auth/emailApi';
 import {
+  OauthExtraInfoRequest,
+  postOauthExtraInfo,
   postOauthSignin,
   postSignin,
   postSignout,
@@ -13,6 +14,7 @@ import {
   SocialSigninRequest,
 } from '@/api/auth/signApi';
 import { getErrorMessage, logError } from '@/utils/auth/errorUtils';
+import { logout } from '@/utils/auth/tokenUtils';
 import { showErrorToast, showSuccessToast, TOAST_MESSAGES } from '@/utils/toast';
 
 // ======== 로그인 ========
@@ -31,6 +33,15 @@ export const useSigninMutation = () =>
 export const useSocialSigninMutation = () =>
   useMutation({
     mutationFn: (request: SocialSigninRequest) => postOauthSignin(request),
+    onError: (error: AxiosError) => {
+      showErrorToast(getErrorMessage(error));
+    },
+  });
+
+// ========소셜 로그인 추가 정보 ========
+export const useOauthExtraInfoMutation = () =>
+  useMutation({
+    mutationFn: (request: OauthExtraInfoRequest) => postOauthExtraInfo(request),
     onSuccess: () => {
       showSuccessToast(TOAST_MESSAGES.AUTH.LOGIN_SUCCESS);
     },
@@ -43,18 +54,8 @@ export const useSocialSigninMutation = () =>
 export const useSignupMutation = () =>
   useMutation({
     mutationFn: (request: SignupRequest) => postSignup(request),
-    onError: (error: AxiosError) => {
-      logError(error);
-      showErrorToast(getErrorMessage(error));
-    },
-  });
-
-// ======== 이메일 인증 메일 전송 ========
-export const useSendEmailVerificationMutation = () =>
-  useMutation({
-    mutationFn: (request: SendEmailVerificationRequest) => postSendEmailVerification(request),
     onSuccess: () => {
-      showSuccessToast(TOAST_MESSAGES.AUTH.SIGNUP_EMAIL_VERIFICATION);
+      showSuccessToast(TOAST_MESSAGES.AUTH.SIGNUP_SUCCESS);
     },
     onError: (error: AxiosError) => {
       logError(error);
@@ -66,6 +67,9 @@ export const useSendEmailVerificationMutation = () =>
 export const useSignoutMutation = () =>
   useMutation({
     mutationFn: () => postSignout(),
+    onSuccess: () => {
+      logout();
+    },
     onError: (error: AxiosError) => {
       logError(error);
       showErrorToast(getErrorMessage(error));

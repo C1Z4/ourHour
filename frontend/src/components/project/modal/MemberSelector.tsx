@@ -34,7 +34,7 @@ export const MemberSelector = ({
   );
 
   const members = Array.isArray(orgMembersData?.data) ? orgMembersData.data : [];
-  const totalPages = orgMembersData?.data?.totalPages || 1;
+  const totalPages = orgMembersData?.totalPages || 1;
 
   const handleSearchSubmit = () => {
     setActiveSearchQuery(searchQuery);
@@ -126,17 +126,11 @@ export const MemberSelector = ({
         </div>
 
         <div className="p-3 border-t">
-          {totalPages > 1 ? (
-            <PaginationComponent
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
-            />
-          ) : (
-            <div className="h-10 flex items-center justify-center text-sm text-gray-500">
-              {members.length > 0 ? `총 ${members.length}명` : ''}
-            </div>
-          )}
+          <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
+          />
         </div>
       </div>
     </div>

@@ -9,11 +9,13 @@ import { RouterProvider, createRouter } from '@tanstack/react-router';
 import ReactDOM from 'react-dom/client';
 import { ToastContainer } from 'react-toastify';
 
+import '@/styles/index.css';
+
+import { store } from '@/stores/store';
+import { restoreAuthFromServer } from '@/utils/auth/tokenUtils';
+
 import 'react-toastify/dist/ReactToastify.css';
 import { routeTree } from './routeTree.gen';
-import { store } from './stores/store';
-import './styles/index.css';
-// import { restoreAuthFromServer } from './utils/auth/tokenUtils';
 
 const router = createRouter({ routeTree });
 
@@ -39,13 +41,15 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
 
   // 앱 시작 시 인증 상태 초기화
-  // restoreAuthFromServer();
+  restoreAuthFromServer();
 
   root.render(
     // <StrictMode>
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <main role="main" aria-label="OurHour 메인 애플리케이션">
+          <RouterProvider router={router} />
+        </main>
         <ToastContainer
           position="top-right"
           autoClose={3000}
@@ -57,6 +61,8 @@ if (!rootElement.innerHTML) {
           draggable
           pauseOnHover
           theme="light"
+          role="alert"
+          aria-live="polite"
         />
         {/* {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />} */}
       </QueryClientProvider>

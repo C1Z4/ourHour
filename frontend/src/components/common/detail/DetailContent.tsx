@@ -9,30 +9,49 @@ import { Post } from '@/types/postTypes';
 import { IssueDetail } from '@/api/project/issueApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { ModalComponent } from '@/components/common/ModalComponent';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { formatIsoToDate } from '@/utils/auth/dateUtils';
+import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 
 interface DetailContentProps {
   issue?: IssueDetail;
   post?: Post;
   onEdit: () => void;
   onDelete: () => void;
+  orgId: number;
 }
 
-export const DetailContent = ({ issue, post, onEdit, onDelete }: DetailContentProps) => {
+export const DetailContent = ({ issue, post, onEdit, onDelete, orgId }: DetailContentProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const currentUserId = getMemberIdFromToken(orgId);
+  const isAuthor = currentUserId === post?.authorId;
 
   return (
     <div className="bg-white">
       <div className=" flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{issue?.name || post?.title}</h1>
-          {post && <div className="text-sm text-gray-500">{formatIsoToDate(post.createdAt)}</div>}
+          {post && (
+            <div className="text-sm text-gray-500">
+              <div className="flex items-center justify-start gap-2">
+                <Avatar className="w-6 h-6">
+                  <AvatarImage src={post.authorProfileImgUrl} alt={post.authorName} />
+                  <AvatarFallback className="text-xs">{post.authorName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="text-gray-700">{post.authorName}</span>
+                <span className="text-gray-500">|</span>
+                <span>{formatIsoToDate(post.createdAt)}</span>
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex ">
-          <ButtonComponent variant="ghost" size="sm" onClick={onEdit}>
-            <Edit className="w-4 h-4 mr-2" />
-            수정
-          </ButtonComponent>
+          {(issue || (post && isAuthor)) && (
+            <ButtonComponent variant="ghost" size="sm" onClick={onEdit}>
+              <Edit className="w-4 h-4 mr-2" />
+              수정
+            </ButtonComponent>
+          )}
           <ButtonComponent variant="ghost" size="sm" onClick={() => setIsDeleteModalOpen(true)}>
             <Trash2 className="w-4 h-4 mr-2" />
             삭제

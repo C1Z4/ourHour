@@ -46,6 +46,16 @@ logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
+# 서버 설정 (SSE 청크 인코딩 최적화)
+server:
+  forward-headers-strategy: native
+  tomcat:
+    max-http-response-header-size: 8KB
+    connection-timeout: 300s
+    keep-alive-timeout: 300s
+  compression:
+    enabled: false # SSE는 압축 비활성화
+
 # 이미지 업로드 설정
 app:
   upload:

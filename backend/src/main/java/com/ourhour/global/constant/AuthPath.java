@@ -9,6 +9,7 @@ public final class AuthPath {
         "/api/auth/signup",
         "/api/auth/signin",
         "/api/auth/oauth-signin",
+            "/api/auth/oauth-signin/extra-info",
         "/api/auth/email-verification",
         "/api/auth/token",
         "/api/auth/password-reset"
@@ -27,6 +28,10 @@ public final class AuthPath {
 
     public static final String[] MONITORING_URLS = {
             "/actuator"
+    };
+
+    public static final String[] NOTIFICATION_URLS = {
+            "/api/notifications/stream",
     };
 
 }

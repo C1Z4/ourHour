@@ -1,7 +1,6 @@
-// 회원가입을 위한 이메일과 비밀번호 임시 저장 (localStorage)
 export interface PendingSignup {
   email: string;
-  password: string;
+  isVerified: boolean;
 }
 
 const KEY = 'pending-signup';
@@ -20,8 +19,8 @@ export function getPendingSignup(): PendingSignup | null {
     if (!raw) {
       return null;
     }
-    const parsed = JSON.parse(raw) as PendingSignup;
-    if (typeof parsed.email === 'string' && typeof parsed.password === 'string') {
+    const parsed = JSON.parse(raw);
+    if (typeof parsed.email === 'string' && typeof parsed.isVerified === 'boolean') {
       return parsed;
     }
     return null;

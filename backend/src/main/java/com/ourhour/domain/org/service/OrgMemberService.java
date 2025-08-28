@@ -169,7 +169,7 @@ public class OrgMemberService {
 
         Role oldRole = orgParticipantMemberEntity.getRole();
         Role newRole = orgMemberRoleReqDTO.getRole();
-        int currentRootAdminCount = orgParticipantMemberRepository.countRootAdmins(orgId);
+        int currentRootAdminCount = orgRoleGuardService.countActiveRootAdmins(orgId);
 
         // 동일 권한 변경일 경우 early return(정책 위반 아님)
         if (oldRole == newRole) {

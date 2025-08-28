@@ -1,5 +1,6 @@
 package com.ourhour.domain.user.mapper;
 
+import com.ourhour.domain.auth.dto.OAuthSigninResDTO;
 import com.ourhour.domain.auth.dto.SignupReqDTO;
 import com.ourhour.domain.user.entity.UserEntity;
 import org.mapstruct.Mapper;
@@ -16,4 +17,5 @@ public interface UserMapper {
     @Mapping(target = "isEmailVerified", constant = "true")
     @Mapping(target = "emailVerifiedAt", source = "emailVerifiedAt")
     UserEntity toUserEntity(SignupReqDTO signupReqDTO, String hashedPassword, LocalDateTime emailVerifiedAt);
+
 }

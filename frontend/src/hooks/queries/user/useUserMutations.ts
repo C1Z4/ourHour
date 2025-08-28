@@ -14,14 +14,15 @@ import {
 import { MEMBER_QUERY_KEYS } from '@/constants/queryKeys';
 import { queryClient } from '@/main';
 import { getErrorMessage } from '@/utils/auth/errorUtils';
+import { logout } from '@/utils/auth/tokenUtils';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 // ======== 사용자 삭제 ========
 export const useUserDeleteMutation = () =>
   useMutation({
     mutationFn: (request: DeleteUserRequest) => deleteUser(request),
-
     onSuccess: () => {
+      logout();
       showSuccessToast('회원 탈퇴에 성공하였습니다.');
     },
 

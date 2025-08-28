@@ -1,0 +1,1 @@
+ALTER TABLE tbl_notification ADD COLUMN related_project_name VARCHAR(255);

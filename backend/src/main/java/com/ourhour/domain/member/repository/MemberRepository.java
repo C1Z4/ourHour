@@ -77,6 +77,5 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
     """)
     Optional<MemberEntity> findMemberInOrgByUserId(@Param("orgId")Long orgId, @Param("userId")Long actingUserId);
 
-    Optional<MemberEntity> findByUserEntity_UserIdAndEmail(Long userId, String invitedEmail);
-
+    List<MemberEntity> findAllByUserEntity_UserIdAndEmail(Long userId, String invitedEmail);
 }

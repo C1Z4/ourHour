@@ -2,6 +2,7 @@ import { useRouter } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 
 import { ButtonComponent } from '@/components/common/ButtonComponent';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -89,8 +90,18 @@ export const AllPostsCard = ({ orgId }: Props) => {
                   }}
                 >
                   <TableCell className="font-medium truncate">{post.title}</TableCell>
-                  <TableCell className="text-right text-sm text-muted-foreground w-[120px]">
-                    {formatIsoToDate(post.createdAt)}
+                  <TableCell className="text-right text-sm text-muted-foreground w-1/2">
+                    <div className="flex items-center justify-end gap-2">
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage src={post.authorProfileImgUrl} alt={post.authorName} />
+                        <AvatarFallback className="text-xs">
+                          {post.authorName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-gray-700">{post.authorName}</span>
+                      <span className="text-gray-500">|</span>
+                      <span>{formatIsoToDate(post.createdAt)}</span>
+                    </div>
                   </TableCell>
                 </TableRow>
                 <TableRow />

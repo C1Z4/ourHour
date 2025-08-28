@@ -19,6 +19,7 @@ export const ORG_QUERY_KEYS = {
   POSITION_LIST: 'positionList',
   DEPARTMENT_MEMBERS: 'departmentMembers',
   POSITION_MEMBERS: 'positionMembers',
+  INV_LIST: 'orgInvList',
 } as const;
 
 export const MEMBER_QUERY_KEYS = {
@@ -39,4 +40,10 @@ export const BOARD_QUERY_KEYS = {
 export const CHAT_QUERY_KEYS = {
   CHAT_LIST: 'chatList',
   CHAT_DETAIL: 'chatDetail',
+} as const;
+
+export const NOTIFICATION_QUERY_KEYS = {
+  NOTIFICATION_LIST: 'notificationList',
+  NOTIFICATION_LIST_INFINITE: 'notificationListInfinite',
+  NOTIFICATION_UNREAD_COUNT: 'notificationUnreadCount',
 } as const;

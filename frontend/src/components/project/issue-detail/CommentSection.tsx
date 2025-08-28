@@ -1,6 +1,9 @@
+import { useState } from 'react';
+
 import { useParams } from '@tanstack/react-router';
 
 import { CommentPageResponse } from '@/api/comment/commentApi';
+import { PaginationComponent } from '@/components/common/PaginationComponent';
 import { CommentForm } from '@/components/project/issue-detail/CommentForm';
 import { CommentItem } from '@/components/project/issue-detail/CommentItem';
 import {
@@ -12,15 +15,19 @@ import { useCommentListQuery } from '@/hooks/queries/comment/useCommentQueries';
 
 export const CommentSection = () => {
   const { orgId, issueId } = useParams({ from: '/org/$orgId/project/$projectId/issue/$issueId' });
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: commentsData } = useCommentListQuery({
     orgId: Number(orgId),
     postId: null,
     issueId: Number(issueId),
+    currentPage,
+    size: 10,
   });
 
   const comments = (commentsData as unknown as CommentPageResponse)?.comments;
   const totalElements = (commentsData as unknown as CommentPageResponse)?.totalElements;
+  const totalPages = (commentsData as unknown as CommentPageResponse)?.totalPages;
 
   const { mutate: createComment } = useCreateCommentMutation(Number(orgId), null, Number(issueId));
   const { mutate: updateComment } = useUpdateCommentMutation(Number(orgId), null, Number(issueId));
@@ -32,6 +39,10 @@ export const CommentSection = () => {
       issueId: Number(issueId),
       parentCommentId,
     });
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   const handleReply = (parentCommentId: number, content: string) => {
@@ -68,6 +79,14 @@ export const CommentSection = () => {
             issueId={Number(issueId)}
           />
         ))}
+      </div>
+
+      <div className="flex justify-center mt-8">
+        <PaginationComponent
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
       </div>
 
       <div className="mt-8 pt-6 border-t border-gray-200">

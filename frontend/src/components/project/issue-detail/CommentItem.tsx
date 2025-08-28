@@ -12,6 +12,7 @@ import {
   useLikeCommentMutation,
   useUnlikeCommentMutation,
 } from '@/hooks/queries/comment/useCommentMutations';
+import { getMemberIdFromToken } from '@/utils/auth/tokenUtils';
 import { getImageUrl } from '@/utils/file/imageUtils';
 
 interface CommentItemProps {
@@ -40,6 +41,7 @@ export const CommentItem = ({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
+  const currentUserId = getMemberIdFromToken(orgId);
 
   const { mutate: likeMutation, isPending: isLikePending } = useLikeCommentMutation(
     orgId,
@@ -137,8 +139,10 @@ export const CommentItem = ({
                 )}
                 <MoreOptionsPopover
                   className="w-32"
+                  isAuthor={comment.authorId === currentUserId}
                   editLabel="댓글 수정"
                   deleteLabel="댓글 삭제"
+                  isNotComment={false}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                 />

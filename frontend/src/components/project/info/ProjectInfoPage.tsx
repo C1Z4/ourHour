@@ -279,7 +279,7 @@ export const ProjectInfoPage = ({ projectId, orgId }: ProjectInfoPageProps) => {
             selectedMemberIds={selectedMemberIds}
             onSelectionChange={handleMemberSelectionChange}
             onDeleteSelected={handleDeleteSelectedMembers}
-            participantTotalPages={projectMembersData?.data.totalPages || 1}
+            participantTotalPages={projectMembersData?.totalPages || 1}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
             onDelete={handleDeleteProject}

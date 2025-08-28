@@ -43,7 +43,6 @@ public class CommentController {
 
         // 댓글 목록 조회
         @OrgAuth(accessLevel = Role.MEMBER)
-        @Cacheable(value = "comments", key = "#orgId + '_' + #postId + '_' + #issueId + '_' + #currentPage + '_' + #size + '_' + #currentMemberId")
         @GetMapping
         @Operation(summary = "댓글 목록 조회", description = "게시글/이슈 기준으로 댓글 목록을 조회합니다.")
         public ResponseEntity<ApiResponse<CommentPageResDTO>> getComments(
@@ -67,7 +66,6 @@ public class CommentController {
 
         // 댓글 등록
         @OrgAuth(accessLevel = Role.MEMBER)
-        @CacheEvict(value = "comments", allEntries = true)
         @PostMapping
         @Operation(summary = "댓글 등록", description = "새 댓글을 등록합니다.")
         public ResponseEntity<ApiResponse<Void>> createComment(
@@ -90,7 +88,6 @@ public class CommentController {
 
         // 댓글 수정
         @OrgAuth(accessLevel = Role.MEMBER)
-        @CacheEvict(value = "comments", allEntries = true)
         @PutMapping("/{commentId}")
         @Operation(summary = "댓글 수정", description = "기존 댓글을 수정합니다.")
         public ResponseEntity<ApiResponse<Void>> updateComment(
@@ -111,7 +108,6 @@ public class CommentController {
 
         // 댓글 삭제
         @OrgAuth(accessLevel = Role.MEMBER)
-        @CacheEvict(value = "comments", allEntries = true)
         @DeleteMapping("/{commentId}")
         @Operation(summary = "댓글 삭제", description = "댓글을 삭제합니다.")
         public ResponseEntity<ApiResponse<Void>> deleteComment(
@@ -130,7 +126,6 @@ public class CommentController {
 
         // 댓글 좋아요
         @OrgAuth(accessLevel = Role.MEMBER)
-        @CacheEvict(value = "comments", allEntries = true)
         @PostMapping("/{commentId}/like")
         @Operation(summary = "댓글 좋아요", description = "댓글에 좋아요를 추가합니다.")
         public ResponseEntity<ApiResponse<Void>> likeComment(
@@ -150,7 +145,6 @@ public class CommentController {
 
         // 댓글 좋아요 취소
         @OrgAuth(accessLevel = Role.MEMBER)
-        @CacheEvict(value = "comments", allEntries = true)
         @DeleteMapping("/{commentId}/like")
         @Operation(summary = "댓글 좋아요 취소", description = "댓글 좋아요를 취소합니다.")
         public ResponseEntity<ApiResponse<Void>> unlikeComment(
