@@ -129,7 +129,10 @@ class ContextGenerator:
         
         for member in members:
             member_name = member['name']
+            # 여러 가능한 memberId 필드 체크
+            member_id_value = member.get('memberId') or member.get('id') or member.get('member_id')
             member_info = {
+                'memberId': member_id_value,  # memberId 필드 추가
                 'email': member['email'],
                 'phone': member['phone'],
                 'department': member['department'],
@@ -137,6 +140,7 @@ class ContextGenerator:
                 'role': member['role']
             }
             member_index[member_name] = member_info
+            
             
             # 이름 변형 생성 (부분 매칭을 위한)
             name_parts = member_name.replace(' ', '').lower()
@@ -183,8 +187,10 @@ class ContextGenerator:
     def _generate_project_context(self) -> Dict[str, Any]:
         """프로젝트 관련 컨텍스트 생성"""
         try:
+            self.logger.info(f"Starting project context generation for org_id: {self.org_id}")
             # 새로운 종합 메서드 사용
             project_summary = self.api_client.get_project_summary_for_context(self.org_id)
+            self.logger.info(f"Project summary received: {len(project_summary.get('projects', []))} projects")
             
             project_context = {
                 'total_count': project_summary['total_projects'],
@@ -215,6 +221,8 @@ class ContextGenerator:
             
         except Exception as e:
             self.logger.error(f"Error generating project context: {str(e)}")
+            import traceback
+            self.logger.error(f"Full traceback: {traceback.format_exc()}")
             return {
                 'total_count': 0,
                 'projects': {},
@@ -329,10 +337,8 @@ class ContextGenerator:
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(context, f, ensure_ascii=False, indent=2)
                 
-            self.logger.info(f"Context saved to {file_path}")
-            
         except Exception as e:
-            self.logger.error(f"Error saving context to file: {str(e)}")
+            logging.error(f"Error saving context to file: {str(e)}")
             raise
     
     def generate_context_summary(self, context: Dict[str, Any]) -> str:
@@ -364,9 +370,9 @@ class ContextGenerator:
         for pos_name, pos_info in context['positions']['positions'].items():
             summary += f"- {pos_name}: {pos_info['member_count']}명\n"
         
-        # 프로젝트 정보 추가
+        # 프로젝트 정보 추가 - 항상 표시 (에러 상황에서도 디버깅을 위해)
+        summary += f"\n=== 프로젝트 현황 ===\n"
         if projects.get('projects'):
-            summary += f"\n=== 프로젝트 현황 ===\n"
             summary += f"총 프로젝트: {projects['total_count']}개\n"
             summary += f"GitHub 연동 프로젝트: {quick_facts.get('github_linked_projects', 0)}개\n"
             summary += f"전체 열린 이슈: {quick_facts.get('total_open_issues', 0)}개\n"
@@ -386,18 +392,19 @@ class ContextGenerator:
                 if len(project_info['participants']) > 5:
                     summary += f"    (외 {len(project_info['participants']) - 5}명)\n"
                 
-                # 최근 이슈 정보
-                if project_info['recent_issues']:
-                    summary += f"  * 최근 이슈:\n"
-                    for issue in project_info['recent_issues'][:3]:
-                        summary += f"    - #{issue['id']} {issue['title']} ({issue['state']})\n"
-                        # 댓글 샘플이 있으면 포함
-                        if issue.get('comments_sample'):
-                            summary += f"      댓글 {len(issue['comments_sample'])}개: "
-                            comment_authors = [c['author'] for c in issue['comments_sample']]
-                            summary += f"{', '.join(comment_authors)}\n"
+                # 최근 이슈 정보 (혼동 방지를 위해 제거)
+                # if project_info['recent_issues']:
+                #     summary += f"  * 최근 이슈:\n"
+                #     for issue in project_info['recent_issues'][:3]:
+                #         summary += f"    - #{issue['id']} {issue['title']} ({issue['state']})\n"
                 
                 summary += "\n"
+        else:
+            # 프로젝트가 없거나 에러인 경우
+            summary += f"총 프로젝트: 0개 (에러 또는 데이터 없음)\n"
+            if projects.get('error'):
+                summary += f"프로젝트 로드 오류: {projects['error']}\n"
+            summary += "\n"
         
         # 멤버 정보 상세 추가
         summary += "\n=== 멤버 상세 정보 ===\n"
@@ -410,12 +417,18 @@ class ContextGenerator:
             for member_name, member_projects in projects['by_participants'].items():
                 summary += f"- {member_name}: {', '.join(member_projects)}\n"
         
+        summary += "\n=== 챗봇 지시사항 ===\n"
+        summary += "1. 사용자가 이슈에 대해 질문할 때는 반드시 '현재 로그인한 사용자의 할당된 이슈 현황' 섹션만 참조하세요.\n"
+        summary += "2. 다른 멤버나 프로젝트의 일반적인 이슈 정보와 현재 사용자의 할당된 이슈를 혼동하지 마세요.\n"
+        summary += "3. 모순된 답변을 하지 마세요. 예: '할당된 이슈가 없다'고 하면서 동시에 특정 이슈를 언급하지 마세요.\n"
+        summary += "4. 현재 사용자에게 할당된 이슈가 0개라면, 다른 곳에서 찾은 이슈 정보를 언급하지 마세요.\n\n"
+        
         return summary
 
 def main():
     """메인 실행 함수"""
     # 환경변수에서 설정값 읽기
-    BASE_URL = os.getenv("OURHOUR_API_URL", "http://localhost:8080")
+    OURHOUR_API_URL = os.getenv("OURHOUR_API_URL", "http://backend:8080")
     AUTH_TOKEN = os.getenv("OURHOUR_JWT_TOKEN")  # 환경변수에서 읽기
     ORG_ID = int(os.getenv("OURHOUR_ORG_ID", "1"))
     
@@ -425,19 +438,13 @@ def main():
         print("export OURHOUR_JWT_TOKEN=your_jwt_token_here")
         return
     
-    # 로깅 설정
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    
     try:
-        print(f"API URL: {BASE_URL}")
+        print(f"API URL: {OURHOUR_API_URL}")
         print(f"조직 ID: {ORG_ID}")
         print(f"JWT 토큰 길이: {len(AUTH_TOKEN)}")
         
         # API 클라이언트 초기화
-        api_client = OurHourAPIClient(BASE_URL, AUTH_TOKEN)
+        api_client = OurHourAPIClient(OURHOUR_API_URL, AUTH_TOKEN)
         
         # 컨텍스트 생성기 초기화
         context_generator = ContextGenerator(api_client, ORG_ID)
@@ -482,13 +489,14 @@ class ContextService:
         user_message: str, 
         member_id: str = None, 
         org_id: int = None, 
-        auth_token: str = None
+        auth_token: str = None,
+        **kwargs
     ) -> str:
         """사용자 질문에 대한 종합적인 컨텍스트 정보 반환"""
         try:
             # auth_token이 제공된 경우 동적으로 API 클라이언트 생성
             if auth_token and org_id:
-                base_url = os.getenv("BASE_URL", "http://backend:8080")
+                base_url = os.getenv("OURHOUR_API_URL", "http://dev-backend:8080")
                 
                 # API 클라이언트 생성
                 api_client = OurHourAPIClient(base_url, auth_token)
@@ -508,15 +516,23 @@ class ContextService:
                         jwt_secret = base64.b64decode(jwt_secret_base64)
                         payload = jwt.decode(auth_token, jwt_secret, algorithms=[jwt_algorithm])
                         
+                        # JWT 토큰 전체 페이로드 로깅
+                        logging.info(f"Full JWT payload: {payload}")
+                        logging.info(f"JWT payload keys: {list(payload.keys())}")
+                        
                         # 현재 사용자 컨텍스트 추가
-                        current_user_context = f"\n\n=== 현재 사용자 정보 ===\n"
+                        current_user_context = f"\n\n=== 현재 로그인한 사용자 정보 ===\n"
                         current_user_context += f"사용자 ID: {member_id}\n"
                         current_user_context += f"조직 ID: {org_id}\n"
                         
                         # 사용자가 해당 조직의 멤버인지 확인
                         members = context['members']['member_index']
                         user_found = False
+                        
                         for member_name, member_info in members.items():
+                            member_id_from_info = member_info.get('memberId', '')
+                            logging.info(f"Checking member {member_name}: memberId={member_id_from_info} (type: {type(member_id_from_info)})")
+                            
                             if str(member_info.get('id', '')) == str(member_id) or str(member_info.get('memberId', '')) == str(member_id):
                                 current_user_context += f"현재 사용자: {member_name}\n"
                                 current_user_context += f"부서: {member_info['department']}\n"
@@ -525,9 +541,52 @@ class ContextService:
                                 break
                         
                         if not user_found:
-                            current_user_context += "주의: 현재 사용자의 상세 정보를 찾을 수 없습니다.\n"
+                            # 멤버 인덱스에서 찾지 못한 경우 직접 API 호출로 사용자 정보 조회
+                            try:
+                                member_detail = api_client.get_member_detail(org_id, int(member_id))
+                                current_user_context += f"현재 사용자: {member_detail.name}\n"
+                                current_user_context += f"부서: {member_detail.deptName}\n"
+                                current_user_context += f"직책: {member_detail.positionName}\n"
+                                user_found = True
+                            except Exception as e:
+                                logging.error(f"Failed to get member detail via API: {str(e)}")
+                                current_user_context += f"주의: 현재 사용자의 상세 정보를 찾을 수 없습니다. (member_id: {member_id})\n"
+                        
+                        # JWT 토큰에서 조직별 권한 정보 추출
+                        org_authority_list = payload.get('orgAuthorityList', [])
+                        logging.info(f"orgAuthorityList: {org_authority_list}")
+                        
+                        # 현재 조직에 해당하는 권한 정보 찾기
+                        current_org_authority = None
+                        for org_auth in org_authority_list:
+                            if org_auth.get('orgId') == org_id:
+                                current_org_authority = org_auth
+                                break
+                        
+                        logging.info(f"Current org authority: {current_org_authority}")
+                        if current_org_authority:
+                            jwt_member_id = current_org_authority.get('memberId')
+                            logging.info(f"JWT memberId for org {org_id}: {jwt_member_id}")
+                        else:
+                            logging.warning(f"No authority found for org {org_id} in JWT token")
                         
                         context_summary += current_user_context
+                        
+                        # 사용자의 할당된 이슈 정보 추가
+                        if user_found and member_id:
+                            # JWT에서 추출한 실제 memberId와 사용자 이름 전달
+                            actual_member_id = current_org_authority.get('memberId') if current_org_authority else int(member_id)
+                            # 사용자 이름 찾기
+                            user_name = "알 수 없는 사용자"
+                            for member_name, member_info in context['members']['member_index'].items():
+                                if str(member_info.get('memberId', '')) == str(actual_member_id):
+                                    user_name = member_name
+                                    break
+                            
+                            user_issues_context = self._get_user_assigned_issues_context(
+                                api_client, org_id, actual_member_id, context, user_name
+                            )
+                            context_summary += user_issues_context
                         
                     except Exception as e:
                         logging.warning(f"Failed to add current user context: {str(e)}")
@@ -544,7 +603,7 @@ class ContextService:
                 project_name = self._extract_project_name_from_question(user_message)
                 if project_name:
                     enhanced_context = self._enhance_context_for_project_query(
-                        context, context_summary, project_name, user_message
+                        context, context_summary, project_name, user_message, api_client, org_id, member_id
                     )
                     return enhanced_context
                 
@@ -559,7 +618,6 @@ class ContextService:
             return "유효하지 않은 인증 토큰입니다. 다시 로그인해주세요."
         except Exception as e:
             logging.error(f"Error getting comprehensive context: {str(e)}")
-            return "조직 정보를 가져올 수 없습니다. 관리자에게 문의해주세요."
     
     def _enhance_context_for_person_query(self, context: dict, base_context: str, person_name: str, question: str) -> str:
         """특정 사람에 대한 질문을 위해 컨텍스트를 향상시킴"""
@@ -627,7 +685,7 @@ class ContextService:
         
         return None
     
-    def _enhance_context_for_project_query(self, context: dict, base_context: str, project_name: str, question: str) -> str:
+    def _enhance_context_for_project_query(self, context: dict, base_context: str, project_name: str, question: str, api_client: OurHourAPIClient = None, org_id: int = None, member_id: str = None) -> str:
         """특정 프로젝트에 대한 질문을 위해 컨텍스트를 향상시킴"""
         try:
             projects = context.get('projects', {})
@@ -653,12 +711,30 @@ class ContextService:
                 if project_info['milestones']:
                     enhanced_context += f"\n마일스톤 목록:\n"
                     for milestone in project_info['milestones']:
-                        enhanced_context += f"- {milestone['name']}: {milestone['state']}, 이슈 {milestone['issue_counts']['total']}개\n"
+                        progress = self._calculate_milestone_progress(milestone)
+                        enhanced_context += f"- {milestone['name']}: {milestone['state']}, 이슈 {milestone['issue_counts']['total']}개, 진행률 {progress}%\n"
                 
                 if project_info['recent_issues']:
                     enhanced_context += f"\n최근 이슈 목록:\n"
                     for issue in project_info['recent_issues'][:5]:
                         enhanced_context += f"- #{issue['id']} {issue['title']} ({issue['state']})\n"
+
+                # 해당 프로젝트에서 현재 사용자에게 할당된 이슈 추가
+                if api_client and org_id and member_id:
+                    try:
+                        project_id = project_info['id']
+                        my_issues_data = api_client.get_my_assigned_issues_in_project(org_id, project_id)
+                        my_issues = my_issues_data.get('data', [])
+                        
+                        if my_issues:
+                            enhanced_context += f"\n=== 내가 할당받은 이슈 ({len(my_issues)}개) ===\n"
+                            for issue in my_issues:
+                                enhanced_context += f"- #{issue['issueId']} {issue['name']} ({issue.get('status', '')})\n"
+                        else:
+                            enhanced_context += f"\n이 프로젝트에서 할당받은 이슈가 없습니다.\n"
+                            
+                    except Exception as e:
+                        logging.warning(f"Failed to get user issues for project {project_name}: {str(e)}")
                 
                 return enhanced_context
             
@@ -680,6 +756,107 @@ class ContextService:
         except Exception as e:
             logging.error(f"Error enhancing context for project query: {str(e)}")
             return base_context
+    
+    def _get_user_assigned_issues_context(self, api_client: OurHourAPIClient, org_id: int, member_id: int, context: dict, user_name: str = "알 수 없는 사용자") -> str:
+        """사용자에게 할당된 이슈 정보 컨텍스트 생성"""
+        try:
+            user_issues_context = f"\n\n"
+            projects = context.get('projects', {}).get('projects', {})
+            
+            total_assigned_issues = 0
+            assigned_by_project = {}
+            
+            for project_name, project_info in projects.items():
+                project_id = project_info['id']
+                
+                try:
+                    # 먼저 모든 이슈를 조회해서 assignee 정보 확인
+                    logging.info(f"Requesting all issues for project {project_name} (ID: {project_id})")
+                    all_issues_data = api_client.get_project_issues(org_id, project_id, size=100)
+                    logging.info(f"All issues API response: {all_issues_data}")
+                    all_issues = all_issues_data.get('data', [])
+                    logging.info(f"All issues for project {project_name}: {len(all_issues)} found")
+                    
+                    if all_issues:
+                        # 샘플 이슈의 assignee 정보 로깅
+                        for i, issue in enumerate(all_issues[:3]):  # 처음 3개만 확인
+                            logging.info(f"Issue {i+1}: ID={issue.get('issueId')}, Title={issue.get('name')}, AssigneeName={issue.get('assigneeName')}, AssigneeId={issue.get('assigneeId')}")
+                    
+                    # 해당 프로젝트에서 내가 할당받은 이슈 조회 (마일스톤별로 나누어서)
+                    my_issues = []
+                    
+                    # 1. 마일스톤이 없는 이슈들 조회
+                    logging.info(f"Requesting unassigned milestone issues for project {project_name} with myIssuesOnly=true")
+                    unassigned_issues_data = api_client.get_my_assigned_issues_in_project(org_id, project_id)
+                    unassigned_issues = unassigned_issues_data.get('data', [])
+                    my_issues.extend(unassigned_issues)
+                    logging.info(f"Found {len(unassigned_issues)} unassigned milestone issues")
+                    
+                    # 2. 각 마일스톤별로 내가 할당받은 이슈 조회
+                    if project_info.get('milestones'):
+                        for milestone in project_info['milestones']:
+                            milestone_id = milestone['id']
+                            logging.info(f"Requesting assigned issues for milestone {milestone_id} with myIssuesOnly=true")
+                            milestone_issues_data = api_client.get_project_issues(org_id, project_id, milestone_id=milestone_id, my_issues_only=True)
+                            milestone_issues = milestone_issues_data.get('data', [])
+                            my_issues.extend(milestone_issues)
+                            logging.info(f"Found {len(milestone_issues)} issues in milestone {milestone_id}")
+                    
+                    logging.info(f"Total assigned issues for project {project_name}: {len(my_issues)}")
+                    
+                    # JWT에서 추출한 memberId와 이슈의 assigneeId 비교
+                    matching_issues = [issue for issue in all_issues if issue.get('assigneeId') == member_id]
+                    logging.info(f"Manual filtering: Found {len(matching_issues)} issues assigned to memberId {member_id}")
+                    
+                    if my_issues:
+                        assigned_by_project[project_name] = []
+                        for issue in my_issues:
+                            issue_info = {
+                                'id': issue['issueId'],
+                                'title': issue['name'],
+                                'status': issue.get('status', ''),
+                                'milestone': issue.get('milestoneId', '미분류')
+                            }
+                            assigned_by_project[project_name].append(issue_info)
+                            total_assigned_issues += 1
+                        
+                except Exception as e:
+                    logging.warning(f"Failed to get assigned issues for project {project_name}: {str(e)}")
+            
+            # 전달받은 사용자 이름 사용
+            current_user_name = user_name
+                
+            user_issues_context += f"=== {current_user_name}님의 할당된 이슈 현황 ===\n"
+            user_issues_context += f"총 할당받은 이슈: {total_assigned_issues}개\n\n"
+            
+            if assigned_by_project:
+                user_issues_context += f"**중요: 이 정보는 현재 로그인한 사용자({current_user_name})에게만 해당됩니다.**\n\n"
+                for project_name, issues in assigned_by_project.items():
+                    user_issues_context += f"[{project_name}] - {current_user_name}님에게 할당된 이슈 {len(issues)}개:\n"
+                    for issue in issues[:5]:  # 최대 5개만 표시
+                        user_issues_context += f"  - #{issue['id']} {issue['title']} ({issue['status']})\n"
+                    if len(issues) > 5:
+                        user_issues_context += f"    (외 {len(issues) - 5}개 더 있음)\n"
+                    user_issues_context += "\n"
+            else:
+                user_issues_context += f"**현재 로그인한 사용자 {current_user_name}님에게 할당된 이슈가 없습니다.**\n"
+                user_issues_context += f"**다른 사용자의 이슈와 혼동하지 마세요.**\n\n"
+            
+            return user_issues_context
+            
+        except Exception as e:
+            logging.error(f"Error getting user assigned issues context: {str(e)}")
+            return "\n\n=== 할당된 이슈 조회 실패 ===\n"
+    
+    def _calculate_milestone_progress(self, milestone_info: dict) -> float:
+        """마일스톤 진행률 계산"""
+        total_issues = milestone_info['issue_counts']['total']
+        closed_issues = milestone_info['issue_counts']['closed']
+        
+        if total_issues == 0:
+            return 0.0
+        
+        return round((closed_issues / total_issues) * 100, 1)
 
 
 # 전역 서비스 인스턴스

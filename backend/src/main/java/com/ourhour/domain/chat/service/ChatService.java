@@ -179,7 +179,8 @@ public class ChatService {
                             targetUserId,
                             sender.getName(),
                             chatRoom.getName(),
-                            chatRoom.getRoomId());
+                            chatRoom.getRoomId(),
+                            orgId);
                 }
             }
         }

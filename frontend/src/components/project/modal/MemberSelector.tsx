@@ -34,7 +34,7 @@ export const MemberSelector = ({
   );
 
   const members = Array.isArray(orgMembersData?.data) ? orgMembersData.data : [];
-  const totalPages = orgMembersData?.data?.totalPages || 1;
+  const totalPages = orgMembersData?.totalPages || 1;
 
   const handleSearchSubmit = () => {
     setActiveSearchQuery(searchQuery);
