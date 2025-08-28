@@ -48,6 +48,7 @@ logging:
 
 # 서버 설정 (SSE 청크 인코딩 최적화)
 server:
+  forward-headers-strategy: native
   tomcat:
     max-http-response-header-size: 8KB
     connection-timeout: 300s
