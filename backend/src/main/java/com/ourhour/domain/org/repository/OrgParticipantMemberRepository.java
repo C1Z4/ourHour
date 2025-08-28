@@ -76,7 +76,7 @@ public interface OrgParticipantMemberRepository
                         "AND opm.memberEntity.memberId=:memberId ")
         MemberInfoResDTO findByOrgIdAndMemberId(@Param("orgId") Long orgId, @Param("memberId") Long memberId);
 
-        @Modifying(clearAutomatically = true, flushAutomatically = true)
+        @Modifying(flushAutomatically = true)
         @Query("""
                             update OrgParticipantMemberEntity opm
                                set opm.status = :inactive,
@@ -94,11 +94,6 @@ public interface OrgParticipantMemberRepository
 
         // 해당 회사의 권한에 따른 멤버 수 집계
         int countByOrgEntity_OrgIdAndRole(Long orgId, Role role);
-
-        // 권한이 루트 관리자인 멤버만 집계
-        default int countRootAdmins(Long orgId) {
-                return countByOrgEntity_OrgIdAndRole(orgId, Role.ROOT_ADMIN);
-        }
 
         List<OrgParticipantMemberEntity> findAllByMemberEntity_MemberIdAndStatus(Long memberId, Status status);
 
