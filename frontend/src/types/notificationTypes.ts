@@ -28,7 +28,8 @@ export type NotificationType =
   | 'ISSUE_COMMENT'
   | 'ISSUE_COMMENT_REPLY'
   | 'POST_COMMENT'
-  | 'POST_COMMENT_REPLY';
+  | 'POST_COMMENT_REPLY'
+  | 'COMMENT_REPLY';
 
 export interface NotificationState {
   notifications: Notification[];
