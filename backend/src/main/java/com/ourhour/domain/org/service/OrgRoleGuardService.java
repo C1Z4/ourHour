@@ -125,7 +125,7 @@ public class OrgRoleGuardService {
     }
 
     // 조직 내 활성 루트 관리자 조회
-    private int countActiveRootAdmins(Long orgId) {
+    public int countActiveRootAdmins(Long orgId) {
         return orgParticipantMemberRepository
                 .countByOrgEntity_OrgIdAndRoleAndStatus(orgId, Role.ROOT_ADMIN, Status.ACTIVE);
     }

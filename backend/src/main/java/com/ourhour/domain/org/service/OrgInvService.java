@@ -15,6 +15,7 @@ import com.ourhour.domain.org.entity.OrgInvEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.entity.OrgParticipantMemberId;
 import com.ourhour.domain.org.enums.InvStatus;
+import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.org.exception.OrgInvExcception;
@@ -36,7 +37,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -51,6 +51,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
     private final UserRepository userRepository;
     private final OrgRepository orgRepository;
     private final OrgInvMapper orgInvMapper;
+    private final OrgRoleGuardService orgRoleGuardService;
 
     @Value("${spring.service.url.front}")
     private String serviceBaseUrl;
@@ -61,7 +62,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
     public OrgInvService(EmailSenderService emailSenderService, OrgInvRepository orgInvRepository,
             OrgInvBatchRepository orgInvBatchRepository, OrgParticipantMemberRepository orgParticipantMemberRepository,
             MemberRepository memberRepository, UserRepository userRepository, OrgRepository orgRepository,
-            OrgInvMapper orgInvMapper) {
+            OrgInvMapper orgInvMapper, OrgRoleGuardService orgRoleGuardService) {
         super(emailSenderService);
         this.orgInvRepository = orgInvRepository;
         this.orgParticipantMemberRepository = orgParticipantMemberRepository;
@@ -70,6 +71,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
         this.userRepository = userRepository;
         this.orgRepository = orgRepository;
         this.orgInvMapper = orgInvMapper;
+        this.orgRoleGuardService = orgRoleGuardService;
     }
 
     // 초대 링크 이메일 발송
@@ -115,6 +117,15 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
             // 본인 이메일 초대 금지
             if (email.equalsIgnoreCase(currentUserEmail)) {
                 throw OrgInvExcception.selfInvitationNotAllowedException();
+            }
+
+            // 루트 관리자 정책 (최대 2명)
+            if (orgInvReqDTO.getRole() == Role.ROOT_ADMIN) {
+                int currentRootAdminCount = orgRoleGuardService.countActiveRootAdmins(orgId);
+
+                if (currentRootAdminCount >= 2) {
+                    throw OrgException.tooMuchRootAdminException();
+                }
             }
 
             // 이미 조직에 참여 중인지 확인
