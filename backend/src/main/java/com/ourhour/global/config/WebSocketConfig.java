@@ -65,11 +65,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                     // JWT validate 검사
                     if (jwtTokenProvider.validateToken(jwtToken)) {
-                        // JWT에서 Claim 추출
-                        Claims claims = jwtTokenProvider.parseAccessToken(jwtToken);
 
-                        // 인증되면 Authentication 객체 붙여줌
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(claims, null, null);
+                        Authentication authentication = jwtTokenProvider.getAuthenticationFromToken(jwtToken);
+
                         accessor.setUser(authentication);
 
                         // @MessageMapping이 아닌 곳에서의 인증정보 사용 or 비동기처리
