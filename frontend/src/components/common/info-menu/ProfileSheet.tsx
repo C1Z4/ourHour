@@ -6,6 +6,8 @@ import { Github, LogOut, Settings } from 'lucide-react';
 import { MyMemberInfoDetail } from '@/api/member/memberApi';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
+import { GitHubTokenSettings } from '@/components/user/github/GitHubTokenSettings';
+import { GitHubTokenStatus } from '@/components/user/github/GitHubTokenStatus';
 import { MEMBER_ROLE_STYLES } from '@/constants/badges';
 import { useSignoutMutation } from '@/hooks/queries/auth/useAuthMutations';
 import { useMyMemberInfoQuery } from '@/hooks/queries/member/useMemberQueries';
@@ -140,6 +142,21 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
                   {myMemberInfo?.phone ? myMemberInfo.phone : ''}
                 </p>
               </div>
+
+              {/* GitHub 토큰 상태 표시 */}
+              <div className="flex justify-center">
+                <GitHubTokenStatus showUsername />
+              </div>
+
+              {/* 개인 GitHub 토큰 관리 */}
+              <GitHubTokenSettings>
+                <ButtonComponent variant="primary" size="sm" className="w-full">
+                  <Github className="w-4 h-4 mr-2" />
+                  개인 GitHub 토큰 관리
+                </ButtonComponent>
+              </GitHubTokenSettings>
+
+              {/* 기존 조직 레벨 GitHub 연동 (OAuth) */}
               {myMemberInfo?.isGithubLinked ? (
                 <ButtonComponent
                   variant="danger"
@@ -148,7 +165,7 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
                   className="w-full"
                 >
                   <Github className="w-4 h-4 mr-2" />
-                  깃허브 연동해제
+                  계정 깃허브 연동해제
                 </ButtonComponent>
               ) : (
                 <ButtonComponent
@@ -159,7 +176,7 @@ export function ProfileSheet({ children }: ProfileSheetProps) {
                   disabled={isConnecting}
                 >
                   <Github className="w-4 h-4 mr-2" />
-                  깃허브 연동하기
+                  계정 깃허브 연동하기
                 </ButtonComponent>
               )}
             </div>

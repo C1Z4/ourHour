@@ -4,6 +4,7 @@ import com.ourhour.domain.project.service.GithubIntegrationService;
 import com.ourhour.domain.user.dto.GitHubTokenReqDTO;
 import com.ourhour.domain.user.dto.GitHubSyncTokenDTO;
 import com.ourhour.domain.user.dto.GitHubRepositoryResDTO;
+import com.ourhour.domain.user.dto.GitHubRepositoryConnectDTO;
 import com.ourhour.domain.project.dto.SyncStatusDTO;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.global.common.dto.ApiResponse;
@@ -30,24 +31,22 @@ public class GitHubController {
 
     private final GithubIntegrationService githubIntegrationService;
 
-    // GitHub 토큰으로 레포지토리 목록 조회
-    @PostMapping("/token/repositories")
-    @Operation(summary = "토큰으로 레포지토리 목록 조회", description = "GitHub 토큰으로 레포지토리 목록을 조회합니다.")
-    public ApiResponse<List<GitHubRepositoryResDTO>> getGitHubRepositoriesByToken(
-            @RequestBody GitHubTokenReqDTO token) {
-        return githubIntegrationService.getGitHubRepositories(token);
+    // 개인 GitHub 토큰으로 레포지토리 목록 조회
+    @GetMapping("/user/repositories")
+    @Operation(summary = "개인 토큰으로 레포지토리 목록 조회", description = "로그인한 사용자의 개인 GitHub 토큰으로 레포지토리 목록을 조회합니다.")
+    public ApiResponse<List<GitHubRepositoryResDTO>> getUserGitHubRepositories() {
+        return githubIntegrationService.getUserGitHubRepositories();
     }
 
-    // 프로젝트별 GitHub 연동(기존 프로젝트 연동), 연동 데이터 저장, 연동 데이터 업데이트
+    // 프로젝트별 GitHub 연동(개인 토큰 기반)
     @PostMapping("/projects/{projectId}/connect")
-    @Operation(summary = "프로젝트 깃허브 연동", description = "프로젝트에 GitHub 연동을 설정하고 동기화 토큰을 저장합니다.")
+    @Operation(summary = "프로젝트 깃허브 연동", description = "개인 GitHub 토큰으로 프로젝트 연동을 설정합니다.")
     public ResponseEntity<ApiResponse<Void>> connectProjectToGitHub(
             @PathVariable Long projectId,
-            @RequestBody @Valid GitHubSyncTokenDTO gitHubSyncTokenDTO,
+            @RequestBody @Valid GitHubRepositoryConnectDTO connectDTO,
             @RequestParam Long memberId) {
-        return ResponseEntity
-                .ok(githubIntegrationService.connectProjectToGitHub(projectId, gitHubSyncTokenDTO,
-                        memberId));
+        return ResponseEntity.ok(
+                githubIntegrationService.connectProjectToGitHub(projectId, connectDTO, memberId));
     }
 
     // 프로젝트별 GitHub 연동 해제

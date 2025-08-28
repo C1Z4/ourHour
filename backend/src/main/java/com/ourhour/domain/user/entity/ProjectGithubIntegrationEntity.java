@@ -34,8 +34,8 @@ public class ProjectGithubIntegrationEntity extends GitHubSyncableEntity {
     @Column(name = "github_repository", nullable = false)
     private String githubRepository; // "owner/repo" 형식
 
-    @Column(name = "github_access_token", nullable = false)
-    private String githubAccessToken;
+    @Column(name = "default_token_user_id")
+    private Long defaultTokenUserId; // 기본 토큰 사용자 (백업용)
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default
@@ -45,8 +45,8 @@ public class ProjectGithubIntegrationEntity extends GitHubSyncableEntity {
         this.githubRepository = githubRepository;
     }
 
-    public void updateAccessToken(String encryptedGithubAccessToken) {
-        this.githubAccessToken = encryptedGithubAccessToken;
+    public void updateDefaultTokenUser(Long defaultTokenUserId) {
+        this.defaultTokenUserId = defaultTokenUserId;
     }
 
     @Override
