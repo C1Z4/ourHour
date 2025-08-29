@@ -19,12 +19,15 @@ import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.domain.notification.service.NotificationEventService;
+import com.ourhour.global.jwt.dto.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -144,12 +147,15 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatMessageResDTO saveAndConvertMessage(ChatMessageReqDTO chatMessageReqDTO, Claims claims) {
+    public ChatMessageResDTO saveAndConvertMessage(ChatMessageReqDTO chatMessageReqDTO, Principal principal) {
         ChatRoomEntity chatRoom = chatRoomRepository.findById(chatMessageReqDTO.getChatRoomId())
                 .orElseThrow(ChatException::chatRoomNotFoundException);
 
+        Authentication authentication = (Authentication) principal;
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
         Long orgId = chatRoom.getOrgEntity().getOrgId();
-        Long memberId = claims.getOrgAuthorityList().stream()
+        Long memberId = userDetails.getOrgAuthorityList().stream()
                 .filter(auth -> auth.getOrgId().equals(orgId))
                 .map(auth -> auth.getMemberId())
                 .findFirst()
