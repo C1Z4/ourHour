@@ -157,8 +157,6 @@ jobs:
             git reset --hard origin/release
 
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-            docker compose down -p ourhour-test || true            
             
             # 환경 변수 세팅
             chmod +x ./generate-env.sh
@@ -169,9 +167,12 @@ jobs:
             export BACKEND_IMAGE=${{ secrets.DOCKER_USERNAME }}/ourhour-backend:test-${{ github.sha }}
             
             docker compose -p ourhour-test up -d
-
-            docker image prune -f
-
+            
+            # 백엔드 로그 파일 만들기
+            mkdir -p ./logs
+            docker logs -f test-backend | tee ./logs/test-backend.log
+            
+            docker image prune -a -f
   # 배포용 Docker (main 브랜치)
   deploy-docker-release:
     needs: [build-test, build-docker]
@@ -199,9 +200,6 @@ jobs:
 
             # Docker 로그인
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-            # 기존 컨테이너 중지 및 제거
-            docker compose down -p ourhour-release || true
             
             # 환경 변수 세팅
             chmod +x ./generate-env.sh
@@ -213,6 +211,12 @@ jobs:
 
             # 새 컨테이너 시작 
             docker compose -p ourhour-release up -d
+            
+            # 로그 폴더 생성
+            mkdir -p ./logs
+  
+            # 현재까지 로그만 파일로 저장 
+            docker logs release-backend > ./logs/release-backend.log 2>&1
 
             # 불필요한 이미지 정리
-            docker image prune -f
+            docker image prune -a -f

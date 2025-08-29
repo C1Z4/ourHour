@@ -13,7 +13,9 @@ import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,9 @@ import java.util.stream.Collectors;
 
 @Configuration
 public class OpenApiConfig {
+
+        @Value("${swagger.server.url:http://localhost:8080}")
+        private String serverUrl;
 
         @Bean
         public OpenAPI openAPI() {
@@ -44,13 +49,15 @@ public class OpenApiConfig {
                                 .addList(bearerAuthSchemeName);
 
                 return new OpenAPI()
-                                .info(new Info()
-                                                .title("OurHour API")
-                                                .description("OurHour Backend API 문서")
-                                                .version("v1"))
-                                .components(new Components()
-                                                .addSecuritySchemes(bearerAuthSchemeName, bearerAuthScheme))
-                                .addSecurityItem(globalSecurityRequirement);
+                        .info(new Info()
+                                .title("OurHour API")
+                                .description("OurHour Backend API 문서")
+                                .version("v1"))
+                        .servers(Arrays.asList(
+                                new Server().url(serverUrl).description("Backend Server")))
+                        .components(new Components()
+                                .addSecuritySchemes(bearerAuthSchemeName, bearerAuthScheme))
+                        .addSecurityItem(globalSecurityRequirement);
         }
 
         // 모든 엔드포인트에 공통 에러 응답을 ErrorCode 기준으로 등록
