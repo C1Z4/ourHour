@@ -148,12 +148,12 @@ npm run dev
 <br/>
 
 ## ✨ 상세 기능
-- 랜딩페이지
+#### - 랜딩페이지
 ![Image](https://github.com/user-attachments/assets/56db3b71-dd7f-43b5-860e-651e12e0b5fd)
 
     - 로그인 상태 시 로그아웃 가능
 -----
-- 회원가입 및 로그인 페이지
+#### - 회원가입 및 로그인 페이지
 <img width="1885" height="895" alt="Image" src="https://github.com/user-attachments/assets/c328b7c2-d08c-4092-9c36-7df383257c33" />
 <img width="1886" height="898" alt="Image" src="https://github.com/user-attachments/assets/5dfa380e-05bd-4b71-909a-5995700a52b8" />
 
@@ -164,13 +164,13 @@ npm run dev
     - 구글, 깃허브 소셜 로그인 가능
       
 -----
-- 비밀번호 재설정 페이지
+#### - 비밀번호 재설정 페이지
 <img width="1085" height="681" alt="image" src="https://github.com/user-attachments/assets/853aec47-9c66-4ad3-8bb6-5aedc34a89fb" />
 
     - 가입시 등록한 이메일을 입력해서 비밀번호 재설정 링크를 받을 수 있음
 
 -----
-- 개인 정보 관리 페이지
+#### - 개인 정보 관리 페이지
   
 <img width="543" height="894" alt="image" src="https://github.com/user-attachments/assets/59168f5a-ee1e-4447-94d3-389922c643a8" />
 <img width="1894" height="888" alt="image" src="https://github.com/user-attachments/assets/3c194c67-d7b2-4ed6-b97e-615ea23a1ce2" />
@@ -187,7 +187,7 @@ npm run dev
 
 -----
 
-- 회사 목록 페이지/회사 등록 모달 
+#### - 회사 목록 페이지/회사 등록 모달 
 <img width="1884" height="891" alt="Image" src="https://github.com/user-attachments/assets/84d2f122-e736-4a9d-ab65-5cbecfff885b" />
 <img width="436" height="656" alt="Image" src="https://github.com/user-attachments/assets/e814f228-907f-4fed-8bf2-a396155b079f" />
 
@@ -198,7 +198,7 @@ npm run dev
 
 -----
 
-- 회사 정보 페이지/회사 수정 모달/구성원 초대 모달 
+#### - 회사 정보 페이지/회사 수정 모달/구성원 초대 모달 
   <img width="1894" height="890" alt="image" src="https://github.com/user-attachments/assets/630e78b5-3c9a-4560-bc75-1d0c10be04fc" />
   <img width="744" height="875" alt="image" src="https://github.com/user-attachments/assets/fd462040-50ef-45fc-8973-9b4a99307e32" />
   <img width="590" height="612" alt="image" src="https://github.com/user-attachments/assets/ad1b7759-cd9f-464f-8e7d-c892e8417eeb" />
@@ -217,14 +217,14 @@ npm run dev
 
 -----
 
-- 조직도 페이지
+#### - 조직도 페이지
   <img width="1902" height="893" alt="image" src="https://github.com/user-attachments/assets/447f57f7-e231-413a-8d57-59c08ce74de0" />
 
     - 회사 구성원 전체/부서별/직책별 조회 가능
 
 -----
 
-- 프로젝트 목록 페이지/프로젝트 등록 모달
+#### - 프로젝트 목록 페이지/프로젝트 등록 모달
 <img width="1904" height="891" alt="Image" src="https://github.com/user-attachments/assets/07653ca9-a04c-4b34-9c18-2064799e5b92" />
 <img width="1218" height="773" alt="image" src="https://github.com/user-attachments/assets/9d70024c-d46a-4084-8909-8a26fcc7ddb8" />
 
@@ -237,7 +237,7 @@ npm run dev
 
 -----
 
-- 프로젝트 대시보드 페이지
+#### - 프로젝트 대시보드 페이지
 <img width="1901" height="905" alt="프로젝트대시보드" src="https://github.com/user-attachments/assets/1f7d459c-424a-4602-bc76-50ba658df071" />
 
     - 프로젝트의 모든 마일스톤별 이슈 조회 가능(마일스톤이 없는 경우 미분류)
@@ -249,7 +249,7 @@ npm run dev
 
 -----
 
-- 이슈 상세페이지/이슈 등록, 수정 페이지
+#### - 이슈 상세페이지/이슈 등록, 수정 페이지
 <img width="1890" height="893" alt="image" src="https://github.com/user-attachments/assets/f0fdb672-08d8-426c-a130-f4bd205357d3" />
   <img width="1892" height="894" alt="image" src="https://github.com/user-attachments/assets/de2f9944-1c2c-45ef-8222-cacc4c19994c" />
 <img width="601" height="514" alt="image" src="https://github.com/user-attachments/assets/534ec70c-d5ae-4084-928a-262fc1f1ac54" />
@@ -263,7 +263,7 @@ npm run dev
     - 할당자 선택 시 검색 및 무한스크롤 가능
 
 
-- 프로젝트 깃허브 연동
+#### - 프로젝트 깃허브 연동
   <img width="1901" height="888" alt="image" src="https://github.com/user-attachments/assets/1adcefa2-03e5-4dc7-bc02-20feb23baa0d" />
   <img width="1893" height="890" alt="image" src="https://github.com/user-attachments/assets/867128c6-b0f3-40ec-8c45-9db7296ae7e7" />
   <img width="945" height="633" alt="image" src="https://github.com/user-attachments/assets/7ea0e2ef-196a-4f75-bb91-0ff015f2a8dd" />
@@ -280,7 +280,7 @@ npm run dev
 
  ------
 
- - 프로젝트 정보 페이지/프로젝트 수정 모달
+#### - 프로젝트 정보 페이지/프로젝트 수정 모달
 <img width="1894" height="895" alt="image" src="https://github.com/user-attachments/assets/5ea04bb4-9b79-4f7d-a19d-34d8e687a433" />
 <img width="823" height="861" alt="image" src="https://github.com/user-attachments/assets/09be4bd5-5a25-4809-a740-774751a3f800" />
 
@@ -291,7 +291,7 @@ npm run dev
 
 -----
 
-- 게시판 목록 페이지/게시글 목록 페이지/게시글 상세 페이지
+#### - 게시판 목록 페이지/게시글 목록 페이지/게시글 상세 페이지
   <img width="1895" height="896" alt="image" src="https://github.com/user-attachments/assets/85ffa9c1-16f3-44bf-b055-9cca03ba61c4" />
   <img width="1898" height="891" alt="image" src="https://github.com/user-attachments/assets/b15b893a-315e-4261-8420-1d595f8274d7" />
   <img width="1898" height="893" alt="image" src="https://github.com/user-attachments/assets/8fc83123-159b-4e98-8755-0bd8c82863f9" />
@@ -302,7 +302,7 @@ npm run dev
 
 -----
 
-- 채팅 목록 페이지/채팅방 페이지
+#### - 채팅 목록 페이지/채팅방 페이지
   <img width="1897" height="890" alt="image" src="https://github.com/user-attachments/assets/05af7e62-6ece-485e-acc9-9bb9641218f0" />
   
   <img width="1897" height="893" alt="image" src="https://github.com/user-attachments/assets/faa27025-7031-48bd-8433-c4992248b46b" />
@@ -322,7 +322,7 @@ npm run dev
 
 -----
 
-- 실시간 알림창
+#### - 실시간 알림창
 <img width="344" height="899" alt="image" src="https://github.com/user-attachments/assets/ece815cb-e67b-45e9-acdc-c389a10addfc" />
 <img width="350" height="889" alt="image" src="https://github.com/user-attachments/assets/9efa4a73-2281-42cc-9a5c-420824eb5185" />
 
@@ -334,7 +334,7 @@ npm run dev
 
 -----
 
-- AI 챗봇
+#### - AI 챗봇
 <img width="1362" height="606" alt="image" src="https://github.com/user-attachments/assets/c3a215da-277d-44b7-b370-e7ad5e4f96a8" />
 <img width="1363" height="617" alt="image" src="https://github.com/user-attachments/assets/3844972c-b058-4307-9fab-e305e1237f54" />
 
