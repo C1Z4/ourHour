@@ -17,7 +17,7 @@ OurHour는 **기획, 개발, 배포, 운영에 이르는 개발의 전 과정을
 ## ✨ 주요 기능
 
 - **🔐 사용자 인증**: JWT 기반의 안전한 자체 회원가입, 로그인, 비밀번호 찾기 기능, 소셜 로그인(Google, GitHub 등) 지원
-- **🏢 조직 및 멤버 관리**: 이메일 기반의 인증 및 초대로 간편한 팀원 추가 및 역할 기반의 체계적인 권한 관리
+- **🏢 조직 및 멤버 관리**: 이메일 기반의 인증 및 초대로 간편한 팀원 추가 및 역할 기반의 체계적인 권한 관리, 깃허브 연동
 - **🚀 프로젝트 관리**: 프로젝트 생성/수정/삭제, 마일스톤 기반의 진행 상황 추적, 이슈 트래킹
 - **✍️ 게시판**: 공지사항, 자유게시판 등 목적별 정보 공유 및 논의
 - **💬 실시간 채팅**: 개인, 1:1 및 그룹 채팅을 통한 빠르고 원활한 커뮤니케이션
@@ -79,6 +79,7 @@ OurHour는 **기획, 개발, 배포, 운영에 이르는 개발의 전 과정을
 ```
 backend/
 ├── src/main/java/com/domain  # 도메인별 Java 소스 코드
+├── src/main/java/com/global  # 전역 Java 소스 코드
 ├── src/main/resources/       # 설정 파일 및 리소스
 ├── build.gradle             # Gradle 빌드 설정
 └── Dockerfile               # Docker 이미지 설정
@@ -121,7 +122,7 @@ llm/
 ### 🐳 인프라 및 배포
 
 ```
-├── docker-compose.yml      # 개발 환경 Docker Compose
+├── docker-compose.yml      # 배포용 Docker Compose
 ├── docker-compose.dev.yml  # 개발용 Docker Compose
 ├── monitoring/             # 모니터링 도구 (Grafana, Prometheus)
 └── scripts/                # 배포 및 유틸리티 스크립트
