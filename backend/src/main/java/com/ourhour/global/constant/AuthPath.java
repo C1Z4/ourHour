@@ -12,7 +12,7 @@ public final class AuthPath {
             "/api/auth/oauth-signin/extra-info",
         "/api/auth/email-verification",
         "/api/auth/token",
-        "/api/auth/password-reset"
+        "/api/auth/password-reset/**"
     };
 
     public static final String[] SWAGGER_URLS = {
