@@ -1,4 +1,4 @@
-# OurHour (아워-아워)
+<img width="2233" height="1863" alt="image" src="https://github.com/user-attachments/assets/e51b2ee9-fb98-4c69-9964-c894d03d689d" /># OurHour (아워-아워)
 
 > 개발자를 위한, 개발자에 의한 올인원 협업 플랫폼 'OurHour'입니다. 프로젝트 및 세부 마일스톤, 이슈 관리, 실시간 커뮤니케이션까지, 개발팀의 모든 작업을 하나의 플랫폼에서 해결하여 생산성을 극대화합니다.
 
@@ -61,9 +61,7 @@ OurHour는 **기획, 개발, 배포, 운영에 이르는 개발의 전 과정을
 
 ## 🏗️ 아키텍처 (Architecture)
 
-<img width="2233" height="1863" alt="image" src="https://github.com/user-attachments/assets/d3993243-d4ec-4041-add6-64d5d3abbb1a" />
-
-
+<img width="2233" height="1863" alt="image" src="https://github.com/user-attachments/assets/4276ddec-a62b-4ad3-9a30-1ada2aeda293" />
 > 사용자의 요청은 React 기반의 프론트엔드에서 시작하여, Spring Boot 백엔드 서버로 전달됩니다. 서버는 비즈니스 로직을 처리한 후 MySQL 데이터베이스와 통신하여 데이터를 영속화합니다. 인증/인가는 JWT 토큰을 통해 이루어지며, 실시간 채팅 기능은 WebSocket을 활용합니다.
 
 <br/>
