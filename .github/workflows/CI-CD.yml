@@ -168,11 +168,14 @@ jobs:
             
             docker compose -p ourhour-test up -d
             
-            # 백엔드 로그 파일 만들기
+            # 로그 폴더 생성
             mkdir -p ./logs
-            docker logs -f test-backend | tee ./logs/test-backend.log
+            
+            # 백엔드 로그를 실시간으로 파일에 기록 (백그라운드 실행)
+            nohup docker logs -f test-backend >> ./logs/test-backend.log 2>&1 &
             
             docker image prune -a -f
+
   # 배포용 Docker (main 브랜치)
   deploy-docker-release:
     needs: [build-test, build-docker]
@@ -211,12 +214,6 @@ jobs:
 
             # 새 컨테이너 시작 
             docker compose -p ourhour-release up -d
-            
-            # 로그 폴더 생성
-            mkdir -p ./logs
-  
-            # 현재까지 로그만 파일로 저장 
-            docker logs release-backend > ./logs/release-backend.log 2>&1
 
             # 불필요한 이미지 정리
             docker image prune -a -f
