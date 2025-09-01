@@ -88,3 +88,7 @@ app:
 
 python-server:
   url: ${python-server.url}
+
+swagger:
+  server:
+    url: ${swagger.server-url}
