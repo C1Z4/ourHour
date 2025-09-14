@@ -26,6 +26,12 @@ public class AuthConfig {
     @Value("${spring.mail.password}")
     private String password;
 
+    @Value("${spring.mail.properties.mail.smtp.auth}")
+    private boolean smtpAuth;
+
+    @Value("${spring.mail.properties.mail.smtp.starttls.enable}")
+    private boolean starttlsEnable;
+
    @Bean
     public PasswordEncoder passwordEncoder() {
        return new BCryptPasswordEncoder();
@@ -40,8 +46,8 @@ public class AuthConfig {
        mailSender.setPassword(password);
 
        Properties props = mailSender.getJavaMailProperties();
-       props.put("mail.smtp.auth", "true");
-       props.put("mail.smtp.starttls.enable", "true");
+       props.put("mail.smtp.auth", smtpAuth);
+       props.put("mail.smtp.starttls.enable", starttlsEnable);
        props.put("mail.smtp.starttls.required", "true");
 
       mailSender.setJavaMailProperties(props);

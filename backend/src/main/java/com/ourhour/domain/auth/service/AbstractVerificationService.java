@@ -20,6 +20,7 @@ public abstract class AbstractVerificationService<T extends AbstractVerification
             <br/><p>감사합니다.<br/>OURHOUR 팀 드림</p>
             """;
 
+    // 동기 메일 발송 (회원가입, 비밀번호 찾기)
     protected String sendVerificationEmail(
             String email,
             String serviceBaseUrl,
@@ -44,6 +45,29 @@ public abstract class AbstractVerificationService<T extends AbstractVerification
         return token;
 
     }
+
+    // 비동기 메일 발송 (멤버 초대)
+    protected void sendEmailAsync(
+            String token,
+            String email,
+            String serviceBaseUrl,
+            String endpoint,
+            String subject,
+            String contentTemplate,
+            String linkName) {
+
+        // 이메일 내용 구성
+        String link = serviceBaseUrl + endpoint + token;
+        String bodyContent = String.format("""
+                %s
+                <p><a href="%s" style="color:#1a73e8; text-decoration:none;"><strong>%s</strong></a></p>
+                """, contentTemplate, link, linkName);
+        String content = String.format(EMAIL_TEMPLATE, bodyContent);
+
+        emailSenderService.sendEmailAsync(email, subject, content);
+    }
+
+
 
     protected void verifyEmail(
             String token,

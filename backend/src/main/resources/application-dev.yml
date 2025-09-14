@@ -24,7 +24,7 @@ spring:
     url:
       front: ${FRONTEND_URL}
 
-# AWS 설정 (지역 및 인증 프로파일)
+  # AWS 설정 (지역 및 인증 프로파일)
   cloud:
     aws:
       credentials:
