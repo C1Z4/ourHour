@@ -76,7 +76,6 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
 
     // 초대 링크 이메일 발송
     // STATUS = PENDING, isUsed = false
-    // TODO : 비동기 처리하기
     @Transactional
     public void sendInvLink(Long orgId, List<OrgInvReqDTO> orgInvReqDTOList) {
 
@@ -106,6 +105,7 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
         // 일괄 저장을 위한 리스트
         List<OrgInvEntity> orgInvEntityList = new ArrayList<>();
 
+        // DB 저장용 엔티티 생성
         for (OrgInvReqDTO orgInvReqDTO : orgInvReqDTOList) {
             String email = orgInvReqDTO.getEmail();
 
@@ -129,17 +129,13 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
             }
 
             // 이미 조직에 참여 중인지 확인
-            boolean alreadyMember = orgParticipantMemberRepository.existsByOrgEntity_OrgIdAndMemberEntity_Email(orgId, email);            if (alreadyMember) {
+            boolean alreadyMember = orgParticipantMemberRepository.existsByOrgEntity_OrgIdAndMemberEntity_Email(orgId, email);
+            if (alreadyMember) {
                 throw MemberException.memberAlreadyExistsException();
             }
 
-            String token = sendVerificationEmail(
-                    email,
-                    serviceBaseUrl,
-                    "/org/" + orgId + "/invite/verify/?token=",
-                    subject,
-                    contentTemplate,
-                    linkName);
+            // 토큰 생성
+            String token = UUID.randomUUID().toString();
 
             // orgInvEntity 생성
             OrgInvEntity orgInvEntity = OrgInvEntity.create(
@@ -151,8 +147,33 @@ public class OrgInvService extends AbstractVerificationService<OrgInvEntity> {
             orgInvEntityList.add(orgInvEntity);
         }
 
+        // DB 일괄 저장
         orgInvRepository.saveAll(orgInvEntityList);
 
+        // Batch 단위 async 발송
+        int batchSize = 50;
+
+        // 전체 리스트를 배치 단위로 나누어 처리
+        for (int i = 0; i < orgInvReqDTOList.size(); i+=batchSize) {
+
+            // 마지막 배치가 리스트 크기를 넘어가지 않도록 현재 배치의 끝 인덱스 계산
+            int end = Math.min(i+batchSize, orgInvReqDTOList.size());
+
+            // 원본 리스트에서 현재 배치 범위만큼 잘라서 사용
+            List<OrgInvEntity> subList = orgInvEntityList.subList(i, end);
+
+            // 현재 배치의 각 아이템을 순회하면 처리
+            subList.forEach(inv -> {
+                sendEmailAsync(
+                        inv.getToken(),
+                        inv.getEmail(),
+                        serviceBaseUrl,
+                        "/org/" + orgId + "/invite/verify/?token=",
+                        subject,
+                        contentTemplate,
+                        linkName);
+            });
+        }
     }
 
     // 회사에 참여하기 위한 이메일 인증하기
