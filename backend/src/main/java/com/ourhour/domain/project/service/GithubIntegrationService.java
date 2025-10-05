@@ -110,7 +110,7 @@ public class GithubIntegrationService {
                     .findByProjectEntity_ProjectIdAndIsActive(projectId, true)
                     .orElseThrow(() -> GithubException.githubRepositoryNotFoundException());
 
-            GitHub gitHub = gitHubClientFactory.forProjectWithFallback(currentUserId, integration);
+            GitHub gitHub = gitHubClientFactory.forUserToken(currentUserId);
 
             GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
 
@@ -211,7 +211,7 @@ public class GithubIntegrationService {
                     .orElseThrow(() -> GithubException.githubRepositoryNotFoundException());
 
             // GitHub 클라이언트 생성 (개인 토큰 우선)
-            GitHub gitHub = gitHubClientFactory.forProjectWithFallback(currentUserId, integration);
+            GitHub gitHub = gitHubClientFactory.forUserToken(currentUserId);
 
             GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
 
@@ -267,7 +267,7 @@ public class GithubIntegrationService {
                     .findByProjectEntity_ProjectIdAndIsActive(projectId, true)
                     .orElseThrow(() -> GithubException.githubRepositoryNotFoundException());
 
-            GitHub gitHub = gitHubClientFactory.forProjectWithFallback(currentUserId, integration);
+            GitHub gitHub = gitHubClientFactory.forUserToken(currentUserId);
 
             GHRepository repository = gitHub.getRepository(integration.getGithubRepository());
 

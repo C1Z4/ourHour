@@ -4,8 +4,8 @@ import { AiChatbot } from '@/components/common/AiChatbot';
 import { AppSidebar } from '@/components/common/left-sidebar/AppSidebarComponent';
 import { NavigationMenuComponent } from '@/components/common/navigation-menu/NavigationMenuComponent';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { useInfiniteNotifications } from '@/hooks/queries/notification/useInfiniteNotifications';
 import { requireOrgMember } from '@/utils/auth/routeGuards';
-import { generateSseToken } from '@/utils/auth/tokenUtils';
 
 export const Route = createFileRoute('/org')({
   beforeLoad: async () => {
@@ -23,14 +23,14 @@ export const Route = createFileRoute('/org')({
     if (orgId) {
       await requireOrgMember(orgId);
     }
-
-    // sse 토큰 발급
-    generateSseToken();
   },
   component: DefaultLayoutComponent,
 });
 
 function DefaultLayoutComponent() {
+  // SSE 연결을 최상위에서 1번만 실행 (전역 알림 연결)
+  useInfiniteNotifications();
+
   return (
     <div className="min-h-screen bg-background">
       <NavigationMenuComponent isInfoPage={false} />

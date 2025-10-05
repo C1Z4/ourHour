@@ -18,7 +18,7 @@ export const useProjectInfoQuery = (orgId: number, projectId: number) =>
 // ======== 프로젝트 요약 목록 조회 ========
 export const useProjectSummaryListQuery = (
   orgId: number,
-  participantLimit: number = 3,
+  participantLimit: number = 4,
   currentPage: number = 1,
   size: number = 10,
   myProjectsOnly: boolean = false,
