@@ -24,7 +24,6 @@ public class GitHubClientFactory {
     private final GitHubTokenRepository gitHubTokenRepository;
     private final UserGitHubTokenRepository userGitHubTokenRepository;
 
-
     // 사용자 개인 토큰으로 GitHub 클라이언트 생성
     public GitHub forUserToken(Long userId) throws IOException {
         UserGitHubTokenEntity userToken = userGitHubTokenRepository
@@ -33,27 +32,6 @@ public class GitHubClientFactory {
 
         String raw = encryptionUtil.decrypt(userToken.getGithubAccessToken());
         return new GitHubBuilder().withOAuthToken(raw).build();
-    }
-
-    // 사용자 토큰 우선, 없으면 프로젝트 기본 토큰 사용
-    public GitHub forProjectWithFallback(Long userId, ProjectGithubIntegrationEntity integration) throws IOException {
-        // 1. 개인 토큰 우선 사용
-        try {
-            return forUserToken(userId);
-        } catch (Exception e) {
-            // 2. 기본 토큰 사용자의 토큰 사용
-            if (integration.getDefaultTokenUserId() != null) {
-                return forUserToken(integration.getDefaultTokenUserId());
-            }
-            
-            // 3. 최후의 수단: 연동 생성자의 토큰 사용 (기존 방식)
-            GitHubTokenEntity fallbackToken = gitHubTokenRepository
-                    .findById(integration.getMemberEntity().getUserEntity().getUserId())
-                    .orElseThrow(() -> GithubException.githubTokenNotFoundException());
-            
-            String raw = encryptionUtil.decrypt(fallbackToken.getGithubAccessToken());
-            return new GitHubBuilder().withOAuthToken(raw).build();
-        }
     }
 
     public GitHub createGitHubClient(ProjectGithubIntegrationEntity integration) throws IOException {
