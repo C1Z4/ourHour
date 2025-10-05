@@ -14,7 +14,7 @@ import {
   NavigationMenuList,
 } from '@/components/ui/navigation-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useInfiniteNotifications } from '@/hooks/queries/notification/useInfiniteNotifications';
+import { useNotificationData } from '@/hooks/queries/notification/useNotificationData';
 import { useAppSelector } from '@/stores/hooks';
 
 export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean }) {
@@ -27,8 +27,8 @@ export function NavigationMenuComponent({ isInfoPage }: { isInfoPage: boolean })
 
   const router = useRouter();
 
-  // 전역 SSE 연결 및 알림 데이터
-  const { unreadCount } = useInfiniteNotifications();
+  // SSE 연결 없이 알림 데이터만 사용
+  const { unreadCount } = useNotificationData();
 
   const handleNavigate = (path: string, orgId: string) => {
     router.navigate({ to: path, params: { orgId } });

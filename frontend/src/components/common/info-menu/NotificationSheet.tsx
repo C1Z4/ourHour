@@ -10,7 +10,7 @@ import { Notification } from '@/types/notificationTypes';
 import { ButtonComponent } from '@/components/common/ButtonComponent';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { COMMENT_QUERY_KEYS } from '@/constants/queryKeys';
-import { useInfiniteNotifications } from '@/hooks/queries/notification/useInfiniteNotifications';
+import { useNotificationData } from '@/hooks/queries/notification/useNotificationData';
 import { useAppDispatch } from '@/stores/hooks';
 import { setCurrentOrgId } from '@/stores/orgSlice';
 import { setCurrentProjectId, setCurrentProjectName } from '@/stores/projectSlice';
@@ -22,6 +22,7 @@ interface NotificationSheetProps {
 export function NotificationSheet({ children }: NotificationSheetProps) {
   const [isOpen, setIsOpen] = useState(false); // 알림 목록 창 열림 상태
 
+  // SSE 연결 없이 알림 데이터만 사용
   const {
     notifications,
     unreadCount,
@@ -31,7 +32,7 @@ export function NotificationSheet({ children }: NotificationSheetProps) {
     isFetchingNextPage,
     hasNextPage,
     loadMore,
-  } = useInfiniteNotifications();
+  } = useNotificationData();
 
   // Observer 인스턴스를 저장하기 위한 ref
   const observerRef = useRef<IntersectionObserver | null>(null);

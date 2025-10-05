@@ -5,9 +5,9 @@ interface ParticipantsListProps {
   maxVisible?: number;
 }
 
-export function ParticipantsList({ participants, maxVisible = 2 }: ParticipantsListProps) {
+export function ParticipantsList({ participants, maxVisible = 3 }: ParticipantsListProps) {
   const visibleParticipants = participants.slice(0, maxVisible);
-  const remainingCount = participants.length - maxVisible;
+  const isOverflow = participants.length > maxVisible;
 
   return (
     <div className="flex flex-wrap gap-1">
@@ -19,9 +19,9 @@ export function ParticipantsList({ participants, maxVisible = 2 }: ParticipantsL
           {participant.memberName}
         </span>
       ))}
-      {remainingCount > 0 && (
+      {isOverflow && (
         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-          +{remainingCount}
+          ...
         </span>
       )}
     </div>
