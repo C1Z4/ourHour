@@ -29,8 +29,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 
 @RestController
 @RequestMapping("/api/org/{orgId}/comments")
@@ -72,10 +70,8 @@ public class CommentController {
                         @OrgId @PathVariable Long orgId,
                         @Valid @RequestBody CommentCreateReqDTO commentCreateReqDTO) {
 
-                System.out.println("댓글 등록해봅니다잉");
                 // 현재 사용자 정보 가져오기
         Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-                System.out.println(currentMemberId);
 
                 if (currentMemberId == null) {
             throw OrgException.orgNotFoundException();
