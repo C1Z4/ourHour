@@ -122,21 +122,7 @@ public class CommentService {
     @Transactional
     public void createComment(CommentCreateReqDTO commentCreateReqDTO, Long currentMemberId) {
 
-        if (commentCreateReqDTO.getPostId() == null && commentCreateReqDTO.getIssueId() == null) {
-            throw CommentException.commentTargetRequiredException();
-        }
-
-        if (commentCreateReqDTO.getPostId() != null && commentCreateReqDTO.getIssueId() != null) {
-            throw CommentException.commentTargetConflictException();
-        }
-
-        if (commentCreateReqDTO.getContent() == null || commentCreateReqDTO.getContent().trim().isEmpty()) {
-            throw CommentException.commentContentRequiredException();
-        }
-
-        if (commentCreateReqDTO.getContent().length() > 1000) {
-            throw CommentException.commentContentTooLongException();
-        }
+        validateCommentRequest(commentCreateReqDTO);
 
         PostEntity postEntity = null;
         IssueEntity issueEntity = null;
@@ -273,7 +259,6 @@ public class CommentService {
     @Transactional
     public void updateComment(Long commentId, CommentUpdateReqDTO commentUpdateReqDTO, Long currentMemberId) {
 
-        // 댓글 수정
         CommentEntity commentEntity = commentRepository.findById(commentId)
                 .orElseThrow(() -> CommentException.commentNotFoundException());
 
@@ -282,13 +267,7 @@ public class CommentService {
             throw CommentException.commentAuthorAccessDeniedException();
         }
 
-        if (commentUpdateReqDTO.getContent() == null || commentUpdateReqDTO.getContent().trim().isEmpty()) {
-            throw CommentException.commentContentRequiredException();
-        }
-
-        if (commentUpdateReqDTO.getContent().length() > 1000) {
-            throw CommentException.commentContentTooLongException();
-        }
+        validateCommentContent(commentUpdateReqDTO.getContent());
 
         commentMapper.updateCommentEntity(commentEntity, commentUpdateReqDTO);
 
@@ -332,6 +311,31 @@ public class CommentService {
                 .map(opm -> opm.getRole().equals(Role.ADMIN) || opm.getRole().equals(Role.ROOT_ADMIN))
                 .orElse(false);
     }
+
+    // 댓글 요청 유효성 검증
+    private void validateCommentRequest(CommentCreateReqDTO commentCreateReqDTO) {
+        if (commentCreateReqDTO.getPostId() == null && commentCreateReqDTO.getIssueId() == null) {
+            throw CommentException.commentTargetRequiredException();
+        }
+
+        if (commentCreateReqDTO.getPostId() != null && commentCreateReqDTO.getIssueId() != null) {
+            throw CommentException.commentTargetConflictException();
+        }
+
+        validateCommentContent(commentCreateReqDTO.getContent());
+    }
+
+    // 댓글 내용 유효성 검증
+    private void validateCommentContent(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            throw CommentException.commentContentRequiredException();
+        }
+
+        if (content.length() > 1000) {
+            throw CommentException.commentContentTooLongException();
+        }
+    }
+
     // 대댓글 알림 전송
     private void sendParentCommentReplyNotification(Long parentCommentId, Long currentUserId,
             Long excludeUserId, String authorName, Long targetId, String targetType, String actionUrl) {
