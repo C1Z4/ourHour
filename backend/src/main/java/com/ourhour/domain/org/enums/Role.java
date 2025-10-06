@@ -21,5 +21,8 @@ public enum Role {
     public boolean isHigherThan(Role accessLevel) {
         return this.level >= accessLevel.level;
     }
+    public boolean isAdminOrAbove() {
+        return this == ADMIN || this == ROOT_ADMIN;
+    }
 }
 
