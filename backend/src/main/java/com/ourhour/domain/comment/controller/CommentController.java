@@ -50,11 +50,7 @@ public class CommentController {
                         @RequestParam(defaultValue = "1") @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.") int currentPage,
                         @RequestParam(defaultValue = "10") @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.") @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다.") int size) {
 
-                // 현재 사용자 정보 가져오기
-                Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-                if (currentMemberId == null) {
-                    throw OrgException.orgNotFoundException();
-                }
+                Long currentMemberId = validateAndGetCurrentMember(orgId);
 
                 CommentPageResDTO response = commentService.getComments(postId, issueId, currentPage, size,
                                 currentMemberId);
@@ -70,12 +66,7 @@ public class CommentController {
                         @OrgId @PathVariable Long orgId,
                         @Valid @RequestBody CommentCreateReqDTO commentCreateReqDTO) {
 
-                // 현재 사용자 정보 가져오기
-        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-
-                if (currentMemberId == null) {
-            throw OrgException.orgNotFoundException();
-        }
+                Long currentMemberId = validateAndGetCurrentMember(orgId);
 
                 commentService.createComment(commentCreateReqDTO, currentMemberId);
 
@@ -91,11 +82,7 @@ public class CommentController {
                         @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId,
                         @Valid @RequestBody CommentUpdateReqDTO commentUpdateReqDTO) {
 
-        // 현재 사용자 정보 가져오기
-        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-        if (currentMemberId == null) {
-            throw OrgException.orgNotFoundException();
-        }
+                Long currentMemberId = validateAndGetCurrentMember(orgId);
 
                 commentService.updateComment(commentId, commentUpdateReqDTO, currentMemberId);
 
@@ -110,12 +97,9 @@ public class CommentController {
                         @OrgId @PathVariable Long orgId,
                         @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
 
-        // 현재 사용자 정보 가져오기
-        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-        if (currentMemberId == null) {
-            throw OrgException.orgNotFoundException();
-        }
-        commentService.deleteComment(orgId,commentId, currentMemberId);
+                Long currentMemberId = validateAndGetCurrentMember(orgId);
+        
+                commentService.deleteComment(orgId,commentId, currentMemberId);
 
                 return ResponseEntity.ok(ApiResponse.success(null, "댓글 삭제에 성공했습니다."));
         }
@@ -128,11 +112,7 @@ public class CommentController {
                         @OrgId @PathVariable Long orgId,
                         @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
 
-        // 현재 사용자 정보 가져오기
-        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-        if (currentMemberId == null) {
-            throw OrgException.orgNotFoundException();
-        }
+                Long currentMemberId = validateAndGetCurrentMember(orgId);
 
                 commentLikeService.likeComment(commentId, currentMemberId);
 
@@ -147,16 +127,19 @@ public class CommentController {
                         @OrgId @PathVariable Long orgId,
                         @PathVariable @Min(value = 1, message = "댓글 ID는 1 이상이어야 합니다.") Long commentId) {
 
-        // 현재 사용자 정보 가져오기
-        // 현재 사용자 정보 가져오기
-        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-        if (currentMemberId == null) {
-            throw OrgException.orgNotFoundException();
-        }
+                Long currentMemberId = validateAndGetCurrentMember(orgId);
 
-                // 현재 사용자 권한 확인
                 commentLikeService.unlikeComment(commentId, currentMemberId);
 
                 return ResponseEntity.ok(ApiResponse.success(null, "댓글 좋아요 취소에 성공했습니다."));
+        }
+
+        // 현재 사용자 검증 및 조회
+        private Long validateAndGetCurrentMember(Long orgId) {
+                Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+                if (currentMemberId == null) {
+                        throw OrgException.orgNotFoundException();
+                }
+                return currentMemberId;
         }
 }

@@ -196,28 +196,18 @@ public class CommentService {
             
             // 대댓글인 경우 원래 댓글 작성자에게도 알림 전송
             if (commentCreateReqDTO.getParentCommentId() != null) {
-                CommentEntity parentComment = commentRepository.findById(commentCreateReqDTO.getParentCommentId())
-                        .orElse(null);
-                if (parentComment != null) {
-                    Long parentAuthorUserId = parentComment.getAuthorEntity().getUserEntity().getUserId();
-                    
-                    // 대댓글 작성자와 원래 댓글 작성자가 다른 경우에만 알림 전송
-                    if (!parentAuthorUserId.equals(currentUserId) && !parentAuthorUserId.equals(authorUserId)) {
-                        String actionUrl = String.format("/org/%d/board/%d/post/%d", 
-                                postEntity.getBoardEntity().getOrgEntity().getOrgId(),
-                                postEntity.getBoardEntity().getBoardId(),
-                                postEntity.getPostId());
-                        
-                        notificationEventService.sendCommentReplyNotification(
-                            parentAuthorUserId,
-                            commentEntity.getAuthorEntity().getName(),
-                            parentComment.getContent(),
-                            postEntity.getPostId(),
-                            "post",
-                            actionUrl
-                        );
-                    }
-                }
+                sendParentCommentReplyNotification(
+                    commentCreateReqDTO.getParentCommentId(),
+                    currentUserId,
+                    authorUserId,
+                    commentEntity.getAuthorEntity().getName(),
+                    postEntity.getPostId(),
+                    "post",
+                    String.format("/org/%d/board/%d/post/%d",
+                        postEntity.getBoardEntity().getOrgEntity().getOrgId(),
+                        postEntity.getBoardEntity().getBoardId(),
+                        postEntity.getPostId())
+                );
             }
         }
 
@@ -252,29 +242,18 @@ public class CommentService {
             
             // 이슈 대댓글인 경우 원래 댓글 작성자에게도 알림 전송
             if (commentCreateReqDTO.getParentCommentId() != null) {
-                CommentEntity parentComment = commentRepository.findById(commentCreateReqDTO.getParentCommentId())
-                        .orElse(null);
-                if (parentComment != null) {
-                    Long parentAuthorUserId = parentComment.getAuthorEntity().getUserEntity().getUserId();
-                    
-                    // 대댓글 작성자와 원래 댓글 작성자가 다르고, 이슈 담당자와도 다른 경우에만 알림 전송
-                    if (!parentAuthorUserId.equals(currentUserId) && 
-                        (assigneeUserId == null || !parentAuthorUserId.equals(assigneeUserId))) {
-                        String actionUrl = String.format("/org/%d/project/%d/issue/%d", 
-                                issueEntity.getProjectEntity().getOrgEntity().getOrgId(),
-                                issueEntity.getProjectEntity().getProjectId(),
-                                issueEntity.getIssueId());
-                        
-                        notificationEventService.sendCommentReplyNotification(
-                            parentAuthorUserId,
-                            commentEntity.getAuthorEntity().getName(),
-                            parentComment.getContent(),
-                            issueEntity.getIssueId(),
-                            "issue",
-                            actionUrl
-                        );
-                    }
-                }
+                sendParentCommentReplyNotification(
+                    commentCreateReqDTO.getParentCommentId(),
+                    currentUserId,
+                    assigneeUserId,
+                    commentEntity.getAuthorEntity().getName(),
+                    issueEntity.getIssueId(),
+                    "issue",
+                    String.format("/org/%d/project/%d/issue/%d",
+                        issueEntity.getProjectEntity().getOrgEntity().getOrgId(),
+                        issueEntity.getProjectEntity().getProjectId(),
+                        issueEntity.getIssueId())
+                );
             }
         }
 
@@ -353,4 +332,28 @@ public class CommentService {
                 .map(opm -> opm.getRole().equals(Role.ADMIN) || opm.getRole().equals(Role.ROOT_ADMIN))
                 .orElse(false);
     }
+    // 대댓글 알림 전송
+    private void sendParentCommentReplyNotification(Long parentCommentId, Long currentUserId,
+            Long excludeUserId, String authorName, Long targetId, String targetType, String actionUrl) {
+        CommentEntity parentComment = commentRepository.findById(parentCommentId)
+                .orElse(null);
+
+        if (parentComment != null) {
+            Long parentAuthorUserId = parentComment.getAuthorEntity().getUserEntity().getUserId();
+
+            // 대댓글 작성자와 원래 댓글 작성자가 다르고, excludeUserId와도 다른 경우에만 알림 전송
+            if (!parentAuthorUserId.equals(currentUserId) &&
+                (excludeUserId == null || !parentAuthorUserId.equals(excludeUserId))) {
+                notificationEventService.sendCommentReplyNotification(
+                    parentAuthorUserId,
+                    authorName,
+                    parentComment.getContent(),
+                    targetId,
+                    targetType,
+                    actionUrl
+                );
+            }
+        }
+    }
+
 }
