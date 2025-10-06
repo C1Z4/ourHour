@@ -31,18 +31,20 @@ public class CommentLikeService {
     private final CommentRepository commentRepository;
     private final MemberRepository memberRepository;
 
-    // 댓글 좋아요
+    // 댓글 좋아요 (엔티티 조회 최적화)
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void likeComment(Long commentId, Long memberId) {
-        
-        // 댓글 존재 확인
-        CommentEntity commentEntity = commentRepository.findById(commentId)
-                .orElseThrow(() -> CommentException.commentNotFoundException());
 
-        // 회원 존재 확인
-        MemberEntity memberEntity = memberRepository.findById(memberId)
-                .orElseThrow(() -> MemberException.memberNotFoundException());
+        // 댓글 존재 확인 (존재 여부만 확인, 엔티티 조회 X)
+        if (!commentRepository.existsById(commentId)) {
+            throw CommentException.commentNotFoundException();
+        }
+
+        // 회원 존재 확인 (존재 여부만 확인, 엔티티 조회 X)
+        if (!memberRepository.existsById(memberId)) {
+            throw MemberException.memberNotFoundException();
+        }
 
         // 이미 좋아요를 눌렀는지 확인
         CommentLikeId commentLikeId = new CommentLikeId(commentId, memberId);
@@ -50,11 +52,11 @@ public class CommentLikeService {
             throw CommentException.commentAlreadyLikedException();
         }
 
-        // 좋아요 생성
+        // 좋아요 생성 (JPA가 ID로 참조만 설정, 실제 엔티티 로드 안함)
         CommentLikeEntity commentLikeEntity = CommentLikeEntity.builder()
                 .commentLikeId(commentLikeId)
-                .commentEntity(commentEntity)
-                .memberEntity(memberEntity)
+                .commentEntity(commentRepository.getReferenceById(commentId))
+                .memberEntity(memberRepository.getReferenceById(memberId))
                 .build();
 
         commentLikeRepository.save(commentLikeEntity);
