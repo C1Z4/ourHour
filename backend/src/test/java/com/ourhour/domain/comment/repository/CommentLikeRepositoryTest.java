@@ -82,22 +82,38 @@ class CommentLikeRepositoryTest {
     void countByCommentIds() {
         // given
         List<Long> commentIds = List.of(1L, 2L);
-        List<Object[]> expectedResults = Arrays.asList(
-                new Object[]{1L, 2L}, // commentId: 1L, count: 2L
-                new Object[]{2L, 1L}  // commentId: 2L, count: 1L
+        List<CommentLikeCount> expectedResults = Arrays.asList(
+                new CommentLikeCount() { @Override
+                    public Long getCommentId() {
+                        return 1L;
+                    }
+                    @Override
+                    public Long getLikeCount() {
+                        return 2L;
+                    }
+                }, // commentId: 1L, count: 2L
+                new CommentLikeCount() { @Override
+                    public Long getCommentId() {
+                        return 2L;
+                    }
+                    @Override
+                    public Long getLikeCount() {
+                        return 1L;
+                    }
+                } // commentId: 2L, count: 1L
         );
 
         given(commentLikeRepository.countByCommentIds(commentIds)).willReturn(expectedResults);
 
         // when
-        List<Object[]> results = commentLikeRepository.countByCommentIds(commentIds);
+        List<CommentLikeCount> results = commentLikeRepository.countByCommentIds(commentIds);
 
         // then
         assertThat(results).hasSize(2);
-        assertThat(results.get(0)[0]).isEqualTo(1L); // commentId
-        assertThat(results.get(0)[1]).isEqualTo(2L); // count
-        assertThat(results.get(1)[0]).isEqualTo(2L); // commentId
-        assertThat(results.get(1)[1]).isEqualTo(1L); // count
+        assertThat(results.get(0).getCommentId()).isEqualTo(1L); // commentId
+        assertThat(results.get(0).getLikeCount()).isEqualTo(2L); // count
+        assertThat(results.get(1).getCommentId()).isEqualTo(2L); // commentId
+        assertThat(results.get(1).getLikeCount()).isEqualTo(1L); // count
     }
 
     @Test
@@ -111,7 +127,8 @@ class CommentLikeRepositoryTest {
                 .willReturn(true);
 
         // when
-        boolean exists = commentLikeRepository.existsByCommentLikeId_CommentIdAndCommentLikeId_MemberId(commentId, memberId);
+        boolean exists = commentLikeRepository.existsByCommentLikeId_CommentIdAndCommentLikeId_MemberId(commentId,
+                memberId);
 
         // then
         assertThat(exists).isTrue();
@@ -128,7 +145,8 @@ class CommentLikeRepositoryTest {
                 .willReturn(false);
 
         // when
-        boolean exists = commentLikeRepository.existsByCommentLikeId_CommentIdAndCommentLikeId_MemberId(commentId, memberId);
+        boolean exists = commentLikeRepository.existsByCommentLikeId_CommentIdAndCommentLikeId_MemberId(commentId,
+                memberId);
 
         // then
         assertThat(exists).isFalse();
@@ -190,7 +208,7 @@ class CommentLikeRepositoryTest {
 
         // then
         verify(commentLikeRepository).deleteById(likeId);
-        
+
         boolean exists = commentLikeRepository.existsById(likeId);
         assertThat(exists).isFalse();
     }
