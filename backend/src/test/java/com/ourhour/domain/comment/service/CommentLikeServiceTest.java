@@ -75,17 +75,19 @@ class CommentLikeServiceTest {
         Long commentId = 1L;
         Long memberId = 1L;
 
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+        given(commentRepository.existsById(commentId)).willReturn(true);
+        given(memberRepository.existsById(memberId)).willReturn(true);
         given(commentLikeRepository.existsById(commentLikeId)).willReturn(false);
+        given(commentRepository.getReferenceById(commentId)).willReturn(comment);
+        given(memberRepository.getReferenceById(memberId)).willReturn(member);
         given(commentLikeRepository.save(any(CommentLikeEntity.class))).willReturn(commentLike);
 
         // when
         commentLikeService.likeComment(commentId, memberId);
 
         // then
-        then(commentRepository).should().findById(commentId);
-        then(memberRepository).should().findById(memberId);
+        then(commentRepository).should().existsById(commentId);
+        then(memberRepository).should().existsById(memberId);
         then(commentLikeRepository).should().existsById(commentLikeId);
         then(commentLikeRepository).should().save(any(CommentLikeEntity.class));
     }
@@ -97,7 +99,7 @@ class CommentLikeServiceTest {
         Long commentId = 999L;
         Long memberId = 1L;
 
-        given(commentRepository.findById(commentId)).willReturn(Optional.empty());
+        given(commentRepository.existsById(commentId)).willReturn(false);
 
         // when & then
         assertThatThrownBy(() -> commentLikeService.likeComment(commentId, memberId))
@@ -114,8 +116,8 @@ class CommentLikeServiceTest {
         Long commentId = 1L;
         Long memberId = 999L;
 
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
-        given(memberRepository.findById(memberId)).willReturn(Optional.empty());
+        given(commentRepository.existsById(commentId)).willReturn(true);
+        given(memberRepository.existsById(memberId)).willReturn(false);
 
         // when & then
         assertThatThrownBy(() -> commentLikeService.likeComment(commentId, memberId))
@@ -131,8 +133,8 @@ class CommentLikeServiceTest {
         Long commentId = 1L;
         Long memberId = 1L;
 
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+        given(commentRepository.existsById(commentId)).willReturn(true);
+        given(memberRepository.existsById(memberId)).willReturn(true);
         given(commentLikeRepository.existsById(commentLikeId)).willReturn(true);
 
         // when & then
