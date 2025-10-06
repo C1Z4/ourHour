@@ -85,7 +85,7 @@ public class CommentService {
         CommentResDTO commentResDTO = commentMapper.toCommentResDTO(relevantComments, postId, issueId,
                 commentLikeService, currentMemberId);
 
-        CommentPageResDTO result = CommentPageResDTO.of(
+        return CommentPageResDTO.of(
                 commentResDTO,
                 parentCommentPage.getNumber() + 1,
                 parentCommentPage.getSize(),
@@ -93,8 +93,6 @@ public class CommentService {
                 parentCommentPage.getTotalElements(),
                 parentCommentPage.hasNext(),
                 parentCommentPage.hasPrevious());
-
-        return result;
     }
 
     // 최상위 댓글만 페이징
@@ -291,7 +289,7 @@ public class CommentService {
                 commentEntity.getAuthorEntity().getName(),
                 postEntity.getPostId(),
                 "post",
-                String.format("/org/%d/board/%d/post/%d",
+                buildPostUrl(
                     postEntity.getBoardEntity().getOrgEntity().getOrgId(),
                     postEntity.getBoardEntity().getBoardId(),
                     postEntity.getPostId())
@@ -337,7 +335,7 @@ public class CommentService {
                 commentEntity.getAuthorEntity().getName(),
                 issueEntity.getIssueId(),
                 "issue",
-                String.format("/org/%d/project/%d/issue/%d",
+                buildIssueUrl(
                     issueEntity.getProjectEntity().getOrgEntity().getOrgId(),
                     issueEntity.getProjectEntity().getProjectId(),
                     issueEntity.getIssueId())
@@ -367,6 +365,16 @@ public class CommentService {
                 );
             }
         }
+    }
+
+    // 게시글 URL 생성
+    private String buildPostUrl(Long orgId, Long boardId, Long postId) {
+        return String.format("/org/%d/board/%d/post/%d", orgId, boardId, postId);
+    }
+
+    // 이슈 URL 생성
+    private String buildIssueUrl(Long orgId, Long projectId, Long issueId) {
+        return String.format("/org/%d/project/%d/issue/%d", orgId, projectId, issueId);
     }
 
 }
