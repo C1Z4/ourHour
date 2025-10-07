@@ -3,7 +3,9 @@ package com.ourhour.domain.notification.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ourhour.domain.notification.dto.NotificationDTO;
 import com.ourhour.domain.notification.dto.SSEEventDTO;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,16 @@ public class SSENotificationService {
 
     private final ObjectMapper objectMapper;
 
+    // 설정값
+    @Value("${notification.sse.timeout:1800000}")
+    private long sseTimeout;
+
+    @Value("${notification.sse.heartbeat-pool-size:10}")
+    private int heartbeatPoolSize;
+
+    @Value("${notification.sse.heartbeat-interval:15}")
+    private int heartbeatInterval;
+
     // 사용자별 SSE 연결을 관리하는 맵
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
 
@@ -31,14 +43,16 @@ public class SSENotificationService {
     private final Map<Long, ScheduledFuture<?>> heartbeatTasks = new ConcurrentHashMap<>();
 
     // heartbeat용 스케줄러
-    private final ScheduledExecutorService heartbeatScheduler = Executors.newScheduledThreadPool(10);
+    private ScheduledExecutorService heartbeatScheduler;
 
-    // SSE 연결 타임아웃 (30분)
-    private static final long SSE_TIMEOUT = 30 * 60 * 1000L;
+    @PostConstruct
+    public void init() {
+        this.heartbeatScheduler = Executors.newScheduledThreadPool(heartbeatPoolSize);
+    }
 
     // 사용자별 SSE 연결 생성
     public SseEmitter subscribe(Long userId) {
-        SseEmitter emitter = new SseEmitter(SSE_TIMEOUT);
+        SseEmitter emitter = new SseEmitter(sseTimeout);
 
         // 기존 연결이 있다면 정리
         cleanupConnection(userId);
@@ -64,70 +78,42 @@ public class SSENotificationService {
         return emitter;
     }
 
-    // 알림 전송 (SecurityContext 없이도 작동하도록 userId 명시적 전달)
-    public void sendNotification(Long userId, NotificationDTO notification) {
+    // SSE 이벤트 전송 공통 메소드
+    private void sendEvent(Long userId, String eventName, String eventType, Object data) {
         SseEmitter emitter = emitters.get(userId);
 
         if (emitter != null) {
             try {
                 SSEEventDTO event = SSEEventDTO.builder()
-                        .type("notification")
-                        .data(notification)
+                        .type(eventType)
+                        .data(data)
                         .build();
 
                 emitter.send(SseEmitter.event()
-                        .name("notification")
+                        .name(eventName)
                         .data(objectMapper.writeValueAsString(event)));
 
             } catch (IOException e) {
-                emitters.remove(userId);
-                emitter.completeWithError(e);
+                cleanupConnection(userId);
             }
         }
+    }
+
+    // 알림 전송 (SecurityContext 없이도 작동하도록 userId 명시적 전달)
+    public void sendNotification(Long userId, NotificationDTO notification) {
+        sendEvent(userId, "notification", "notification", notification);
     }
 
     // 알림 읽음 처리
     public void sendNotificationRead(Long userId, Long notificationId) {
-        SseEmitter emitter = emitters.get(userId);
-
-        if (emitter != null) {
-            try {
-                SSEEventDTO event = SSEEventDTO.builder()
-                        .type("notification_read")
-                        .data(Map.of("notificationId", notificationId))
-                        .build();
-
-                emitter.send(SseEmitter.event()
-                        .name("notification")
-                        .data(objectMapper.writeValueAsString(event)));
-
-            } catch (IOException e) {
-                emitters.remove(userId);
-                emitter.completeWithError(e);
-            }
-        }
+        sendEvent(userId, "notification", "notification_read",
+                Map.of("notificationId", notificationId));
     }
 
     // 모든 알림 읽음 처리
     public void sendAllNotificationsRead(Long userId) {
-        SseEmitter emitter = emitters.get(userId);
-
-        if (emitter != null) {
-            try {
-                SSEEventDTO event = SSEEventDTO.builder()
-                        .type("all_notifications_read")
-                        .data(Map.of("message", "모든 알림이 읽음 처리되었습니다"))
-                        .build();
-
-                emitter.send(SseEmitter.event()
-                        .name("notification")
-                        .data(objectMapper.writeValueAsString(event)));
-
-            } catch (IOException e) {
-                emitters.remove(userId);
-                emitter.completeWithError(e);
-            }
-        }
+        sendEvent(userId, "notification", "all_notifications_read",
+                Map.of("message", "모든 알림이 읽음 처리되었습니다"));
     }
 
     // 사용자별 SSE 연결 상태 확인
@@ -206,7 +192,7 @@ public class SSENotificationService {
                 // SecurityContext 정리
                 SecurityContextHolder.clearContext();
             }
-        }, 15, 15, TimeUnit.SECONDS); // 15초 후 시작, 15초마다 반복
+        }, heartbeatInterval, heartbeatInterval, TimeUnit.SECONDS);
 
         // heartbeat 작업 저장
         heartbeatTasks.put(userId, heartbeatTask);
