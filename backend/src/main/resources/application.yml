@@ -62,3 +62,10 @@ app:
     prefix: images
   cdn:
     domain: https://dke56if5x4hny.cloudfront.net
+
+# 알림 설정
+notification:
+  sse:
+    timeout: 1800000 # SSE 연결 타임아웃 (30분, ms 단위)
+    heartbeat-pool-size: 10 # Heartbeat 스레드 풀 크기
+    heartbeat-interval: 15 # Heartbeat 전송 간격 (초)

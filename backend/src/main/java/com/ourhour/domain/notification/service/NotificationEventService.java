@@ -15,22 +15,11 @@ public class NotificationEventService {
         private final NotificationService notificationService;
         private final SSENotificationService sseNotificationService;
 
-        // 프로젝트 초대 알림
-        // public void sendProjectInvitationNotification(Long userId, String
-        // projectName, Long projectId) {
-        // NotificationCreateReqDTO dto = NotificationCreateReqDTO.builder()
-        // .userId(userId)
-        // .type(NotificationType.PROJECT_INVITATION)
-        // .title("프로젝트 초대")
-        // .message(String.format("'%s' 프로젝트에 초대되었습니다.", projectName))
-        // .relatedId(projectId)
-        // .relatedType("project")
-        // .actionUrl(String.format("/project/%d", projectId))
-        // .build();
-
-        // NotificationDTO notification = notificationService.createNotification(dto);
-        // sseNotificationService.sendNotification(userId, notification);
-        // }
+        // 알림 생성 및 전송 공통 메소드
+        private void createAndSendNotification(NotificationCreateReqDTO dto) {
+                NotificationDTO notification = notificationService.createNotification(dto);
+                sseNotificationService.sendNotification(dto.getUserId(), notification);
+        }
 
         // 채팅방 메시지 알림
         public void sendChatMessageNotification(Long userId, String senderName, String roomName, Long roomId, Long orgId) {
@@ -44,8 +33,7 @@ public class NotificationEventService {
                                 .actionUrl(String.format("/org/%d/chat/%d", orgId, roomId))
                                 .build();
 
-                NotificationDTO notification = notificationService.createNotification(dto);
-                sseNotificationService.sendNotification(userId, notification);
+                createAndSendNotification(dto);
         }
 
         // 이슈 할당 알림
@@ -62,9 +50,7 @@ public class NotificationEventService {
                                 .relatedProjectName(projectName)
                                 .build();
 
-                NotificationDTO notification = notificationService.createNotification(dto);
-
-                sseNotificationService.sendNotification(userId, notification);
+                createAndSendNotification(dto);
         }
 
         // 이슈 댓글 알림
@@ -81,8 +67,7 @@ public class NotificationEventService {
                                 .relatedProjectName(projectName)
                                 .build();
 
-                NotificationDTO notification = notificationService.createNotification(dto);
-                sseNotificationService.sendNotification(userId, notification);
+                createAndSendNotification(dto);
         }
 
         // 이슈 댓글 답글 알림
@@ -99,8 +84,7 @@ public class NotificationEventService {
                                 .relatedProjectName(projectName)
                                 .build();
 
-                NotificationDTO notification = notificationService.createNotification(dto);
-                sseNotificationService.sendNotification(userId, notification);
+                createAndSendNotification(dto);
         }
 
         // 게시글 댓글 알림
@@ -116,8 +100,7 @@ public class NotificationEventService {
                                 .actionUrl(String.format("/org/%d/board/%d/post/%d", orgId, boardId, postId))
                                 .build();
 
-                NotificationDTO notification = notificationService.createNotification(dto);
-                sseNotificationService.sendNotification(userId, notification);
+                createAndSendNotification(dto);
         }
 
         // 게시글 댓글 답글 알림
@@ -133,27 +116,22 @@ public class NotificationEventService {
                                 .actionUrl(String.format("/org/%d/board/%d/post/%d", orgId, boardId, postId))
                                 .build();
 
-                NotificationDTO notification = notificationService.createNotification(dto);
-                sseNotificationService.sendNotification(userId, notification);
+                createAndSendNotification(dto);
         }
 
         // 댓글 답글 알림 (댓글 작성자에게)
-        public void sendCommentReplyNotification(Long userId, String replierName, String originalCommentContent, 
+        public void sendCommentReplyNotification(Long userId, String replierName, String originalCommentContent,
                         Long relatedId, String relatedType, String actionUrl) {
-                String title = "댓글 답글";
-                String message = String.format("%s님이 회원님의 댓글에 답글을 남겼습니다.", replierName);
-                
                 NotificationCreateReqDTO dto = NotificationCreateReqDTO.builder()
                                 .userId(userId)
                                 .type(NotificationType.COMMENT_REPLY)
-                                .title(title)
-                                .message(message)
+                                .title("댓글 답글")
+                                .message(String.format("%s님이 회원님의 댓글에 답글을 남겼습니다.", replierName))
                                 .relatedId(relatedId)
                                 .relatedType(relatedType)
                                 .actionUrl(actionUrl)
                                 .build();
 
-                NotificationDTO notification = notificationService.createNotification(dto);
-                sseNotificationService.sendNotification(userId, notification);
+                createAndSendNotification(dto);
         }
 }

@@ -31,11 +31,16 @@ public class NotificationService {
         private final UserRepository userRepository;
         private final NotificationMapper notificationMapper;
 
+        // UserEntity 조회 공통 메소드
+        private UserEntity getUserOrThrow(Long userId) {
+                return userRepository.findById(userId)
+                                .orElseThrow(() -> UserException.userNotFoundException());
+        }
+
         // 알림 생성
         @Transactional
         public NotificationDTO createNotification(NotificationCreateReqDTO dto) {
-                UserEntity user = userRepository.findById(dto.getUserId())
-                                .orElseThrow(() -> UserException.userNotFoundException());
+                UserEntity user = getUserOrThrow(dto.getUserId());
 
                 NotificationEntity notification = notificationMapper.toEntity(dto, user);
                 NotificationEntity savedNotification = notificationRepository.save(notification);
@@ -45,11 +50,10 @@ public class NotificationService {
 
         // 알림 목록 조회
         public NotificationPageResDTO getNotifications(Long userId, int page, int size) {
-                UserEntity user = userRepository.findById(userId)
-                                .orElseThrow(() -> UserException.userNotFoundException());
+                UserEntity user = getUserOrThrow(userId);
 
                 Pageable pageable = PageRequest.of(page - 1, size);
-                
+
                 Page<NotificationEntity> notificationPage = notificationRepository
                                 .findByUserEntityOrderByCreatedAtDesc(user, pageable);
 
@@ -70,8 +74,7 @@ public class NotificationService {
 
         // 읽지 않은 알림 개수 조회
         public long getUnreadCount(Long userId) {
-                UserEntity user = userRepository.findById(userId)
-                                .orElseThrow(() -> UserException.userNotFoundException());
+                UserEntity user = getUserOrThrow(userId);
 
                 return notificationRepository.countUnreadByUser(user);
         }
@@ -79,8 +82,7 @@ public class NotificationService {
         // 알림 읽음 처리
         @Transactional
         public void markAsRead(Long notificationId, Long userId) {
-                UserEntity user = userRepository.findById(userId)
-                                .orElseThrow(() -> UserException.userNotFoundException());
+                UserEntity user = getUserOrThrow(userId);
 
                 int updatedRows = notificationRepository.markAsReadByIdAndUser(notificationId, user);
 
@@ -94,8 +96,7 @@ public class NotificationService {
         // 모든 알림 읽음 처리
         @Transactional
         public int markAllAsRead(Long userId) {
-                UserEntity user = userRepository.findById(userId)
-                                .orElseThrow(() -> UserException.userNotFoundException());
+                UserEntity user = getUserOrThrow(userId);
 
                 int updatedRows = notificationRepository.markAllAsReadByUser(user);
 
