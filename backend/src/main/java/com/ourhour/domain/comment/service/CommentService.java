@@ -33,6 +33,8 @@ import com.ourhour.domain.project.sync.GitHubSyncManager;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.enums.Status;
+import com.ourhour.domain.notification.dto.IssueNotificationContext;
+import com.ourhour.domain.notification.dto.PostNotificationContext;
 import com.ourhour.domain.notification.service.NotificationEventService;
 
 import lombok.RequiredArgsConstructor;
@@ -260,24 +262,19 @@ public class CommentService {
         Long currentUserId = commentEntity.getAuthorEntity().getUserEntity().getUserId();
 
         if (!authorUserId.equals(currentUserId)) {
+            PostNotificationContext context = PostNotificationContext.builder()
+                    .userId(authorUserId)
+                    .postTitle(postEntity.getTitle())
+                    .postId(postEntity.getPostId())
+                    .boardId(postEntity.getBoardEntity().getBoardId())
+                    .orgId(postEntity.getBoardEntity().getOrgEntity().getOrgId())
+                    .commenterName(commentEntity.getAuthorEntity().getName())
+                    .build();
+
             if (parentCommentId != null) {
-                notificationEventService.sendPostCommentReplyNotification(
-                    authorUserId,
-                    commentEntity.getAuthorEntity().getName(),
-                    postEntity.getTitle(),
-                    postEntity.getPostId(),
-                    postEntity.getBoardEntity().getBoardId(),
-                    postEntity.getBoardEntity().getOrgEntity().getOrgId()
-                );
+                notificationEventService.sendPostCommentReplyNotification(context);
             } else {
-                notificationEventService.sendPostCommentNotification(
-                    authorUserId,
-                    commentEntity.getAuthorEntity().getName(),
-                    postEntity.getTitle(),
-                    postEntity.getPostId(),
-                    postEntity.getBoardEntity().getBoardId(),
-                    postEntity.getBoardEntity().getOrgEntity().getOrgId()
-                );
+                notificationEventService.sendPostCommentNotification(context);
             }
         }
 
@@ -304,26 +301,20 @@ public class CommentService {
         Long currentUserId = commentEntity.getAuthorEntity().getUserEntity().getUserId();
 
         if (assigneeUserId != null && !assigneeUserId.equals(currentUserId)) {
+            IssueNotificationContext context = IssueNotificationContext.builder()
+                    .userId(assigneeUserId)
+                    .issueTitle(issueEntity.getName())
+                    .issueId(issueEntity.getIssueId())
+                    .projectId(issueEntity.getProjectEntity().getProjectId())
+                    .orgId(issueEntity.getProjectEntity().getOrgEntity().getOrgId())
+                    .projectName(issueEntity.getProjectEntity().getName())
+                    .commenterName(commentEntity.getAuthorEntity().getName())
+                    .build();
+
             if (parentCommentId != null) {
-                notificationEventService.sendIssueCommentReplyNotification(
-                    assigneeUserId,
-                    commentEntity.getAuthorEntity().getName(),
-                    issueEntity.getName(),
-                    issueEntity.getIssueId(),
-                    issueEntity.getProjectEntity().getProjectId(),
-                    issueEntity.getProjectEntity().getOrgEntity().getOrgId(),
-                    issueEntity.getProjectEntity().getName()
-                );
+                notificationEventService.sendIssueCommentReplyNotification(context);
             } else {
-                notificationEventService.sendIssueCommentNotification(
-                    assigneeUserId,
-                    commentEntity.getAuthorEntity().getName(),
-                    issueEntity.getName(),
-                    issueEntity.getIssueId(),
-                    issueEntity.getProjectEntity().getProjectId(),
-                    issueEntity.getProjectEntity().getOrgEntity().getOrgId(),
-                    issueEntity.getProjectEntity().getName()
-                );
+                notificationEventService.sendIssueCommentNotification(context);
             }
         }
 
