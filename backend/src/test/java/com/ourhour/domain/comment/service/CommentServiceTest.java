@@ -47,6 +47,8 @@ import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.enums.Status;
+import com.ourhour.domain.notification.dto.IssueNotificationContext;
+import com.ourhour.domain.notification.dto.PostNotificationContext;
 import com.ourhour.domain.notification.service.NotificationEventService;
 import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.board.entity.BoardEntity;
@@ -241,8 +243,7 @@ class CommentServiceTest {
                 then(memberRepository).should().findById(currentMemberId);
                 then(postRepository).should().findById(1L);
                 then(commentRepository).should().save(any(CommentEntity.class));
-                then(notificationEventService).should().sendPostCommentNotification(eq(1L), eq("Commenter"),
-                                eq("Test Post"), eq(1L), eq(1L), eq(1L));
+                then(notificationEventService).should().sendPostCommentNotification(any(PostNotificationContext.class));
         }
 
         @Test
@@ -291,8 +292,7 @@ class CommentServiceTest {
                 then(memberRepository).should().findById(currentMemberId);
                 then(issueRepository).should().findById(1L);
                 then(commentRepository).should().save(any(CommentEntity.class));
-                then(notificationEventService).should().sendIssueCommentNotification(eq(1L), eq("Commenter"),
-                                eq("Test Issue"), eq(1L), eq(1L), eq(1L), eq("Test Project"));
+                then(notificationEventService).should().sendIssueCommentNotification(any(IssueNotificationContext.class));
         }
 
         @Test
