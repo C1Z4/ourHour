@@ -8,9 +8,12 @@ import com.ourhour.global.util.SecurityUtil;
 import com.ourhour.domain.user.exception.UserException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,11 +21,18 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+@Validated
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
 @Tag(name = "알림", description = "실시간 알림 관리 API")
 public class NotificationController {
+
+    private static final int DEFAULT_PAGE = 1;
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MIN_PAGE = 1;
+    private static final int MIN_PAGE_SIZE = 1;
+    private static final int MAX_PAGE_SIZE = 100;
 
     private final NotificationService notificationService;
     private final SSENotificationService sseNotificationService;
@@ -61,8 +71,8 @@ public class NotificationController {
     @GetMapping
     @Operation(summary = "알림 목록 조회", description = "사용자의 알림 목록을 페이지네이션으로 조회합니다.")
     public ResponseEntity<ApiResponse<NotificationPageResDTO>> getNotifications(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "" + DEFAULT_PAGE) @Min(MIN_PAGE) int page,
+            @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) @Min(MIN_PAGE_SIZE) @Max(MAX_PAGE_SIZE) int size) {
         Long userId = SecurityUtil.getCurrentUserId();
 
         NotificationPageResDTO response = notificationService.getNotifications(userId, page, size);
