@@ -5,6 +5,7 @@ import com.ourhour.domain.notification.dto.NotificationDTO;
 import com.ourhour.domain.notification.dto.SSEEventDTO;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,6 +21,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SSENotificationService {
@@ -134,6 +136,7 @@ public class SSENotificationService {
             try {
                 existingEmitter.complete();
             } catch (Exception e) {
+                log.debug("Failed to complete emitter for user {}: {}", userId, e.getMessage());
             }
         }
 
@@ -144,54 +147,58 @@ public class SSENotificationService {
         }
     }
 
+    // SecurityContext 내에서 작업 실행하는 헬퍼 메서드
+    private void executeWithSecurityContext(SecurityContext context, Runnable task) {
+        SecurityContextHolder.setContext(context);
+        try {
+            task.run();
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
     // 연결 유지를 위한 heartbeat 메시지 전송 (ScheduledExecutorService 사용)
     private void startHeartbeat(Long userId, SseEmitter emitter) {
         // 현재 SecurityContext 캡처 (HTTP 요청 스레드에서)
         SecurityContext securityContext = SecurityContextHolder.getContext();
 
         // 초기 연결 메시지를 즉시 전송 (연결 안정화)
-        ScheduledFuture<?> initialTask = heartbeatScheduler.schedule(() -> {
-            SecurityContextHolder.setContext(securityContext);
-            try {
-                if (emitters.containsKey(userId) && emitter != null) {
-                    emitter.send(SseEmitter.event()
-                            .name("connection")
-                            .data("connected"));
-                }
-            } catch (Exception e) {
-            } finally {
-                SecurityContextHolder.clearContext();
+        try {
+            if (emitters.containsKey(userId) && emitter != null) {
+                emitter.send(SseEmitter.event()
+                        .name("connection")
+                        .data("connected"));
             }
-        }, 100, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            log.debug("Failed to send initial connection message for user {}: {}", userId, e.getMessage());
+            cleanupConnection(userId);
+            return; // 초기 연결 실패 시 heartbeat 시작하지 않음
+        }
 
         // 15초마다 heartbeat 메시지 전송 (연결 끊김 즉시 감지)
         ScheduledFuture<?> heartbeatTask = heartbeatScheduler.scheduleAtFixedRate(() -> {
-            // SecurityContext를 스케줄러 스레드에 설정
-            SecurityContextHolder.setContext(securityContext);
+            executeWithSecurityContext(securityContext, () -> {
+                try {
+                    if (emitters.containsKey(userId) && emitter != null) {
+                        // Emitter 상태 체크
+                        try {
+                            emitter.send(SseEmitter.event()
+                                    .name("ping")
+                                    .data("ping"));
 
-            try {
-                if (emitters.containsKey(userId) && emitter != null) {
-                    // Emitter 상태 체크
-                    try {
-                        emitter.send(SseEmitter.event()
-                                .name("ping")
-                                .data("ping"));
-
-                    } catch (IllegalStateException e) {
-                        // ResponseBodyEmitter has already completed
+                        } catch (IllegalStateException e) {
+                            // ResponseBodyEmitter has already completed
+                            cleanupConnection(userId);
+                        }
+                    } else {
                         cleanupConnection(userId);
                     }
-                } else {
+                } catch (IOException e) {
+                    cleanupConnection(userId);
+                } catch (Exception e) {
                     cleanupConnection(userId);
                 }
-            } catch (IOException e) {
-                cleanupConnection(userId);
-            } catch (Exception e) {
-                cleanupConnection(userId);
-            } finally {
-                // SecurityContext 정리
-                SecurityContextHolder.clearContext();
-            }
+            });
         }, heartbeatInterval, heartbeatInterval, TimeUnit.SECONDS);
 
         // heartbeat 작업 저장
@@ -201,11 +208,14 @@ public class SSENotificationService {
     // 서비스 종료 시 모든 연결 정리
     @PreDestroy
     public void shutdown() {
+        log.info("Shutting down SSE notification service. Active connections: {}", emitters.size());
+
         // 모든 emitter 정리
         emitters.forEach((userId, emitter) -> {
             try {
                 emitter.complete();
             } catch (Exception e) {
+                log.debug("Failed to complete emitter for user {} during shutdown: {}", userId, e.getMessage());
             }
         });
         emitters.clear();
@@ -222,11 +232,15 @@ public class SSENotificationService {
         heartbeatScheduler.shutdown();
         try {
             if (!heartbeatScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                log.warn("Heartbeat scheduler did not terminate within 5 seconds, forcing shutdown");
                 heartbeatScheduler.shutdownNow();
             }
         } catch (InterruptedException e) {
+            log.error("Interrupted while waiting for heartbeat scheduler to terminate", e);
             heartbeatScheduler.shutdownNow();
             Thread.currentThread().interrupt();
         }
+
+        log.info("SSE notification service shutdown completed");
     }
 }
