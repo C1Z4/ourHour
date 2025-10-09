@@ -1,8 +1,12 @@
 package com.ourhour.domain.notification.service;
 
+import com.ourhour.domain.notification.dto.ChatNotificationContext;
+import com.ourhour.domain.notification.dto.IssueNotificationContext;
 import com.ourhour.domain.notification.dto.NotificationCreateReqDTO;
 import com.ourhour.domain.notification.dto.NotificationDTO;
+import com.ourhour.domain.notification.dto.PostNotificationContext;
 import com.ourhour.domain.notification.enums.NotificationType;
+import com.ourhour.domain.notification.enums.RelatedType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,98 +26,102 @@ public class NotificationEventService {
         }
 
         // 채팅방 메시지 알림
-        public void sendChatMessageNotification(Long userId, String senderName, String roomName, Long roomId, Long orgId) {
+        public void sendChatMessageNotification(ChatNotificationContext context) {
                 NotificationCreateReqDTO dto = NotificationCreateReqDTO.builder()
-                                .userId(userId)
+                                .userId(context.getUserId())
                                 .type(NotificationType.CHAT_MESSAGE)
-                                .title(String.format("%s님의 메시지", senderName))
-                                .message(String.format("'%s' 채팅방에 새 메시지가 있습니다.", roomName))
-                                .relatedId(roomId)
-                                .relatedType("chatroom")
-                                .actionUrl(String.format("/org/%d/chat/%d", orgId, roomId))
+                                .title(String.format("%s님의 메시지", context.getSenderName()))
+                                .message(String.format("'%s' 채팅방에 새 메시지가 있습니다.", context.getRoomName()))
+                                .relatedId(context.getRoomId())
+                                .relatedType(RelatedType.CHATROOM.getValue())
+                                .actionUrl(String.format("/org/%d/chat/%d", context.getOrgId(), context.getRoomId()))
                                 .build();
 
                 createAndSendNotification(dto);
         }
 
         // 이슈 할당 알림
-        public void sendIssueAssignedNotification(Long userId, String issueTitle, Long issueId, Long projectId,
-                        Long orgId, String projectName) {
+        public void sendIssueAssignedNotification(IssueNotificationContext context) {
                 NotificationCreateReqDTO dto = NotificationCreateReqDTO.builder()
-                                .userId(userId)
+                                .userId(context.getUserId())
                                 .type(NotificationType.ISSUE_ASSIGNED)
                                 .title("이슈 할당")
-                                .message(String.format("'%s' 이슈가 할당되었습니다.", issueTitle))
-                                .relatedId(issueId)
-                                .relatedType("issue")
-                                .actionUrl(String.format("/org/%d/project/%d/issue/%d", orgId, projectId, issueId))
-                                .relatedProjectName(projectName)
+                                .message(String.format("'%s' 이슈가 할당되었습니다.", context.getIssueTitle()))
+                                .relatedId(context.getIssueId())
+                                .relatedType(RelatedType.ISSUE.getValue())
+                                .actionUrl(String.format("/org/%d/project/%d/issue/%d",
+                                        context.getOrgId(), context.getProjectId(), context.getIssueId()))
+                                .relatedProjectName(context.getProjectName())
                                 .build();
 
                 createAndSendNotification(dto);
         }
 
         // 이슈 댓글 알림
-        public void sendIssueCommentNotification(Long userId, String commenterName, String issueTitle, Long issueId,
-                        Long projectId, Long orgId, String projectName) {
+        public void sendIssueCommentNotification(IssueNotificationContext context) {
                 NotificationCreateReqDTO dto = NotificationCreateReqDTO.builder()
-                                .userId(userId)
+                                .userId(context.getUserId())
                                 .type(NotificationType.ISSUE_COMMENT)
                                 .title("이슈 댓글")
-                                .message(String.format("%s님이 '%s' 이슈에 댓글을 남겼습니다.", commenterName, issueTitle))
-                                .relatedId(issueId)
-                                .relatedType("issue")
-                                .actionUrl(String.format("/org/%d/project/%d/issue/%d", orgId, projectId, issueId))
-                                .relatedProjectName(projectName)
+                                .message(String.format("%s님이 '%s' 이슈에 댓글을 남겼습니다.",
+                                        context.getCommenterName(), context.getIssueTitle()))
+                                .relatedId(context.getIssueId())
+                                .relatedType(RelatedType.ISSUE.getValue())
+                                .actionUrl(String.format("/org/%d/project/%d/issue/%d",
+                                        context.getOrgId(), context.getProjectId(), context.getIssueId()))
+                                .relatedProjectName(context.getProjectName())
                                 .build();
 
                 createAndSendNotification(dto);
         }
 
         // 이슈 댓글 답글 알림
-        public void sendIssueCommentReplyNotification(Long userId, String replierName, String issueTitle, Long issueId,
-                        Long projectId, Long orgId, String projectName) {
+        public void sendIssueCommentReplyNotification(IssueNotificationContext context) {
                 NotificationCreateReqDTO dto = NotificationCreateReqDTO.builder()
-                                .userId(userId)
+                                .userId(context.getUserId())
                                 .type(NotificationType.ISSUE_COMMENT_REPLY)
                                 .title("이슈 댓글 답글")
-                                .message(String.format("%s님이 '%s' 이슈에 댓글에 답글을 남겼습니다.", replierName, issueTitle))
-                                .relatedId(issueId)
-                                .relatedType("issue")
-                                .actionUrl(String.format("/org/%d/project/%d/issue/%d", orgId, projectId, issueId))
-                                .relatedProjectName(projectName)
+                                .message(String.format("%s님이 '%s' 이슈에 댓글에 답글을 남겼습니다.",
+                                        context.getCommenterName(), context.getIssueTitle()))
+                                .relatedId(context.getIssueId())
+                                .relatedType(RelatedType.ISSUE.getValue())
+                                .actionUrl(String.format("/org/%d/project/%d/issue/%d",
+                                        context.getOrgId(), context.getProjectId(), context.getIssueId()))
+                                .relatedProjectName(context.getProjectName())
                                 .build();
 
                 createAndSendNotification(dto);
         }
 
         // 게시글 댓글 알림
-        public void sendPostCommentNotification(Long userId, String commenterName, String postTitle, Long postId,
-                        Long boardId, Long orgId) {
+        public void sendPostCommentNotification(PostNotificationContext context) {
                 NotificationCreateReqDTO dto = NotificationCreateReqDTO.builder()
-                                .userId(userId)
+                                .userId(context.getUserId())
                                 .type(NotificationType.POST_COMMENT)
                                 .title("게시글 댓글")
-                                .message(String.format("%s님이 '%s' 게시글에 댓글을 남겼습니다.", commenterName, postTitle))
-                                .relatedId(postId)
-                                .relatedType("post")
-                                .actionUrl(String.format("/org/%d/board/%d/post/%d", orgId, boardId, postId))
+                                .message(String.format("%s님이 '%s' 게시글에 댓글을 남겼습니다.",
+                                        context.getCommenterName(), context.getPostTitle()))
+                                .relatedId(context.getPostId())
+                                .relatedType(RelatedType.POST.getValue())
+                                .actionUrl(String.format("/org/%d/board/%d/post/%d",
+                                        context.getOrgId(), context.getBoardId(), context.getPostId()))
                                 .build();
 
                 createAndSendNotification(dto);
         }
 
         // 게시글 댓글 답글 알림
-        public void sendPostCommentReplyNotification(Long userId, String replierName, String postTitle, Long postId,
-                        Long boardId, Long orgId) {
+        public void sendPostCommentReplyNotification(PostNotificationContext context) {
                 NotificationCreateReqDTO dto = NotificationCreateReqDTO.builder()
-                                .userId(userId)
+                                .userId(context.getUserId())
                                 .type(NotificationType.POST_COMMENT_REPLY)
                                 .title("댓글 답글")
-                                .message(String.format("%s님이 '%s' 게시글의 댓글에 답글을 남겼습니다.", replierName, postTitle))
-                                .relatedId(postId)
-                                .relatedType("post")
-                                .actionUrl(String.format("/org/%d/board/%d/post/%d", orgId, boardId, postId))
+                                .message(String.format("%s님이 '%s' 게시글의 댓글에 답글을 남겼습니다.",
+                                        context.getCommenterName(), context.getPostTitle()))
+                                .relatedId(context.getPostId())
+                                .relatedType(RelatedType.POST.getValue())
+                                .actionUrl(String.format("/org/%d/board/%d/post/%d",
+                                        context.getOrgId(), context.getBoardId(), context.getPostId()))
                                 .build();
 
                 createAndSendNotification(dto);

@@ -18,6 +18,7 @@ import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.jwt.dto.Claims;
+import com.ourhour.domain.notification.dto.ChatNotificationContext;
 import com.ourhour.domain.notification.service.NotificationEventService;
 import com.ourhour.global.jwt.dto.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -178,15 +179,17 @@ public class ChatService {
         for (ChatParticipantEntity participant : participants) {
             if (!participant.getMemberEntity().getMemberId().equals(memberId)) {
                 Long targetUserId = participant.getMemberEntity().getUserEntity().getUserId();
-                
+
                 // 사용자가 현재 채팅방에 있지 않을 때만 알림 발송
                 if (!userLocationService.isUserInChatRoom(targetUserId, chatRoom.getRoomId())) {
                     notificationEventService.sendChatMessageNotification(
-                            targetUserId,
-                            sender.getName(),
-                            chatRoom.getName(),
-                            chatRoom.getRoomId(),
-                            orgId);
+                            ChatNotificationContext.builder()
+                                    .userId(targetUserId)
+                                    .senderName(sender.getName())
+                                    .roomName(chatRoom.getName())
+                                    .roomId(chatRoom.getRoomId())
+                                    .orgId(orgId)
+                                    .build());
                 }
             }
         }

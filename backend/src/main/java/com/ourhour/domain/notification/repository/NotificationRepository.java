@@ -13,8 +13,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface NotificationRepository extends JpaRepository<NotificationEntity, Long> {
 
-    @Query("SELECT n FROM NotificationEntity n WHERE n.userEntity = :user ORDER BY n.createdAt DESC")
-    Page<NotificationEntity> findByUserEntityOrderByCreatedAtDesc(@Param("user") UserEntity user, Pageable pageable);
+    Page<NotificationEntity> findByUserEntityOrderByCreatedAtDesc(UserEntity userEntity, Pageable pageable);
 
     @Query("SELECT COUNT(n) FROM NotificationEntity n WHERE n.userEntity = :user AND n.isRead = false")
     long countUnreadByUser(@Param("user") UserEntity user);
