@@ -37,6 +37,7 @@ import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.domain.project.exception.MilestoneException;
 import com.ourhour.domain.project.exception.IssueException;
 import com.ourhour.domain.project.annotation.GitHubSync;
+import com.ourhour.domain.notification.dto.IssueNotificationContext;
 import com.ourhour.domain.notification.service.NotificationEventService;
 
 import lombok.RequiredArgsConstructor;
@@ -184,12 +185,14 @@ public class IssueService {
             } else {
                 Long targetUserId = savedIssueEntity.getAssigneeEntity().getUserEntity().getUserId();
                 notificationEventService.sendIssueAssignedNotification(
-                        targetUserId,
-                        savedIssueEntity.getName(),
-                        savedIssueEntity.getIssueId(),
-                        projectEntity.getProjectId(),
-                        projectEntity.getOrgEntity().getOrgId(),
-                        projectEntity.getName());
+                        IssueNotificationContext.builder()
+                                .userId(targetUserId)
+                                .issueTitle(savedIssueEntity.getName())
+                                .issueId(savedIssueEntity.getIssueId())
+                                .projectId(projectEntity.getProjectId())
+                                .orgId(projectEntity.getOrgEntity().getOrgId())
+                                .projectName(projectEntity.getName())
+                                .build());
             }
         }
 
@@ -265,12 +268,14 @@ public class IssueService {
             } else {
                 Long targetUserId = savedIssueEntity.getAssigneeEntity().getUserEntity().getUserId();
                 notificationEventService.sendIssueAssignedNotification(
-                        targetUserId,
-                        savedIssueEntity.getName(),
-                        savedIssueEntity.getIssueId(),
-                        savedIssueEntity.getProjectEntity().getProjectId(),
-                        savedIssueEntity.getProjectEntity().getOrgEntity().getOrgId(),
-                        savedIssueEntity.getProjectEntity().getName());
+                        IssueNotificationContext.builder()
+                                .userId(targetUserId)
+                                .issueTitle(savedIssueEntity.getName())
+                                .issueId(savedIssueEntity.getIssueId())
+                                .projectId(savedIssueEntity.getProjectEntity().getProjectId())
+                                .orgId(savedIssueEntity.getProjectEntity().getOrgEntity().getOrgId())
+                                .projectName(savedIssueEntity.getProjectEntity().getName())
+                                .build());
             }
         }
 
