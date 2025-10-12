@@ -84,8 +84,7 @@ public class GitHubSyncManager {
                     break;
             }
         } catch (Exception e) {
-            log.error("GitHub 동기화 실패 - Operation: {}, Entity: {}, ID: {}",
-                    operation, entity.getClass().getSimpleName(), entity.getId(), e);
+            handleSyncFailure(entity, operation, e);
         }
     }
 
@@ -109,5 +108,22 @@ public class GitHubSyncManager {
     // 프로젝트 GitHub 연동 여부 확인
     private boolean isProjectGitHubSynced(Long projectId) {
         return projectGitHubService.hasGitHubIntegration(projectId);
+    }
+
+    // 동기화 실패 처리
+    private <T extends GitHubSyncableEntity> void handleSyncFailure(T entity, SyncOperation operation, Exception e) {
+        log.error("GitHub 동기화 실패 - Operation: {}, Entity: {}, ID: {}",
+                operation, entity.getClass().getSimpleName(), entity.getId(), e);
+
+        // TODO: 실패한 동기화 작업을 큐에 저장하여 나중에 재시도하거나
+        // 사용자에게 알림을 보내는 로직을 추가할 수 있음
+
+        // 예시: 실패 로그를 별도 테이블에 저장
+        // syncFailureLogService.logFailure(entity, operation, e.getMessage());
+
+        // 예시: 관리자에게 알림 전송
+        // if (isCriticalFailure(e)) {
+        // notificationService.notifyAdmins("GitHub 동기화 실패", entity, operation, e);
+        // }
     }
 }
