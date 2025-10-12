@@ -155,10 +155,6 @@ public class ProjectService {
         OrgEntity orgEntity = orgRepository.findById(orgId)
                 .orElseThrow(() -> OrgException.orgNotFoundException());
 
-        if (orgEntity == null) {
-            throw OrgException.orgNotFoundException();
-        }
-
         ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
 
         projectRepository.save(projectEntity);
@@ -265,16 +261,30 @@ public class ProjectService {
             return ApiResponse.success(PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize()));
         }
 
+        // 마일스톤 ID 목록 추출
+        List<Long> milestoneIds = milestonePage.getContent().stream()
+                .map(MilestoneEntity::getMilestoneId)
+                .collect(Collectors.toList());
+
+        // 벌크 쿼리로 이슈 카운트 조회
+        Map<Long, Long> totalCounts = issueRepository.countByMilestoneIds(milestoneIds).stream()
+                .collect(Collectors.toMap(
+                        count -> count.getMilestoneId(),
+                        count -> count.getTotalCount()));
+
+        Map<Long, Long> completedCounts = issueRepository.countByMilestoneIdsAndStatus(milestoneIds, IssueStatus.COMPLETED).stream()
+                .collect(Collectors.toMap(
+                        count -> count.getMilestoneId(),
+                        count -> count.getCompletedCount()));
+
         Page<MileStoneInfoDTO> milestoneInfoPage = milestonePage.map(milestone -> {
-            int totalIssues = (int) issueRepository
-                    .countByMilestoneEntity_MilestoneId(milestone.getMilestoneId());
-            int completedIssues = (int) issueRepository.countByMilestoneEntity_MilestoneIdAndStatus(
-                    milestone.getMilestoneId(), IssueStatus.COMPLETED);
+            long totalIssues = totalCounts.getOrDefault(milestone.getMilestoneId(), 0L);
+            long completedIssues = completedCounts.getOrDefault(milestone.getMilestoneId(), 0L);
             return new MileStoneInfoDTO(
                     milestone.getMilestoneId(),
                     milestone.getName(),
-                    completedIssues,
-                    totalIssues,
+                    (int) completedIssues,
+                    (int) totalIssues,
                     (byte) (totalIssues == 0 ? 0 : (completedIssues * 100 / totalIssues)));
         });
 
