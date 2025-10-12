@@ -46,7 +46,7 @@ import com.ourhour.domain.project.dto.IssueSummaryDTO;
 import com.ourhour.domain.project.dto.IssueTagDTO;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
 import com.ourhour.domain.project.dto.MilestoneReqDTO;
-import com.ourhour.domain.project.dto.ProjecUpdateReqDTO;
+import com.ourhour.domain.project.dto.ProjectUpdateReqDTO;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectParticipantDTO;
 import com.ourhour.domain.project.dto.ProjectReqDTO;
@@ -159,11 +159,11 @@ class ProjectControllerTest {
         void updateProject_Success() throws Exception {
                 // Given
                 setAuthenticationContext();
-                ProjecUpdateReqDTO updateReqDTO = new ProjecUpdateReqDTO();
+                ProjectUpdateReqDTO updateReqDTO = new ProjectUpdateReqDTO();
                 updateReqDTO.setName("수정된 프로젝트");
                 updateReqDTO.setDescription("수정된 프로젝트 설명");
 
-                given(projectService.updateProject(eq(PROJECT_ID), any(ProjecUpdateReqDTO.class)))
+                given(projectService.updateProject(eq(PROJECT_ID), any(ProjectUpdateReqDTO.class)))
                                 .willReturn(ApiResponse.success(null, "프로젝트 수정이 완료되었습니다."));
 
                 // When & Then
@@ -172,7 +172,7 @@ class ProjectControllerTest {
                                 .content(objectMapper.writeValueAsString(updateReqDTO)))
                                 .andExpect(status().isOk());
 
-                then(projectService).should().updateProject(eq(PROJECT_ID), any(ProjecUpdateReqDTO.class));
+                then(projectService).should().updateProject(eq(PROJECT_ID), any(ProjectUpdateReqDTO.class));
 
                 SecurityContextHolder.clearContext();
         }
