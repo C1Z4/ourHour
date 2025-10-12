@@ -6,6 +6,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
@@ -30,7 +32,7 @@ import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.org.repository.OrgRepository;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
-import com.ourhour.domain.project.dto.ProjecUpdateReqDTO;
+import com.ourhour.domain.project.dto.ProjectUpdateReqDTO;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectReqDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryResDTO;
@@ -44,6 +46,9 @@ import com.ourhour.domain.project.repository.IssueRepository;
 import com.ourhour.domain.project.repository.MilestoneRepository;
 import com.ourhour.domain.project.repository.ProjectParticipantRepository;
 import com.ourhour.domain.project.repository.ProjectRepository;
+import com.ourhour.domain.project.validator.ProjectValidator;
+import com.ourhour.domain.project.service.AuthorizationService;
+import com.ourhour.domain.project.service.ProjectParticipantService;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.util.SecurityUtil;
@@ -75,13 +80,22 @@ class ProjectServiceTest {
         @Mock
         private IssueRepository issueRepository;
 
+        @Mock
+        private ProjectValidator projectValidator;
+
+        @Mock
+        private AuthorizationService authorizationService;
+
+        @Mock
+        private ProjectParticipantService projectParticipantService;
+
         @InjectMocks
         private ProjectService projectService;
 
         private OrgEntity org;
         private ProjectEntity project;
         private ProjectReqDTO projectReqDTO;
-        private ProjecUpdateReqDTO projectUpdateReqDTO;
+        private ProjectUpdateReqDTO projectUpdateReqDTO;
         private MilestoneEntity milestone;
 
         @BeforeEach
@@ -94,9 +108,11 @@ class ProjectServiceTest {
                 projectReqDTO.setName("테스트 프로젝트");
                 projectReqDTO.setDescription("테스트 프로젝트 설명");
 
-                projectUpdateReqDTO = new ProjecUpdateReqDTO();
+                projectUpdateReqDTO = new ProjectUpdateReqDTO();
                 projectUpdateReqDTO.setName("수정된 프로젝트");
                 projectUpdateReqDTO.setDescription("수정된 프로젝트 설명");
+
+                // 기본 Mock 동작 설정 - 필요한 경우에만 각 테스트에서 개별 설정
         }
 
         @Test
@@ -294,11 +310,11 @@ class ProjectServiceTest {
                 List<Long> participantIds = List.of(1L, 2L);
                 projectUpdateReqDTO.setParticipantIds(participantIds);
 
+                // 이 테스트에 필요한 Mock 설정
+                doNothing().when(projectParticipantService).updateProjectParticipants(any(), any(), any());
+
                 given(projectRepository.findById(projectId)).willReturn(Optional.of(project));
                 given(projectRepository.save(project)).willReturn(project);
-                given(memberRepository.existsById(anyLong())).willReturn(true);
-                given(memberRepository.getReferenceById(anyLong()))
-                                .willReturn(mock(com.ourhour.domain.member.entity.MemberEntity.class));
 
                 // when
                 ApiResponse<Void> result = projectService.updateProject(projectId, projectUpdateReqDTO);
@@ -309,8 +325,7 @@ class ProjectServiceTest {
                 then(projectRepository).should().findById(projectId);
                 then(projectMapper).should().updateProjectEntity(project, projectUpdateReqDTO);
                 then(projectRepository).should().save(project);
-                then(projectParticipantRepository).should().deleteByProjectParticipantId_ProjectId(projectId);
-                then(projectParticipantRepository).should().saveAll(any());
+                then(projectParticipantService).should().updateProjectParticipants(any(), any(), any());
         }
 
         @Test
@@ -369,9 +384,11 @@ class ProjectServiceTest {
 
                 given(milestone.getMilestoneId()).willReturn(1L);
                 given(milestone.getName()).willReturn("테스트 마일스톤");
-                given(issueRepository.countByMilestoneEntity_MilestoneId(1L)).willReturn(10L);
-                given(issueRepository.countByMilestoneEntity_MilestoneIdAndStatus(1L, IssueStatus.COMPLETED))
-                                .willReturn(5L);
+
+                // 벌크 쿼리 Mock 설정
+                given(issueRepository.countByMilestoneIds(List.of(1L))).willReturn(List.of());
+                given(issueRepository.countByMilestoneIdsAndStatus(List.of(1L), IssueStatus.COMPLETED))
+                                .willReturn(List.of());
 
                 // when
                 ApiResponse<PageResponse<MileStoneInfoDTO>> result = projectService
@@ -403,9 +420,11 @@ class ProjectServiceTest {
 
                 given(milestone.getMilestoneId()).willReturn(1L);
                 given(milestone.getName()).willReturn("테스트 마일스톤");
-                given(issueRepository.countByMilestoneEntity_MilestoneId(1L)).willReturn(10L);
-                given(issueRepository.countByMilestoneEntity_MilestoneIdAndStatus(1L, IssueStatus.COMPLETED))
-                                .willReturn(5L);
+
+                // 벌크 쿼리 Mock 설정
+                given(issueRepository.countByMilestoneIds(List.of(1L))).willReturn(List.of());
+                given(issueRepository.countByMilestoneIdsAndStatus(List.of(1L), IssueStatus.COMPLETED))
+                                .willReturn(List.of());
 
                 try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
                         mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))
@@ -435,7 +454,8 @@ class ProjectServiceTest {
 
                 // when & then
                 assertThatThrownBy(
-                                () -> projectService.getProjectMilestones(orgId, invalidProjectId, myMilestonesOnly, pageable))
+                                () -> projectService.getProjectMilestones(orgId, invalidProjectId, myMilestonesOnly,
+                                                pageable))
                                 .isInstanceOf(ProjectException.class);
         }
 
@@ -451,7 +471,8 @@ class ProjectServiceTest {
                 given(projectRepository.existsById(projectId)).willReturn(false);
 
                 // when & then
-                assertThatThrownBy(() -> projectService.getProjectMilestones(orgId, projectId, myMilestonesOnly, pageable))
+                assertThatThrownBy(
+                                () -> projectService.getProjectMilestones(orgId, projectId, myMilestonesOnly, pageable))
                                 .isInstanceOf(ProjectException.class);
         }
 
