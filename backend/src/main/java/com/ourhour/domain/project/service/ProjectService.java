@@ -1,7 +1,7 @@
 package com.ourhour.domain.project.service;
 
 import com.ourhour.domain.org.repository.OrgRepository;
-import com.ourhour.domain.project.dto.ProjecUpdateReqDTO;
+import com.ourhour.domain.project.dto.ProjectUpdateReqDTO;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryParticipantDTO;
@@ -51,6 +51,7 @@ public class ProjectService {
     private final OrgRepository orgRepository;
     private final ProjectMapper projectMapper;
     private final MemberRepository memberRepository;
+    private final ProjectParticipantService projectParticipantService;
 
     private final MilestoneRepository milestoneRepository;
     private final IssueRepository issueRepository;
@@ -161,7 +162,7 @@ public class ProjectService {
         }
 
         OrgEntity orgEntity = orgRepository.findById(orgId)
-                .orElseThrow(() -> OrgException.orgNotFoundException());
+                .orElseThrow(OrgException::orgNotFoundException);
 
         ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
 
@@ -192,7 +193,7 @@ public class ProjectService {
 
     // 프로젝트 수정(정보, 참가자)
     @Transactional
-    public ApiResponse<Void> updateProject(Long projectId, ProjecUpdateReqDTO projectUpdateReqDTO) {
+    public ApiResponse<Void> updateProject(Long projectId, ProjectUpdateReqDTO projectUpdateReqDTO) {
         if (projectId <= 0) {
             throw ProjectException.projectNotFoundException();
         }
@@ -203,31 +204,8 @@ public class ProjectService {
         projectMapper.updateProjectEntity(projectEntity, projectUpdateReqDTO);
         ProjectEntity savedProject = projectRepository.save(projectEntity);
 
-        if (projectUpdateReqDTO.getParticipantIds() != null) {
-
-            // 기존 참여자 모두 삭제
-            projectParticipantRepository.deleteByProjectParticipantId_ProjectId(projectId);
-
-            if (!projectUpdateReqDTO.getParticipantIds().isEmpty()) {
-                List<ProjectParticipantEntity> newParticipants = projectUpdateReqDTO.getParticipantIds().stream()
-                        .map(memberId -> {
-                            if (!memberRepository.existsById(memberId)) {
-                                throw MemberException.memberNotFoundException();
-                            }
-
-                            ProjectParticipantId participantId = new ProjectParticipantId(projectId, memberId);
-
-                            return ProjectParticipantEntity.builder()
-                                    .projectParticipantId(participantId)
-                                    .projectEntity(savedProject)
-                                    .memberEntity(memberRepository.getReferenceById(memberId))
-                                    .build();
-                        })
-                        .toList();
-
-                projectParticipantRepository.saveAll(newParticipants);
-            }
-        }
+        projectParticipantService.updateProjectParticipants(projectId, projectUpdateReqDTO.getParticipantIds(),
+                savedProject);
 
         return ApiResponse.success(null, ProjectConstants.PROJECT_UPDATE_SUCCESS);
     }

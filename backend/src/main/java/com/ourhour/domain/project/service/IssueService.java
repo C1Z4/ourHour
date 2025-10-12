@@ -22,6 +22,7 @@ import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.entity.IssueTagEntity;
 import com.ourhour.domain.project.entity.MilestoneEntity;
 import com.ourhour.domain.project.entity.ProjectEntity;
+import com.ourhour.domain.project.enums.IssueStatus;
 import com.ourhour.domain.project.enums.SyncOperation;
 import com.ourhour.domain.project.mapper.IssueMapper;
 import com.ourhour.domain.project.mapper.IssueTagMapper;
@@ -39,6 +40,7 @@ import com.ourhour.domain.project.annotation.GitHubSync;
 import com.ourhour.domain.notification.dto.IssueNotificationContext;
 import com.ourhour.domain.notification.service.NotificationEventService;
 import com.ourhour.domain.project.constants.ProjectConstants;
+import com.ourhour.domain.project.validator.ProjectValidator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,13 +59,12 @@ public class IssueService {
     private final IssueTagRepository issueTagRepository;
     private final IssueTagMapper issueTagMapper;
     private final NotificationEventService notificationEventService;
+    private final ProjectValidator projectValidator;
 
     // 특정 마일스톤의 이슈 목록 조회 (milestoneId가 null이면 마일스톤이 할당되지 않은 이슈들 조회)
     public ApiResponse<PageResponse<IssueSummaryDTO>> getMilestoneIssues(Long projectId, Long milestoneId,
             boolean myIssuesOnly, Pageable pageable) {
-        if (projectId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
+        projectValidator.validateProjectId(projectId);
 
         ProjectEntity projectEntity = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectException.projectNotFoundException());
@@ -78,7 +79,7 @@ public class IssueService {
 
             Page<IssueEntity> issuePage;
 
-            if (milestoneId != null && milestoneId > 0) {
+            if (projectValidator.isValidMilestoneId(milestoneId)) {
                 // 특정 마일스톤의 내가 할당된 이슈 조회
                 issuePage = issueRepository.findByMilestoneEntity_MilestoneIdAndAssigneeEntity_MemberId(
                         milestoneId, memberId, pageable);
@@ -93,7 +94,7 @@ public class IssueService {
                 return ApiResponse.success(PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize()));
             }
 
-            String message = milestoneId != null && milestoneId > 0
+            String message = projectValidator.isValidMilestoneId(milestoneId)
                     ? ProjectConstants.MILESTONE_ISSUES_MY_SUCCESS
                     : ProjectConstants.MILESTONE_ISSUES_UNASSIGNED_MY_SUCCESS;
 
@@ -102,7 +103,7 @@ public class IssueService {
 
         Page<IssueEntity> issuePage;
 
-        if (milestoneId != null && milestoneId > 0) {
+        if (projectValidator.isValidMilestoneId(milestoneId)) {
             // 특정 마일스톤의 이슈 조회
             issuePage = issueRepository.findByMilestoneEntity_MilestoneId(milestoneId, pageable);
         } else {
@@ -116,7 +117,7 @@ public class IssueService {
 
         Page<IssueSummaryDTO> issueDTOPage = issuePage.map(issueMapper::toIssueSummaryDTO);
 
-        String message = milestoneId != null && milestoneId > 0
+        String message = projectValidator.isValidMilestoneId(milestoneId)
                 ? ProjectConstants.MILESTONE_ISSUES_SUCCESS
                 : ProjectConstants.MILESTONE_ISSUES_UNASSIGNED_SUCCESS;
 
@@ -141,9 +142,7 @@ public class IssueService {
     @GitHubSync(operation = SyncOperation.CREATE)
     @Transactional
     public ApiResponse<IssueDetailDTO> createIssue(Long projectId, IssueReqDTO issueReqDTO) {
-        if (projectId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
+        projectValidator.validateProjectId(projectId);
 
         ProjectEntity projectEntity = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectException.projectNotFoundException());
@@ -153,14 +152,14 @@ public class IssueService {
         issueEntity.setProjectEntity(projectEntity);
 
         // 마일스톤 설정
-        if (issueReqDTO.getMilestoneId() != null && issueReqDTO.getMilestoneId() > 0) {
+        if (projectValidator.isValidMilestoneId(issueReqDTO.getMilestoneId())) {
             MilestoneEntity milestoneEntity = milestoneRepository.findById(issueReqDTO.getMilestoneId())
                     .orElseThrow(() -> MilestoneException.milestoneNotFoundException());
             issueEntity.setMilestoneEntity(milestoneEntity);
         }
 
         // 담당자 설정
-        if (issueReqDTO.getAssigneeId() != null && issueReqDTO.getAssigneeId() > 0) {
+        if (projectValidator.isValidAssigneeId(issueReqDTO.getAssigneeId())) {
             MemberEntity assigneeEntity = memberRepository.findById(issueReqDTO.getAssigneeId())
                     .orElseThrow(() -> MemberException.memberNotFoundException());
             issueEntity.setAssigneeEntity(assigneeEntity);
@@ -181,8 +180,7 @@ public class IssueService {
     @Transactional
     public ApiResponse<IssueDetailDTO> updateIssue(Long orgId, Long issueId, IssueReqDTO issueReqDTO) {
         IssueEntity issueEntity = validateAndGetIssue(issueId);
-        Long projectId = issueEntity.getProjectEntity().getProjectId();
-        validateProjectParticipantOrAdmin(orgId, projectId);
+        validateProjectParticipantOrAdmin(orgId, issueEntity.getProjectEntity().getProjectId());
 
         MemberEntity previousAssignee = issueEntity.getAssigneeEntity();
         updateIssueEntityFromRequest(issueEntity, issueReqDTO);
@@ -225,8 +223,7 @@ public class IssueService {
         IssueEntity issueEntity = issueRepository.findById(issueId)
                 .orElseThrow(() -> IssueException.issueNotFoundException());
 
-        Long projectId = issueEntity.getProjectEntity().getProjectId();
-        validateProjectParticipantOrAdmin(orgId, projectId);
+        validateProjectParticipantOrAdmin(orgId, issueEntity.getProjectEntity().getProjectId());
 
         issueRepository.deleteById(issueId);
 
@@ -235,9 +232,7 @@ public class IssueService {
 
     // 이슈 태그 조회
     public ApiResponse<List<IssueTagDTO>> getIssueTags(Long projectId) {
-        if (projectId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
+        projectValidator.validateProjectId(projectId);
 
         List<IssueTagEntity> issueTagEntities = issueTagRepository.findByProjectEntity_ProjectId(projectId);
 
@@ -253,9 +248,7 @@ public class IssueService {
     // 이슈 태그 등록
     @Transactional
     public ApiResponse<Void> createIssueTag(Long projectId, IssueTagDTO issueTagDTO) {
-        if (projectId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
+        projectValidator.validateProjectId(projectId);
 
         ProjectEntity projectEntity = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectException.projectNotFoundException());
@@ -272,13 +265,9 @@ public class IssueService {
     // 이슈 태그 수정
     @Transactional
     public ApiResponse<Void> updateIssueTag(Long projectId, Long issueTagId, IssueTagDTO issueTagDTO) {
-        if (projectId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
+        projectValidator.validateProjectId(projectId);
 
-        if (issueTagId <= 0) {
-            throw IssueException.issueNotFoundException();
-        }
+        projectValidator.validateIssueTagId(issueTagId);
 
         IssueTagEntity issueTagEntity = issueTagRepository.findById(issueTagId)
                 .orElseThrow(() -> IssueException.issueTagNotFoundException());
@@ -291,13 +280,9 @@ public class IssueService {
     // 이슈 태그 삭제
     @Transactional
     public ApiResponse<Void> deleteIssueTag(Long projectId, Long issueTagId) {
-        if (projectId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
+        projectValidator.validateProjectId(projectId);
 
-        if (issueTagId <= 0) {
-            throw IssueException.issueNotFoundException();
-        }
+        projectValidator.validateIssueTagId(issueTagId);
 
         IssueTagEntity issueTagEntity = issueTagRepository.findById(issueTagId)
                 .orElseThrow(() -> IssueException.issueTagNotFoundException());
@@ -332,9 +317,7 @@ public class IssueService {
     }
 
     private IssueEntity validateAndGetIssue(Long issueId) {
-        if (issueId <= 0) {
-            throw IssueException.issueNotFoundException();
-        }
+        projectValidator.validateIssueId(issueId);
         return issueRepository.findById(issueId)
                 .orElseThrow(() -> IssueException.issueNotFoundException());
     }
@@ -348,7 +331,7 @@ public class IssueService {
     }
 
     private void updateAssignee(IssueEntity issueEntity, Long assigneeId) {
-        if (assigneeId != null && assigneeId > 0) {
+        if (projectValidator.isValidAssigneeId(assigneeId)) {
             MemberEntity assignee = memberRepository.findById(assigneeId)
                     .orElseThrow(() -> MemberException.memberNotFoundException());
             issueEntity.setAssigneeEntity(assignee);
@@ -358,7 +341,7 @@ public class IssueService {
     }
 
     private void updateMilestone(IssueEntity issueEntity, Long milestoneId) {
-        if (milestoneId != null) {
+        if (projectValidator.isValidMilestoneId(milestoneId)) {
             MilestoneEntity milestone = milestoneRepository.findById(milestoneId)
                     .orElseThrow(() -> MilestoneException.milestoneNotFoundException());
             issueEntity.setMilestoneEntity(milestone);

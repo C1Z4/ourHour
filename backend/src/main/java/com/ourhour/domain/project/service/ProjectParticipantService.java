@@ -17,6 +17,12 @@ import org.springframework.stereotype.Service;
 import com.ourhour.domain.project.dto.ProjectParticipantDTO;
 import com.ourhour.domain.project.exception.ProjectException;
 import com.ourhour.global.common.dto.ApiResponse;
+import com.ourhour.domain.project.entity.ProjectEntity;
+import com.ourhour.domain.member.repository.MemberRepository;
+import com.ourhour.domain.member.exception.MemberException;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -27,6 +33,7 @@ public class ProjectParticipantService {
     private final ProjectParticipantMapper projectParticipantMapper;
     private final ProjectRepository projectRepository;
     private final OrgRepository orgRepository;
+    private final MemberRepository memberRepository;
 
     // 특정 프로젝트의 참가자 목록 조회
     public ApiResponse<PageResponse<ProjectParticipantDTO>> getProjectParticipants(Long projectId, Long orgId,
@@ -55,7 +62,7 @@ public class ProjectParticipantService {
         }
 
         if (participantPage.isEmpty()) {
-            return ApiResponse.success(PageResponse.empty(pageable.getPageNumber(), pageable.getPageSize()));
+            return ApiResponse.success(PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize()));
         }
 
         Page<ProjectParticipantDTO> participantDTOPage = participantPage
@@ -83,6 +90,45 @@ public class ProjectParticipantService {
         projectParticipantRepository.deleteById(projectParticipantId);
 
         return ApiResponse.success(null, "프로젝트 참가자 삭제에 성공했습니다.");
+    }
+
+    // 프로젝트 참여자 업데이트
+    @Transactional
+    public void updateProjectParticipants(Long projectId, List<Long> participantIds, ProjectEntity savedProject) {
+        if (participantIds == null) {
+            return;
+        }
+
+        // 기존 참여자 모두 삭제
+        projectParticipantRepository.deleteByProjectParticipantId_ProjectId(projectId);
+
+        if (!participantIds.isEmpty()) {
+            List<ProjectParticipantEntity> newParticipants = createNewParticipants(projectId, participantIds,
+                    savedProject);
+            projectParticipantRepository.saveAll(newParticipants);
+        }
+    }
+
+    private List<ProjectParticipantEntity> createNewParticipants(Long projectId, List<Long> participantIds,
+            ProjectEntity savedProject) {
+        return participantIds.stream()
+                .map(memberId -> {
+                    validateMemberExists(memberId);
+                    ProjectParticipantId participantId = new ProjectParticipantId(projectId, memberId);
+
+                    return ProjectParticipantEntity.builder()
+                            .projectParticipantId(participantId)
+                            .projectEntity(savedProject)
+                            .memberEntity(memberRepository.getReferenceById(memberId))
+                            .build();
+                })
+                .toList();
+    }
+
+    private void validateMemberExists(Long memberId) {
+        if (!memberRepository.existsById(memberId)) {
+            throw MemberException.memberNotFoundException();
+        }
     }
 
 }
