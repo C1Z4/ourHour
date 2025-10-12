@@ -71,6 +71,13 @@ public class ProjectParticipantService {
         return ApiResponse.success(PageResponse.of(participantDTOPage), "프로젝트 참여자 목록 조회에 성공했습니다.");
     }
 
+    /**
+     * 특정 멤버가 프로젝트 참여자인지 확인
+     * 
+     * @param projectId 프로젝트 ID
+     * @param memberId  멤버 ID
+     * @return 참여자 여부
+     */
     public boolean isProjectParticipant(Long projectId, Long memberId) {
         ProjectParticipantId projectParticipantId = new ProjectParticipantId(projectId, memberId);
         return projectParticipantRepository.existsById(projectParticipantId);
