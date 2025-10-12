@@ -1,7 +1,7 @@
 package com.ourhour.domain.project.mapper;
 
 import com.ourhour.domain.org.entity.OrgEntity;
-import com.ourhour.domain.project.dto.ProjecUpdateReqDTO;
+import com.ourhour.domain.project.dto.ProjectUpdateReqDTO;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectReqDTO;
 import com.ourhour.domain.project.dto.ProjectSummaryResDTO;
@@ -16,12 +16,12 @@ import org.mapstruct.ReportingPolicy;
 public interface ProjectMapper {
 
     // ProjectEntity -> ProjectSummaryResDTO
-    @Mapping(target = "status", expression = "java(entity.getStatus().getDescription())")
+    @Mapping(target = "status", source = "status")
     @Mapping(target = "participants", ignore = true)
     ProjectSummaryResDTO toProjectSummaryResDTO(ProjectEntity entity);
 
     // ProjectEntity -> ProjectInfoDTO
-    @Mapping(target = "status", expression = "java(entity.getStatus().getDescription())")
+    @Mapping(target = "status", source = "status")
     ProjectInfoDTO toProjectInfoDTO(ProjectEntity entity);
 
     // ProjectReqDTO -> ProjectEntity
@@ -29,7 +29,7 @@ public interface ProjectMapper {
     @Mapping(target = "name", source = "projectReqDTO.name")
     ProjectEntity toProjectEntity(OrgEntity orgEntity, ProjectReqDTO projectReqDTO);
 
-    // ProjecUpdateReqDTO -> ProjectEntity
+    // ProjectUpdateReqDTO -> ProjectEntity
     @Mapping(target = "projectId", ignore = true)
-    void updateProjectEntity(@MappingTarget ProjectEntity projectEntity, ProjecUpdateReqDTO projectUpdateReqDTO);
+    void updateProjectEntity(@MappingTarget ProjectEntity projectEntity, ProjectUpdateReqDTO projectUpdateReqDTO);
 }

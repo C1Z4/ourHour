@@ -2,8 +2,11 @@ package com.ourhour.domain.project.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -49,6 +52,8 @@ import com.ourhour.domain.project.repository.IssueRepository;
 import com.ourhour.domain.project.repository.IssueTagRepository;
 import com.ourhour.domain.project.repository.MilestoneRepository;
 import com.ourhour.domain.project.repository.ProjectRepository;
+import com.ourhour.domain.project.validator.ProjectValidator;
+import com.ourhour.domain.project.service.AuthorizationService;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.global.common.dto.PageResponse;
 import com.ourhour.global.util.SecurityUtil;
@@ -81,6 +86,12 @@ class IssueServiceTest {
     @Mock
     private IssueTagMapper issueTagMapper;
 
+    @Mock
+    private ProjectValidator projectValidator;
+
+    @Mock
+    private AuthorizationService authorizationService;
+
     @InjectMocks
     private IssueService issueService;
 
@@ -103,6 +114,8 @@ class IssueServiceTest {
         issueTag = mock(IssueTagEntity.class);
         issueReqDTO = new IssueReqDTO();
         issueStatusReqDTO = new IssueStatusReqDTO();
+
+        // 기본 Mock 동작 설정 - 필요한 경우에만 각 테스트에서 개별 설정
     }
 
     @Test
@@ -114,11 +127,13 @@ class IssueServiceTest {
         boolean myIssuesOnly = false;
         Pageable pageable = PageRequest.of(0, 10);
 
-        given(projectRepository.existsById(projectId)).willReturn(true);
+        // 특정 테스트용 Mock 설정
+        doNothing().when(projectValidator).validateProjectId(projectId);
+        given(projectValidator.isValidMilestoneId(milestoneId)).willReturn(true);
+
         given(projectRepository.findById(projectId)).willReturn(Optional.of(project));
         given(project.getOrgEntity()).willReturn(org);
         given(org.getOrgId()).willReturn(1L);
-        given(milestoneRepository.existsById(milestoneId)).willReturn(true);
 
         Page<IssueEntity> issuePage = new PageImpl<>(List.of(issue), pageable, 1);
         given(issueRepository.findByMilestoneEntity_MilestoneId(milestoneId, pageable))
@@ -127,17 +142,19 @@ class IssueServiceTest {
         IssueSummaryDTO issueSummary = mock(IssueSummaryDTO.class);
         given(issueMapper.toIssueSummaryDTO(issue)).willReturn(issueSummary);
 
-        // when
-        ApiResponse<PageResponse<IssueSummaryDTO>> result = issueService
-                .getMilestoneIssues(projectId, milestoneId, myIssuesOnly, pageable);
+        try (MockedStatic<SecurityUtil> securityUtil = mockStatic(SecurityUtil.class)) {
+            securityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(1L)).thenReturn(1L);
 
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
-        then(projectRepository).should().existsById(projectId);
-        then(projectRepository).should().findById(projectId);
-        then(milestoneRepository).should().existsById(milestoneId);
-        then(issueRepository).should().findByMilestoneEntity_MilestoneId(milestoneId, pageable);
+            // when
+            ApiResponse<PageResponse<IssueSummaryDTO>> result = issueService
+                    .getMilestoneIssues(projectId, milestoneId, myIssuesOnly, pageable);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
+            then(projectRepository).should().findById(projectId);
+            then(issueRepository).should().findByMilestoneEntity_MilestoneId(milestoneId, pageable);
+        }
     }
 
     @Test
@@ -150,11 +167,13 @@ class IssueServiceTest {
         boolean myIssuesOnly = true;
         Pageable pageable = PageRequest.of(0, 10);
 
-        given(projectRepository.existsById(projectId)).willReturn(true);
+        // 특정 테스트용 Mock 설정
+        doNothing().when(projectValidator).validateProjectId(projectId);
+        given(projectValidator.isValidMilestoneId(milestoneId)).willReturn(true);
+
         given(projectRepository.findById(projectId)).willReturn(Optional.of(project));
         given(project.getOrgEntity()).willReturn(org);
         given(org.getOrgId()).willReturn(1L);
-        given(milestoneRepository.existsById(milestoneId)).willReturn(true);
 
         Page<IssueEntity> issuePage = new PageImpl<>(List.of(issue), pageable, 1);
         given(issueRepository.findByMilestoneEntity_MilestoneIdAndAssigneeEntity_MemberId(milestoneId, memberId,
@@ -175,6 +194,9 @@ class IssueServiceTest {
             // then
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
+            then(projectRepository).should().findById(projectId);
+            then(issueRepository).should().findByMilestoneEntity_MilestoneIdAndAssigneeEntity_MemberId(milestoneId,
+                    memberId, pageable);
         }
     }
 
@@ -201,7 +223,9 @@ class IssueServiceTest {
         boolean myIssuesOnly = false;
         Pageable pageable = PageRequest.of(0, 10);
 
-        given(projectRepository.existsById(projectId)).willReturn(false);
+        // 리팩토링된 메서드에 맞는 Mock 설정
+        doNothing().when(projectValidator).validateProjectId(projectId);
+        given(projectRepository.findById(projectId)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> issueService.getMilestoneIssues(projectId, milestoneId, myIssuesOnly, pageable))
@@ -209,23 +233,38 @@ class IssueServiceTest {
     }
 
     @Test
-    @DisplayName("마일스톤 이슈 목록 조회 시 존재하지 않는 마일스톤으로 예외 발생")
-    void getMilestoneIssues_MilestoneNotFound_ThrowsException() {
+    @DisplayName("마일스톤 이슈 목록 조회 시 존재하지 않는 마일스톤으로 빈 결과 반환")
+    void getMilestoneIssues_MilestoneNotFound_ReturnsEmpty() {
         // given
         Long projectId = 1L;
         Long milestoneId = 999L;
         boolean myIssuesOnly = false;
         Pageable pageable = PageRequest.of(0, 10);
 
-        given(projectRepository.existsById(projectId)).willReturn(true);
+        // 테스트에 필요한 Mock 설정
+        doNothing().when(projectValidator).validateProjectId(projectId);
+        given(projectValidator.isValidMilestoneId(milestoneId)).willReturn(true);
+
         given(projectRepository.findById(projectId)).willReturn(Optional.of(project));
         given(project.getOrgEntity()).willReturn(org);
         given(org.getOrgId()).willReturn(1L);
-        given(milestoneRepository.existsById(milestoneId)).willReturn(false);
 
-        // when & then
-        assertThatThrownBy(() -> issueService.getMilestoneIssues(projectId, milestoneId, myIssuesOnly, pageable))
-                .isInstanceOf(MilestoneException.class);
+        Page<IssueEntity> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        given(issueRepository.findByMilestoneEntity_MilestoneId(milestoneId, pageable))
+                .willReturn(emptyPage);
+
+        try (MockedStatic<SecurityUtil> securityUtil = mockStatic(SecurityUtil.class)) {
+            securityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(1L)).thenReturn(1L);
+
+            // when
+            ApiResponse<PageResponse<IssueSummaryDTO>> result = issueService
+                    .getMilestoneIssues(projectId, milestoneId, myIssuesOnly, pageable);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
+            assertThat(result.getData().getData()).isEmpty();
+        }
     }
 
     @Test
@@ -279,25 +318,37 @@ class IssueServiceTest {
         // given
         Long projectId = 1L;
 
-        // milestoneId와 assigneeId를 null로 설정하여 해당 로직을 건너뛰도록 함
+        issueReqDTO.setName("테스트 이슈");
+        issueReqDTO.setContent("테스트 내용");
+        issueReqDTO.setStatus("NOT_STARTED");
         issueReqDTO.setMilestoneId(null);
         issueReqDTO.setAssigneeId(null);
 
+        // 이 테스트에 필요한 Mock 설정
+        doNothing().when(projectValidator).validateProjectId(projectId);
+        given(projectValidator.isValidMilestoneId(null)).willReturn(false);
+        given(projectValidator.isValidAssigneeId(null)).willReturn(false);
+
+        given(project.getOrgEntity()).willReturn(org);
+        given(org.getOrgId()).willReturn(1L);
         given(projectRepository.findById(projectId)).willReturn(Optional.of(project));
-        given(issueMapper.toIssueEntity(issueReqDTO)).willReturn(issue);
-        given(issueRepository.save(issue)).willReturn(issue);
+        given(issueRepository.save(any(IssueEntity.class))).willReturn(issue);
 
         IssueDetailDTO issueDetail = mock(IssueDetailDTO.class);
         given(issueMapper.toIssueDetailDTO(issue)).willReturn(issueDetail);
 
-        // when
-        ApiResponse<IssueDetailDTO> result = issueService.createIssue(projectId, issueReqDTO);
+        try (MockedStatic<SecurityUtil> securityUtil = mockStatic(SecurityUtil.class)) {
+            securityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(1L)).thenReturn(1L);
 
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
-        then(projectRepository).should().findById(projectId);
-        then(issueRepository).should().save(issue);
+            // when
+            ApiResponse<IssueDetailDTO> result = issueService.createIssue(projectId, issueReqDTO);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
+            then(projectRepository).should().findById(projectId);
+            then(issueRepository).should().save(any(IssueEntity.class));
+        }
     }
 
     @Test
@@ -331,10 +382,17 @@ class IssueServiceTest {
         Long projectId = 1L;
         Long milestoneId = 999L;
 
+        issueReqDTO.setName("테스트 이슈");
+        issueReqDTO.setContent("테스트 내용");
+        issueReqDTO.setStatus("NOT_STARTED");
         issueReqDTO.setMilestoneId(milestoneId);
+        issueReqDTO.setAssigneeId(null);
+
+        // 리팩토링된 메서드에 맞는 Mock 설정
+        doNothing().when(projectValidator).validateProjectId(projectId);
+        given(projectValidator.isValidMilestoneId(milestoneId)).willReturn(true);
 
         given(projectRepository.findById(projectId)).willReturn(Optional.of(project));
-        given(issueMapper.toIssueEntity(issueReqDTO)).willReturn(issue);
         given(milestoneRepository.findById(milestoneId)).willReturn(Optional.empty());
 
         // when & then
@@ -349,10 +407,18 @@ class IssueServiceTest {
         Long projectId = 1L;
         Long assigneeId = 999L;
 
+        issueReqDTO.setName("테스트 이슈");
+        issueReqDTO.setContent("테스트 내용");
+        issueReqDTO.setStatus("NOT_STARTED");
+        issueReqDTO.setMilestoneId(null);
         issueReqDTO.setAssigneeId(assigneeId);
 
+        // 리팩토링된 메서드에 맞는 Mock 설정
+        doNothing().when(projectValidator).validateProjectId(projectId);
+        given(projectValidator.isValidMilestoneId(null)).willReturn(false);
+        given(projectValidator.isValidAssigneeId(assigneeId)).willReturn(true);
+
         given(projectRepository.findById(projectId)).willReturn(Optional.of(project));
-        given(issueMapper.toIssueEntity(issueReqDTO)).willReturn(issue);
         given(memberRepository.findById(assigneeId)).willReturn(Optional.empty());
 
         // when & then
@@ -372,9 +438,18 @@ class IssueServiceTest {
         Long milestoneId = 1L;
         Long issueTagId = 1L;
 
+        issueReqDTO.setName("수정된 이슈");
+        issueReqDTO.setContent("수정된 내용");
+        issueReqDTO.setStatus("IN_PROGRESS");
         issueReqDTO.setAssigneeId(assigneeId);
         issueReqDTO.setMilestoneId(milestoneId);
         issueReqDTO.setIssueTagId(issueTagId);
+
+        // 특정 테스트용 Mock 설정
+        doNothing().when(projectValidator).validateIssueId(issueId);
+        doNothing().when(authorizationService).validateProjectParticipantOrAdmin(orgId, projectId);
+        given(projectValidator.isValidMilestoneId(milestoneId)).willReturn(true);
+        given(projectValidator.isValidAssigneeId(assigneeId)).willReturn(true);
 
         given(issueRepository.findById(issueId)).willReturn(Optional.of(issue));
         given(issue.getProjectEntity()).willReturn(project);
@@ -390,22 +465,14 @@ class IssueServiceTest {
         try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
             mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))
                     .thenReturn(memberId);
-            mockedSecurityUtil.when(() -> SecurityUtil.getCurrentRoleByOrgId(orgId))
-                    .thenReturn(Role.MEMBER);
-
-            given(projectParticipantService.isProjectParticipant(projectId, memberId)).willReturn(true);
 
             // when
-            ApiResponse<IssueDetailDTO> result = issueService.updateIssue(1L, issueId, issueReqDTO);
+            ApiResponse<IssueDetailDTO> result = issueService.updateIssue(orgId, issueId, issueReqDTO);
 
             // then
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
             then(issueRepository).should().findById(issueId);
-            then(issueMapper).should().updateIssueEntity(issue, issueReqDTO);
-            then(memberRepository).should().findById(assigneeId);
-            then(milestoneRepository).should().findById(milestoneId);
-            then(issueTagRepository).should().findById(issueTagId);
             then(issueRepository).should().save(issue);
         }
     }
@@ -442,18 +509,23 @@ class IssueServiceTest {
         Long orgId = 1L;
         Long projectId = 1L;
 
+        issueReqDTO.setName("수정된 이슈");
+        issueReqDTO.setContent("수정된 내용");
+        issueReqDTO.setStatus("IN_PROGRESS");
+
+        // 리팩토링된 메서드에 맞는 Mock 설정
+        doNothing().when(projectValidator).validateIssueId(issueId);
+        doThrow(new RuntimeException("권한 없음")).when(authorizationService)
+                .validateProjectParticipantOrAdmin(orgId, projectId);
+
         given(issueRepository.findById(issueId)).willReturn(Optional.of(issue));
         given(issue.getProjectEntity()).willReturn(project);
         given(project.getProjectId()).willReturn(projectId);
 
-        try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-            mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))
-                    .thenReturn(null);
-
-            // when & then
-            assertThatThrownBy(() -> issueService.updateIssue(1L, issueId, issueReqDTO))
-                    .isInstanceOf(MemberException.class);
-        }
+        // when & then
+        assertThatThrownBy(() -> issueService.updateIssue(orgId, issueId, issueReqDTO))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("권한 없음");
     }
 
     @Test
@@ -511,30 +583,24 @@ class IssueServiceTest {
         Long issueId = 1L;
         Long orgId = 1L;
         Long projectId = 1L;
-        Long memberId = 1L;
+
+        // 리팩토링된 메서드에 맞는 Mock 설정
+        doNothing().when(authorizationService).validateProjectParticipantOrAdmin(orgId, projectId);
+        doNothing().when(issueRepository).deleteById(issueId);
 
         given(issueRepository.findById(issueId)).willReturn(Optional.of(issue));
         given(issue.getProjectEntity()).willReturn(project);
         given(project.getProjectId()).willReturn(projectId);
 
-        try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-            mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))
-                    .thenReturn(memberId);
-            mockedSecurityUtil.when(() -> SecurityUtil.getCurrentRoleByOrgId(orgId))
-                    .thenReturn(Role.MEMBER);
+        // when
+        ApiResponse<Void> result = issueService.deleteIssue(orgId, issueId);
 
-            given(projectParticipantService.isProjectParticipant(projectId, memberId)).willReturn(true);
-
-            // when
-            ApiResponse<Void> result = issueService.deleteIssue(1L, issueId);
-
-            // then
-            assertThat(result).isNotNull();
-            assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
-            then(issueRepository).should().findById(issueId);
-            then(projectParticipantService).should().isProjectParticipant(projectId, memberId);
-            then(issueRepository).should().deleteById(issueId);
-        }
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
+        then(issueRepository).should().findById(issueId);
+        then(authorizationService).should().validateProjectParticipantOrAdmin(orgId, projectId);
+        then(issueRepository).should().deleteById(issueId);
     }
 
     @Test
@@ -569,18 +635,18 @@ class IssueServiceTest {
         Long orgId = 1L;
         Long projectId = 1L;
 
+        // 리팩토링된 메서드에 맞는 Mock 설정
+        doThrow(new RuntimeException("권한 없음")).when(authorizationService)
+                .validateProjectParticipantOrAdmin(orgId, projectId);
+
         given(issueRepository.findById(issueId)).willReturn(Optional.of(issue));
         given(issue.getProjectEntity()).willReturn(project);
         given(project.getProjectId()).willReturn(projectId);
 
-        try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-            mockedSecurityUtil.when(() -> SecurityUtil.getCurrentMemberIdByOrgId(orgId))
-                    .thenReturn(null);
-
-            // when & then
-            assertThatThrownBy(() -> issueService.deleteIssue(1L, issueId))
-                    .isInstanceOf(MemberException.class);
-        }
+        // when & then
+        assertThatThrownBy(() -> issueService.deleteIssue(orgId, issueId))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("권한 없음");
     }
 
     @Test
@@ -610,6 +676,10 @@ class IssueServiceTest {
     void getIssueTags_InvalidProjectId_ThrowsException() {
         // given
         Long invalidProjectId = 0L;
+
+        // 리팩토링된 메서드에 맞는 Mock 설정
+        doThrow(ProjectException.projectNotFoundException()).when(projectValidator)
+                .validateProjectId(invalidProjectId);
 
         // when & then
         assertThatThrownBy(() -> issueService.getIssueTags(invalidProjectId))
@@ -662,6 +732,10 @@ class IssueServiceTest {
         Long invalidProjectId = 0L;
         IssueTagDTO issueTagDTO = mock(IssueTagDTO.class);
 
+        // 리팩토링된 메서드에 맞는 Mock 설정
+        doThrow(ProjectException.projectNotFoundException()).when(projectValidator)
+                .validateProjectId(invalidProjectId);
+
         // when & then
         assertThatThrownBy(() -> issueService.createIssueTag(invalidProjectId, issueTagDTO))
                 .isInstanceOf(ProjectException.class);
@@ -708,6 +782,10 @@ class IssueServiceTest {
         Long invalidProjectId = 0L;
         Long issueTagId = 1L;
         IssueTagDTO issueTagDTO = mock(IssueTagDTO.class);
+
+        // 리팩토링된 메서드에 맞는 Mock 설정
+        doThrow(ProjectException.projectNotFoundException()).when(projectValidator)
+                .validateProjectId(invalidProjectId);
 
         // when & then
         assertThatThrownBy(() -> issueService.updateIssueTag(invalidProjectId, issueTagId, issueTagDTO))
@@ -767,6 +845,10 @@ class IssueServiceTest {
         // given
         Long invalidProjectId = 0L;
         Long issueTagId = 1L;
+
+        // 리팩토링된 메서드에 맞는 Mock 설정
+        doThrow(ProjectException.projectNotFoundException()).when(projectValidator)
+                .validateProjectId(invalidProjectId);
 
         // when & then
         assertThatThrownBy(() -> issueService.deleteIssueTag(invalidProjectId, issueTagId))

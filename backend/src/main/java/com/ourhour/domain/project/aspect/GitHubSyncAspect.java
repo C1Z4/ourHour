@@ -15,6 +15,7 @@ import com.ourhour.domain.project.entity.GitHubSyncableEntity;
 import com.ourhour.domain.project.repository.IssueRepository;
 import com.ourhour.domain.project.repository.MilestoneRepository;
 import com.ourhour.domain.project.sync.GitHubSyncManager;
+import com.ourhour.domain.project.sync.GitHubSyncContext;
 import com.ourhour.global.common.dto.ApiResponse;
 import com.ourhour.domain.project.enums.SyncOperation;
 
@@ -31,8 +32,8 @@ public class GitHubSyncAspect {
     private final IssueRepository issueRepository;
     private final MilestoneRepository milestoneRepository;
 
-    // 삭제 작업의 경우, 삭제 전에 로드해 둔 엔티티를 보관하기 위한 ThreadLocal
-    private final ThreadLocal<GitHubSyncableEntity> pendingDeleteEntity = new ThreadLocal<>();
+    // 삭제 작업의 경우, 삭제 전에 로드해 둔 엔티티를 보관하기 위한 컨텍스트
+    private final ThreadLocal<GitHubSyncContext> syncContext = ThreadLocal.withInitial(GitHubSyncContext::new);
 
     // 삭제 실행 전, 엔티티를 미리 적재해 둔다 (삭제 후에는 조회 불가하기 때문)
     @Before("@annotation(gitHubSync)")
@@ -85,9 +86,10 @@ public class GitHubSyncAspect {
             }
 
             if (entity != null) {
-                pendingDeleteEntity.set(entity);
+                syncContext.get().setPendingDeleteEntity(entity);
             }
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            log.debug("엔티티 캡처 중 오류 발생: {}", e.getMessage());
         }
     }
 
@@ -106,21 +108,23 @@ public class GitHubSyncAspect {
 
             // 삭제 작업에서 결과로 엔티티를 얻지 못하는 경우, 삭제 이전에 보관해 둔 엔티티 사용
             if (extracted == null && gitHubSync.operation() == SyncOperation.DELETE) {
-                extracted = pendingDeleteEntity.get();
+                extracted = syncContext.get().getPendingDeleteEntity();
             }
 
-            final GitHubSyncableEntity entity = extracted;
-            if (entity == null) {
-                log.warn("동기화할 엔티티를 찾을 수 없습니다 - Method: {}", joinPoint.getSignature().getName());
+            if (extracted == null) {
+                log.debug("동기화할 엔티티를 찾을 수 없습니다 - Method: {}", joinPoint.getSignature().getName());
                 return;
             }
-            syncManager.syncToGitHub(entity, gitHubSync.operation());
+            syncManager.syncToGitHub(extracted, gitHubSync.operation());
 
         } catch (Exception e) {
             log.error("GitHub 동기화 AOP 처리 중 오류 발생", e);
         } finally {
-            // ThreadLocal 정리
-            pendingDeleteEntity.remove();
+            // 컨텍스트 정리
+            GitHubSyncContext context = syncContext.get();
+            if (context != null) {
+                context.clear();
+            }
         }
     }
 

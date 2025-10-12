@@ -2,6 +2,7 @@ package com.ourhour.domain.project.dto;
 
 import java.time.LocalDate;
 
+import com.ourhour.domain.project.enums.ProjectStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,7 @@ public class ProjectInfoDTO extends ProjectBaseDTO {
     private Long projectId;
 
     public ProjectInfoDTO(Long projectId, String name, String description, LocalDate startAt, LocalDate endAt,
-            String status) {
+            ProjectStatus status) {
         super(name, description, startAt, endAt, status);
         this.projectId = projectId;
     }

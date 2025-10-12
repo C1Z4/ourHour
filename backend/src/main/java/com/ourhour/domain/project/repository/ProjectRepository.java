@@ -18,7 +18,7 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
        @Query("SELECT DISTINCT p FROM ProjectEntity p " +
                      "JOIN ProjectParticipantEntity pp ON p.projectId = pp.projectParticipantId.projectId " +
                      "WHERE p.orgEntity.orgId = :orgId AND pp.projectParticipantId.memberId = :memberId")
-       Page<ProjectEntity> findByOrgEntity_OrgIdAndParticipantMemberId(Long orgId, Long memberId, Pageable pageable);
+       Page<ProjectEntity> findProjectsByOrgAndMember(Long orgId, Long memberId, Pageable pageable);
 
        // 특정 프로젝트에 특정 멤버가 참여하고 있는지 확인
        @Query("SELECT COUNT(pp) > 0 FROM ProjectParticipantEntity pp " +

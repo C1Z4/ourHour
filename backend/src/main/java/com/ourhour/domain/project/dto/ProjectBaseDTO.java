@@ -26,5 +26,5 @@ public class ProjectBaseDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate endAt;
 
-    private String status;
+    private ProjectStatus status;
 }

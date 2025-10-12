@@ -3,7 +3,6 @@ package com.ourhour.domain.project.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.ourhour.domain.board.exception.PostException;
 import com.ourhour.domain.org.exception.OrgException;
 import com.ourhour.domain.project.dto.IssueTagDTO;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
@@ -23,6 +22,7 @@ import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.entity.IssueTagEntity;
 import com.ourhour.domain.project.entity.MilestoneEntity;
 import com.ourhour.domain.project.entity.ProjectEntity;
+import com.ourhour.domain.project.enums.IssueStatus;
 import com.ourhour.domain.project.enums.SyncOperation;
 import com.ourhour.domain.project.mapper.IssueMapper;
 import com.ourhour.domain.project.mapper.IssueTagMapper;
@@ -39,6 +39,8 @@ import com.ourhour.domain.project.exception.IssueException;
 import com.ourhour.domain.project.annotation.GitHubSync;
 import com.ourhour.domain.notification.dto.IssueNotificationContext;
 import com.ourhour.domain.notification.service.NotificationEventService;
+import com.ourhour.domain.project.constants.ProjectConstants;
+import com.ourhour.domain.project.validator.ProjectValidator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,22 +59,18 @@ public class IssueService {
     private final IssueTagRepository issueTagRepository;
     private final IssueTagMapper issueTagMapper;
     private final NotificationEventService notificationEventService;
+    private final ProjectValidator projectValidator;
+    private final AuthorizationService authorizationService;
 
     // 특정 마일스톤의 이슈 목록 조회 (milestoneId가 null이면 마일스톤이 할당되지 않은 이슈들 조회)
     public ApiResponse<PageResponse<IssueSummaryDTO>> getMilestoneIssues(Long projectId, Long milestoneId,
             boolean myIssuesOnly, Pageable pageable) {
-        if (projectId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
+        projectValidator.validateProjectId(projectId);
 
-        if (!projectRepository.existsById(projectId)) {
-            throw ProjectException.projectNotFoundException();
-        }
+        ProjectEntity projectEntity = projectRepository.findById(projectId)
+                .orElseThrow(() -> ProjectException.projectNotFoundException());
 
-        Long orgId = projectRepository.findById(projectId)
-                .orElseThrow(() -> ProjectException.projectNotFoundException())
-                .getOrgEntity()
-                .getOrgId();
+        Long orgId = projectEntity.getOrgEntity().getOrgId();
 
         if (myIssuesOnly) {
             Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
@@ -82,11 +80,8 @@ public class IssueService {
 
             Page<IssueEntity> issuePage;
 
-            if (milestoneId != null && milestoneId > 0) {
+            if (projectValidator.isValidMilestoneId(milestoneId)) {
                 // 특정 마일스톤의 내가 할당된 이슈 조회
-                if (!milestoneRepository.existsById(milestoneId)) {
-                    throw MilestoneException.milestoneNotFoundException();
-                }
                 issuePage = issueRepository.findByMilestoneEntity_MilestoneIdAndAssigneeEntity_MemberId(
                         milestoneId, memberId, pageable);
             } else {
@@ -100,20 +95,17 @@ public class IssueService {
                 return ApiResponse.success(PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize()));
             }
 
-            String message = milestoneId != null && milestoneId > 0
-                    ? "특정 마일스톤의 내가 할당된 이슈 목록 조회에 성공했습니다."
-                    : "마일스톤이 할당되지 않은 내가 할당된 이슈 목록 조회에 성공했습니다.";
+            String message = projectValidator.isValidMilestoneId(milestoneId)
+                    ? ProjectConstants.MILESTONE_ISSUES_MY_SUCCESS
+                    : ProjectConstants.MILESTONE_ISSUES_UNASSIGNED_MY_SUCCESS;
 
             return ApiResponse.success(PageResponse.of(issuePage.map(issueMapper::toIssueSummaryDTO)), message);
         }
 
         Page<IssueEntity> issuePage;
 
-        if (milestoneId != null && milestoneId > 0) {
+        if (projectValidator.isValidMilestoneId(milestoneId)) {
             // 특정 마일스톤의 이슈 조회
-            if (!milestoneRepository.existsById(milestoneId)) {
-                throw MilestoneException.milestoneNotFoundException();
-            }
             issuePage = issueRepository.findByMilestoneEntity_MilestoneId(milestoneId, pageable);
         } else {
             // 마일스톤이 할당되지 않은 이슈들 조회
@@ -126,9 +118,9 @@ public class IssueService {
 
         Page<IssueSummaryDTO> issueDTOPage = issuePage.map(issueMapper::toIssueSummaryDTO);
 
-        String message = milestoneId != null && milestoneId > 0
-                ? "특정 마일스톤의 이슈 목록 조회에 성공했습니다."
-                : "마일스톤이 할당되지 않은 이슈 목록 조회에 성공했습니다.";
+        String message = projectValidator.isValidMilestoneId(milestoneId)
+                ? ProjectConstants.MILESTONE_ISSUES_SUCCESS
+                : ProjectConstants.MILESTONE_ISSUES_UNASSIGNED_SUCCESS;
 
         return ApiResponse.success(PageResponse.of(issueDTOPage), message);
     }
@@ -144,144 +136,65 @@ public class IssueService {
 
         IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(issueEntity);
 
-        return ApiResponse.success(issueDetailDTO, "이슈 상세 조회에 성공했습니다.");
+        return ApiResponse.success(issueDetailDTO, ProjectConstants.ISSUE_DETAIL_SUCCESS);
     }
 
     // 이슈 등록
     @GitHubSync(operation = SyncOperation.CREATE)
     @Transactional
     public ApiResponse<IssueDetailDTO> createIssue(Long projectId, IssueReqDTO issueReqDTO) {
-        if (projectId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
+        projectValidator.validateProjectId(projectId);
 
         ProjectEntity projectEntity = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectException.projectNotFoundException());
 
-        IssueEntity issueEntity = issueMapper.toIssueEntity(issueReqDTO);
-
-        issueEntity.setProjectEntity(projectEntity);
-
-        // 마일스톤 설정
-        if (issueReqDTO.getMilestoneId() != null && issueReqDTO.getMilestoneId() > 0) {
-            MilestoneEntity milestoneEntity = milestoneRepository.findById(issueReqDTO.getMilestoneId())
+        // Builder 패턴으로 엔티티 생성
+        MilestoneEntity milestoneEntity = null;
+        if (projectValidator.isValidMilestoneId(issueReqDTO.getMilestoneId())) {
+            milestoneEntity = milestoneRepository.findById(issueReqDTO.getMilestoneId())
                     .orElseThrow(() -> MilestoneException.milestoneNotFoundException());
-            issueEntity.setMilestoneEntity(milestoneEntity);
         }
 
-        // 담당자 설정
-        if (issueReqDTO.getAssigneeId() != null && issueReqDTO.getAssigneeId() > 0) {
-            MemberEntity assigneeEntity = memberRepository.findById(issueReqDTO.getAssigneeId())
+        MemberEntity assigneeEntity = null;
+        if (projectValidator.isValidAssigneeId(issueReqDTO.getAssigneeId())) {
+            assigneeEntity = memberRepository.findById(issueReqDTO.getAssigneeId())
                     .orElseThrow(() -> MemberException.memberNotFoundException());
-            issueEntity.setAssigneeEntity(assigneeEntity);
         }
+
+        IssueEntity issueEntity = IssueEntity.builder()
+                .projectEntity(projectEntity)
+                .milestoneEntity(milestoneEntity)
+                .assigneeEntity(assigneeEntity)
+                .name(issueReqDTO.getName())
+                .content(issueReqDTO.getContent())
+                .status(IssueStatus.valueOf(issueReqDTO.getStatus()))
+                .build();
 
         IssueEntity savedIssueEntity = issueRepository.save(issueEntity);
 
-        if (savedIssueEntity.getAssigneeEntity() != null) {
-            // 본인을 할당한 경우 알림 전송하지 않음
-            Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(projectEntity.getOrgEntity().getOrgId());
-            if (currentMemberId != null && currentMemberId.equals(savedIssueEntity.getAssigneeEntity().getMemberId())) {
-            } else {
-                Long targetUserId = savedIssueEntity.getAssigneeEntity().getUserEntity().getUserId();
-                notificationEventService.sendIssueAssignedNotification(
-                        IssueNotificationContext.builder()
-                                .userId(targetUserId)
-                                .issueTitle(savedIssueEntity.getName())
-                                .issueId(savedIssueEntity.getIssueId())
-                                .projectId(projectEntity.getProjectId())
-                                .orgId(projectEntity.getOrgEntity().getOrgId())
-                                .projectName(projectEntity.getName())
-                                .build());
-            }
-        }
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(projectEntity.getOrgEntity().getOrgId());
+        sendIssueAssignedNotificationIfNeeded(savedIssueEntity, currentMemberId);
 
         IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(savedIssueEntity);
 
-        return ApiResponse.success(issueDetailDTO, "이슈 등록에 성공했습니다.");
+        return ApiResponse.success(issueDetailDTO, ProjectConstants.ISSUE_CREATE_SUCCESS);
     }
 
     // 이슈 수정
     @GitHubSync(operation = SyncOperation.UPDATE)
     @Transactional
     public ApiResponse<IssueDetailDTO> updateIssue(Long orgId, Long issueId, IssueReqDTO issueReqDTO) {
-        if (issueId <= 0) {
-            throw IssueException.issueNotFoundException();
-        }
+        IssueEntity issueEntity = validateAndGetIssue(issueId);
+        authorizationService.validateProjectParticipantOrAdmin(orgId, issueEntity.getProjectEntity().getProjectId());
 
-        IssueEntity issueEntity = issueRepository.findById(issueId)
-                .orElseThrow(() -> IssueException.issueNotFoundException());
-
-        Long projectId = issueEntity.getProjectEntity().getProjectId();
-
-        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-        if (memberId == null) {
-            throw MemberException.memberAccessDeniedException();
-        }
-        boolean isParticipant = projectParticipantService.isProjectParticipant(projectId, memberId);
-
-        Role role = SecurityUtil.getCurrentRoleByOrgId(orgId);
-        boolean isAdminOrRootAdmin = role != null && (role.equals(Role.ADMIN) || role.equals(Role.ROOT_ADMIN));
-        if (!(isParticipant || isAdminOrRootAdmin)) {
-            throw ProjectException.projectParticipantOrAdminOrRootAdminException();
-        }
-
-        issueMapper.updateIssueEntity(issueEntity, issueReqDTO);
-
-        // 할당자 변경 감지를 위해 수정 전 할당자 정보 저장
         MemberEntity previousAssignee = issueEntity.getAssigneeEntity();
-
-        if (issueReqDTO.getAssigneeId() != null && issueReqDTO.getAssigneeId() > 0) {
-            MemberEntity assignee = memberRepository.findById(issueReqDTO.getAssigneeId())
-                    .orElseThrow(() -> MemberException.memberNotFoundException());
-            issueEntity.setAssigneeEntity(assignee);
-        } else {
-            issueEntity.setAssigneeEntity(null);
-        }
-
-        if (issueReqDTO.getMilestoneId() != null) {
-            MilestoneEntity milestone = milestoneRepository.findById(issueReqDTO.getMilestoneId())
-                    .orElseThrow(() -> MilestoneException.milestoneNotFoundException());
-            issueEntity.setMilestoneEntity(milestone);
-        } else {
-            issueEntity.setMilestoneEntity(null);
-        }
-
-        // 태그 설정
-        if (issueReqDTO.getIssueTagId() != null) {
-            IssueTagEntity issueTag = issueTagRepository.findById(issueReqDTO.getIssueTagId())
-                    .orElseThrow(() -> IssueException.issueTagNotFoundException());
-            issueEntity.setIssueTagEntity(issueTag);
-        } else {
-            issueEntity.setIssueTagEntity(null);
-        }
+        updateIssueEntityFromRequest(issueEntity, issueReqDTO);
 
         IssueEntity savedIssueEntity = issueRepository.save(issueEntity);
-
-        if (savedIssueEntity.getAssigneeEntity() != null &&
-                (previousAssignee == null || !previousAssignee.getMemberId()
-                        .equals(savedIssueEntity.getAssigneeEntity().getMemberId()))) {
-
-            // 본인을 할당한 경우 알림 전송하지 않음
-            Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-            if (currentMemberId != null && currentMemberId.equals(savedIssueEntity.getAssigneeEntity().getMemberId())) {
-            } else {
-                Long targetUserId = savedIssueEntity.getAssigneeEntity().getUserEntity().getUserId();
-                notificationEventService.sendIssueAssignedNotification(
-                        IssueNotificationContext.builder()
-                                .userId(targetUserId)
-                                .issueTitle(savedIssueEntity.getName())
-                                .issueId(savedIssueEntity.getIssueId())
-                                .projectId(savedIssueEntity.getProjectEntity().getProjectId())
-                                .orgId(savedIssueEntity.getProjectEntity().getOrgEntity().getOrgId())
-                                .projectName(savedIssueEntity.getProjectEntity().getName())
-                                .build());
-            }
-        }
+        sendNotificationIfAssigneeChanged(savedIssueEntity, previousAssignee, orgId);
 
         IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(savedIssueEntity);
-
-        return ApiResponse.success(issueDetailDTO, "이슈 수정에 성공했습니다.");
+        return ApiResponse.success(issueDetailDTO, ProjectConstants.ISSUE_UPDATE_SUCCESS);
     }
 
     // 이슈 상태 수정
@@ -301,7 +214,7 @@ public class IssueService {
 
         IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(savedIssueEntity);
 
-        return ApiResponse.success(issueDetailDTO, "이슈 상태 수정에 성공했습니다.");
+        return ApiResponse.success(issueDetailDTO, ProjectConstants.ISSUE_STATUS_UPDATE_SUCCESS);
     }
 
     // 이슈 삭제
@@ -315,48 +228,32 @@ public class IssueService {
         IssueEntity issueEntity = issueRepository.findById(issueId)
                 .orElseThrow(() -> IssueException.issueNotFoundException());
 
-        Long projectId = issueEntity.getProjectEntity().getProjectId();
-
-        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-        if (memberId == null) {
-            throw MemberException.memberAccessDeniedException();
-        }
-        boolean isParticipant = projectParticipantService.isProjectParticipant(projectId, memberId);
-
-        Role role = SecurityUtil.getCurrentRoleByOrgId(orgId);
-        boolean isAdminOrRootAdmin = role != null && (role.equals(Role.ADMIN) || role.equals(Role.ROOT_ADMIN));
-        if (!(isParticipant || isAdminOrRootAdmin)) {
-            throw ProjectException.projectParticipantOrAdminOrRootAdminException();
-        }
+        authorizationService.validateProjectParticipantOrAdmin(orgId, issueEntity.getProjectEntity().getProjectId());
 
         issueRepository.deleteById(issueId);
 
-        return ApiResponse.success(null, "이슈 삭제에 성공했습니다.");
+        return ApiResponse.success(null, ProjectConstants.ISSUE_DELETE_SUCCESS);
     }
 
     // 이슈 태그 조회
     public ApiResponse<List<IssueTagDTO>> getIssueTags(Long projectId) {
-        if (projectId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
+        projectValidator.validateProjectId(projectId);
 
         List<IssueTagEntity> issueTagEntities = issueTagRepository.findByProjectEntity_ProjectId(projectId);
 
         if (issueTagEntities.isEmpty()) {
-            return ApiResponse.success(null, "이슈 태그가 존재하지 않습니다.");
+            return ApiResponse.success(null, ProjectConstants.ISSUE_TAG_NOT_FOUND);
         }
 
         return ApiResponse.success(issueTagEntities.stream()
                 .map(issueTagMapper::toIssueTagDTO)
-                .collect(Collectors.toList()), "이슈 태그 조회에 성공했습니다.");
+                .toList(), ProjectConstants.ISSUE_TAG_GET_SUCCESS);
     }
 
     // 이슈 태그 등록
     @Transactional
     public ApiResponse<Void> createIssueTag(Long projectId, IssueTagDTO issueTagDTO) {
-        if (projectId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
+        projectValidator.validateProjectId(projectId);
 
         ProjectEntity projectEntity = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectException.projectNotFoundException());
@@ -367,44 +264,115 @@ public class IssueService {
 
         issueTagRepository.save(issueTagEntity);
 
-        return ApiResponse.success(null, "이슈 태그 등록에 성공했습니다.");
+        return ApiResponse.success(null, ProjectConstants.ISSUE_TAG_CREATE_SUCCESS);
     }
 
     // 이슈 태그 수정
     @Transactional
     public ApiResponse<Void> updateIssueTag(Long projectId, Long issueTagId, IssueTagDTO issueTagDTO) {
-        if (projectId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
+        projectValidator.validateProjectId(projectId);
 
-        if (issueTagId <= 0) {
-            throw IssueException.issueNotFoundException();
-        }
+        projectValidator.validateIssueTagId(issueTagId);
 
         IssueTagEntity issueTagEntity = issueTagRepository.findById(issueTagId)
                 .orElseThrow(() -> IssueException.issueTagNotFoundException());
 
         issueTagMapper.updateIssueTagEntity(issueTagEntity, issueTagDTO);
 
-        return ApiResponse.success(null, "이슈 태그 수정에 성공했습니다.");
+        return ApiResponse.success(null, ProjectConstants.ISSUE_TAG_UPDATE_SUCCESS);
     }
 
     // 이슈 태그 삭제
     @Transactional
     public ApiResponse<Void> deleteIssueTag(Long projectId, Long issueTagId) {
-        if (projectId <= 0) {
-            throw ProjectException.projectNotFoundException();
-        }
+        projectValidator.validateProjectId(projectId);
 
-        if (issueTagId <= 0) {
-            throw IssueException.issueNotFoundException();
-        }
+        projectValidator.validateIssueTagId(issueTagId);
 
         IssueTagEntity issueTagEntity = issueTagRepository.findById(issueTagId)
                 .orElseThrow(() -> IssueException.issueTagNotFoundException());
 
         issueTagRepository.delete(issueTagEntity);
 
-        return ApiResponse.success(null, "이슈 태그 삭제에 성공했습니다.");
+        return ApiResponse.success(null, ProjectConstants.ISSUE_TAG_DELETE_SUCCESS);
     }
+
+    private void sendIssueAssignedNotificationIfNeeded(IssueEntity issueEntity, Long currentMemberId) {
+        if (issueEntity.getAssigneeEntity() == null) {
+            return;
+        }
+
+        Long assigneeId = issueEntity.getAssigneeEntity().getMemberId();
+        if (currentMemberId != null && currentMemberId.equals(assigneeId)) {
+            return;
+        }
+
+        Long targetUserId = issueEntity.getAssigneeEntity().getUserEntity().getUserId();
+        ProjectEntity projectEntity = issueEntity.getProjectEntity();
+
+        notificationEventService.sendIssueAssignedNotification(
+                IssueNotificationContext.builder()
+                        .userId(targetUserId)
+                        .issueTitle(issueEntity.getName())
+                        .issueId(issueEntity.getIssueId())
+                        .projectId(projectEntity.getProjectId())
+                        .orgId(projectEntity.getOrgEntity().getOrgId())
+                        .projectName(projectEntity.getName())
+                        .build());
+    }
+
+    private IssueEntity validateAndGetIssue(Long issueId) {
+        projectValidator.validateIssueId(issueId);
+        return issueRepository.findById(issueId)
+                .orElseThrow(() -> IssueException.issueNotFoundException());
+    }
+
+    private void updateIssueEntityFromRequest(IssueEntity issueEntity, IssueReqDTO issueReqDTO) {
+        issueMapper.updateIssueEntity(issueEntity, issueReqDTO);
+
+        updateAssignee(issueEntity, issueReqDTO.getAssigneeId());
+        updateMilestone(issueEntity, issueReqDTO.getMilestoneId());
+        updateIssueTag(issueEntity, issueReqDTO.getIssueTagId());
+    }
+
+    private void updateAssignee(IssueEntity issueEntity, Long assigneeId) {
+        if (projectValidator.isValidAssigneeId(assigneeId)) {
+            MemberEntity assignee = memberRepository.findById(assigneeId)
+                    .orElseThrow(() -> MemberException.memberNotFoundException());
+            issueEntity.setAssigneeEntity(assignee);
+        } else {
+            issueEntity.setAssigneeEntity(null);
+        }
+    }
+
+    private void updateMilestone(IssueEntity issueEntity, Long milestoneId) {
+        if (projectValidator.isValidMilestoneId(milestoneId)) {
+            MilestoneEntity milestone = milestoneRepository.findById(milestoneId)
+                    .orElseThrow(() -> MilestoneException.milestoneNotFoundException());
+            issueEntity.setMilestoneEntity(milestone);
+        } else {
+            issueEntity.setMilestoneEntity(null);
+        }
+    }
+
+    private void updateIssueTag(IssueEntity issueEntity, Long issueTagId) {
+        if (issueTagId != null) {
+            IssueTagEntity issueTag = issueTagRepository.findById(issueTagId)
+                    .orElseThrow(() -> IssueException.issueTagNotFoundException());
+            issueEntity.setIssueTagEntity(issueTag);
+        } else {
+            issueEntity.setIssueTagEntity(null);
+        }
+    }
+
+    private void sendNotificationIfAssigneeChanged(IssueEntity savedIssueEntity, MemberEntity previousAssignee,
+            Long orgId) {
+        if (savedIssueEntity.getAssigneeEntity() != null &&
+                (previousAssignee == null || !previousAssignee.getMemberId()
+                        .equals(savedIssueEntity.getAssigneeEntity().getMemberId()))) {
+            Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+            sendIssueAssignedNotificationIfNeeded(savedIssueEntity, currentMemberId);
+        }
+    }
+
 }

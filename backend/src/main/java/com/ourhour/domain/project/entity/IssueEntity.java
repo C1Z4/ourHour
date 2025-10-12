@@ -13,7 +13,6 @@ import lombok.Setter;
 @Table(name = "tbl_issue")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 public class IssueEntity extends GitHubSyncableEntity {
 
     @Id

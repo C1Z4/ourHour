@@ -9,8 +9,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.time.LocalDate;
 
@@ -29,8 +31,9 @@ public class ProjectEntity {
     private OrgEntity orgEntity;
 
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "projectEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MilestoneEntity> milestoneEntityList = new ArrayList<>();
+    @OneToMany(mappedBy = "projectEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private List<MilestoneEntity> milestoneEntityList;
 
     @Setter
     private String name;
@@ -41,7 +44,7 @@ public class ProjectEntity {
 
     @Setter
     private LocalDate startAt;
-    
+
     @Setter
     private LocalDate endAt;
 
@@ -62,6 +65,10 @@ public class ProjectEntity {
 
     public Long getOrgId() {
         return orgEntity != null ? orgEntity.getOrgId() : 0;
+    }
+
+    public List<MilestoneEntity> getMilestoneEntityList() {
+        return milestoneEntityList != null ? milestoneEntityList : Collections.emptyList();
     }
 
 }
