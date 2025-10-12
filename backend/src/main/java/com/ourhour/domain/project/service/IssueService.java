@@ -168,23 +168,8 @@ public class IssueService {
 
         IssueEntity savedIssueEntity = issueRepository.save(issueEntity);
 
-        if (savedIssueEntity.getAssigneeEntity() != null) {
-            // 본인을 할당한 경우 알림 전송하지 않음
-            Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(projectEntity.getOrgEntity().getOrgId());
-            if (currentMemberId != null && currentMemberId.equals(savedIssueEntity.getAssigneeEntity().getMemberId())) {
-            } else {
-                Long targetUserId = savedIssueEntity.getAssigneeEntity().getUserEntity().getUserId();
-                notificationEventService.sendIssueAssignedNotification(
-                        IssueNotificationContext.builder()
-                                .userId(targetUserId)
-                                .issueTitle(savedIssueEntity.getName())
-                                .issueId(savedIssueEntity.getIssueId())
-                                .projectId(projectEntity.getProjectId())
-                                .orgId(projectEntity.getOrgEntity().getOrgId())
-                                .projectName(projectEntity.getName())
-                                .build());
-            }
-        }
+        Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(projectEntity.getOrgEntity().getOrgId());
+        sendIssueAssignedNotificationIfNeeded(savedIssueEntity, currentMemberId);
 
         IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(savedIssueEntity);
 
@@ -203,18 +188,7 @@ public class IssueService {
                 .orElseThrow(() -> IssueException.issueNotFoundException());
 
         Long projectId = issueEntity.getProjectEntity().getProjectId();
-
-        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-        if (memberId == null) {
-            throw MemberException.memberAccessDeniedException();
-        }
-        boolean isParticipant = projectParticipantService.isProjectParticipant(projectId, memberId);
-
-        Role role = SecurityUtil.getCurrentRoleByOrgId(orgId);
-        boolean isAdminOrRootAdmin = role != null && (role.equals(Role.ADMIN) || role.equals(Role.ROOT_ADMIN));
-        if (!(isParticipant || isAdminOrRootAdmin)) {
-            throw ProjectException.projectParticipantOrAdminOrRootAdminException();
-        }
+        validateProjectParticipantOrAdmin(orgId, projectId);
 
         issueMapper.updateIssueEntity(issueEntity, issueReqDTO);
 
@@ -251,22 +225,8 @@ public class IssueService {
         if (savedIssueEntity.getAssigneeEntity() != null &&
                 (previousAssignee == null || !previousAssignee.getMemberId()
                         .equals(savedIssueEntity.getAssigneeEntity().getMemberId()))) {
-
-            // 본인을 할당한 경우 알림 전송하지 않음
             Long currentMemberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-            if (currentMemberId != null && currentMemberId.equals(savedIssueEntity.getAssigneeEntity().getMemberId())) {
-            } else {
-                Long targetUserId = savedIssueEntity.getAssigneeEntity().getUserEntity().getUserId();
-                notificationEventService.sendIssueAssignedNotification(
-                        IssueNotificationContext.builder()
-                                .userId(targetUserId)
-                                .issueTitle(savedIssueEntity.getName())
-                                .issueId(savedIssueEntity.getIssueId())
-                                .projectId(savedIssueEntity.getProjectEntity().getProjectId())
-                                .orgId(savedIssueEntity.getProjectEntity().getOrgEntity().getOrgId())
-                                .projectName(savedIssueEntity.getProjectEntity().getName())
-                                .build());
-            }
+            sendIssueAssignedNotificationIfNeeded(savedIssueEntity, currentMemberId);
         }
 
         IssueDetailDTO issueDetailDTO = issueMapper.toIssueDetailDTO(savedIssueEntity);
@@ -306,18 +266,7 @@ public class IssueService {
                 .orElseThrow(() -> IssueException.issueNotFoundException());
 
         Long projectId = issueEntity.getProjectEntity().getProjectId();
-
-        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-        if (memberId == null) {
-            throw MemberException.memberAccessDeniedException();
-        }
-        boolean isParticipant = projectParticipantService.isProjectParticipant(projectId, memberId);
-
-        Role role = SecurityUtil.getCurrentRoleByOrgId(orgId);
-        boolean isAdminOrRootAdmin = role != null && (role.equals(Role.ADMIN) || role.equals(Role.ROOT_ADMIN));
-        if (!(isParticipant || isAdminOrRootAdmin)) {
-            throw ProjectException.projectParticipantOrAdminOrRootAdminException();
-        }
+        validateProjectParticipantOrAdmin(orgId, projectId);
 
         issueRepository.deleteById(issueId);
 
@@ -396,5 +345,44 @@ public class IssueService {
         issueTagRepository.delete(issueTagEntity);
 
         return ApiResponse.success(null, "이슈 태그 삭제에 성공했습니다.");
+    }
+
+    private void sendIssueAssignedNotificationIfNeeded(IssueEntity issueEntity, Long currentMemberId) {
+        if (issueEntity.getAssigneeEntity() == null) {
+            return;
+        }
+
+        Long assigneeId = issueEntity.getAssigneeEntity().getMemberId();
+        if (currentMemberId != null && currentMemberId.equals(assigneeId)) {
+            return;
+        }
+
+        Long targetUserId = issueEntity.getAssigneeEntity().getUserEntity().getUserId();
+        ProjectEntity projectEntity = issueEntity.getProjectEntity();
+
+        notificationEventService.sendIssueAssignedNotification(
+                IssueNotificationContext.builder()
+                        .userId(targetUserId)
+                        .issueTitle(issueEntity.getName())
+                        .issueId(issueEntity.getIssueId())
+                        .projectId(projectEntity.getProjectId())
+                        .orgId(projectEntity.getOrgEntity().getOrgId())
+                        .projectName(projectEntity.getName())
+                        .build());
+    }
+
+    private void validateProjectParticipantOrAdmin(Long orgId, Long projectId) {
+        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
+        if (memberId == null) {
+            throw MemberException.memberAccessDeniedException();
+        }
+
+        boolean isParticipant = projectParticipantService.isProjectParticipant(projectId, memberId);
+        Role role = SecurityUtil.getCurrentRoleByOrgId(orgId);
+        boolean isAdminOrRootAdmin = role != null && (role.equals(Role.ADMIN) || role.equals(Role.ROOT_ADMIN));
+
+        if (!(isParticipant || isAdminOrRootAdmin)) {
+            throw ProjectException.projectParticipantOrAdminOrRootAdminException();
+        }
     }
 }
