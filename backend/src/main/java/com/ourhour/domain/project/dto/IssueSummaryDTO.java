@@ -1,5 +1,6 @@
 package com.ourhour.domain.project.dto;
 
+import com.ourhour.domain.project.enums.IssueStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +16,7 @@ public class IssueSummaryDTO {
 
     private Long issueId;
     private String name;
-    private String status;
+    private IssueStatus status;
     private Long milestoneId;
     private Long assigneeId;
     private String assigneeName;
