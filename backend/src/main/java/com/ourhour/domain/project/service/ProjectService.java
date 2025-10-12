@@ -43,6 +43,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ProjectService {
 
+    private static final int PERCENTAGE_MULTIPLIER = 100;
+
     private final ProjectRepository projectRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
     private final OrgRepository orgRepository;
@@ -285,7 +287,7 @@ public class ProjectService {
                     milestone.getName(),
                     (int) completedIssues,
                     (int) totalIssues,
-                    (byte) (totalIssues == 0 ? 0 : (completedIssues * 100 / totalIssues)));
+                    (byte) (totalIssues == 0 ? 0 : (completedIssues * PERCENTAGE_MULTIPLIER / totalIssues)));
         });
 
         PageResponse<MileStoneInfoDTO> response = PageResponse.of(milestoneInfoPage);
