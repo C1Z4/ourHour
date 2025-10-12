@@ -13,7 +13,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProjecUpdateReqDTO extends ProjectBaseDTO {
+public class ProjectUpdateReqDTO extends ProjectBaseDTO {
 
     private List<Long> participantIds;
 }
