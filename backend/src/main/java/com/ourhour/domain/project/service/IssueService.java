@@ -65,14 +65,10 @@ public class IssueService {
             throw ProjectException.projectNotFoundException();
         }
 
-        if (!projectRepository.existsById(projectId)) {
-            throw ProjectException.projectNotFoundException();
-        }
+        ProjectEntity projectEntity = projectRepository.findById(projectId)
+                .orElseThrow(() -> ProjectException.projectNotFoundException());
 
-        Long orgId = projectRepository.findById(projectId)
-                .orElseThrow(() -> ProjectException.projectNotFoundException())
-                .getOrgEntity()
-                .getOrgId();
+        Long orgId = projectEntity.getOrgEntity().getOrgId();
 
         if (myIssuesOnly) {
             Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
@@ -84,9 +80,6 @@ public class IssueService {
 
             if (milestoneId != null && milestoneId > 0) {
                 // 특정 마일스톤의 내가 할당된 이슈 조회
-                if (!milestoneRepository.existsById(milestoneId)) {
-                    throw MilestoneException.milestoneNotFoundException();
-                }
                 issuePage = issueRepository.findByMilestoneEntity_MilestoneIdAndAssigneeEntity_MemberId(
                         milestoneId, memberId, pageable);
             } else {
@@ -111,9 +104,6 @@ public class IssueService {
 
         if (milestoneId != null && milestoneId > 0) {
             // 특정 마일스톤의 이슈 조회
-            if (!milestoneRepository.existsById(milestoneId)) {
-                throw MilestoneException.milestoneNotFoundException();
-            }
             issuePage = issueRepository.findByMilestoneEntity_MilestoneId(milestoneId, pageable);
         } else {
             // 마일스톤이 할당되지 않은 이슈들 조회
