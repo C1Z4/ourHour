@@ -60,6 +60,7 @@ public class IssueService {
     private final IssueTagMapper issueTagMapper;
     private final NotificationEventService notificationEventService;
     private final ProjectValidator projectValidator;
+    private final AuthorizationService authorizationService;
 
     // 특정 마일스톤의 이슈 목록 조회 (milestoneId가 null이면 마일스톤이 할당되지 않은 이슈들 조회)
     public ApiResponse<PageResponse<IssueSummaryDTO>> getMilestoneIssues(Long projectId, Long milestoneId,
@@ -147,23 +148,27 @@ public class IssueService {
         ProjectEntity projectEntity = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectException.projectNotFoundException());
 
-        IssueEntity issueEntity = issueMapper.toIssueEntity(issueReqDTO);
-
-        issueEntity.setProjectEntity(projectEntity);
-
-        // 마일스톤 설정
+        // Builder 패턴으로 엔티티 생성
+        MilestoneEntity milestoneEntity = null;
         if (projectValidator.isValidMilestoneId(issueReqDTO.getMilestoneId())) {
-            MilestoneEntity milestoneEntity = milestoneRepository.findById(issueReqDTO.getMilestoneId())
+            milestoneEntity = milestoneRepository.findById(issueReqDTO.getMilestoneId())
                     .orElseThrow(() -> MilestoneException.milestoneNotFoundException());
-            issueEntity.setMilestoneEntity(milestoneEntity);
         }
 
-        // 담당자 설정
+        MemberEntity assigneeEntity = null;
         if (projectValidator.isValidAssigneeId(issueReqDTO.getAssigneeId())) {
-            MemberEntity assigneeEntity = memberRepository.findById(issueReqDTO.getAssigneeId())
+            assigneeEntity = memberRepository.findById(issueReqDTO.getAssigneeId())
                     .orElseThrow(() -> MemberException.memberNotFoundException());
-            issueEntity.setAssigneeEntity(assigneeEntity);
         }
+
+        IssueEntity issueEntity = IssueEntity.builder()
+                .projectEntity(projectEntity)
+                .milestoneEntity(milestoneEntity)
+                .assigneeEntity(assigneeEntity)
+                .name(issueReqDTO.getName())
+                .content(issueReqDTO.getContent())
+                .status(IssueStatus.valueOf(issueReqDTO.getStatus()))
+                .build();
 
         IssueEntity savedIssueEntity = issueRepository.save(issueEntity);
 
@@ -180,7 +185,7 @@ public class IssueService {
     @Transactional
     public ApiResponse<IssueDetailDTO> updateIssue(Long orgId, Long issueId, IssueReqDTO issueReqDTO) {
         IssueEntity issueEntity = validateAndGetIssue(issueId);
-        validateProjectParticipantOrAdmin(orgId, issueEntity.getProjectEntity().getProjectId());
+        authorizationService.validateProjectParticipantOrAdmin(orgId, issueEntity.getProjectEntity().getProjectId());
 
         MemberEntity previousAssignee = issueEntity.getAssigneeEntity();
         updateIssueEntityFromRequest(issueEntity, issueReqDTO);
@@ -223,7 +228,7 @@ public class IssueService {
         IssueEntity issueEntity = issueRepository.findById(issueId)
                 .orElseThrow(() -> IssueException.issueNotFoundException());
 
-        validateProjectParticipantOrAdmin(orgId, issueEntity.getProjectEntity().getProjectId());
+        authorizationService.validateProjectParticipantOrAdmin(orgId, issueEntity.getProjectEntity().getProjectId());
 
         issueRepository.deleteById(issueId);
 
@@ -370,18 +375,4 @@ public class IssueService {
         }
     }
 
-    private void validateProjectParticipantOrAdmin(Long orgId, Long projectId) {
-        Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
-        if (memberId == null) {
-            throw MemberException.memberAccessDeniedException();
-        }
-
-        boolean isParticipant = projectParticipantService.isProjectParticipant(projectId, memberId);
-        Role role = SecurityUtil.getCurrentRoleByOrgId(orgId);
-        boolean isAdminOrRootAdmin = role != null && (role.equals(Role.ADMIN) || role.equals(Role.ROOT_ADMIN));
-
-        if (!(isParticipant || isAdminOrRootAdmin)) {
-            throw ProjectException.projectParticipantOrAdminOrRootAdminException();
-        }
-    }
 }
