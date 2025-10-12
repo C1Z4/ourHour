@@ -8,7 +8,7 @@ import com.ourhour.domain.project.dto.MilestoneReqDTO;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.domain.project.dto.IssueReqDTO;
 import com.ourhour.domain.project.dto.IssueStatusReqDTO;
-import com.ourhour.domain.project.dto.ProjecUpdateReqDTO;
+import com.ourhour.domain.project.dto.ProjectUpdateReqDTO;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
 import com.ourhour.domain.project.dto.ProjectInfoDTO;
 import com.ourhour.domain.project.dto.ProjectParticipantDTO;
@@ -76,7 +76,7 @@ public class ProjectController {
         public ResponseEntity<ApiResponse<Void>> updateProject(
                         @OrgId @PathVariable @Min(value = 1, message = "조직 ID는 1 이상이어야 합니다.") Long orgId,
                         @PathVariable @Min(value = 1, message = "프로젝트 ID는 1 이상이어야 합니다.") Long projectId,
-                        @Valid @RequestBody ProjecUpdateReqDTO projectReqDTO) {
+                        @Valid @RequestBody ProjectUpdateReqDTO projectReqDTO) {
                 ApiResponse<Void> response = projectService.updateProject(projectId, projectReqDTO);
                 return ResponseEntity.ok(response);
         }

@@ -134,7 +134,7 @@ public class ProjectService {
 
             Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
 
-            return projectRepository.findByOrgEntity_OrgIdAndParticipantMemberId(orgId, memberId, pageable);
+            return projectRepository.findProjectsByOrgAndMember(orgId, memberId, pageable);
         } else {
             return projectRepository.findByOrgEntity_OrgId(orgId, pageable);
         }
@@ -166,7 +166,7 @@ public class ProjectService {
 
         ProjectEntity projectEntity = projectMapper.toProjectEntity(orgEntity, projectReqDTO);
 
-        projectRepository.save(projectEntity);
+        ProjectEntity savedProject = projectRepository.save(projectEntity);
 
         // 본인도 프로젝트 참여자로 등록
         Long memberId = SecurityUtil.getCurrentMemberIdByOrgId(orgId);
@@ -178,11 +178,11 @@ public class ProjectService {
             throw MemberException.memberNotFoundException();
         }
 
-        ProjectParticipantId participantId = new ProjectParticipantId(projectEntity.getProjectId(), memberId);
+        ProjectParticipantId participantId = new ProjectParticipantId(savedProject.getProjectId(), memberId);
 
         ProjectParticipantEntity participant = ProjectParticipantEntity.builder()
                 .projectParticipantId(participantId)
-                .projectEntity(projectEntity)
+                .projectEntity(savedProject)
                 .memberEntity(memberRepository.getReferenceById(memberId))
                 .build();
 
