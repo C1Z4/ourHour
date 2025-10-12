@@ -15,6 +15,7 @@ import com.ourhour.domain.comment.dto.CommentDTO;
 import com.ourhour.domain.user.dto.GitHubRepositoryResDTO;
 import com.ourhour.domain.project.dto.IssueDetailDTO;
 import com.ourhour.domain.project.dto.MileStoneInfoDTO;
+import com.ourhour.domain.project.enums.IssueStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -74,7 +75,7 @@ public class GitHubDtoMapper {
         IssueDetailDTO dto = new IssueDetailDTO();
         dto.setIssueId(issueId);
         dto.setName(name);
-        dto.setStatus(status);
+        dto.setStatus(IssueStatus.valueOf(status));
         dto.setMilestoneId(milestoneId);
         dto.setMilestoneName(milestoneName);
         dto.setAssigneeId(assigneeId);

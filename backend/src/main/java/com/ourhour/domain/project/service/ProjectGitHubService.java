@@ -3,7 +3,7 @@ package com.ourhour.domain.project.service;
 import org.springframework.stereotype.Service;
 
 import com.ourhour.domain.project.repository.ProjectGithubIntegrationRepository;
-import com.ourhour.domain.project.entity.ProjectGithubIntegrationEntity;
+import com.ourhour.domain.user.entity.ProjectGithubIntegrationEntity;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ public class ProjectGitHubService {
     public void activateGitHubIntegration(Long projectId) {
         integrationRepository.findByProjectEntity_ProjectId(projectId)
                 .ifPresent(integration -> {
-                    integration.setIsActive(true);
+                    integration.activate();
                     integrationRepository.save(integration);
                     log.info("GitHub integration activated for project: {}", projectId);
                 });
@@ -52,7 +52,7 @@ public class ProjectGitHubService {
     public void deactivateGitHubIntegration(Long projectId) {
         integrationRepository.findByProjectEntity_ProjectId(projectId)
                 .ifPresent(integration -> {
-                    integration.setIsActive(false);
+                    integration.deactivate();
                     integrationRepository.save(integration);
                     log.info("GitHub integration deactivated for project: {}", projectId);
                 });
@@ -63,7 +63,6 @@ public class ProjectGitHubService {
      */
     public Optional<String> getGitHubRepositoryUrl(Long projectId) {
         return getGitHubIntegration(projectId)
-                .map(integration -> String.format("https://github.com/%s/%s",
-                        integration.getGithubOwner(), integration.getGithubRepo()));
+                .map(integration -> "https://github.com/" + integration.getGithubRepository());
     }
 }

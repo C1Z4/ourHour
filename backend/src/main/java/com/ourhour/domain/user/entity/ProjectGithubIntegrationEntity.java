@@ -49,6 +49,14 @@ public class ProjectGithubIntegrationEntity extends GitHubSyncableEntity {
         this.defaultTokenUserId = defaultTokenUserId;
     }
 
+    public void activate() {
+        this.isActive = true;
+    }
+
+    public void deactivate() {
+        this.isActive = false;
+    }
+
     @Override
     public Long getId() {
         return integrationId;
