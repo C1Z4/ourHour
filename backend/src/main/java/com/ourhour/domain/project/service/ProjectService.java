@@ -35,6 +35,7 @@ import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.ProjectParticipantId;
 import com.ourhour.domain.project.enums.IssueStatus;
 import com.ourhour.domain.project.exception.ProjectException;
+import com.ourhour.domain.project.constants.ProjectConstants;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,61 +57,22 @@ public class ProjectService {
 
     // 프로젝트 요약 목록 조회 - 페이징 처리
     public ApiResponse<PageResponse<ProjectSummaryResDTO>> getProjectsSummaryList(Long orgId, int participantLimit,
-            boolean myProjectsOnly,
-            Pageable pageable) {
+            boolean myProjectsOnly, Pageable pageable) {
 
-        // 입력 검증
         validateProjectSummaryListParams(orgId, participantLimit);
+        validateOrgExists(orgId);
 
-        // 회사 존재 여부 확인
-        if (!orgRepository.existsById(orgId)) {
-            throw OrgException.orgNotFoundException();
-        }
-
-        // 프로젝트 페이지 조회
         Page<ProjectEntity> projectPage = getProjectPage(orgId, myProjectsOnly, pageable);
-
         if (projectPage.isEmpty()) {
             return ApiResponse.success(PageResponse.empty(pageable.getPageNumber() + 1, pageable.getPageSize()));
         }
 
-        // 프로젝트 ID 목록 추출
-        List<Long> projectIds = projectPage.getContent().stream()
-                .map(ProjectEntity::getProjectId)
-                .collect(Collectors.toList());
+        Map<Long, List<ProjectParticipantEntity>> participantsByProject = getParticipantsByProject(projectPage,
+                participantLimit);
 
-        // 모든 프로젝트의 참여자를 한 번에 조회
-        List<ProjectParticipantEntity> allParticipants = projectParticipantRepository
-                .findLimitedParticipantsByProjectIds(projectIds, participantLimit);
+        Page<ProjectSummaryResDTO> projectSummaryPage = convertToProjectSummaryPage(projectPage, participantsByProject);
 
-        // 프로젝트별 참여자 그룹화 후 제한된 수만큼만 유지
-        Map<Long, List<ProjectParticipantEntity>> participantsByProject = allParticipants.stream()
-                .collect(Collectors.groupingBy(p -> p.getProjectEntity().getProjectId()))
-                .entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue().stream()
-                                .limit(participantLimit)
-                                .collect(Collectors.toList())));
-
-        // DTO 변환
-        Page<ProjectSummaryResDTO> projectSummaryPage = projectPage.map(project -> {
-            ProjectSummaryResDTO projectSummary = projectMapper.toProjectSummaryResDTO(project);
-
-            List<ProjectParticipantEntity> projectParticipants = participantsByProject
-                    .getOrDefault(project.getProjectId(), List.of());
-
-            List<ProjectSummaryParticipantDTO> participants = projectParticipants.stream()
-                    .map(participant -> new ProjectSummaryParticipantDTO(
-                            participant.getMemberEntity().getMemberId(),
-                            participant.getMemberEntity().getName()))
-                    .collect(Collectors.toList());
-
-            projectSummary.setParticipants(participants);
-            return projectSummary;
-        });
-
-        return ApiResponse.success(PageResponse.of(projectSummaryPage), "프로젝트 요약 목록 조회에 성공했습니다.");
+        return ApiResponse.success(PageResponse.of(projectSummaryPage), ProjectConstants.PROJECT_SUMMARY_LIST_SUCCESS);
     }
 
     private void validateProjectSummaryListParams(Long orgId, int participantLimit) {
@@ -120,6 +82,50 @@ public class ProjectService {
         if (participantLimit <= 0) {
             throw ProjectException.projectParticipantLimitInvalidException();
         }
+    }
+
+    private void validateOrgExists(Long orgId) {
+        if (!orgRepository.existsById(orgId)) {
+            throw OrgException.orgNotFoundException();
+        }
+    }
+
+    private Map<Long, List<ProjectParticipantEntity>> getParticipantsByProject(
+            Page<ProjectEntity> projectPage, int participantLimit) {
+        List<Long> projectIds = projectPage.getContent().stream()
+                .map(ProjectEntity::getProjectId)
+                .toList();
+
+        List<ProjectParticipantEntity> allParticipants = projectParticipantRepository
+                .findLimitedParticipantsByProjectIds(projectIds, participantLimit);
+
+        return allParticipants.stream()
+                .collect(Collectors.groupingBy(p -> p.getProjectEntity().getProjectId()))
+                .entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().stream()
+                                .limit(participantLimit)
+                                .toList()));
+    }
+
+    private Page<ProjectSummaryResDTO> convertToProjectSummaryPage(
+            Page<ProjectEntity> projectPage, Map<Long, List<ProjectParticipantEntity>> participantsByProject) {
+        return projectPage.map(project -> {
+            ProjectSummaryResDTO projectSummary = projectMapper.toProjectSummaryResDTO(project);
+
+            List<ProjectParticipantEntity> projectParticipants = participantsByProject
+                    .getOrDefault(project.getProjectId(), List.of());
+
+            List<ProjectSummaryParticipantDTO> participants = projectParticipants.stream()
+                    .map(participant -> new ProjectSummaryParticipantDTO(
+                            participant.getMemberEntity().getMemberId(),
+                            participant.getMemberEntity().getName()))
+                    .toList();
+
+            projectSummary.setParticipants(participants);
+            return projectSummary;
+        });
     }
 
     private Page<ProjectEntity> getProjectPage(Long orgId, boolean myProjectsOnly, Pageable pageable) {
@@ -144,7 +150,7 @@ public class ProjectService {
 
         ProjectInfoDTO projectInfo = projectMapper.toProjectInfoDTO(project);
 
-        return ApiResponse.success(projectInfo, "프로젝트 정보 조회에 성공했습니다.");
+        return ApiResponse.success(projectInfo, ProjectConstants.PROJECT_INFO_SUCCESS);
     }
 
     // 프로젝트 등록
@@ -181,7 +187,7 @@ public class ProjectService {
 
         projectParticipantRepository.save(participant);
 
-        return ApiResponse.success(null, "프로젝트 등록이 완료되었습니다.");
+        return ApiResponse.success(null, ProjectConstants.PROJECT_CREATE_SUCCESS);
     }
 
     // 프로젝트 수정(정보, 참가자)
@@ -214,23 +220,23 @@ public class ProjectService {
                             return ProjectParticipantEntity.builder()
                                     .projectParticipantId(participantId)
                                     .projectEntity(savedProject)
-                                    .memberEntity(memberRepository.getReferenceById(memberId)) // 실제 필드값이 필요하지 않아
-                                                                                               // reference(단순 참조, 지연로딩)
+                                    .memberEntity(memberRepository.getReferenceById(memberId))
                                     .build();
                         })
-                        .collect(Collectors.toList());
+                        .toList();
 
                 projectParticipantRepository.saveAll(newParticipants);
             }
         }
 
-        return ApiResponse.success(null, "프로젝트 수정이 완료되었습니다.");
+        return ApiResponse.success(null, ProjectConstants.PROJECT_UPDATE_SUCCESS);
     }
 
     // 프로젝트 삭제
+    @Transactional
     public ApiResponse<Void> deleteProject(Long projectId) {
         projectRepository.deleteById(projectId);
-        return ApiResponse.success(null, "프로젝트 삭제가 완료되었습니다.");
+        return ApiResponse.success(null, ProjectConstants.PROJECT_DELETE_SUCCESS);
     }
 
     // 특정 프로젝트의 마일스톤 목록 조회
@@ -266,7 +272,7 @@ public class ProjectService {
         // 마일스톤 ID 목록 추출
         List<Long> milestoneIds = milestonePage.getContent().stream()
                 .map(MilestoneEntity::getMilestoneId)
-                .collect(Collectors.toList());
+                .toList();
 
         // 벌크 쿼리로 이슈 카운트 조회
         Map<Long, Long> totalCounts = issueRepository.countByMilestoneIds(milestoneIds).stream()
@@ -274,7 +280,8 @@ public class ProjectService {
                         count -> count.getMilestoneId(),
                         count -> count.getTotalCount()));
 
-        Map<Long, Long> completedCounts = issueRepository.countByMilestoneIdsAndStatus(milestoneIds, IssueStatus.COMPLETED).stream()
+        Map<Long, Long> completedCounts = issueRepository
+                .countByMilestoneIdsAndStatus(milestoneIds, IssueStatus.COMPLETED).stream()
                 .collect(Collectors.toMap(
                         count -> count.getMilestoneId(),
                         count -> count.getCompletedCount()));
@@ -285,17 +292,33 @@ public class ProjectService {
             return new MileStoneInfoDTO(
                     milestone.getMilestoneId(),
                     milestone.getName(),
-                    (int) completedIssues,
-                    (int) totalIssues,
-                    (byte) (totalIssues == 0 ? 0 : (completedIssues * PERCENTAGE_MULTIPLIER / totalIssues)));
+                    safeLongToInt(completedIssues),
+                    safeLongToInt(totalIssues),
+                    calculateProgressPercentage(completedIssues, totalIssues));
         });
 
         PageResponse<MileStoneInfoDTO> response = PageResponse.of(milestoneInfoPage);
 
         String message = myMilestonesOnly
-                ? "내가 할당된 이슈가 있는 마일스톤 목록 조회에 성공했습니다."
-                : "특정 프로젝트의 마일스톤 목록 조회에 성공했습니다.";
+                ? ProjectConstants.PROJECT_MILESTONE_MY_SUCCESS
+                : ProjectConstants.PROJECT_MILESTONE_SUCCESS;
         return ApiResponse.success(response, message);
+    }
+
+    private int safeLongToInt(long value) {
+        if (value > Integer.MAX_VALUE) {
+            log.warn("Long value {} exceeds Integer.MAX_VALUE, returning Integer.MAX_VALUE", value);
+            return Integer.MAX_VALUE;
+        }
+        return (int) value;
+    }
+
+    private byte calculateProgressPercentage(long completed, long total) {
+        if (total == 0) {
+            return 0;
+        }
+        long percentage = (completed * PERCENTAGE_MULTIPLIER) / total;
+        return (byte) Math.min(percentage, 100);
     }
 
 }
