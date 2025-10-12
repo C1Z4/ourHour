@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -32,7 +33,7 @@ public class MilestoneEntity extends GitHubSyncableEntity {
 
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "milestoneEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<IssueEntity> issueEntityList = new ArrayList<>();
+    private List<IssueEntity> issueEntityList;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
@@ -53,5 +54,9 @@ public class MilestoneEntity extends GitHubSyncableEntity {
     @Override
     public Long getId() {
         return milestoneId;
+    }
+
+    public List<IssueEntity> getIssueEntityList() {
+        return issueEntityList != null ? issueEntityList : Collections.emptyList();
     }
 }
