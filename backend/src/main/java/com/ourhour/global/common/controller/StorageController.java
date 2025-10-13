@@ -1,6 +1,7 @@
 package com.ourhour.global.common.controller;
 
 import com.ourhour.global.common.dto.ImageMetadataDTO;
+import com.ourhour.global.common.enums.ImageContentType;
 import com.ourhour.global.common.service.ImageCacheEvictionService;
 import com.ourhour.global.common.service.ImageCacheService;
 import com.ourhour.global.common.service.ImageService;
@@ -64,7 +65,7 @@ public class StorageController {
         }
 
         // 캐시에 없으면 새로 생성
-        String extension = getExtensionFromContentType(request.contentType());
+        String extension = ImageContentType.getExtensionFromContentType(request.contentType());
         String safeFileName = UUID.randomUUID() + "." + extension;
         String key = uploadPrefix + "/" + safeFileName;
 
@@ -144,23 +145,6 @@ public class StorageController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body(ApiResponse.fail("이미지 삭제 중 오류가 발생했습니다: " + e.getMessage()));
-        }
-    }
-
-    // 컨텐트 타입에 따라 확장자 반환
-    private String getExtensionFromContentType(String contentType) {
-        switch (contentType.toLowerCase()) {
-            case "image/jpeg":
-            case "image/jpg":
-                return "jpg";
-            case "image/png":
-                return "png";
-            case "image/gif":
-                return "gif";
-            case "image/webp":
-                return "webp";
-            default:
-                return "jpg";
         }
     }
 }
