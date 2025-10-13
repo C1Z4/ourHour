@@ -38,8 +38,4 @@ public class BusinessException extends RuntimeException {
     public static BusinessException of(ErrorCode errorCode, Throwable cause) {
         return new BusinessException(errorCode, cause);
     }
-
-    public ErrorCode getErrorCode() {
-        return errorCode;
-    }
 }
