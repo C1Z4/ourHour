@@ -1,6 +1,7 @@
 package com.ourhour.global.common.service;
 
 import com.ourhour.global.common.dto.ImageMetadataDTO;
+import com.ourhour.global.common.enums.ImageContentType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,10 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -44,8 +48,8 @@ public class ImageService {
             String mimeTypeHeader = parts[0];
             String imageData = parts[1];
 
-            String extension = getExtensionFromMimeType(mimeTypeHeader);
-            String contentType = getContentTypeFromMimeType(mimeTypeHeader);
+            String extension = ImageContentType.getExtensionFromMimeTypeHeader(mimeTypeHeader);
+            String contentType = ImageContentType.getContentTypeFromMimeTypeHeader(mimeTypeHeader);
 
             String fileName = UUID.randomUUID() + "." + extension;
             String key = uploadPrefix + "/" + fileName;
@@ -72,32 +76,6 @@ public class ImageService {
         } catch (Exception e) {
             throw new RuntimeException("이미지 저장 중 오류가 발생했습니다", e);
         }
-    }
-
-    private String getExtensionFromMimeType(String mimeType) {
-        String lower = mimeType.toLowerCase();
-        if (lower.contains("png"))
-            return "png";
-        if (lower.contains("jpg") || lower.contains("jpeg"))
-            return "jpg";
-        if (lower.contains("gif"))
-            return "gif";
-        if (lower.contains("svg"))
-            return "svg";
-        return "png";
-    }
-
-    private String getContentTypeFromMimeType(String mimeType) {
-        String lower = mimeType.toLowerCase();
-        if (lower.contains("image/png"))
-            return "image/png";
-        if (lower.contains("image/jpeg") || lower.contains("jpg"))
-            return "image/jpeg";
-        if (lower.contains("image/gif"))
-            return "image/gif";
-        if (lower.contains("image/svg+xml") || lower.contains("svg"))
-            return "image/svg+xml";
-        return "application/octet-stream";
     }
 
     public String buildCdnUrl(String key) {
@@ -155,47 +133,78 @@ public class ImageService {
         }
     }
 
+    // URL 파싱 전략 목록
+    private final List<Function<String, Optional<String>>> keyExtractors = List.of(
+        this::extractFromCdn,
+        this::extractFromCloudFront,
+        this::extractFromS3,
+        this::extractFromPrefix
+    );
+
     // 이미지 URL에서 key 추출
     public String extractKeyFromCdnUrl(String cdnUrl) {
         if (cdnUrl == null || cdnUrl.isEmpty()) {
             return null;
         }
 
-        // CDN 도메인이 설정되어 있고 유효한 경우
-        if (cdnDomain != null && !cdnDomain.isEmpty() && !cdnDomain.equals("${CDN_DOMAIN}")) {
-            String base = cdnDomain.endsWith("/") ? cdnDomain.substring(0, cdnDomain.length() - 1) : cdnDomain;
+        return keyExtractors.stream()
+                .map(extractor -> extractor.apply(cdnUrl))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst()
+                .orElse(null);
+    }
 
-            if (cdnUrl.startsWith(base + "/")) {
-                String key = cdnUrl.substring(base.length() + 1);
-                return key;
-            }
+    // CDN 도메인에서 키 추출
+    private Optional<String> extractFromCdn(String cdnUrl) {
+        if (cdnDomain == null || cdnDomain.isEmpty() || cdnDomain.equals("${CDN_DOMAIN}")) {
+            return Optional.empty();
         }
 
-        // CloudFront URL에서 직접 키 추출 시도
-        if (cdnUrl.contains("cloudfront.net/")) {
-            String[] parts = cdnUrl.split("cloudfront.net/", 2);
-            if (parts.length == 2) {
-                String key = parts[1];
-                return key;
-            }
+        String base = cdnDomain.endsWith("/") ? cdnDomain.substring(0, cdnDomain.length() - 1) : cdnDomain;
+        if (cdnUrl.startsWith(base + "/")) {
+            return Optional.of(cdnUrl.substring(base.length() + 1));
         }
 
-        // S3 URL에서 직접 키 추출 시도
-        if (cdnUrl.contains("amazonaws.com/")) {
-            String[] parts = cdnUrl.split("amazonaws.com/", 2);
-            if (parts.length == 2) {
-                String key = parts[1];
-                return key;
-            }
+        return Optional.empty();
+    }
+
+    // CloudFront URL에서 키 추출
+    private Optional<String> extractFromCloudFront(String cdnUrl) {
+        if (!cdnUrl.contains("cloudfront.net/")) {
+            return Optional.empty();
         }
 
-        // 패턴 매칭으로 images/ 이후의 부분 추출
-        if (cdnUrl.contains("/" + uploadPrefix + "/")) {
-            int index = cdnUrl.indexOf("/" + uploadPrefix + "/");
-            String key = cdnUrl.substring(index + 1);
-            return key;
+        String[] parts = cdnUrl.split("cloudfront.net/", 2);
+        if (parts.length == 2) {
+            return Optional.of(parts[1]);
         }
 
-        return null;
+        return Optional.empty();
+    }
+
+    // S3 URL에서 키 추출
+    private Optional<String> extractFromS3(String cdnUrl) {
+        if (!cdnUrl.contains("amazonaws.com/")) {
+            return Optional.empty();
+        }
+
+        String[] parts = cdnUrl.split("amazonaws.com/", 2);
+        if (parts.length == 2) {
+            return Optional.of(parts[1]);
+        }
+
+        return Optional.empty();
+    }
+
+    // uploadPrefix 패턴 매칭으로 키 추출
+    private Optional<String> extractFromPrefix(String cdnUrl) {
+        String pattern = "/" + uploadPrefix + "/";
+        if (!cdnUrl.contains(pattern)) {
+            return Optional.empty();
+        }
+
+        int index = cdnUrl.indexOf(pattern);
+        return Optional.of(cdnUrl.substring(index + 1));
     }
 }
