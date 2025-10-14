@@ -25,6 +25,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
+    // SSE 요청 확인 헬퍼 메서드
+    private boolean isNotificationRequest(String requestURI) {
+        return Arrays.stream(AuthPath.NOTIFICATION_URLS)
+                .anyMatch(pattern -> pathMatcher.match(pattern, requestURI));
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -39,8 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = getToken(request);
 
         // SSE 요청인지 확인
-        boolean isNotification = Arrays.stream(AuthPath.NOTIFICATION_URLS)
-                .anyMatch(pattern -> pathMatcher.match(pattern, requestURI));
+        boolean isNotification = isNotificationRequest(requestURI);
 
         if (isNotification) {
             // SSE 요청의 경우 특별 처리
@@ -132,12 +137,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return bearer.substring(7);
         }
 
-        String requestURI = request.getRequestURI();
-        boolean isNotification = Arrays.stream(AuthPath.NOTIFICATION_URLS)
-                .anyMatch(pattern -> pathMatcher.match(pattern, requestURI));
-
         // SSE 요청의 경우 쿠키에서 SSE 토큰 추출
-        if (isNotification) {
+        if (isNotificationRequest(request.getRequestURI())) {
             Cookie[] cookies = request.getCookies();
 
             if (cookies != null) {
