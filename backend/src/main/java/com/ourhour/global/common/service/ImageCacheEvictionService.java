@@ -22,12 +22,25 @@ public class ImageCacheEvictionService {
 
     private static final String IMAGE_METADATA_PREFIX = "image:metadata:*";
 
+    // Redis 연결 상태 확인 헬퍼 메서드
+    private boolean isRedisAvailable() {
+        try {
+            redisTemplate.getConnectionFactory().getConnection().ping();
+            return true;
+        } catch (Exception e) {
+            log.warn("Redis 연결 실패: {}", e.getMessage());
+            return false;
+        }
+    }
+
     // 가장 오래된 이미지 정리
     @Scheduled(fixedRate = 3600000) // 1시간마다 실행
     public void evictLeastUsedImages() {
+        if (!isRedisAvailable()) {
+            return;
+        }
+
         try {
-            // Redis 연결 상태 확인
-            redisTemplate.getConnectionFactory().getConnection().ping();
             Set<String> metadataKeys = redisTemplate.keys(IMAGE_METADATA_PREFIX);
             if (metadataKeys == null || metadataKeys.size() <= maxCacheSize) {
                 return;
@@ -58,11 +71,13 @@ public class ImageCacheEvictionService {
     }
 
     // 만료된 Presigned URL 정리
-    @Scheduled(fixedRate = 1800000) // 30분마다 실행  
+    @Scheduled(fixedRate = 1800000) // 30분마다 실행
     public void cleanupExpiredPresignedUrls() {
+        if (!isRedisAvailable()) {
+            return;
+        }
+
         try {
-            // Redis 연결 상태 확인
-            redisTemplate.getConnectionFactory().getConnection().ping();
             Set<String> presignKeys = redisTemplate.keys("image:presign:*");
             if (presignKeys == null) {
                 return;
