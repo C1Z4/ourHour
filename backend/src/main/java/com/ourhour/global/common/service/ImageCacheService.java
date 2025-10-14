@@ -29,6 +29,8 @@ public class ImageCacheService {
     private static final String IMAGE_METADATA_PREFIX = "image:metadata:";
     private static final String PRESIGN_URL_PREFIX = "image:presign:";
     private static final String ACCESS_COUNT_PREFIX = "image:access:";
+    private static final String CACHE_DELIMITER = "|";
+    private static final int PRESIGN_RESPONSE_PARTS = 3;
 
     @Cacheable(value = "imageMetadata", key = "#key")
     public ImageMetadataDTO getImageMetadata(String key) {
@@ -79,7 +81,7 @@ public class ImageCacheService {
         try {
             String cacheKey = PRESIGN_URL_PREFIX + fileName + ":" + contentType;
             // PresignResponse 객체를 JSON으로 직렬화하여 저장
-            String cacheValue = presignedUrl + "|" + key + "|" + cdnUrl;
+            String cacheValue = presignedUrl + CACHE_DELIMITER + key + CACHE_DELIMITER + cdnUrl;
             redisTemplate.opsForValue().set(cacheKey, cacheValue, presignCacheTtl, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.warn("Redis 연결 오류로 인해 PresignResponse를 캐시에 저장할 수 없습니다: {}", e.getMessage());
@@ -92,8 +94,8 @@ public class ImageCacheService {
             String cacheKey = PRESIGN_URL_PREFIX + fileName + ":" + contentType;
             String cachedValue = (String) redisTemplate.opsForValue().get(cacheKey);
             if (cachedValue != null) {
-                String[] parts = cachedValue.split("\\|");
-                if (parts.length == 3) {
+                String[] parts = cachedValue.split("\\" + CACHE_DELIMITER);
+                if (parts.length == PRESIGN_RESPONSE_PARTS) {
                     return parts;
                 }
             }
