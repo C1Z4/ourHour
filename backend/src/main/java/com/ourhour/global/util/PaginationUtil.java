@@ -11,6 +11,16 @@ public final class PaginationUtil {
     }
 
     public static <T, R> PageResponse<R> paginate(List<T> allItems, int currentPage, int size, Function<T, R> mapper) {
+        // null 또는 빈 리스트 처리
+        if (allItems == null || allItems.isEmpty()) {
+            return PageResponse.empty(Math.max(1, currentPage), Math.max(1, size));
+        }
+
+        // size가 0 이하인 경우 처리
+        if (size <= 0) {
+            return PageResponse.empty(Math.max(1, currentPage), 1);
+        }
+
         int total = allItems.size();
         int totalPages = (int) Math.ceil((double) total / size);
         int start = Math.max(0, (currentPage - 1) * size);
