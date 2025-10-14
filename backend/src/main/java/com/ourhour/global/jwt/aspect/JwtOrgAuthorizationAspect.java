@@ -58,12 +58,12 @@ public class JwtOrgAuthorizationAspect {
                 if (annotation instanceof OrgId) {
                     if (args[i] instanceof Long) {
                         orgId = (Long) args[i];
-                        break; // 내부 for 문
+                        break; // @OrgId 어노테이션을 찾았으므로 내부 루프 종료
                     }
                 }
             }
             if (orgId != null)
-                break; // 외부 for 문
+                break; // orgId를 찾았으므로 외부 루프 종료
         }
 
         return orgId;
