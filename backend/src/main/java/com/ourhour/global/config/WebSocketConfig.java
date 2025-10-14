@@ -2,6 +2,7 @@ package com.ourhour.global.config;
 
 import com.ourhour.global.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -19,6 +20,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 import java.util.Objects;
 
+@Slf4j
 @Configuration
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
@@ -56,7 +58,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
                 if (accessor == null) {
-                    System.out.println("StompHeaderAccessor is null, cannot process message.");
+                    log.warn("StompHeaderAccessor is null, cannot process message.");
                     return message;
                 }
 
@@ -71,7 +73,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         Authentication authentication = jwtTokenProvider.getAuthenticationFromToken(jwtToken);
 
                         accessor.setUser(authentication); // accessor 자체에도 유저 정보를 설정
-                        System.out.println("WebSocket CONNECT successful, Authentication stored in session for user: " + authentication.getName());
+                        log.info("WebSocket CONNECT successful, user: {}", authentication.getName());
                     }
                 }
 

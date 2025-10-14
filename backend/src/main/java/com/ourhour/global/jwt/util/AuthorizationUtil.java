@@ -1,12 +1,7 @@
 package com.ourhour.global.jwt.util;
 
 import com.ourhour.domain.org.enums.Role;
-import com.ourhour.global.jwt.annotation.OrgAuth;
-import com.ourhour.global.jwt.dto.Claims;
 import com.ourhour.global.jwt.dto.CustomUserDetails;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -16,20 +16,17 @@ import java.util.Base64;
 @Component
 public class EncryptionUtil {
 
-    @Value("${encryption.secret-key}")
-    private String secretKey;
-
-    private SecretKeySpec secretKeySpec;
+    private final SecretKeySpec secretKeySpec;
     private static final int GCM_IV_LENGTH = 12;
     private static final int GCM_TAG_LENGTH = 16;
 
-    public void init() {
+    public EncryptionUtil(@Value("${encryption.secret-key}") String secretKey) {
         try {
             byte[] key = secretKey.getBytes(StandardCharsets.UTF_8);
             MessageDigest sha = MessageDigest.getInstance("SHA-256");
             key = sha.digest(key);
             key = Arrays.copyOf(key, 32); // AES-256을 위해 32바이트
-            secretKeySpec = new SecretKeySpec(key, "AES");
+            this.secretKeySpec = new SecretKeySpec(key, "AES");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("암호화 초기화 실패", e);
         }
@@ -37,9 +34,6 @@ public class EncryptionUtil {
 
     public String encrypt(String strToEncrypt) {
         try {
-            if (secretKeySpec == null) {
-                init();
-            }
 
             // IV 생성
             byte[] iv = new byte[GCM_IV_LENGTH];
@@ -66,10 +60,6 @@ public class EncryptionUtil {
 
     public String decrypt(String strToDecrypt) {
         try {
-            if (secretKeySpec == null) {
-                init();
-            }
-
             // Base64 디코딩
             byte[] combined = Base64.getDecoder().decode(strToDecrypt);
 
