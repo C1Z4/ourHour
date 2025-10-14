@@ -16,9 +16,9 @@ public class PageResponse<T> {
     
     private List<T> data;        // 실제 데이터
     private int currentPage;        // 현재 페이지
-    private int size;              // 페이지당 데이터 갯수
-    private int totalPages;        // 총 페이지 갯수
-    private long totalElements;    // 총 데이터 갯수
+    private int size;              // 페이지당 데이터 개수
+    private int totalPages;        // 총 페이지 개수
+    private long totalElements;    // 총 데이터 개수
     private boolean hasNext;       // 다음페이지 존재여부
     private boolean hasPrevious;   // 이전페이지 존재여부
     
