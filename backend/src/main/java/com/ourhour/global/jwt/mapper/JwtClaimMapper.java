@@ -4,7 +4,7 @@ import com.ourhour.domain.org.entity.OrgParticipantMemberEntity;
 import com.ourhour.domain.user.entity.UserEntity;
 import com.ourhour.global.jwt.dto.OrgAuthority;
 import io.jsonwebtoken.Jwts;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class JwtClaimMapper {
 
-    @Autowired
-    private OrgAuthorityMapper orgAuthorityMapper;
+    private final OrgAuthorityMapper orgAuthorityMapper;
 
     // Jwt 파싱 -> Claim 객체 추출
     public io.jsonwebtoken.Claims getJwtClaims(SecretKey secretKey, String token){

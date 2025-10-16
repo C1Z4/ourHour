@@ -22,6 +22,26 @@ public class WebSecurityConfig {
     private final CorsConfigurationSource corsConfigurationSource;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    // SSE 에러 응답 헬퍼 메서드
+    private void handleSseError(HttpServletResponse response, String message, int status) throws java.io.IOException {
+        if (!response.isCommitted()) {
+            response.setStatus(status);
+            response.setContentType("text/plain; charset=UTF-8");
+            response.getWriter().write(message);
+            response.flushBuffer();
+        }
+    }
+
+    // 일반 에러 응답 헬퍼 메서드
+    private void handleGeneralError(HttpServletResponse response, String message, int status) throws java.io.IOException {
+        if (!response.isCommitted()) {
+            response.setStatus(status);
+            response.setContentType("application/json; charset=UTF-8");
+            response.getWriter().write("{\"error\":\"" + message + "\"}");
+            response.flushBuffer();
+        }
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // SecurityContext를 모든 스레드에서 공유하도록 설정 (SSE, 비동기 처리용)
@@ -46,37 +66,23 @@ public class WebSecurityConfig {
                 // 예외 처리 설정
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
-                            // SSE 요청인 경우 특별 처리
-                            String requestURI = request.getRequestURI();
-                            boolean isSSERequest = requestURI.contains("/notifications/stream");
-
-                            if (isSSERequest && !response.isCommitted()) {
-                                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                                response.setContentType("text/plain; charset=UTF-8");
-                                response.getWriter().write("SSE Authentication failed: " + authException.getMessage());
-                                response.flushBuffer();
-                            } else if (!isSSERequest && !response.isCommitted()) {
-                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                                response.setContentType("application/json; charset=UTF-8");
-                                response.getWriter().write("{\"error\":\"Authentication required\"}");
-                                response.flushBuffer();
+                            boolean isSSERequest = request.getRequestURI().contains("/notifications/stream");
+                            if (isSSERequest) {
+                                handleSseError(response, "SSE Authentication failed: " + authException.getMessage(),
+                                             HttpServletResponse.SC_FORBIDDEN);
+                            } else {
+                                handleGeneralError(response, "Authentication required",
+                                                 HttpServletResponse.SC_UNAUTHORIZED);
                             }
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            // SSE 요청인 경우 특별 처리
-                            String requestURI = request.getRequestURI();
-                            boolean isSSERequest = requestURI.contains("/notifications/stream");
-
-                            if (isSSERequest && !response.isCommitted()) {
-                                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                                response.setContentType("text/plain; charset=UTF-8");
-                                response.getWriter().write("SSE Access denied: " + accessDeniedException.getMessage());
-                                response.flushBuffer();
-                            } else if (!isSSERequest && !response.isCommitted()) {
-                                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                                response.setContentType("application/json; charset=UTF-8");
-                                response.getWriter().write("{\"error\":\"Access denied\"}");
-                                response.flushBuffer();
+                            boolean isSSERequest = request.getRequestURI().contains("/notifications/stream");
+                            if (isSSERequest) {
+                                handleSseError(response, "SSE Access denied: " + accessDeniedException.getMessage(),
+                                             HttpServletResponse.SC_FORBIDDEN);
+                            } else {
+                                handleGeneralError(response, "Access denied",
+                                                 HttpServletResponse.SC_FORBIDDEN);
                             }
                         }))
                 // JWT 필터 등록

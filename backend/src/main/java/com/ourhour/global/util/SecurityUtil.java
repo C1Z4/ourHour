@@ -17,17 +17,20 @@ public final class SecurityUtil {
             return null;
         }
 
-        return (CustomUserDetails) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof CustomUserDetails)) {
+            return null;
+        }
+
+        return (CustomUserDetails) principal;
     }
 
     // 현재 인증된 사용자의 userId 반환, 인증되지 않았으면 null 반환
     public static Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
+        CustomUserDetails user = getCurrentUser();
+        if (user == null) {
             return null;
         }
-
-        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 
         return user.getUserId();
     }
