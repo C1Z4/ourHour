@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import io.jsonwebtoken.Jwts;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -30,30 +31,26 @@ class JwtTest {
     void setUp() {
 
         // 단위 테스트용 SecretKey (임의)
-        SecretKey secretKey = new SecretKeySpec("thisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecret".getBytes(StandardCharsets.UTF_8), "HmacSHA512");
-
-        jwtClaimMapper = new JwtClaimMapper() {
-            @Override
-            public io.jsonwebtoken.Claims getJwtClaims(SecretKey key, String token) {
-                return Jwts.parser()
-                        .verifyWith(key)
-                        .setAllowedClockSkewSeconds(60)
-                        .build()
-                        .parseSignedClaims(token)
-                        .getPayload();
-            }
-        };
+        SecretKey secretKey = new SecretKeySpec(
+                "thisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecret"
+                        .getBytes(StandardCharsets.UTF_8),
+                "HmacSHA512");
 
         // OrgAuthorityMapper mock으로 만들어서 주입
         OrgAuthorityMapper orgAuthorityMapper = mock(OrgAuthorityMapper.class);
 
+        jwtClaimMapper = new JwtClaimMapper(orgAuthorityMapper);
+
         jwtTokenProvider = new JwtTokenProvider(secretKey, orgAuthorityMapper, jwtClaimMapper);
+
+        // 토큰 만료 시간 설정 (ReflectionTestUtils 사용)
+        ReflectionTestUtils.setField(jwtTokenProvider, "accessTokenValidityInSeconds", 900L); // 15분
+        ReflectionTestUtils.setField(jwtTokenProvider, "refreshTokenValidityInSeconds", 1209600L); // 14일
 
         claims = Claims.builder()
                 .email("test@example.com")
                 .userId(1L)
-                .orgAuthorityList(List.of(
-                ))
+                .orgAuthorityList(List.of())
                 .build();
     }
 
