@@ -30,30 +30,22 @@ class JwtTest {
     void setUp() {
 
         // 단위 테스트용 SecretKey (임의)
-        SecretKey secretKey = new SecretKeySpec("thisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecret".getBytes(StandardCharsets.UTF_8), "HmacSHA512");
-
-        jwtClaimMapper = new JwtClaimMapper() {
-            @Override
-            public io.jsonwebtoken.Claims getJwtClaims(SecretKey key, String token) {
-                return Jwts.parser()
-                        .verifyWith(key)
-                        .setAllowedClockSkewSeconds(60)
-                        .build()
-                        .parseSignedClaims(token)
-                        .getPayload();
-            }
-        };
+        SecretKey secretKey = new SecretKeySpec(
+                "thisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecretthisissecret"
+                        .getBytes(StandardCharsets.UTF_8),
+                "HmacSHA512");
 
         // OrgAuthorityMapper mock으로 만들어서 주입
         OrgAuthorityMapper orgAuthorityMapper = mock(OrgAuthorityMapper.class);
+
+        jwtClaimMapper = new JwtClaimMapper(orgAuthorityMapper);
 
         jwtTokenProvider = new JwtTokenProvider(secretKey, orgAuthorityMapper, jwtClaimMapper);
 
         claims = Claims.builder()
                 .email("test@example.com")
                 .userId(1L)
-                .orgAuthorityList(List.of(
-                ))
+                .orgAuthorityList(List.of())
                 .build();
     }
 
