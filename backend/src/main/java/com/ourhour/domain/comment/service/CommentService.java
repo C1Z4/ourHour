@@ -3,7 +3,8 @@ package com.ourhour.domain.comment.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -55,6 +56,7 @@ public class CommentService {
     private final CommentLikeService commentLikeService;
     private final NotificationEventService notificationEventService;
     private final ApplicationEventPublisher eventPublisher;
+    private final CacheManager cacheManager;
 
     // 댓글 목록 조회
     @Cacheable(value = "comments", key = "#postId + '_' + #issueId + '_' + #currentPage + '_' + #size + '_' + #currentMemberId")
@@ -117,11 +119,11 @@ public class CommentService {
     }
 
     // 댓글 등록
-    @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void createComment(CommentCreateReqDTO commentCreateReqDTO, Long currentMemberId) {
 
         validateCommentRequest(commentCreateReqDTO);
+        evictCommentCache(commentCreateReqDTO.getPostId(), commentCreateReqDTO.getIssueId());
 
         PostEntity postEntity = null;
         IssueEntity issueEntity = null;
@@ -170,12 +172,16 @@ public class CommentService {
     }
 
     // 댓글 수정
-    @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void updateComment(Long commentId, CommentUpdateReqDTO commentUpdateReqDTO, Long currentMemberId) {
 
         CommentEntity commentEntity = commentRepository.findById(commentId)
                 .orElseThrow(() -> CommentException.commentNotFoundException());
+
+        evictCommentCache(
+            commentEntity.getPostEntity() != null ? commentEntity.getPostEntity().getPostId() : null,
+            commentEntity.getIssueEntity() != null ? commentEntity.getIssueEntity().getIssueId() : null
+        );
 
         // 본인이 작성한 댓글인지 확인
         if (!commentEntity.getAuthorEntity().getMemberId().equals(currentMemberId)) {
@@ -198,12 +204,16 @@ public class CommentService {
     }
 
     // 댓글 삭제
-    @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void deleteComment(Long orgId, Long commentId, Long currentMemberId) {
 
         CommentEntity commentEntity = commentRepository.findById(commentId)
                 .orElseThrow(() -> CommentException.commentNotFoundException());
+
+        evictCommentCache(
+            commentEntity.getPostEntity() != null ? commentEntity.getPostEntity().getPostId() : null,
+            commentEntity.getIssueEntity() != null ? commentEntity.getIssueEntity().getIssueId() : null
+        );
 
         // 본인이 작성한 댓글이거나, 관리자 이상의 권한을 갖고 있는 경우
         if (!canDeleteComment(orgId, commentEntity, currentMemberId)) {
@@ -368,6 +378,14 @@ public class CommentService {
     // 이슈 URL 생성
     private String buildIssueUrl(Long orgId, Long projectId, Long issueId) {
         return String.format("/org/%d/project/%d/issue/%d", orgId, projectId, issueId);
+    }
+
+    // 캐시 무효화 헬퍼 메서드
+    private void evictCommentCache(Long postId, Long issueId) {
+        Cache cache = cacheManager.getCache("comments");
+        if (cache != null) {
+            cache.clear();
+        }
     }
 
 }

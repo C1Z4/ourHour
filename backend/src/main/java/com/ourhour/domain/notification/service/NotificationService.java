@@ -13,6 +13,9 @@ import com.ourhour.domain.user.repository.UserRepository;
 import com.ourhour.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +33,7 @@ public class NotificationService {
         private final NotificationRepository notificationRepository;
         private final UserRepository userRepository;
         private final NotificationMapper notificationMapper;
+        private final CacheManager cacheManager;
 
         // UserEntity 조회 공통 메소드
         private UserEntity getUserOrThrow(Long userId) {
@@ -44,6 +48,9 @@ public class NotificationService {
 
                 NotificationEntity notification = notificationMapper.toEntity(dto, user);
                 NotificationEntity savedNotification = notificationRepository.save(notification);
+
+                // 읽지 않은 알림 개수 캐시 무효화
+                evictUnreadCountCache(dto.getUserId());
 
                 return notificationMapper.toDTO(savedNotification);
         }
@@ -73,6 +80,7 @@ public class NotificationService {
         }
 
         // 읽지 않은 알림 개수 조회
+        @Cacheable(value = "unreadNotificationCount", key = "#userId")
         public long getUnreadCount(Long userId) {
                 UserEntity user = getUserOrThrow(userId);
 
@@ -90,6 +98,9 @@ public class NotificationService {
                         throw NotificationException.notificationNotFound();
                 }
 
+                // 읽지 않은 알림 개수 캐시 무효화
+                evictUnreadCountCache(userId);
+
                 log.info("알림 읽음 처리 완료: notificationId={}, userId={}", notificationId, userId);
         }
 
@@ -100,8 +111,19 @@ public class NotificationService {
 
                 int updatedRows = notificationRepository.markAllAsReadByUser(user);
 
+                // 읽지 않은 알림 개수 캐시 무효화
+                evictUnreadCountCache(userId);
+
                 log.info("모든 알림 읽음 처리 완료: userId={}, count={}", userId, updatedRows);
 
                 return updatedRows;
+        }
+
+        // 캐시 무효화 헬퍼 메서드
+        private void evictUnreadCountCache(Long userId) {
+                Cache cache = cacheManager.getCache("unreadNotificationCount");
+                if (cache != null) {
+                        cache.evict(userId);
+                }
         }
 }

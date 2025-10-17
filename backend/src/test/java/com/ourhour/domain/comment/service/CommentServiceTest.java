@@ -53,6 +53,8 @@ import com.ourhour.domain.notification.service.NotificationEventService;
 import com.ourhour.domain.org.entity.OrgEntity;
 import com.ourhour.domain.board.entity.BoardEntity;
 import com.ourhour.domain.project.entity.ProjectEntity;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CommentService 테스트")
@@ -84,6 +86,12 @@ class CommentServiceTest {
 
         @Mock
         private NotificationEventService notificationEventService;
+
+        @Mock
+        private ApplicationEventPublisher eventPublisher;
+
+        @Mock
+        private CacheManager cacheManager;
 
         @InjectMocks
         private CommentService commentService;
