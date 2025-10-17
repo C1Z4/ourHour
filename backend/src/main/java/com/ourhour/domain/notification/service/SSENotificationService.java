@@ -3,10 +3,12 @@ package com.ourhour.domain.notification.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ourhour.domain.notification.dto.NotificationDTO;
 import com.ourhour.domain.notification.dto.SSEEventDTO;
+import com.ourhour.domain.notification.model.SseConnection;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import jakarta.annotation.PreDestroy;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -38,11 +42,14 @@ public class SSENotificationService {
     @Value("${notification.sse.heartbeat-interval:15}")
     private int heartbeatInterval;
 
-    // 사용자별 SSE 연결을 관리하는 맵
-    private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
+    @Value("${notification.sse.cleanup-interval:60}")
+    private int cleanupIntervalSeconds;
 
-    // 사용자별 heartbeat 작업을 관리하는 맵
-    private final Map<Long, ScheduledFuture<?>> heartbeatTasks = new ConcurrentHashMap<>();
+    @Value("${notification.sse.connection-timeout:30}")
+    private long connectionTimeoutMinutes;
+
+    // 사용자별 SSE 연결을 관리하는 맵 (SseConnection으로 변경)
+    private final Map<Long, SseConnection> connections = new ConcurrentHashMap<>();
 
     // heartbeat용 스케줄러
     private ScheduledExecutorService heartbeatScheduler;
@@ -59,7 +66,9 @@ public class SSENotificationService {
         // 기존 연결이 있다면 정리
         cleanupConnection(userId);
 
-        emitters.put(userId, emitter);
+        // SseConnection 객체 생성
+        SseConnection connection = new SseConnection(userId, emitter);
+        connections.put(userId, connection);
 
         // 연결 완료 및 오류 처리
         emitter.onCompletion(() -> {
@@ -75,25 +84,28 @@ public class SSENotificationService {
         });
 
         // 연결 유지를 위한 heartbeat 스케줄러 시작 (초기 메시지 포함)
-        startHeartbeat(userId, emitter);
+        startHeartbeat(connection);
 
         return emitter;
     }
 
     // SSE 이벤트 전송 공통 메소드
     private void sendEvent(Long userId, String eventName, String eventType, Object data) {
-        SseEmitter emitter = emitters.get(userId);
+        SseConnection connection = connections.get(userId);
 
-        if (emitter != null) {
+        if (connection != null && connection.isValid()) {
             try {
                 SSEEventDTO event = SSEEventDTO.builder()
                         .type(eventType)
                         .data(data)
                         .build();
 
-                emitter.send(SseEmitter.event()
+                connection.getEmitter().send(SseEmitter.event()
                         .name(eventName)
                         .data(objectMapper.writeValueAsString(event)));
+
+                // 마지막 활동 시간 업데이트
+                connection.updateLastActivity();
 
             } catch (IOException e) {
                 cleanupConnection(userId);
@@ -120,30 +132,25 @@ public class SSENotificationService {
 
     // 사용자별 SSE 연결 상태 확인
     public boolean isConnected(Long userId) {
-        return emitters.containsKey(userId);
+        SseConnection connection = connections.get(userId);
+        return connection != null && connection.isValid();
     }
 
     // 현재 활성 연결 개수 조회
     public int getActiveConnectionCount() {
-        return emitters.size();
+        return connections.size();
     }
 
-    // 연결 정리 (emitter와 heartbeat 작업 모두 정리)
+    // 연결 정리 (SseConnection을 통한 통합 정리)
     private void cleanupConnection(Long userId) {
-        // 기존 emitter 정리
-        SseEmitter existingEmitter = emitters.remove(userId);
-        if (existingEmitter != null) {
+        SseConnection connection = connections.remove(userId);
+        if (connection != null) {
             try {
-                existingEmitter.complete();
+                connection.cleanup();
+                log.debug("Cleaned up SSE connection for user {}", userId);
             } catch (Exception e) {
-                log.debug("Failed to complete emitter for user {}: {}", userId, e.getMessage());
+                log.debug("Failed to cleanup connection for user {}: {}", userId, e.getMessage());
             }
-        }
-
-        // 기존 heartbeat 작업 정리
-        ScheduledFuture<?> existingTask = heartbeatTasks.remove(userId);
-        if (existingTask != null && !existingTask.isDone()) {
-            existingTask.cancel(true);
         }
     }
 
@@ -158,16 +165,20 @@ public class SSENotificationService {
     }
 
     // 연결 유지를 위한 heartbeat 메시지 전송 (ScheduledExecutorService 사용)
-    private void startHeartbeat(Long userId, SseEmitter emitter) {
+    private void startHeartbeat(SseConnection connection) {
+        Long userId = connection.getUserId();
+        SseEmitter emitter = connection.getEmitter();
+
         // 현재 SecurityContext 캡처 (HTTP 요청 스레드에서)
         SecurityContext securityContext = SecurityContextHolder.getContext();
 
         // 초기 연결 메시지를 즉시 전송 (연결 안정화)
         try {
-            if (emitters.containsKey(userId) && emitter != null) {
+            if (connections.containsKey(userId) && emitter != null) {
                 emitter.send(SseEmitter.event()
                         .name("connection")
                         .data("connected"));
+                connection.updateLastActivity();
             }
         } catch (Exception e) {
             log.debug("Failed to send initial connection message for user {}: {}", userId, e.getMessage());
@@ -179,12 +190,14 @@ public class SSENotificationService {
         ScheduledFuture<?> heartbeatTask = heartbeatScheduler.scheduleAtFixedRate(() -> {
             executeWithSecurityContext(securityContext, () -> {
                 try {
-                    if (emitters.containsKey(userId) && emitter != null) {
+                    SseConnection currentConnection = connections.get(userId);
+                    if (currentConnection != null && currentConnection.isValid()) {
                         // Emitter 상태 체크
                         try {
-                            emitter.send(SseEmitter.event()
+                            currentConnection.getEmitter().send(SseEmitter.event()
                                     .name("ping")
                                     .data("ping"));
+                            currentConnection.updateLastActivity();
 
                         } catch (IllegalStateException e) {
                             // ResponseBodyEmitter has already completed
@@ -202,31 +215,44 @@ public class SSENotificationService {
         }, heartbeatInterval, heartbeatInterval, TimeUnit.SECONDS);
 
         // heartbeat 작업 저장
-        heartbeatTasks.put(userId, heartbeatTask);
+        connection.setHeartbeatTask(heartbeatTask);
+    }
+
+    // 만료된 연결을 주기적으로 정리하는 스케줄러
+    @Scheduled(fixedDelayString = "${notification.sse.cleanup-interval:60}000")
+    public void cleanupStaleConnections() {
+        List<Long> staleUserIds = new ArrayList<>();
+
+        connections.forEach((userId, connection) -> {
+            if (connection.isExpired(connectionTimeoutMinutes)) {
+                staleUserIds.add(userId);
+                log.info("Detected stale SSE connection for user {}. Last activity: {}",
+                        userId, connection.getLastActivityAt());
+            }
+        });
+
+        staleUserIds.forEach(this::cleanupConnection);
+
+        if (!staleUserIds.isEmpty()) {
+            log.info("Cleaned up {} stale SSE connections. Current active connections: {}",
+                    staleUserIds.size(), connections.size());
+        }
     }
 
     // 서비스 종료 시 모든 연결 정리
     @PreDestroy
     public void shutdown() {
-        log.info("Shutting down SSE notification service. Active connections: {}", emitters.size());
+        log.info("Shutting down SSE notification service. Active connections: {}", connections.size());
 
-        // 모든 emitter 정리
-        emitters.forEach((userId, emitter) -> {
+        // 모든 연결 정리
+        connections.forEach((userId, connection) -> {
             try {
-                emitter.complete();
+                connection.cleanup();
             } catch (Exception e) {
-                log.debug("Failed to complete emitter for user {} during shutdown: {}", userId, e.getMessage());
+                log.debug("Failed to cleanup connection for user {} during shutdown: {}", userId, e.getMessage());
             }
         });
-        emitters.clear();
-
-        // 모든 heartbeat 작업 취소
-        heartbeatTasks.forEach((userId, task) -> {
-            if (task != null && !task.isDone()) {
-                task.cancel(true);
-            }
-        });
-        heartbeatTasks.clear();
+        connections.clear();
 
         // 스케줄러 종료
         heartbeatScheduler.shutdown();

@@ -8,14 +8,16 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
 
-       // 회사 내 프로젝트 목록 조회
+       // 회사 내 프로젝트 목록 조회 (OrgEntity Fetch Join으로 N+1 문제 해결)
+       @Query("SELECT p FROM ProjectEntity p JOIN FETCH p.orgEntity WHERE p.orgEntity.orgId = :orgId")
        Page<ProjectEntity> findByOrgEntity_OrgId(Long orgId, Pageable pageable);
 
        @Query("SELECT p.orgEntity.orgId FROM ProjectEntity p WHERE p.projectId = :projectId")
        Long findOrgIdByProjectId(Long projectId);
 
-       // 특정 조직의 프로젝트 중 특정 멤버가 참여한 프로젝트만 조회
+       // 특정 조직의 프로젝트 중 특정 멤버가 참여한 프로젝트만 조회 (OrgEntity Fetch Join으로 N+1 문제 해결)
        @Query("SELECT DISTINCT p FROM ProjectEntity p " +
+                     "JOIN FETCH p.orgEntity " +
                      "JOIN ProjectParticipantEntity pp ON p.projectId = pp.projectParticipantId.projectId " +
                      "WHERE p.orgEntity.orgId = :orgId AND pp.projectParticipantId.memberId = :memberId")
        Page<ProjectEntity> findProjectsByOrgAndMember(Long orgId, Long memberId, Pageable pageable);
