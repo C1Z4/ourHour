@@ -22,20 +22,20 @@ import com.ourhour.domain.board.entity.PostEntity;
 import com.ourhour.domain.member.repository.MemberRepository;
 import com.ourhour.domain.project.entity.IssueEntity;
 import com.ourhour.domain.project.repository.IssueRepository;
-import com.ourhour.domain.project.enums.SyncOperation;
 import com.ourhour.domain.project.enums.SyncStatus;
 import com.ourhour.domain.board.repository.PostRepository;
 import com.ourhour.domain.member.exception.MemberException;
 import com.ourhour.domain.board.exception.PostException;
 import com.ourhour.domain.project.exception.IssueException;
-import com.ourhour.domain.project.annotation.GitHubSync;
-import com.ourhour.domain.project.sync.GitHubSyncManager;
-import com.ourhour.domain.org.enums.Role;
 import com.ourhour.domain.org.repository.OrgParticipantMemberRepository;
 import com.ourhour.domain.org.enums.Status;
 import com.ourhour.domain.notification.dto.IssueNotificationContext;
 import com.ourhour.domain.notification.dto.PostNotificationContext;
 import com.ourhour.domain.notification.service.NotificationEventService;
+import com.ourhour.domain.comment.event.CommentCreatedEvent;
+import com.ourhour.domain.comment.event.CommentUpdatedEvent;
+import com.ourhour.domain.comment.event.CommentDeletedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 import lombok.RequiredArgsConstructor;
 
@@ -52,10 +52,9 @@ public class CommentService {
     private final IssueRepository issueRepository;
     private final OrgParticipantMemberRepository orgParticipantMemberRepository;
 
-    private final GitHubSyncManager gitHubSyncManager;
-
     private final CommentLikeService commentLikeService;
     private final NotificationEventService notificationEventService;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 댓글 목록 조회
     @Cacheable(value = "comments", key = "#postId + '_' + #issueId + '_' + #currentPage + '_' + #size + '_' + #currentMemberId")
@@ -118,7 +117,6 @@ public class CommentService {
     }
 
     // 댓글 등록
-    @GitHubSync(operation = SyncOperation.CREATE)
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void createComment(CommentCreateReqDTO commentCreateReqDTO, Long currentMemberId) {
@@ -166,15 +164,12 @@ public class CommentService {
         // GitHub에도 동기화 (이슈 댓글인 경우에만)
         if (shouldSyncToGitHub) {
             // 동기화 상태를 SYNCING으로 변경 후 GitHub 동기화 시작
-            commentEntity.setSyncStatus(SyncStatus.SYNCING);
-            commentRepository.save(commentEntity);
-            gitHubSyncManager.syncToGitHub(commentEntity, SyncOperation.CREATE);
+            eventPublisher.publishEvent(new CommentCreatedEvent(this, commentEntity, true));
         }
 
     }
 
     // 댓글 수정
-    @GitHubSync(operation = SyncOperation.UPDATE)
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void updateComment(Long commentId, CommentUpdateReqDTO commentUpdateReqDTO, Long currentMemberId) {
@@ -193,13 +188,16 @@ public class CommentService {
 
         commentRepository.save(commentEntity);
 
-        if (commentEntity.getIssueEntity() != null) {
-            gitHubSyncManager.syncToGitHub(commentEntity, SyncOperation.UPDATE);
+        // GitHub 연동 상태 확인 후 이벤트 발행
+        boolean shouldSyncToGitHub = commentEntity.getIssueEntity() != null
+                && commentEntity.getIssueEntity().getIsGithubSynced();
+
+        if (shouldSyncToGitHub) {
+            eventPublisher.publishEvent(new CommentUpdatedEvent(this, commentEntity, true));
         }
     }
 
     // 댓글 삭제
-    @GitHubSync(operation = SyncOperation.DELETE)
     @CacheEvict(value = "comments", allEntries = true)
     @Transactional
     public void deleteComment(Long orgId, Long commentId, Long currentMemberId) {
@@ -212,8 +210,12 @@ public class CommentService {
             throw CommentException.commentAuthorRequiredException();
         }
 
-        if (commentEntity.getIssueEntity() != null) {
-            gitHubSyncManager.syncToGitHub(commentEntity, SyncOperation.DELETE);
+        // GitHub 연동 상태 확인 후 이벤트 발행
+        boolean shouldSyncToGitHub = commentEntity.getIssueEntity() != null
+                && commentEntity.getIssueEntity().getIsGithubSynced();
+
+        if (shouldSyncToGitHub) {
+            eventPublisher.publishEvent(new CommentDeletedEvent(this, commentEntity, true));
         }
 
         commentRepository.delete(commentEntity);
@@ -257,7 +259,8 @@ public class CommentService {
     }
 
     // 게시글 댓글 알림 전송
-    private void sendPostCommentNotifications(PostEntity postEntity, CommentEntity commentEntity, Long parentCommentId) {
+    private void sendPostCommentNotifications(PostEntity postEntity, CommentEntity commentEntity,
+            Long parentCommentId) {
         Long authorUserId = postEntity.getAuthorEntity().getUserEntity().getUserId();
         Long currentUserId = commentEntity.getAuthorEntity().getUserEntity().getUserId();
 
@@ -280,24 +283,25 @@ public class CommentService {
 
         if (parentCommentId != null) {
             sendParentCommentReplyNotification(
-                parentCommentId,
-                currentUserId,
-                authorUserId,
-                commentEntity.getAuthorEntity().getName(),
-                postEntity.getPostId(),
-                "post",
-                buildPostUrl(
-                    postEntity.getBoardEntity().getOrgEntity().getOrgId(),
-                    postEntity.getBoardEntity().getBoardId(),
-                    postEntity.getPostId())
-            );
+                    parentCommentId,
+                    currentUserId,
+                    authorUserId,
+                    commentEntity.getAuthorEntity().getName(),
+                    postEntity.getPostId(),
+                    "post",
+                    buildPostUrl(
+                            postEntity.getBoardEntity().getOrgEntity().getOrgId(),
+                            postEntity.getBoardEntity().getBoardId(),
+                            postEntity.getPostId()));
         }
     }
 
     // 이슈 댓글 알림 전송
-    private void sendIssueCommentNotifications(IssueEntity issueEntity, CommentEntity commentEntity, Long parentCommentId) {
-        Long assigneeUserId = issueEntity.getAssigneeEntity() != null ?
-            issueEntity.getAssigneeEntity().getUserEntity().getUserId() : null;
+    private void sendIssueCommentNotifications(IssueEntity issueEntity, CommentEntity commentEntity,
+            Long parentCommentId) {
+        Long assigneeUserId = issueEntity.getAssigneeEntity() != null
+                ? issueEntity.getAssigneeEntity().getUserEntity().getUserId()
+                : null;
         Long currentUserId = commentEntity.getAuthorEntity().getUserEntity().getUserId();
 
         if (assigneeUserId != null && !assigneeUserId.equals(currentUserId)) {
@@ -320,17 +324,16 @@ public class CommentService {
 
         if (parentCommentId != null) {
             sendParentCommentReplyNotification(
-                parentCommentId,
-                currentUserId,
-                assigneeUserId,
-                commentEntity.getAuthorEntity().getName(),
-                issueEntity.getIssueId(),
-                "issue",
-                buildIssueUrl(
-                    issueEntity.getProjectEntity().getOrgEntity().getOrgId(),
-                    issueEntity.getProjectEntity().getProjectId(),
-                    issueEntity.getIssueId())
-            );
+                    parentCommentId,
+                    currentUserId,
+                    assigneeUserId,
+                    commentEntity.getAuthorEntity().getName(),
+                    issueEntity.getIssueId(),
+                    "issue",
+                    buildIssueUrl(
+                            issueEntity.getProjectEntity().getOrgEntity().getOrgId(),
+                            issueEntity.getProjectEntity().getProjectId(),
+                            issueEntity.getIssueId()));
         }
     }
 
@@ -345,15 +348,14 @@ public class CommentService {
 
             // 대댓글 작성자와 원래 댓글 작성자가 다르고, excludeUserId와도 다른 경우에만 알림 전송
             if (!parentAuthorUserId.equals(currentUserId) &&
-                (excludeUserId == null || !parentAuthorUserId.equals(excludeUserId))) {
+                    (excludeUserId == null || !parentAuthorUserId.equals(excludeUserId))) {
                 notificationEventService.sendCommentReplyNotification(
-                    parentAuthorUserId,
-                    authorName,
-                    parentComment.getContent(),
-                    targetId,
-                    targetType,
-                    actionUrl
-                );
+                        parentAuthorUserId,
+                        authorName,
+                        parentComment.getContent(),
+                        targetId,
+                        targetType,
+                        actionUrl);
             }
         }
     }
