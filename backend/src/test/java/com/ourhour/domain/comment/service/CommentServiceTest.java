@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.ourhour.domain.comment.dto.CommentCreateReqDTO;
+import com.ourhour.domain.comment.dto.CommentDTO;
 import com.ourhour.domain.comment.dto.CommentPageResDTO;
 import com.ourhour.domain.comment.dto.CommentResDTO;
 import com.ourhour.domain.comment.dto.CommentUpdateReqDTO;
@@ -126,9 +128,20 @@ class CommentServiceTest {
                                 .willReturn(parentComments);
                 given(commentRepository.findByPostIdAndParentCommentIds(eq(postId), anyList()))
                                 .willReturn(allComments);
+
+                // 리팩토링 후: getCommentsWithoutUserInfo()에서 currentMemberId를 null로 전달
+                CommentDTO mockCommentDTO = mock(CommentDTO.class);
+                given(mockCommentDTO.getCommentId()).willReturn(1L);
+                given(mockCommentDTO.getChildComments()).willReturn(List.of());
+
+                CommentResDTO mockCommentResDTO = new CommentResDTO(postId, issueId, List.of(mockCommentDTO));
                 given(commentMapper.toCommentResDTO(eq(allComments), eq(postId), eq(issueId),
-                                any(CommentLikeService.class), eq(currentMemberId)))
-                                .willReturn(mock(CommentResDTO.class));
+                                any(CommentLikeService.class), isNull()))
+                                .willReturn(mockCommentResDTO);
+
+                // enrichWithUserLikeInfo()에서 호출되는 메서드들 mock
+                given(commentLikeService.getLikedCommentIds(eq(currentMemberId), anyList()))
+                                .willReturn(java.util.Set.of());
 
                 // when
                 CommentPageResDTO result = commentService.getComments(postId, issueId, currentPage, size,
@@ -161,9 +174,20 @@ class CommentServiceTest {
                                 .willReturn(parentComments);
                 given(commentRepository.findByIssueIdAndParentCommentIds(eq(issueId), anyList()))
                                 .willReturn(allComments);
+
+                // 리팩토링 후: getCommentsWithoutUserInfo()에서 currentMemberId를 null로 전달
+                CommentDTO mockCommentDTO = mock(CommentDTO.class);
+                given(mockCommentDTO.getCommentId()).willReturn(1L);
+                given(mockCommentDTO.getChildComments()).willReturn(List.of());
+
+                CommentResDTO mockCommentResDTO = new CommentResDTO(postId, issueId, List.of(mockCommentDTO));
                 given(commentMapper.toCommentResDTO(eq(allComments), eq(postId), eq(issueId),
-                                any(CommentLikeService.class), eq(currentMemberId)))
-                                .willReturn(mock(CommentResDTO.class));
+                                any(CommentLikeService.class), isNull()))
+                                .willReturn(mockCommentResDTO);
+
+                // enrichWithUserLikeInfo()에서 호출되는 메서드들 mock
+                given(commentLikeService.getLikedCommentIds(eq(currentMemberId), anyList()))
+                                .willReturn(java.util.Set.of());
 
                 // when
                 CommentPageResDTO result = commentService.getComments(postId, issueId, currentPage, size,

@@ -66,7 +66,8 @@ public class NotificationService {
 
                 List<NotificationDTO> notifications = notificationMapper.toDTOList(notificationPage.getContent());
 
-                long unreadCount = notificationRepository.countUnreadByUser(user);
+                // 캐시된 메서드를 재사용하여 읽지 않은 알림 개수 조회 (중복 쿼리 방지)
+                long unreadCount = getUnreadCount(userId);
 
                 return NotificationPageResDTO.builder()
                                 .notifications(notifications)
