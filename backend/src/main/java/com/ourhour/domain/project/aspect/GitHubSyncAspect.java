@@ -9,11 +9,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ourhour.domain.project.annotation.GitHubSync;
-import com.ourhour.domain.project.dto.IssueDetailDTO;
-import com.ourhour.domain.project.dto.MileStoneInfoDTO;
+import com.ourhour.domain.project.aspect.strategy.EntitySyncStrategyRegistry;
 import com.ourhour.domain.project.entity.GitHubSyncableEntity;
-import com.ourhour.domain.project.repository.IssueRepository;
-import com.ourhour.domain.project.repository.MilestoneRepository;
 import com.ourhour.domain.project.sync.GitHubSyncManager;
 import com.ourhour.domain.project.sync.GitHubSyncContext;
 import com.ourhour.global.common.dto.ApiResponse;
@@ -29,8 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GitHubSyncAspect {
 
     private final GitHubSyncManager syncManager;
-    private final IssueRepository issueRepository;
-    private final MilestoneRepository milestoneRepository;
+    private final EntitySyncStrategyRegistry strategyRegistry;
 
     // 삭제 작업의 경우, 삭제 전에 로드해 둔 엔티티를 보관하기 위한 컨텍스트
     private final ThreadLocal<GitHubSyncContext> syncContext = ThreadLocal.withInitial(GitHubSyncContext::new);
@@ -43,47 +39,11 @@ public class GitHubSyncAspect {
                 return;
             }
 
-            // 메서드 인자에서 엔티티 ID를 식별 (entityParam 힌트를 우선 사용)
-            Object[] args = joinPoint.getArgs();
-            Long idCandidate = null;
-            String hintedParam = gitHubSync.entityParam();
-            if (hintedParam != null && !hintedParam.isBlank()) {
-                var params = ((org.aspectj.lang.reflect.CodeSignature) joinPoint.getSignature()).getParameterNames();
-                for (int i = 0; i < params.length && i < args.length; i++) {
-                    if (hintedParam.equals(params[i]) && args[i] instanceof Long) {
-                        idCandidate = (Long) args[i];
-                        break;
-                    }
-                }
-            }
-            if (idCandidate == null) {
-                for (Object arg : args) {
-                    if (arg instanceof Long) {
-                        idCandidate = (Long) arg;
-                        break;
-                    }
-                }
-            }
-
-            if (idCandidate == null) {
-                return;
-            }
-
-            GitHubSyncableEntity entity = null;
-            // entityParam 힌트를 통해 타입을 우선 판별
-            if ("issueId".equals(hintedParam)) {
-                entity = issueRepository.findById(idCandidate).orElse(null);
-            } else if ("milestoneId".equals(hintedParam)) {
-                entity = milestoneRepository.findById(idCandidate).orElse(null);
-            } else {
-                // 힌트가 없으면 이슈 우선 조회, 없으면 마일스톤 조회
-                var issueOpt = issueRepository.findById(idCandidate);
-                if (issueOpt.isPresent()) {
-                    entity = issueOpt.get();
-                } else {
-                    entity = milestoneRepository.findById(idCandidate).orElse(null);
-                }
-            }
+            // Strategy Registry를 통해 Entity 조회
+            GitHubSyncableEntity entity = strategyRegistry.findEntityFromJoinPoint(
+                    joinPoint,
+                    gitHubSync.entityParam()
+            );
 
             if (entity != null) {
                 syncContext.get().setPendingDeleteEntity(entity);
@@ -138,25 +98,19 @@ public class GitHubSyncAspect {
 
     // 결과에서 엔티티 추출
     private GitHubSyncableEntity extractEntityFromResult(Object result, JoinPoint joinPoint, GitHubSync gitHubSync) {
-        // 결과에서 엔티티 추출 시도
+        // ApiResponse에서 DTO 추출 후 Strategy Registry로 Entity 변환
         if (result instanceof ApiResponse) {
             ApiResponse<?> apiResponse = (ApiResponse<?>) result;
             Object data = apiResponse.getData();
 
-            // DTO에서 엔티티 ID를 추출해서 실제 엔티티를 조회하는 방식
-            if (data instanceof IssueDetailDTO) {
-                IssueDetailDTO dto = (IssueDetailDTO) data;
-                return issueRepository.findById(dto.getIssueId()).orElse(null);
+            // Strategy Registry를 통해 DTO에서 Entity 추출
+            GitHubSyncableEntity entity = strategyRegistry.extractFromDto(data);
+            if (entity != null) {
+                return entity;
             }
-
-            if (data instanceof MileStoneInfoDTO) {
-                MileStoneInfoDTO dto = (MileStoneInfoDTO) data;
-                return milestoneRepository.findById(dto.getMilestoneId()).orElse(null);
-            }
-
         }
 
-        // 메서드 파라미터에서 엔티티 추출
+        // 메서드 파라미터에서 GitHubSyncableEntity 직접 추출
         Object[] args = joinPoint.getArgs();
         for (Object arg : args) {
             if (arg instanceof GitHubSyncableEntity) {

@@ -1,6 +1,7 @@
 package com.ourhour.domain.comment.service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.cache.Cache;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ourhour.domain.comment.entity.CommentEntity;
 import com.ourhour.domain.comment.mapper.CommentMapper;
 import com.ourhour.domain.comment.dto.CommentCreateReqDTO;
+import com.ourhour.domain.comment.dto.CommentDTO;
 import com.ourhour.domain.comment.dto.CommentPageResDTO;
 import com.ourhour.domain.comment.dto.CommentResDTO;
 import com.ourhour.domain.comment.dto.CommentUpdateReqDTO;
@@ -58,9 +60,22 @@ public class CommentService {
     private final ApplicationEventPublisher eventPublisher;
     private final CacheManager cacheManager;
 
-    // 댓글 목록 조회
-    @Cacheable(value = "comments", key = "#postId + '_' + #issueId + '_' + #currentPage + '_' + #size + '_' + #currentMemberId")
+    // 댓글 목록 조회 (사용자별 좋아요 정보 포함)
     public CommentPageResDTO getComments(Long postId, Long issueId, int currentPage, int size, Long currentMemberId) {
+        // 기본 댓글 데이터는 캐시에서 조회 (사용자 무관)
+        CommentPageResDTO cachedResult = getCommentsWithoutUserInfo(postId, issueId, currentPage, size);
+
+        // 캐시된 결과에 사용자별 좋아요 정보를 추가
+        if (currentMemberId != null) {
+            enrichWithUserLikeInfo(cachedResult.getComments(), currentMemberId);
+        }
+
+        return cachedResult;
+    }
+
+    // 기본 댓글 데이터 조회 (캐시됨, 사용자 무관)
+    @Cacheable(value = "comments", key = "#postId + '_' + #issueId + '_' + #currentPage + '_' + #size")
+    public CommentPageResDTO getCommentsWithoutUserInfo(Long postId, Long issueId, int currentPage, int size) {
 
         if (postId == null && issueId == null) {
             throw CommentException.commentTargetRequiredException();
@@ -85,8 +100,9 @@ public class CommentService {
         // 대댓글들만 조회
         List<CommentEntity> relevantComments = getRelevantComments(postId, issueId, parentCommentIds);
 
+        // 좋아요 정보 없이 댓글 데이터만 변환 (currentMemberId = null)
         CommentResDTO commentResDTO = commentMapper.toCommentResDTO(relevantComments, postId, issueId,
-                commentLikeService, currentMemberId);
+                commentLikeService, null);
 
         return CommentPageResDTO.of(
                 commentResDTO,
@@ -96,6 +112,53 @@ public class CommentService {
                 parentCommentPage.getTotalElements(),
                 parentCommentPage.hasNext(),
                 parentCommentPage.hasPrevious());
+    }
+
+    // 사용자별 좋아요 정보를 댓글에 추가 (캐시되지 않음)
+    private void enrichWithUserLikeInfo(List<CommentDTO> comments, Long currentMemberId) {
+        if (comments == null || comments.isEmpty()) {
+            return;
+        }
+
+        // 모든 댓글 ID 수집 (재귀적으로)
+        List<Long> allCommentIds = collectAllCommentIds(comments);
+
+        // 현재 사용자의 좋아요 여부 한번에 조회
+        Set<Long> likedCommentIds = commentLikeService.getLikedCommentIds(currentMemberId, allCommentIds);
+
+        // 댓글에 좋아요 정보 추가 (재귀적으로)
+        enrichCommentsRecursively(comments, likedCommentIds);
+    }
+
+    // 모든 댓글 ID를 재귀적으로 수집
+    private List<Long> collectAllCommentIds(List<CommentDTO> comments) {
+        if (comments == null || comments.isEmpty()) {
+            return List.of();
+        }
+
+        return comments.stream()
+                .flatMap(comment -> {
+                    List<Long> ids = new java.util.ArrayList<>();
+                    ids.add(comment.getCommentId());
+                    ids.addAll(collectAllCommentIds(comment.getChildComments()));
+                    return ids.stream();
+                })
+                .collect(Collectors.toList());
+    }
+
+    // 댓글에 좋아요 정보를 재귀적으로 추가
+    private void enrichCommentsRecursively(List<CommentDTO> comments, Set<Long> likedCommentIds) {
+        if (comments == null || comments.isEmpty()) {
+            return;
+        }
+
+        for (CommentDTO comment : comments) {
+            // 좋아요 여부 업데이트 (reflection을 피하기 위해 DTO에 setter 필요)
+            comment.setIsLikedByCurrentUser(likedCommentIds.contains(comment.getCommentId()));
+
+            // 대댓글도 재귀적으로 처리
+            enrichCommentsRecursively(comment.getChildComments(), likedCommentIds);
+        }
     }
 
     // 최상위 댓글만 페이징
